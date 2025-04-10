@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Illegal Dumping Reports</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --success: #16a34a;
+      --warning: #ca8a04;
+      --danger: #dc2626;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --gray-light: #cbd5e1;
+      --border: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+    }
+    
+    .container {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .filter-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .filter-control {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .filter-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--gray);
+    }
+    
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-weight: 500;
+    }
+    
+    button:hover {
+      background-color: var(--primary-light);
+    }
+    
+    .export-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .reports-table-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .reports-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .reports-table th, .reports-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .reports-table th {
+      background-color: #f8fafc;
+      font-weight: 600;
+      color: var(--dark);
+      cursor: pointer;
+    }
+    
+    .reports-table th:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .reports-table tbody tr:hover {
+      background-color: #f8fafc;
+      cursor: pointer;
+    }
+    
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    
+    .status-new {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .status-assigned {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-progress {
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+    
+    .status-completed {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    
+    .status-verified {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-paid {
+      background-color: #f0fdf4;
+      color: #14532d;
+    }
+    
+    .severity-high {
+      color: var(--danger);
+      font-weight: 600;
+    }
+    
+    .severity-medium {
+      color: var(--warning);
+      font-weight: 600;
+    }
+    
+    .severity-low {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .page-controls {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background-color: white;
+      border: 1px solid var(--border);
+      color: var(--dark);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .action-btn {
+      background-color: var(--primary);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .detail-panel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .detail-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .detail-tab {
+      padding: 15px 20px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .detail-tab.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .status-flow {
+      padding: 30px 20px;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .step-indicator {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--gray-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .flow-step.completed .step-indicator {
+      background-color: var(--success);
+    }
+    
+    .flow-step.active .step-indicator {
+      background-color: var(--primary);
+    }
+    
+    .step-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray);
+    }
+    
+    .flow-step.completed .step-label,
+    .flow-step.active .step-label {
+      color: var(--dark);
+    }
+    
+    .status-flow::before {
+      content: '';
+      position: absolute;
+      top: 45px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background-color: var(--gray-light);
+      z-index: 1;
+    }
+    
+    .detail-content {
+      padding: 20px;
+    }
+    
+    .detail-section {
+      margin-bottom: 25px;
+    }
+    
+    .detail-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      color: var(--dark);
+    }
+    
+    .detail-title svg {
+      margin-right: 8px;
+    }
+    
+    .detail-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .detail-item {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      font-weight: 500;
+    }
+    
+    .detail-map {
+      width: 100%;
+      height: 200px;
+      background-color: #f1f5f9;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+    }
+    
+    .detail-images {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .detail-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+    }
+    
+    .detail-description {
+      background-color: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .detail-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn-secondary {
+      background-color: white;
+      color: var(--dark);
+      border: 1px solid var(--border);
+    }
+    
+    .assignment-form {
+      background-color: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .form-row {
+      margin-bottom: 15px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .verification-checklist {
+      background-color: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .checklist-item input[type="checkbox"] {
+      width: auto;
+      margin-right: 10px;
+    }
+    
+    .payment-details {
+      background-color: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    
+    .payment-label {
+      font-weight: 500;
+    }
+    
+    .payment-total {
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 16px;
+      margin-top: 10px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <h1>TrashDrop</h1>
+      </div>
+      <div class="user-profile">
+        <span>Admin Dashboard</span>
+        <div class="user-avatar">A</div>
+      </div>
+    </header>
+    
+    <div class="filter-section">
+      <div class="filter-controls">
+        <div class="filter-control">
+          <label class="filter-label">Status</label>
+          <select>
+            <option>All</option>
+            <option>New</option>
+            <option>Assigned</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Verified</option>
+            <option>Paid</option>
+          </select>
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Date Range</label>
+          <input type="date">
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Location/Zone</label>
+          <select>
+            <option>All Zones</option>
+            <option>North District</option>
+            <option>South District</option>
+            <option>East District</option>
+            <option>West District</option>
+            <option>Central District</option>
+          </select>
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Search</label>
+          <input type="text" placeholder="Report ID or keywords">
+        </div>
+        <div class="filter-control">
+          <label class="filter-label"> </label>
+          <button class="export-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white"/>
+              <polyline points="7 10 12 15 17 10" stroke="white"/>
+              <line x1="12" y1="15" x2="12" y2="3" stroke="white"/>
+            </svg>
+            Export Data
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="reports-table-container">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>Date/Time</th>
+            <th>Location/Zone</th>
+            <th>Status</th>
+            <th>Severity</th>
+            <th>Assigned To</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ID-2025-0428</td>
+            <td>04/08/2025, 09:23 AM</td>
+            <td>North District</td>
+            <td><span class="status-badge status-new">New</span></td>
+            <td class="severity-high">High</td>
+            <td>-</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0427</td>
+            <td>04/07/2025, 02:45 PM</td>
+            <td>Central District</td>
+            <td><span class="status-badge status-assigned">Assigned</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>John Doe</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0426</td>
+            <td>04/07/2025, 10:12 AM</td>
+            <td>East District</td>
+            <td><span class="status-badge status-progress">In Progress</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>Alice Smith</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0425</td>
+            <td>04/06/2025, 03:56 PM</td>
+            <td>West District</td>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td class="severity-low">Low</td>
+            <td>Bob Johnson</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0424</td>
+            <td>04/06/2025, 11:30 AM</td>
+            <td>South District</td>
+            <td><span class="status-badge status-verified">Verified</span></td>
+            <td class="severity-high">High</td>
+            <td>Sarah Williams</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0423</td>
+            <td>04/05/2025, 04:18 PM</td>
+            <td>Central District</td>
+            <td><span class="status-badge status-paid">Paid</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>Michael Brown</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <div class="page-info">Showing 1-6 of 42 reports</div>
+        <div class="page-controls">
+          <button class="page-btn">&lt;</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">&gt;</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="detail-panel">
+      <div class="detail-tabs">
+        <div class="detail-tab active">Report Details</div>
+        <div class="detail-tab">Assignment</div>
+        <div class="detail-tab">Verification</div>
+        <div class="detail-tab">Payment</div>
+      </div>
+      
+      <div class="detail-content">
+        <div class="status-flow">
+          <div class="flow-step completed">
+            <div class="step-indicator">1</div>
+            <div class="step-label">Reported</div>
+          </div>
+          <div class="flow-step active">
+            <div class="step-indicator">2</div>
+            <div class="step-label">Assignment</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">3</div>
+            <div class="step-label">In Progress</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">4</div>
+            <div class="step-label">Completed</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">5</div>
+            <div class="step-label">Verified</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">6</div>
+            <div class="step-label">Paid</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#2563eb"/>
+              <polyline points="14 2 14 8 20 8" stroke="#2563eb"/>
+              <line x1="16" y1="13" x2="8" y2="13" stroke="#2563eb"/>
+              <line x1="16" y1="17" x2="8" y2="17" stroke="#2563eb"/>
+              <polyline points="10 9 9 9 8 9" stroke="#2563eb"/>
+            </svg>
+            Report Information
+          </h3>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Report ID</div>
+              <div class="detail-value">ID-2025-0427</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Date/Time</div>
+              <div class="detail-value">04/07/2025, 02:45 PM</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Status</div>
+              <div class="detail-value"><span class="status-badge status-assigned">Assigned</span></div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Severity</div>
+              <div class="detail-value severity-medium">Medium</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Reported By</div>
+              <div class="detail-value">John Citizen</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Contact</div>
+              <div class="detail-value">john@example.com</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Phone</div>
+              <div class="detail-value">+1 (555) 123-4567</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2563eb"/>
+              <circle cx="8.5" cy="8.5" r="1.5" stroke="#2563eb"/>
+              <polyline points="21 15 16 10 5 21" stroke="#2563eb"/>
+            </svg>
+            Location & Images
+          </h3>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Zone</div>
+              <div class="detail-value">Central District</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Address</div>
+              <div class="detail-value">123 Main St, Central District</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Coordinates</div>
+              <div class="detail-value">37.7749° N, 122.4194° W</div>
+            </div>
+          </div>
+          <div class="detail-map">Map Placeholder</div>
+          <div class="detail-images">
+            <div class="detail-image">Image 1</div>
+            <div class="detail-image">Image 2</div>
+            <div class="detail-image">Image 3</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" stroke="#2563eb"/>
+              <line x1="8" y1="12" x2="21" y2="12" stroke="#2563eb"/>
+              <line x1="8" y1="18" x2="21" y2="18" stroke="#2563eb"/>
+              <line x1="3" y1="6" x2="3.01" y2="6" stroke="#2563eb"/>
+              <line x1="3" y1="12" x2="3.01" y2="12" stroke="#2563eb"/>
+              <line x1="3" y1="18" x2="3.01" y2="18" stroke="#2563eb"/>
+            </svg>
+            Description
+          </h3>
+          <div class="detail-description">
+            Large pile of construction debris dumped near the community park entrance. Includes broken concrete, wood scraps, and plastic waste. Appears to have been dumped overnight. Local residents reported a truck in the area around midnight.
+          </div>
+        </div>
+        
+        <div class="detail-actions">
+          <button class="btn-secondary">Back to List</button>
+          <button>Update Status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab switching
+      const tabs = document.querySelectorAll('.detail-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      // View buttons
+      const viewButtons = document.querySelectorAll('.action-btn');
+      viewButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.stopPropagation();
+          alert('Viewing report details');
+        });
+      });
+      
+      // Row clicking
+      const tableRows = document.querySelectorAll('.reports-table tbody tr');
+      tableRows.forEach(row => {
+        row.addEventListener('click', function() {
+          alert('Viewing report: ' + this.querySelector('td').textContent);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

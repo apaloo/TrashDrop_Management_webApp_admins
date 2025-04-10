@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Illegal Dumping Report Management</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --success: #16a34a;
+      --warning: #ca8a04;
+      --danger: #dc2626;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --gray-light: #cbd5e1;
+      --border: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+    }
+    
+    .container {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .filter-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .filter-control {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .filter-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--gray);
+    }
+    
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-weight: 500;
+    }
+    
+    button:hover {
+      background-color: var(--primary-light);
+    }
+    
+    .export-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .reports-table-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .reports-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .reports-table th, .reports-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .reports-table th {
+      background-color: #f8fafc;
+      font-weight: 600;
+      color: var(--dark);
+      cursor: pointer;
+    }
+    
+    .reports-table th:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .reports-table tbody tr:hover {
+      background-color: #f8fafc;
+      cursor: pointer;
+    }
+    
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    
+    .status-new {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .status-assigned {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-progress {
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+    
+    .status-completed {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    
+    .status-verified {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-paid {
+      background-color: #f0fdf4;
+      color: #14532d;
+    }
+    
+    .severity-high {
+      color: var(--danger);
+      font-weight: 600;
+    }
+    
+    .severity-medium {
+      color: var(--warning);
+      font-weight: 600;
+    }
+    
+    .severity-low {
+      color: var(--gray);
+      font-weight: 600;
+    }
+    
+    .action-btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      width: auto;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .page-info {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    .page-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .page-btn {
+      width: auto;
+      padding: 8px 15px;
+      border: 1px solid var(--border);
+      background-color: white;
+      color: var(--dark);
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .detail-panel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .detail-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .detail-tab {
+      padding: 15px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      font-weight: 500;
+    }
+    
+    .detail-tab.active {
+      border-bottom: 3px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .detail-content {
+      padding: 20px;
+    }
+    
+    .detail-section {
+      margin-bottom: 25px;
+    }
+    
+    .detail-section:last-child {
+      margin-bottom: 0;
+    }
+    
+    .detail-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .detail-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-item {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      font-weight: 500;
+    }
+    
+    .image-gallery {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .gallery-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .timeline {
+      margin-top: 20px;
+      position: relative;
+    }
+    
+    .timeline-item {
+      padding-left: 30px;
+      position: relative;
+      padding-bottom: 20px;
+    }
+    
+    .timeline-item:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: var(--primary);
+    }
+    
+    .timeline-item:after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 12px;
+      width: 2px;
+      height: 100%;
+      background-color: var(--border);
+    }
+    
+    .timeline-item:last-child:after {
+      display: none;
+    }
+    
+    .timeline-time {
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 3px;
+    }
+    
+    .timeline-content {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+    
+    .timeline-meta {
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    .map-container {
+      height: 200px;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .map-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    .cleaner-list {
+      margin-top: 15px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .cleaner-list-header {
+      display: flex;
+      background-color: #f8fafc;
+      padding: 10px 15px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .cleaner-list-item {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid var(--border);
+      align-items: center;
+    }
+    
+    .cleaner-list-header div, .cleaner-list-item div {
+      flex: 1;
+    }
+    
+    .cleaner-name {
+      flex: 1.5 !important;
+    }
+    
+    .star-rating {
+      display: flex;
+      gap: 2px;
+      margin-top: 5px;
+    }
+    
+    .star {
+      color: #fbbf24;
+    }
+    
+    .comparison-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+    }
+    
+    .comparison-side {
+      flex: 1;
+    }
+    
+    .comparison-label {
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .comparison-image {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    
+    .qa-checklist {
+      margin-top: 15px;
+    }
+    
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .checklist-item input {
+      margin-right: 10px;
+      width: auto;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn-approve {
+      background-color: var(--success);
+    }
+    
+    .btn-approve:hover {
+      background-color: #15803d;
+    }
+    
+    .btn-correct {
+      background-color: var(--warning);
+      color: white;
+    }
+    
+    .btn-correct:hover {
+      background-color: #a16207;
+    }
+    
+    .btn-reject {
+      background-color: var(--danger);
+    }
+    
+    .btn-reject:hover {
+      background-color: #b91c1c;
+    }
+    
+    .payment-details {
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    
+    .payment-row:last-child {
+      border-bottom: none;
+      font-weight: 600;
+      padding-top: 15px;
+    }
+    
+    .status-flow {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .status-flow:after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--border);
+      z-index: 0;
+    }
+    
+    .flow-step {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    
+    .step-indicator {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: white;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .step-label {
+      font-size: 12px;
+      color: var(--gray);
+      text-align: center;
+    }
+    
+    .flow-step.completed .step-indicator {
+      background-color: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .flow-step.active .step-indicator {
+      background-color: white;
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    
+    .flow-step.completed .step-label,
+    .flow-step.active .step-label {
+      color: var(--dark);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <h1>CleanCity</h1>
+      </div>
+      <div class="user-profile">
+        <span>Admin Dashboard</span>
+        <div class="user-avatar">A</div>
+      </div>
+    </header>
+    
+    <div class="filter-section">
+      <div class="filter-controls">
+        <div class="filter-control">
+          <label class="filter-label">Status</label>
+          <select>
+            <option>All</option>
+            <option>New</option>
+            <option>Assigned</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Verified</option>
+            <option>Paid</option>
+          </select>
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Date Range</label>
+          <input type="date">
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Location/Zone</label>
+          <select>
+            <option>All Zones</option>
+            <option>North District</option>
+            <option>South District</option>
+            <option>East District</option>
+            <option>West District</option>
+            <option>Central District</option>
+          </select>
+        </div>
+        <div class="filter-control">
+          <label class="filter-label">Search</label>
+          <input type="text" placeholder="Report ID or keywords">
+        </div>
+        <div class="filter-control">
+          <label class="filter-label"> </label>
+          <button class="export-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white"/>
+              <polyline points="7 10 12 15 17 10" stroke="white"/>
+              <line x1="12" y1="15" x2="12" y2="3" stroke="white"/>
+            </svg>
+            Export Data
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="reports-table-container">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>Date/Time</th>
+            <th>Location/Zone</th>
+            <th>Status</th>
+            <th>Severity</th>
+            <th>Assigned To</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ID-2025-0428</td>
+            <td>04/08/2025, 09:23 AM</td>
+            <td>North District</td>
+            <td><span class="status-badge status-new">New</span></td>
+            <td class="severity-high">High</td>
+            <td>-</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0427</td>
+            <td>04/07/2025, 02:45 PM</td>
+            <td>Central District</td>
+            <td><span class="status-badge status-assigned">Assigned</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>John Doe</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0426</td>
+            <td>04/07/2025, 10:12 AM</td>
+            <td>East District</td>
+            <td><span class="status-badge status-progress">In Progress</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>Alice Smith</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0425</td>
+            <td>04/06/2025, 03:56 PM</td>
+            <td>West District</td>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td class="severity-low">Low</td>
+            <td>Bob Johnson</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0424</td>
+            <td>04/06/2025, 11:30 AM</td>
+            <td>South District</td>
+            <td><span class="status-badge status-verified">Verified</span></td>
+            <td class="severity-high">High</td>
+            <td>Sarah Williams</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td>ID-2025-0423</td>
+            <td>04/05/2025, 04:18 PM</td>
+            <td>Central District</td>
+            <td><span class="status-badge status-paid">Paid</span></td>
+            <td class="severity-medium">Medium</td>
+            <td>Michael Brown</td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <div class="page-info">Showing 1-6 of 42 reports</div>
+        <div class="page-controls">
+          <button class="page-btn">&lt;</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">&gt;</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="detail-panel">
+      <div class="detail-tabs">
+        <div class="detail-tab active">Report Details</div>
+        <div class="detail-tab">Assignment</div>
+        <div class="detail-tab">Verification</div>
+        <div class="detail-tab">Payment</div>
+      </div>
+      
+      <div class="detail-content">
+        <div class="status-flow">
+          <div class="flow-step completed">
+            <div class="step-indicator">1</div>
+            <div class="step-label">Reported</div>
+          </div>
+          <div class="flow-step active">
+            <div class="step-indicator">2</div>
+            <div class="step-label">Assignment</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">3</div>
+            <div class="step-label">In Progress</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">4</div>
+            <div class="step-label">Completed</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">5</div>
+            <div class="step-label">Verified</div>
+          </div>
+          <div class="flow-step">
+            <div class="step-indicator">6</div>
+            <div class="step-label">Paid</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#2563eb"/>
+              <polyline points="14 2 14 8 20 8" stroke="#2563eb"/>
+              <line x1="16" y1="13" x2="8" y2="13" stroke="#2563eb"/>
+              <line x1="16" y1="17" x2="8" y2="17" stroke="#2563eb"/>
+              <polyline points="10 9 9 9 8 9" stroke="#2563eb"/>
+            </svg>
+            Report Information
+          </h3>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Report ID</div>
+              <div class="detail-value">ID-2025-0427</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Date/Time Reported</div>
+              <div class="detail-value">04/07/2025, 02:45 PM</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Reporting Method</div>
+              <div class="detail-value">Citizen App</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Reporter</div>
+              <div class="detail-value">Anonymous</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Severity</div>
+              <div class="detail-value severity-medium">Medium</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Waste Type</div>
+              <div class="detail-value">Construction Debris</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke="#2563eb"/>
+              <polyline points="12 6 12 12 16 14" stroke="#2563eb"/>
+            </svg>
+            Location Details
+          </h3>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">Address</div>
+              <div class="detail-value">123 Main Street</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Zone/District</div>
+              <div class="detail-value">Central District</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-item">
+              <div class="detail-label">GPS Coordinates</div>
+              <div class="detail-value">40.7128° N, 74.0060° W</div>
+            </div>
+          </div>
+          <div class="map-container">
+            <div class="map-placeholder">Interactive Map</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2563eb"/>
+              <circle cx="8.5" cy="8.5" r="1.5" stroke="#2563eb"/>
+              <polyline points="21 15 16 10 5 21" stroke="#2563eb"/>
+            </svg>
+            Images & Description
+          </h3>
+          <div class="detail-row">
+            <div class="detail-item" style="flex: 2;">
+              <div class="detail-label">Description</div>
+              <div class="detail-value">Large pile of construction debris dumped on the sidewalk, blocking pedestrian access. Appears to include concrete, wood scraps, and metal waste.</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Estimated Volume</div>
+              <div class="detail-value">2.5 cubic meters</div>
+            </div>
+          </div>
+          <div class="image-gallery">
+            <img src="/api/placeholder/120/120" alt="Dumping photo 1" class="gallery-image">
+            <img src="/api/placeholder/120/120" alt="Dumping photo 2" class="gallery-image">
+            <img src="/api/placeholder/120/120" alt="Dumping photo 3" class="gallery-image">
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h3 class="detail-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke="#2563eb"/>
+              <polyline points="12 6 12 12 16 14" stroke="#2563eb"/>
+            </svg>
+            Timeline
+          </h3>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-time">04/07/2025, 02:45 PM</div>
+              <div class="timeline-content">Report submitted</div>
+              <div class="timeline-meta">via Citizen App</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">04/07/2025, 03:12 PM</div>
+              <div class="timeline-content">Report reviewed</div>
+              <div class="timeline-meta">by Admin (Jane Smith)</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">04/07/2025, 03:30 PM</div>
+              <div class="timeline-content">Assigned to cleaner</div>
+              <div class="timeline-meta">John Doe assigned with Medium priority</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-section" style="text-align: right;">
+          <button class="action-btn">Assign Cleaner</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab switching functionality
+      const tabs = document.querySelectorAll('.detail-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      // Table row click to highlight
+      const tableRows = document.querySelectorAll('.reports-table tbody tr');
+      tableRows.forEach(row =>

@@ -1,0 +1,891 @@
+<!-- Illegal Dumping Management Section -->
+<div id="illegal-dumping-section" class="content-section hidden">
+    <!-- Persistent Stats Overview (Fixed Top Section) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Active Reports Card -->
+        <div class="card p-4">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Active Reports</p>
+                    <h3 class="text-2xl font-bold mt-1" id="active-reports-count">15</h3>
+                    <div class="flex items-center mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-red-500 h-2.5 rounded-full" style="width: 30%" id="new-reports-bar"></div>
+                            <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 45%" id="in-progress-reports-bar"></div>
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 25%" id="completed-reports-bar"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-2">
+                            <span class="text-red-500 font-medium" id="new-reports-count">5</span> New,
+                            <span class="text-yellow-500 font-medium" id="assigned-reports-count">7</span> Assigned,
+                            <span class="text-green-500 font-medium" id="in-progress-reports-count">3</span> In Progress
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 p-2 rounded-lg">
+                    <i class="fas fa-clipboard-list text-blue-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resolution Rate Card -->
+        <div class="card p-4">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Resolution Rate</p>
+                    <h3 class="text-2xl font-bold mt-1" id="resolution-rate">85%</h3>
+                    <div class="flex items-center mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-2">
+                            <i class="fas fa-arrow-up text-green-500 mr-1"></i>+5%
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-green-50 p-2 rounded-lg">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Time Card -->
+        <div class="card p-4">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Avg. Response Time</p>
+                    <h3 class="text-2xl font-bold mt-1" id="avg-response-time">2h 15m</h3>
+                    <div class="flex items-center mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-2">
+                            <i class="fas fa-arrow-down text-green-500 mr-1"></i>-15m
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 p-2 rounded-lg">
+                    <i class="fas fa-clock text-blue-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotspots Card -->
+        <div class="card p-4">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Hotspots</p>
+                    <h3 class="text-2xl font-bold mt-1" id="hotspots-count">3 zones</h3>
+                    <div class="flex items-center mt-2">
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Downtown</span> (8),
+                            <span class="font-medium">North District</span> (5),
+                            <span class="font-medium">West District</span> (4)
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-2 rounded-lg">
+                    <i class="fas fa-fire text-red-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Map -->
+        <div class="card lg:col-span-2">
+            <div class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold">Illegal Dumping Map</h3>
+                    <div class="flex items-center">
+                        <div class="flex space-x-2 mr-4">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                                <span class="text-xs text-gray-600" id="new-marker-count">5</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
+                                <span class="text-xs text-gray-600" id="assigned-marker-count">7</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>
+                                <span class="text-xs text-gray-600" id="in-progress-marker-count">3</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-green-500 mr-1"></span>
+                                <span class="text-xs text-gray-600" id="completed-marker-count">12</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-purple-500 mr-1"></span>
+                                <span class="text-xs text-gray-600" id="verified-marker-count">8</span>
+                            </div>
+                        </div>
+                        <button class="text-sm text-blue-600">
+                            <i class="fas fa-expand-alt mr-1"></i>
+                            Fullscreen
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-0 relative" style="height: 400px" id="illegal-dumping-map-container">
+                <!-- Map placeholder - will be replaced by actual map -->
+                <div class="w-full h-full relative" style="background-image: url('https://i.imgur.com/Qn9UvLQ.jpg'); background-size: cover; background-position: center;">
+                    <div class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-map-marked-alt text-blue-500 text-4xl mb-2"></i>
+                            <p class="text-gray-700">Interactive map will be displayed here</p>
+                            <p class="text-sm text-gray-500">Showing illegal dumping reports across all districts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Panel -->
+        <div class="card">
+            <div class="p-4 border-b">
+                <h3 class="font-semibold">Filters & Actions</h3>
+            </div>
+            <div class="p-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="status-filter" class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg appearance-none text-sm">
+                        <option value="all">All Statuses</option>
+                        <option value="new">New</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="verified">Verified</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                    <select id="severity-filter" class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg appearance-none text-sm">
+                        <option value="all">All Severities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Timeframe</label>
+                    <select id="timeframe-filter" class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg appearance-none text-sm">
+                        <option value="day">Last 24 Hours</option>
+                        <option value="week" selected>Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="year">Last Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Zone/District</label>
+                    <select id="zone-filter" class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg appearance-none text-sm">
+                        <option value="all">All Zones</option>
+                        <option value="downtown">Downtown</option>
+                        <option value="north_district">North District</option>
+                        <option value="south_district">South District</option>
+                        <option value="east_district">East District</option>
+                        <option value="west_district">West District</option>
+                    </select>
+                </div>
+
+                <div class="border-t pt-4">
+                    <button id="new-report-btn" class="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm mb-2">
+                        <i class="fas fa-plus mr-2"></i>
+                        New Dumping Report
+                    </button>
+                    <button id="export-data-btn" class="w-full bg-gray-100 text-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <i class="fas fa-file-export mr-2"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Management Dashboard -->
+    <div class="card mb-6">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold">Illegal Dumping Reports</h3>
+            <div class="text-sm text-gray-500">
+                <span class="inline-flex items-center mr-4">
+                    <span class="w-3 h-3 rounded-full bg-blue-500 mr-1"></span> New
+                </span>
+                <span class="inline-flex items-center mr-4">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500 mr-1"></span> In Progress
+                </span>
+                <span class="inline-flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-green-500 mr-1"></span> Completed
+                </span>
+            </div>
+        </div>
+        
+        <!-- Filters and Search Section -->
+        <div class="p-4 border-b bg-gray-50">
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Status Filter -->
+                <div class="relative">
+                    <select id="status-filter" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All Statuses</option>
+                        <option value="new">New</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="verified">Verified</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+                
+                <!-- Date Range Picker -->
+                <div class="flex items-center space-x-2">
+                    <div class="relative">
+                        <input type="date" id="date-from" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <span class="text-gray-500 text-sm">to</span>
+                    <div class="relative">
+                        <input type="date" id="date-to" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Zone Filter -->
+                <div class="relative">
+                    <select id="zone-filter" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All Zones</option>
+                        <option value="downtown">Downtown</option>
+                        <option value="north_district">North District</option>
+                        <option value="south_district">South District</option>
+                        <option value="east_district">East District</option>
+                        <option value="west_district">West District</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="relative flex-grow max-w-md">
+                    <input type="text" id="report-search" placeholder="Search by ID, location, or keywords..." class="w-full appearance-none bg-white border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="ml-auto flex space-x-2">
+                    <button id="toggle-photo-preview" class="bg-white border border-gray-300 text-gray-700 rounded-md px-3 py-2 text-sm hover:bg-gray-50">
+                        <i class="fas fa-images mr-1"></i>
+                        Show Photos
+                    </button>
+                    <button id="export-data-btn" class="bg-white border border-gray-300 text-gray-700 rounded-md px-3 py-2 text-sm hover:bg-gray-50">
+                        <i class="fas fa-file-export mr-1"></i>
+                        Export
+                    </button>
+                    <button id="refresh-reports-btn" class="bg-blue-600 text-white rounded-md px-3 py-2 text-sm hover:bg-blue-700">
+                        <i class="fas fa-sync-alt mr-1"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="text-xs font-medium text-gray-500 uppercase border-b border-gray-200 bg-gray-50">
+                        <th class="px-4 py-3 text-left">Report ID</th>
+                        <th class="px-4 py-3 text-left">Date/Time</th>
+                        <th class="px-4 py-3 text-left">Location/Zone</th>
+                        <th class="px-4 py-3 text-left">Status</th>
+                        <th class="px-4 py-3 text-left">Severity</th>
+                        <th class="px-4 py-3 text-left">Assigned To</th>
+                        <th class="px-4 py-3 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="illegal-dumping-reports-table-body" class="divide-y divide-gray-200">
+                    <!-- Table rows will be dynamically populated by JavaScript -->
+                    <!-- Example row for styling reference -->
+                    <tr class="hover:bg-gray-50 cursor-pointer">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center">
+                                <span class="font-medium text-blue-600">RPT-1025</span>
+                                <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">New</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500">Apr 7, 2025 - 10:23 AM</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-col">
+                                <span class="text-sm">123 Main St</span>
+                                <span class="text-xs text-gray-500">Downtown</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">New</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">High</span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500">—</td>
+                        <td class="px-4 py-3">
+                            <div class="flex space-x-1">
+                                <button class="p-1 text-blue-600 hover:text-blue-800" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="p-1 text-green-600 hover:text-green-800" title="Assign">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="p-1 text-gray-600 hover:text-gray-800" title="More Options">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="p-4 border-t flex justify-between items-center">
+            <div class="text-sm text-gray-500">Showing <span id="showing-reports-count">1-15</span> of <span id="total-reports-count">42</span> reports</div>
+            <div class="flex space-x-1">
+                <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-600 disabled:opacity-50" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="px-3 py-1 rounded-md bg-blue-600 text-white">1</button>
+                <button class="px-3 py-1 rounded-md hover:bg-gray-100 text-gray-700">2</button>
+                <button class="px-3 py-1 rounded-md hover:bg-gray-100 text-gray-700">3</button>
+                <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-600">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Detail Panel (Hidden by default) -->
+    <div id="report-detail-panel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-screen overflow-hidden">
+            <!-- Header with Status Flow Visualization -->
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-lg">Report <span id="detail-report-id" class="text-blue-600">RPT-1025</span></h3>
+                    <span id="detail-report-status" class="ml-3 px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">New</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:block">
+                        <!-- Status Flow Visualization -->
+                        <div class="flex items-center space-x-1">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-blue-600 font-medium">New</span>
+                            </div>
+                            <div class="w-8 h-0.5 bg-gray-300"></div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-gray-500">Assigned</span>
+                            </div>
+                            <div class="w-8 h-0.5 bg-gray-300"></div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs">
+                                    <i class="fas fa-broom"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-gray-500">In Progress</span>
+                            </div>
+                            <div class="w-8 h-0.5 bg-gray-300"></div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-gray-500">Completed</span>
+                            </div>
+                            <div class="w-8 h-0.5 bg-gray-300"></div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-gray-500">Verified</span>
+                            </div>
+                            <div class="w-8 h-0.5 bg-gray-300"></div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <span class="text-xs mt-1 text-gray-500">Paid</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="close-detail-panel" class="text-gray-500 hover:text-gray-700 p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="flex border-b bg-white">
+                <button class="detail-tab active px-6 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-600" data-tab="report-details-tab">
+                    <i class="fas fa-info-circle mr-2"></i>Report Details
+                </button>
+                <button class="detail-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="assignment-tab">
+                    <i class="fas fa-user-plus mr-2"></i>Assignment
+                </button>
+                <button class="detail-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="verification-tab">
+                    <i class="fas fa-clipboard-check mr-2"></i>Verification
+                </button>
+                <button class="detail-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="payment-tab">
+                    <i class="fas fa-money-bill-wave mr-2"></i>Payment
+                </button>
+            </div>
+            
+            <!-- Tab Contents -->
+            <div class="tab-contents overflow-y-auto" style="max-height: calc(100vh - 200px);">
+                <div id="report-details-tab" class="tab-content p-6">
+                    <!-- Report Details Content -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left Column: Report Info -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Basic Info Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Report Information</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">Report ID</p>
+                                            <p class="font-medium" id="detail-report-id-value">RPT-1025</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Reported On</p>
+                                            <p class="font-medium" id="detail-report-date">Apr 7, 2025 - 10:23 AM</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Reporting Method</p>
+                                            <p class="font-medium" id="detail-report-method">Citizen App</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Severity</p>
+                                            <p class="font-medium"><span id="detail-report-severity" class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">High</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Reporter Details Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Reporter Information</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">Name</p>
+                                            <p class="font-medium" id="detail-reporter-name">John Smith</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Contact</p>
+                                            <p class="font-medium" id="detail-reporter-contact">+1 (555) 123-4567</p>
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <p class="text-sm text-gray-500">Additional Notes</p>
+                                            <p class="text-sm" id="detail-reporter-notes">Reporter mentioned that this dumping occurred overnight and has been growing in size over the past week.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Waste Details Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Waste Details</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">Waste Type</p>
+                                            <p class="font-medium" id="detail-waste-type">Construction</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Estimated Volume</p>
+                                            <p class="font-medium" id="detail-waste-volume">3 cubic meters</p>
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <p class="text-sm text-gray-500">Description</p>
+                                            <p class="text-sm" id="detail-waste-description">Illegal dumping of construction waste including concrete debris, broken drywall, and wood scraps.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Gallery -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Photo Evidence</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="detail-image-gallery">
+                                        <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                                            <img src="https://via.placeholder.com/300x200?text=Dumping+Evidence+1" class="object-cover w-full h-full" alt="Evidence photo 1">
+                                        </div>
+                                        <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                                            <img src="https://via.placeholder.com/300x200?text=Dumping+Evidence+2" class="object-cover w-full h-full" alt="Evidence photo 2">
+                                        </div>
+                                        <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                                            <img src="https://via.placeholder.com/300x200?text=Dumping+Evidence+3" class="object-cover w-full h-full" alt="Evidence photo 3">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Location and Timeline -->
+                        <div class="space-y-6">
+                            <!-- Location Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Location Details</h3>
+                                </div>
+                                <div class="p-4 space-y-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Address</p>
+                                        <p class="font-medium" id="detail-location-address">123 Main Street</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Zone/District</p>
+                                        <p class="font-medium" id="detail-location-zone">Downtown</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">GPS Coordinates</p>
+                                        <p class="font-medium" id="detail-location-gps">37.7749° N, 122.4194° W</p>
+                                    </div>
+                                    <!-- Mini Map -->
+                                    <div class="h-48 bg-gray-100 rounded-lg overflow-hidden" id="detail-location-map">
+                                        <!-- Map will be initialized here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Timeline Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Activity Timeline</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div class="space-y-4" id="detail-timeline">
+                                        <div class="flex">
+                                            <div class="flex flex-col items-center mr-4">
+                                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                                <div class="h-full w-0.5 bg-gray-200"></div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium">Report Received</p>
+                                                <p class="text-xs text-gray-500">Apr 7, 2025 - 10:23 AM</p>
+                                                <p class="text-sm mt-1">Report submitted via Citizen App</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex">
+                                            <div class="flex flex-col items-center mr-4">
+                                                <div class="w-3 h-3 bg-gray-300 rounded-full"></div>
+                                                <div class="h-full w-0.5 bg-transparent"></div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium text-gray-500">Awaiting Assignment</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="assignment-tab" class="tab-content hidden p-6">
+                    <!-- Assignment Tab Content -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left Column: Assignment Options -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Current Status Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
+                                    <h3 class="font-medium">Current Status</h3>
+                                    <span id="assignment-current-status" class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">New</span>
+                                </div>
+                                <div class="p-4">
+                                    <div class="mb-4">
+                                        <p class="text-sm text-gray-500 mb-1">Status Description</p>
+                                        <p class="text-sm" id="assignment-status-description">This report is new and waiting to be assigned to a cleaner. Once assigned, the cleaner will be notified and can accept or decline the task.</p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button id="btn-assign-task" class="px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                            <i class="fas fa-user-plus mr-1"></i> Assign Task
+                                        </button>
+                                        <button id="btn-mark-duplicate" class="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                            <i class="fas fa-copy mr-1"></i> Mark as Duplicate
+                                        </button>
+                                        <button id="btn-reject-report" class="px-3 py-2 bg-red-100 text-red-700 text-sm rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                            <i class="fas fa-times-circle mr-1"></i> Reject Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Cleaner Selection Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Available Cleaners</h3>
+                                </div>
+                                <div class="p-4">
+                                    <!-- Filter Options -->
+                                    <div class="flex flex-wrap gap-3 mb-4">
+                                        <div class="relative">
+                                            <select id="cleaner-filter-proximity" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="all">All Distances</option>
+                                                <option value="near">Within 5 km</option>
+                                                <option value="medium">Within 10 km</option>
+                                                <option value="far">Any Distance</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                <i class="fas fa-chevron-down text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="relative">
+                                            <select id="cleaner-filter-specialization" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="all">All Specializations</option>
+                                                <option value="construction">Construction Waste</option>
+                                                <option value="hazardous">Hazardous Materials</option>
+                                                <option value="bulk">Bulk Items</option>
+                                                <option value="general">General Waste</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                <i class="fas fa-chevron-down text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="relative">
+                                            <select id="cleaner-filter-rating" class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="all">All Ratings</option>
+                                                <option value="5">5 Stars</option>
+                                                <option value="4">4+ Stars</option>
+                                                <option value="3">3+ Stars</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                <i class="fas fa-chevron-down text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="relative ml-auto">
+                                            <input type="text" placeholder="Search cleaners..." class="appearance-none bg-white border border-gray-300 rounded-md pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                                                <i class="fas fa-search"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Cleaners Table -->
+                                    <div class="overflow-x-auto border rounded-lg">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cleaner</th>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialization</th>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Workload</th>
+                                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <!-- Example rows -->
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                                                <i class="fas fa-user"></i>
+                                                            </div>
+                                                            <div class="ml-3">
+                                                                <div class="text-sm font-medium text-gray-900">Michael Johnson</div>
+                                                                <div class="text-xs text-gray-500">ID: CLN-1042</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">2.3 km</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Construction</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center text-sm text-gray-900">
+                                                            <span class="text-yellow-500 mr-1"><i class="fas fa-star"></i></span>
+                                                            <span>4.8</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">1 active task</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button class="text-blue-600 hover:text-blue-900 focus:outline-none">Select</button>
+                                                    </td>
+                                                </tr>
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                                                <i class="fas fa-user"></i>
+                                                            </div>
+                                                            <div class="ml-3">
+                                                                <div class="text-sm font-medium text-gray-900">Sarah Williams</div>
+                                                                <div class="text-xs text-gray-500">ID: CLN-1078</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">3.7 km</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Hazardous</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center text-sm text-gray-900">
+                                                            <span class="text-yellow-500 mr-1"><i class="fas fa-star"></i></span>
+                                                            <span>4.9</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">0 active tasks</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button class="text-blue-600 hover:text-blue-900 focus:outline-none">Select</button>
+                                                    </td>
+                                                </tr>
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                                                <i class="fas fa-user"></i>
+                                                            </div>
+                                                            <div class="ml-3">
+                                                                <div class="text-sm font-medium text-gray-900">David Chen</div>
+                                                                <div class="text-xs text-gray-500">ID: CLN-1015</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">5.1 km</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">General</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="flex items-center text-sm text-gray-900">
+                                                            <span class="text-yellow-500 mr-1"><i class="fas fa-star"></i></span>
+                                                            <span>4.6</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">2 active tasks</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button class="text-blue-600 hover:text-blue-900 focus:outline-none">Select</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Assignment Details -->
+                        <div class="space-y-6">
+                            <!-- Task Settings Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Task Settings</h3>
+                                </div>
+                                <div class="p-4 space-y-4">
+                                    <!-- Priority Setting -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                        <div class="flex space-x-2">
+                                            <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 priority-btn" data-priority="normal">Normal</button>
+                                            <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 priority-btn" data-priority="high">High</button>
+                                            <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 priority-btn" data-priority="urgent">Urgent</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Deadline Setting -->
+                                    <div>
+                                        <label for="task-deadline" class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                                        <input type="datetime-local" id="task-deadline" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    
+                                    <!-- Special Instructions -->
+                                    <div>
+                                        <label for="task-instructions" class="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+                                        <textarea id="task-instructions" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Add any special instructions or requirements for the cleaner..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Selected Cleaner Card -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <h3 class="font-medium">Selected Cleaner</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div id="selected-cleaner-empty" class="text-center py-6">
+                                        <div class="text-gray-400 mb-2">
+                                            <i class="fas fa-user-plus text-3xl"></i>
+                                        </div>
+                                        <p class="text-sm text-gray-500">No cleaner selected</p>
+                                        <p class="text-xs text-gray-400 mt-1">Select a cleaner from the list to assign this task</p>
+                                    </div>
+                                    
+                                    <div id="selected-cleaner-info" class="hidden">
+                                        <!-- Will be populated when a cleaner is selected -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Assignment Actions -->
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="p-4">
+                                    <button id="confirm-assignment-btn" class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                        Confirm Assignment
+                                    </button>
+                                    <p class="text-xs text-gray-500 mt-2 text-center">The cleaner will be notified immediately upon assignment</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="verification-tab" class="tab-content hidden p-6">
+                    <!-- Will be populated in the next update -->
+                </div>
+                
+                <div id="payment-tab" class="tab-content hidden">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+            
+            <div class="p-4 border-t flex justify-end">
+                <button class="bg-gray-100 text-gray-700 rounded-lg px-4 py-2 text-sm mr-2">
+                    <i class="fas fa-print mr-2"></i>
+                    Print Report
+                </button>
+                <button class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm">
+                    <i class="fas fa-save mr-2"></i>
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

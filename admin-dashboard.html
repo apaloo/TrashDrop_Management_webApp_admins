@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Illegal Dumping Report Management</title>
+  <style>
+    /* Base Styles */
+    :root {
+      --primary: #1e3a28;
+      --primary-light: #2a5238;
+      --accent: #4CAF50;
+      --text: #333;
+      --text-light: #767676;
+      --background: #f5f5f5;
+      --card-bg: #ffffff;
+      --border: #e0e0e0;
+      --danger: #f44336;
+      --warning: #ff9800;
+      --success: #4CAF50;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: var(--background);
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Layout */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background-color: var(--primary);
+      color: white;
+      padding: 20px 0;
+    }
+    
+    .logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    .nav-item {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background-color: var(--primary-light);
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 20px;
+    }
+    
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    
+    .stat-label {
+      color: var(--text-light);
+      font-size: 14px;
+    }
+    
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      background-color: var(--card-bg);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .filter-label {
+      font-size: 12px;
+      margin-bottom: 5px;
+      color: var(--text-light);
+    }
+    
+    .filter-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid var(--accent);
+      font-weight: bold;
+    }
+    
+    /* Table */
+    .table-container {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th {
+      background-color: #f9f9f9;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .status-pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-reported {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .status-assigned {
+      background-color: #fff8e1;
+      color: #f57f17;
+    }
+    
+    .status-cleaned {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .action-btn {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+    
+    .view-btn {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .assign-btn {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+    
+    .page-btn {
+      padding: 5px 10px;
+      margin: 0 5px;
+      border: 1px solid var(--border);
+      background-color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="logo">CleanCity Admin</div>
+      <div class="nav-item active">Dashboard</div>
+      <div class="nav-item">Reports Management</div>
+      <div class="nav-item">Cleaner Management</div>
+      <div class="nav-item">Zone Settings</div>
+      <div class="nav-item">Payment History</div>
+      <div class="nav-item">Analytics</div>
+      <div class="nav-item">User Management</div>
+      <div class="nav-item">Settings</div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="page-header">
+        <h1>Report Management</h1>
+        <div>
+          <button class="action-btn">Export Data</button>
+        </div>
+      </div>
+      
+      <!-- Statistics Cards -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-value">27</div>
+          <div class="stat-label">New Reports</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">42</div>
+          <div class="stat-label">Assigned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">18</div>
+          <div class="stat-label">Cleaned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">93</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$2,450</div>
+          <div class="stat-label">Payments This Month</div>
+        </div>
+      </div>
+      
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group" style="flex-grow: 1;">
+          <div class="filter-label">Search</div>
+          <input type="text" class="filter-input" placeholder="Search by ID, location, or cleaner...">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Status</div>
+          <select class="filter-input">
+            <option>All Statuses</option>
+            <option>Reported</option>
+            <option>Assigned</option>
+            <option>Cleaned</option>
+            <option>Approved</option>
+            <option>Paid</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Zone</div>
+          <select class="filter-input">
+            <option>All Zones</option>
+            <option>Zone A</option>
+            <option>Zone B</option>
+            <option>Zone C</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Date Range</div>
+          <input type="date" class="filter-input">
+        </div>
+      </div>
+      
+      <!-- View Toggle Tabs -->
+      <div class="tabs">
+        <div class="tab active">Table View</div>
+        <div class="tab">Map View</div>
+      </div>
+      
+      <!-- Table of Reports -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Location</th>
+              <th>Date Reported</th>
+              <th>Status</th>
+              <th>Assigned Cleaner</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>REP-2023-0589</td>
+              <td>Zone A, 123 Main St</td>
+              <td>Apr 2, 2023</td>
+              <td><span class="status-pill status-reported">Reported</span></td>
+              <td>—</td>
+              <td>
+                <button class="action-btn view-btn">View</button>
+                <button class="action-btn assign-btn">Assign</button>
+              </td>
+            </tr>
+            <tr>
+              <td>REP-2023-0588</td>
+              <td>Zone B, Jefferson Park</td>
+              <td>Apr 1, 2023</td>
+              <td><span class="status-pill status-assigned">Assigned</span></td>
+              <td>John Smith</td>
+              <td>
+                <button class="action-btn view-btn">View</button>
+                <button class="action-btn">Reassign</button>
+              </td>
+            </tr>
+            <tr>
+              <td>REP-2023-0587</td>
+              <td>Zone A, 45 Oak Ave</td>
+              <td>Mar 31, 2023</td>
+              <td><span class="status-pill status-cleaned">Cleaned</span></td>
+              <td>Maria Johnson</td>
+              <td>
+                <button class="action-btn view-btn">View</button>
+                <button class="action-btn">Approve</button>
+              </td>
+            </tr>
+            <!-- Additional rows would be here -->
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="page-btn">Previous</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!-- Reports Filter Modal -->
+<div id="reports-filter-modal" class="filter-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Filter Reports</h3>
+            <button class="close-filter-modal text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="reports-filter-form" class="p-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="filter-report-status" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select id="filter-report-priority" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <input type="text" id="filter-report-date-range" class="date-range-picker w-full border-gray-300 rounded-md shadow-sm" placeholder="Select date range">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                <select id="filter-report-assigned-to" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Assignees</option>
+                    <option value="unassigned">Unassigned</option>
+                    <!-- Other assignees will be loaded dynamically -->
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input type="text" id="filter-report-location" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="Search by location">
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" class="reset-filter-btn px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" data-target="reports">Reset</button>
+                <button type="button" class="apply-filter-btn px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" data-target="reports">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Collectors Filter Modal -->
+<div id="collectors-filter-modal" class="filter-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Filter Collectors</h3>
+            <button class="close-filter-modal text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="collectors-filter-form" class="p-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="filter-collector-status" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Suspended">Suspended</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select id="filter-collector-type" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Types</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Municipal">Municipal</option>
+                    <option value="Non-profit">Non-profit</option>
+                    <option value="Individual">Individual</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <select id="filter-collector-region" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Regions</option>
+                    <option value="Manhattan">Manhattan</option>
+                    <option value="Brooklyn">Brooklyn</option>
+                    <option value="Queens">Queens</option>
+                    <option value="Bronx">Bronx</option>
+                    <option value="Staten Island">Staten Island</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" id="filter-collector-search" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="Search by name, address, or contact">
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" class="reset-filter-btn px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" data-target="collectors">Reset</button>
+                <button type="button" class="apply-filter-btn px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" data-target="collectors">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Pickup Requests Filter Modal -->
+<div id="pickup-filter-modal" class="filter-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Filter Pickup Requests</h3>
+            <button class="close-filter-modal text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="pickup-filter-form" class="p-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="filter-pickup-status" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Waste Type</label>
+                <select id="filter-pickup-waste-type" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Types</option>
+                    <option value="Household">Household</option>
+                    <option value="Recycling">Recycling</option>
+                    <option value="Yard Waste">Yard Waste</option>
+                    <option value="Bulk Items">Bulk Items</option>
+                    <option value="Electronic Waste">Electronic Waste</option>
+                    <option value="Hazardous">Hazardous</option>
+                    <option value="Construction">Construction</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <input type="text" id="filter-pickup-date-range" class="date-range-picker w-full border-gray-300 rounded-md shadow-sm" placeholder="Select date range">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assigned Collector</label>
+                <select id="filter-pickup-assigned-to" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">All Collectors</option>
+                    <option value="unassigned">Unassigned</option>
+                    <!-- Collectors will be loaded dynamically -->
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" id="filter-pickup-search" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="Search by location or contact">
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" class="reset-filter-btn px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" data-target="pickup">Reset</button>
+                <button type="button" class="apply-filter-btn px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" data-target="pickup">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>

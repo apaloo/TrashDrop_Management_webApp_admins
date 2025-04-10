@@ -1,0 +1,224 @@
+<!-- Pickup Request Modal -->
+<div id="pickup-request-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">New Pickup Request</h3>
+            <button class="close-pickup-modal text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="pickup-request-form" class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Pickup Details -->
+                <div>
+                    <h4 class="font-medium mb-3">Pickup Details</h4>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Date*</label>
+                        <input type="text" id="pickup-date" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Time*</label>
+                        <input type="text" id="pickup-time" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location*</label>
+                        <select id="pickup-location" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                            <option value="">Select a location</option>
+                            <!-- Locations will be loaded dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div id="custom-location-container" class="mb-4 hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Custom Address*</label>
+                        <textarea id="custom-location-address" class="w-full border-gray-300 rounded-md shadow-sm" rows="3" placeholder="Enter full address"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Waste Details -->
+                <div>
+                    <h4 class="font-medium mb-3">Waste Details</h4>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Waste Type*</label>
+                        <select id="waste-type" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                            <option value="">Select waste type</option>
+                            <option value="Household">Household</option>
+                            <option value="Recycling">Recycling</option>
+                            <option value="Yard Waste">Yard Waste</option>
+                            <option value="Bulk Items">Bulk Items</option>
+                            <option value="Electronic Waste">Electronic Waste</option>
+                            <option value="Hazardous">Hazardous</option>
+                            <option value="Construction">Construction</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity*</label>
+                        <input type="text" id="waste-quantity" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g., 3 bags, 2 bins" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                        <textarea id="pickup-notes" class="w-full border-gray-300 rounded-md shadow-sm" rows="3" placeholder="Any special instructions or details"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="mt-4">
+                <h4 class="font-medium mb-3">Contact Information</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Name*</label>
+                        <input type="text" id="contact-name" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input type="tel" id="contact-phone" class="w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="contact-email" class="w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" class="close-pickup-modal px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                <button type="button" id="save-pickup-request-btn" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Create Pickup Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Pickup Details Modal -->
+<div id="pickup-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Pickup Request Details</h3>
+            <button class="close-pickup-modal text-gray-500 hover:text-gray-700" onclick="PickupManagement.hidePickupDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Request Details -->
+                <div>
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3 text-gray-700">Request Information</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Request ID:</span>
+                                <span id="pickup-detail-id" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Status:</span>
+                                <span id="pickup-detail-status-badge" class="px-2 py-1 rounded-full text-xs"></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Assigned To:</span>
+                                <span id="pickup-detail-assigned-to" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Pickup Date:</span>
+                                <span id="pickup-detail-date" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Pickup Time:</span>
+                                <span id="pickup-detail-time" class="text-sm font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3 text-gray-700">Location</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p id="pickup-detail-address" class="text-sm"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3 text-gray-700">Waste Information</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Type:</span>
+                                <span id="pickup-detail-waste-type" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Quantity:</span>
+                                <span id="pickup-detail-waste-quantity" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="text-sm text-gray-500">Notes:</span>
+                                <p id="pickup-detail-notes" class="text-sm mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium mb-3 text-gray-700">Contact Information</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Name:</span>
+                                <span id="pickup-detail-contact-name" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-500">Phone:</span>
+                                <span id="pickup-detail-contact-phone" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Email:</span>
+                                <span id="pickup-detail-contact-email" class="text-sm font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline -->
+                <div>
+                    <h4 class="font-medium mb-3 text-gray-700">Request Timeline</h4>
+                    <div class="bg-gray-50 p-4 rounded-lg h-full overflow-y-auto max-h-96">
+                        <div id="pickup-detail-timeline">
+                            <!-- Timeline entries will be added dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Pickup Modal -->
+<div id="assign-pickup-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Assign Pickup Request</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="PickupManagement.hideAssignPickupModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <input type="hidden" id="assign-pickup-id">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Collector</label>
+                <select id="assign-collector" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">Select a collector</option>
+                    <!-- Collectors will be loaded dynamically -->
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" onclick="PickupManagement.hideAssignPickupModal()">Cancel</button>
+                <button type="button" id="save-assignment-btn" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Save Assignment</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,152 @@
+<!-- Stats Settings Tab Content -->
+<div id="stats-settings" class="settings-tab-content hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Stats Overview -->
+        <div class="card lg:col-span-2">
+            <div class="p-4 border-b">
+                <h3 class="font-semibold">Statistics Overview</h3>
+            </div>
+            <div class="p-4">
+                <!-- Date Range Selector -->
+                <div class="flex space-x-2 mb-4">
+                    <button class="date-range-btn px-3 py-1 text-sm bg-blue-600 text-white rounded" data-range="daily">Daily</button>
+                    <button class="date-range-btn px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded" data-range="weekly">Weekly</button>
+                    <button class="date-range-btn px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded" data-range="monthly">Monthly</button>
+                </div>
+                
+                <!-- User Activity Chart -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">User Activity</h4>
+                    <div class="h-64 relative">
+                        <canvas id="user-activity-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Report Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-blue-600" id="total-reports">896</div>
+                        <div class="text-xs text-gray-500">Total Reports</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-yellow-500" id="submitted-reports">428</div>
+                        <div class="text-xs text-gray-500">Submitted</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-orange-500" id="in-progress-reports">156</div>
+                        <div class="text-xs text-gray-500">In Progress</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-green-500" id="completed-reports">312</div>
+                        <div class="text-xs text-gray-500">Completed</div>
+                    </div>
+                </div>
+                
+                <!-- Collection Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-blue-600" id="total-collections">169</div>
+                        <div class="text-xs text-gray-500">Total Collections</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-yellow-500" id="scheduled-collections">89</div>
+                        <div class="text-xs text-gray-500">Scheduled</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-green-500" id="completed-collections">72</div>
+                        <div class="text-xs text-gray-500">Completed</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <div class="text-2xl font-semibold text-red-500" id="missed-collections">8</div>
+                        <div class="text-xs text-gray-500">Missed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Waste Type Distribution -->
+        <div class="card">
+            <div class="p-4 border-b">
+                <h3 class="font-semibold">Waste Type Distribution</h3>
+            </div>
+            <div class="p-4">
+                <div class="h-64 relative mb-4">
+                    <canvas id="waste-type-chart"></canvas>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
+                            <span class="text-sm">Household</span>
+                        </div>
+                        <span class="text-sm font-medium" id="household-waste">45%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+                            <span class="text-sm">Construction</span>
+                        </div>
+                        <span class="text-sm font-medium" id="construction-waste">25%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                            <span class="text-sm">Electronic</span>
+                        </div>
+                        <span class="text-sm font-medium" id="electronic-waste">10%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-600 rounded-full mr-2"></div>
+                            <span class="text-sm">Hazardous</span>
+                        </div>
+                        <span class="text-sm font-medium" id="hazardous-waste">5%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-purple-600 rounded-full mr-2"></div>
+                            <span class="text-sm">Other</span>
+                        </div>
+                        <span class="text-sm font-medium" id="other-waste">15%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Options -->
+    <div class="card mb-6">
+        <div class="p-4 border-b">
+            <h3 class="font-semibold">Export Options</h3>
+        </div>
+        <div class="p-4">
+            <div class="flex flex-wrap gap-3">
+                <button class="export-stats-btn bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center" data-format="csv">
+                    <i class="fas fa-file-csv mr-2"></i>
+                    Export as CSV
+                </button>
+                <button class="export-stats-btn bg-red-600 text-white px-4 py-2 rounded-lg flex items-center" data-format="pdf">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Export as PDF
+                </button>
+                <button class="export-stats-btn bg-green-600 text-white px-4 py-2 rounded-lg flex items-center" data-format="excel">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    Export as Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Initialize Stats Settings -->
+<script>
+    $(document).ready(function() {
+        if (typeof StatsSettings !== 'undefined') {
+            StatsSettings.init();
+        }
+    });
+</script>

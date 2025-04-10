@@ -1,0 +1,511 @@
+import React, { useState } from 'react';
+import './BagManagement.css';
+
+const BagManagement = () => {
+  // State for active tab
+  const [activeTab, setActiveTab] = useState('generate');
+  
+  // State for QR preview visibility
+  const [showQRPreview, setShowQRPreview] = useState(false);
+  
+  // State for modals
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState(null);
+  const [modalTitle, setModalTitle] = useState('');
+  
+  // State for form inputs
+  const [formData, setFormData] = useState({
+    trashType: 'Green - Organic',
+    bagSize: 'Medium',
+    numberOfBags: 1,
+    numberOfBatches: 1
+  });
+  
+  // State for table data (batches)
+  const [batches, setBatches] = useState([
+    { id: 'BATCH001', trashType: 'Green - Organic', bagSize: 'Medium', numberOfBags: 50, bagsScanned: 30, status: 'Active', selected: false },
+    { id: 'BATCH002', trashType: 'Blue - Recyclable', bagSize: 'Large', numberOfBags: 25, bagsScanned: 25, status: 'Active', selected: false },
+    { id: 'BATCH003', trashType: 'Red - Hazardous', bagSize: 'Small', numberOfBags: 15, bagsScanned: 5, status: 'Active', selected: false },
+    { id: 'BATCH004', trashType: 'Green - Organic', bagSize: 'Large', numberOfBags: 30, bagsScanned: 0, status: 'Inactive', selected: false },
+    { id: 'BATCH005', trashType: 'Blue - Recyclable', bagSize: 'Medium', numberOfBags: 20, bagsScanned: 10, status: 'Active', selected: false }
+  ]);
+  
+  // State for history data
+  const [history, setHistory] = useState([
+    { id: 'BATCH001', trashType: 'Green - Organic', bagSize: 'Medium', numberOfBags: 50, generationDate: '2025-04-01', bagsScanned: 30, lastScanDate: '2025-04-05' },
+    { id: 'BATCH002', trashType: 'Blue - Recyclable', bagSize: 'Large', numberOfBags: 25, generationDate: '2025-03-28', bagsScanned: 25, lastScanDate: '2025-04-04' },
+    { id: 'BATCH003', trashType: 'Red - Hazardous', bagSize: 'Small', numberOfBags: 15, generationDate: '2025-03-25', bagsScanned: 5, lastScanDate: '2025-04-02' },
+    { id: 'BATCH004', trashType: 'Green - Organic', bagSize: 'Large', numberOfBags: 30, generationDate: '2025-03-20', bagsScanned: 0, lastScanDate: '-' },
+    { id: 'BATCH005', trashType: 'Blue - Recyclable', bagSize: 'Medium', numberOfBags: 20, generationDate: '2025-03-15', bagsScanned: 10, lastScanDate: '2025-03-30' }
+  ]);
+  
+  // Statistics calculations
+  const totalActiveBatches = batches.filter(batch => batch.status === 'Active').length;
+  const totalBagsGenerated = batches.reduce((total, batch) => total + batch.numberOfBags, 0);
+  const totalBagsScanned = batches.reduce((total, batch) => total + batch.bagsScanned, 0);
+  const scanRate = totalBagsGenerated > 0 ? Math.round((totalBagsScanned / totalBagsGenerated) * 100) : 0;
+  
+  // Function to handle tab switching
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+  
+  // Function to handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+  
+  // Function to preview QR code
+  const handlePreviewQR = () => {
+    setShowQRPreview(true);
+  };
+  
+  // Function to generate batch
+  const handleGenerateBatch = () => {
+    alert(`Generated ${formData.numberOfBatches} batch(es) of ${formData.numberOfBags} ${formData.trashType} bags in ${formData.bagSize} size`);
+    // Here you would typically make an API call to generate the batches
+  };
+  
+  // Function to handle batch selection
+  const handleSelectBatch = (id) => {
+    setBatches(batches.map(batch => 
+      batch.id === id ? { ...batch, selected: !batch.selected } : batch
+    ));
+  };
+  
+  // Function to handle "select all" checkbox
+  const handleSelectAll = () => {
+    const allSelected = batches.every(batch => batch.selected);
+    setBatches(batches.map(batch => ({ ...batch, selected: !allSelected })));
+  };
+  
+  // Function to open modals
+  const openModal = (type, id) => {
+    switch(type) {
+      case 'batchQR':
+        setModalTitle(`Batch QR Code - ${id}`);
+        setModalContent(
+          <div className="qr-code-container">
+            <img src="/api/placeholder/200/200" alt="Batch QR Code" className="qr-code" />
+            <p>Scan this QR code to access all bags in batch {id}</p>
+          </div>
+        );
+        break;
+      case 'bagQRs':
+        setModalTitle(`Bag QR Codes - ${id}`);
+        const batch = batches.find(batch => batch.id === id);
+        setModalContent(
+          <div className="bag-qrs-grid">
+            {Array.from({ length: Math.min(batch.numberOfBags, 9) }, (_, i) => (
+              <div key={i} className="bag-qr-item">
+                <img src="/api/placeholder/100/100" alt={`Bag ${i+1} QR Code`} className="qr-code-small" />
+                <p>Bag ID: {id}-{(i+1).toString().padStart(3, '0')}</p>
+              </div>
+            ))}
+            {batch.numberOfBags > 9 && <p>+ {batch.numberOfBags - 9} more bags</p>}
+          </div>
+        );
+        break;
+      case 'scanHistory':
+        setModalTitle(`Scan History - ${id}`);
+        // Mock scan history data
+        const scanHistory = [
+          { bagId: `${id}-001`, scanDate: '2025-04-05 14:30', user: 'John Doe' },
+          { bagId: `${id}-002`, scanDate: '2025-04-04 10:15', user: 'Jane Smith' },
+          { bagId: `${id}-003`, scanDate: '2025-04-03 16:45', user: 'Mike Johnson' }
+        ];
+        setModalContent(
+          <div className="scan-history-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bag ID</th>
+                  <th>Scan Date</th>
+                  <th>User</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scanHistory.map((scan, index) => (
+                  <tr key={index}>
+                    <td>{scan.bagId}</td>
+                    <td>{scan.scanDate}</td>
+                    <td>{scan.user}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+        break;
+      default:
+        return;
+    }
+    setShowModal(true);
+  };
+  
+  // Function to close modal
+  const closeModal = () => {
+    setShowModal(false);
+  };
+  
+  // Function to download selected batches
+  const handleDownloadSelected = () => {
+    const selectedBatches = batches.filter(batch => batch.selected);
+    if (selectedBatches.length === 0) {
+      alert('Please select at least one batch to download');
+      return;
+    }
+    alert(`Downloading QR codes for ${selectedBatches.length} selected batches`);
+  };
+  
+  // Function to toggle batch status
+  const toggleBatchStatus = (id) => {
+    setBatches(batches.map(batch => 
+      batch.id === id ? { ...batch, status: batch.status === 'Active' ? 'Inactive' : 'Active' } : batch
+    ));
+  };
+  
+  // Function to delete batch
+  const deleteBatch = (id) => {
+    if (window.confirm(`Are you sure you want to delete batch ${id}?`)) {
+      setBatches(batches.filter(batch => batch.id !== id));
+    }
+  };
+  
+  return (
+    <div className="bag-management-container">
+      {/* Header */}
+      <header className="header">
+        <h1>Bag Management</h1>
+      </header>
+      
+      {/* Statistics Section */}
+      <div className="statistics-section">
+        <div className="statistic-card">
+          <h3>Total Active Batches</h3>
+          <p>{totalActiveBatches}</p>
+        </div>
+        <div className="statistic-card">
+          <h3>Total Bags Generated</h3>
+          <p>{totalBagsGenerated}</p>
+        </div>
+        <div className="statistic-card">
+          <h3>Total Bags Scanned</h3>
+          <p>{totalBagsScanned}</p>
+        </div>
+        <div className="statistic-card">
+          <h3>Scan Rate</h3>
+          <p>{scanRate}%</p>
+        </div>
+      </div>
+      
+      {/* Tabs */}
+      <div className="tabs">
+        <button 
+          className={`tab ${activeTab === 'generate' ? 'active' : ''}`}
+          onClick={() => handleTabChange('generate')}
+        >
+          Generate Bag
+        </button>
+        <button 
+          className={`tab ${activeTab === 'management' ? 'active' : ''}`}
+          onClick={() => handleTabChange('management')}
+        >
+          Bag Management
+        </button>
+        <button 
+          className={`tab ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => handleTabChange('history')}
+        >
+          Bag History
+        </button>
+      </div>
+      
+      {/* Content Area */}
+      <div className="content-area">
+        {/* Generate Bag Tab */}
+        {activeTab === 'generate' && (
+          <div className="generate-bag-tab">
+            <form className="generate-form">
+              <div className="form-group">
+                <label htmlFor="trashType">Trash Type (Color)</label>
+                <select 
+                  id="trashType" 
+                  name="trashType" 
+                  value={formData.trashType}
+                  onChange={handleInputChange}
+                >
+                  <option value="Green - Organic">Green - Organic</option>
+                  <option value="Blue - Recyclable">Blue - Recyclable</option>
+                  <option value="Red - Hazardous">Red - Hazardous</option>
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="bagSize">Bag Size</label>
+                <select 
+                  id="bagSize" 
+                  name="bagSize" 
+                  value={formData.bagSize}
+                  onChange={handleInputChange}
+                >
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="numberOfBags">Number of Bags in Batch</label>
+                <input 
+                  type="number" 
+                  id="numberOfBags" 
+                  name="numberOfBags" 
+                  min="1" 
+                  value={formData.numberOfBags}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="numberOfBatches">Number of Batches to Generate</label>
+                <input 
+                  type="number" 
+                  id="numberOfBatches" 
+                  name="numberOfBatches" 
+                  min="1" 
+                  value={formData.numberOfBatches}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="form-buttons">
+                <button type="button" className="btn preview-btn" onClick={handlePreviewQR}>
+                  Preview QR Code
+                </button>
+                <button type="button" className="btn generate-btn" onClick={handleGenerateBatch}>
+                  Generate Batch
+                </button>
+              </div>
+            </form>
+            
+            {/* QR Code Preview */}
+            {showQRPreview && (
+              <div className="qr-preview">
+                <h3>QR Code Preview</h3>
+                <img src="/api/placeholder/200/200" alt="QR Code Preview" className="qr-code" />
+                <p>
+                  This QR code will link to a batch of {formData.numberOfBags} {formData.trashType} bags in {formData.bagSize} size
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Bag Management Tab */}
+        {activeTab === 'management' && (
+          <div className="bag-management-tab">
+            <div className="search-filters">
+              <input 
+                type="text" 
+                className="search-input" 
+                placeholder="Search by Batch ID, Trash Type, or Bag Size" 
+              />
+              <div className="filters">
+                <select className="filter-dropdown">
+                  <option value="">Filter by Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <select className="filter-dropdown">
+                  <option value="">Filter by Bags Scanned</option>
+                  <option value="fully">Fully Scanned</option>
+                  <option value="partially">Partially Scanned</option>
+                  <option value="not">Not Scanned</option>
+                </select>
+              </div>
+            </div>
+            
+            <button className="btn download-selected-btn" onClick={handleDownloadSelected}>
+              Download Selected
+            </button>
+            
+            <div className="table-container">
+              <table className="batches-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <input 
+                        type="checkbox" 
+                        checked={batches.length > 0 && batches.every(batch => batch.selected)}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
+                    <th>Batch ID</th>
+                    <th>Trash Type</th>
+                    <th>Bag Size</th>
+                    <th>Number of Bags</th>
+                    <th>Bags Scanned</th>
+                    <th>Status</th>
+                    <th>Batch QR Code</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {batches.map(batch => (
+                    <tr key={batch.id}>
+                      <td>
+                        <input 
+                          type="checkbox" 
+                          checked={batch.selected} 
+                          onChange={() => handleSelectBatch(batch.id)}
+                        />
+                      </td>
+                      <td>{batch.id}</td>
+                      <td>{batch.trashType}</td>
+                      <td>{batch.bagSize}</td>
+                      <td>{batch.numberOfBags}</td>
+                      <td>{batch.bagsScanned} / {batch.numberOfBags}</td>
+                      <td>
+                        <span className={`status-badge ${batch.status.toLowerCase()}`}>
+                          {batch.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          className="btn-small view-qr-btn"
+                          onClick={() => openModal('batchQR', batch.id)}
+                        >
+                          View QR
+                        </button>
+                      </td>
+                      <td className="actions-cell">
+                        <button 
+                          className="btn-small"
+                          onClick={() => openModal('bagQRs', batch.id)}
+                        >
+                          View Bag QR Codes
+                        </button>
+                        <button className="btn-small">
+                          Download Bag QR Codes
+                        </button>
+                        <button 
+                          className={`btn-small ${batch.status === 'Active' ? 'deactivate-btn' : 'activate-btn'}`}
+                          onClick={() => toggleBatchStatus(batch.id)}
+                        >
+                          {batch.status === 'Active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button 
+                          className="btn-small delete-btn"
+                          onClick={() => deleteBatch(batch.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="pagination">
+              <button className="pagination-btn">Previous</button>
+              <button className="pagination-btn">Next</button>
+            </div>
+          </div>
+        )}
+        
+        {/* Bag History Tab */}
+        {activeTab === 'history' && (
+          <div className="bag-history-tab">
+            <div className="search-filters">
+              <input 
+                type="text" 
+                className="search-input" 
+                placeholder="Search by Batch ID, Trash Type, or Bag Size" 
+              />
+              <div className="filters">
+                <select className="filter-dropdown">
+                  <option value="">Filter by Generation Date</option>
+                  <option value="7days">Last 7 days</option>
+                  <option value="30days">Last 30 days</option>
+                  <option value="90days">Last 90 days</option>
+                </select>
+                <select className="filter-dropdown">
+                  <option value="">Filter by Bags Scanned</option>
+                  <option value="fully">Fully Scanned</option>
+                  <option value="partially">Partially Scanned</option>
+                  <option value="not">Not Scanned</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="table-container">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Batch ID</th>
+                    <th>Trash Type</th>
+                    <th>Bag Size</th>
+                    <th>Number of Bags</th>
+                    <th>Generation Date</th>
+                    <th>Bags Scanned</th>
+                    <th>Last Scan Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map(batch => (
+                    <tr key={batch.id}>
+                      <td>{batch.id}</td>
+                      <td>{batch.trashType}</td>
+                      <td>{batch.bagSize}</td>
+                      <td>{batch.numberOfBags}</td>
+                      <td>{batch.generationDate}</td>
+                      <td>{batch.bagsScanned} / {batch.numberOfBags}</td>
+                      <td>{batch.lastScanDate}</td>
+                      <td>
+                        <button 
+                          className="btn-small"
+                          onClick={() => openModal('scanHistory', batch.id)}
+                        >
+                          View Scan History
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="pagination">
+              <button className="pagination-btn">Previous</button>
+              <button className="pagination-btn">Next</button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{modalTitle}</h2>
+              <button className="close-btn" onClick={closeModal}>×</button>
+            </div>
+            <div className="modal-body">
+              {modalContent}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BagManagement;
