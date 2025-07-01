@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bag Management - TrashDrop Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card { background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .filters { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 250px; }
+    .status-filter { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; border: none; }
+    .btn-primary { background-color: #4CAF50; color: white; }
+    .bag-table { width: 100%; border-collapse: collapse; }
+    .bag-table th, .bag-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .bag-table th { background-color: #f9f9f9; }
+    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; display: inline-block; }
+    .status-active { background-color: #e0f7e6; color: #1e7e34; }
+    .status-inactive { background-color: #f8d7da; color: #dc3545; }
+    .progress-bar { height: 8px; width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background-color: #4CAF50; }
+    .action-btn { background: none; border: none; color: #2196F3; cursor: pointer; margin-right: 8px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
+    .modal.visible { display: flex; justify-content: center; align-items: center; }
+    .modal-content { background-color: #fff; border-radius: 8px; padding: 20px; max-width: 500px; width: 90%; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
+    .loading-spinner { display: flex; justify-content: center; padding: 40px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 data-test="page-title">Bag Management</h1>
+      <button class="btn btn-primary">Create New Batch</button>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="kpi-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
+      <!-- Live Bag Requests KPI -->
+      <div class="card">
+        <h3>Live Bag Requests</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #4CAF50;">12</div>
+          <div style="background: #e0f7e6; color: #1e7e34; padding: 4px 8px; border-radius: 4px; font-size: 12px;">+3 today</div>
+        </div>
+        <div style="font-size: 14px; color: #666;">4 pending collection</div>
+      </div>
+      
+      <!-- Collector Status KPI -->
+      <div class="card">
+        <h3>Collector Status</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #2196F3;">8/10</div>
+          <div style="background: #e3f2fd; color: #0d47a1; padding: 4px 8px; border-radius: 4px; font-size: 12px;">80% Active</div>
+        </div>
+        <div style="font-size: 14px; color: #666;">2 collectors inactive</div>
+      </div>
+      
+      <!-- Performance Timeline KPI -->
+      <div class="card">
+        <h3>Performance Timeline</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #673ab7;">85%</div>
+          <div style="background: #ede7f6; color: #4527a0; padding: 4px 8px; border-radius: 4px; font-size: 12px;">+5% from last week</div>
+        </div>
+        <div style="font-size: 14px; color: #666;">Avg. collection time: 28 min</div>
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters">
+      <input type="text" data-test="search-input" placeholder="Search by ID, type or QR prefix..." class="search-input">
+      <select data-test="status-filter" class="status-filter">
+        <option value="All">All Statuses</option>
+        <option value="Active" data-test="status-option-active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+    
+    <!-- Bags Table -->
+    <div class="card">
+      <table class="bag-table">
+        <thead>
+          <tr>
+            <th>Batch ID</th>
+            <th>Created At</th>
+            <th>Type & Size</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Distribution</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Bag Item 1 -->
+          <tr data-test="bag-item">
+            <td data-test="bag-id">TD-BAG-1001</td>
+            <td>2025-06-20</td>
+            <td>Recyclable (Medium)</td>
+            <td>100</td>
+            <td><span data-test="bag-status" class="status-badge status-active">Active</span></td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 75%;"></div>
+              </div>
+              <small>75 of 100 distributed</small>
+            </td>
+            <td>
+              <button data-test="view-history-button" class="action-btn">View</button>
+              <button data-test="view-qr-button" class="action-btn">QR</button>
+              <button class="action-btn" style="color: #dc3545;">Deactivate</button>
+            </td>
+          </tr>
+          <!-- Bag Item 2 -->
+          <tr data-test="bag-item">
+            <td data-test="bag-id">TD-BAG-1002</td>
+            <td>2025-06-18</td>
+            <td>Organic (Small)</td>
+            <td>50</td>
+            <td><span data-test="bag-status" class="status-badge status-inactive">Inactive</span></td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;"></div>
+              </div>
+              <small>50 of 50 distributed</small>
+            </td>
+            <td>
+              <button data-test="view-history-button" class="action-btn">View</button>
+              <button data-test="view-qr-button" class="action-btn">QR</button>
+              <button class="action-btn" style="color: #28a745;">Activate</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Scan History Modal -->
+    <div id="scan-history-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-test="scan-history-title">Scan History: TD-BAG-1001</h2>
+          <button data-test="close-button" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <!-- Timeline -->
+          <div class="timeline">
+            <div data-test="timeline-item" class="timeline-item">
+              <div class="timeline-date">2025-06-22 09:15</div>
+              <div class="timeline-content">
+                <strong>Scanned</strong>
+                <div>By: John Doe</div>
+                <div>Location: Downtown Area</div>
+              </div>
+            </div>
+            <div data-test="timeline-item" class="timeline-item">
+              <div class="timeline-date">2025-06-22 09:30</div>
+              <div class="timeline-content">
+                <strong>Collected</strong>
+                <div>By: John Doe</div>
+                <div>Location: Downtown Area</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- QR Code Modal -->
+    <div id="qrcode-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>QR Code</h2>
+          <button data-test="qrcode-close-button" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+          <div data-test="qrcode-image" style="width: 200px; height: 200px; margin: 0 auto; background-color: #eee; display: flex; align-items: center; justify-content: center;">
+            QR Code Image
+          </div>
+          <h3 data-test="qrcode-id" class="mt-4">TD-BAG-1001</h3>
+          <div class="mt-4">
+            <button data-test="download-qr-button" class="btn btn-primary">Download</button>
+            <button data-test="print-qr-button" class="btn btn-secondary">Print</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Simple script to handle basic interactions for testing
+    document.addEventListener('DOMContentLoaded', function() {
+      // Show scan history modal
+      const viewHistoryButtons = document.querySelectorAll('[data-test="view-history-button"]');
+      const scanHistoryModal = document.getElementById('scan-history-modal');
+      const closeButtons = document.querySelectorAll('[data-test="close-button"]');
+      
+      viewHistoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          scanHistoryModal.classList.add('visible');
+        });
+      });
+      
+      // Show QR code modal
+      const viewQrButtons = document.querySelectorAll('[data-test="view-qr-button"]');
+      const qrcodeModal = document.getElementById('qrcode-modal');
+      const qrCloseButton = document.querySelector('[data-test="qrcode-close-button"]');
+      
+      viewQrButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          qrcodeModal.classList.add('visible');
+        });
+      });
+      
+      // Close modals
+      closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          scanHistoryModal.classList.remove('visible');
+        });
+      });
+      
+      qrCloseButton.addEventListener('click', function() {
+        qrcodeModal.classList.remove('visible');
+      });
+      
+      // Filter by status
+      const statusFilter = document.querySelector('[data-test="status-filter"]');
+      const bagItems = document.querySelectorAll('[data-test="bag-item"]');
+      
+      statusFilter.addEventListener('change', function() {
+        const selectedStatus = this.value;
+        
+        if (selectedStatus === 'All') {
+          bagItems.forEach(item => {
+            item.style.display = '';
+          });
+        } else {
+          bagItems.forEach(item => {
+            const status = item.querySelector('[data-test="bag-status"]').textContent;
+            if (status === selectedStatus) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        }
+      });
+      
+      // Search functionality
+      const searchInput = document.querySelector('[data-test="search-input"]');
+      
+      searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        bagItems.forEach(item => {
+          const id = item.querySelector('[data-test="bag-id"]').textContent.toLowerCase();
+          if (id.includes(searchTerm)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+[
+  {
+    "id": "dump-001",
+    "reportedBy": "John Citizen",
+    "reporterEmail": "john.citizen@email.com",
+    "reporterPhone": "555-123-4567",
+    "status": "Reported",
+    "location": {
+      "address": "123 Oak Street, Downtown",
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "description": "Behind the abandoned warehouse"
+    },
+    "severity": "High",
+    "wasteType": "Construction",
+    "description": "Large pile of construction debris including drywall and lumber",
+    "reportDate": "2025-06-20T14:30:00Z",
+    "images": [
+      "https://example.com/images/dump001-1.jpg",
+      "https://example.com/images/dump001-2.jpg"
+    ],
+    "assignedTo": null,
+    "estimatedVolume": "3 cubic yards"
+  },
+  {
+    "id": "dump-002",
+    "reportedBy": "Sarah Williams",
+    "reporterEmail": "sarah.williams@email.com",
+    "reporterPhone": "555-234-5678",
+    "status": "In Progress",
+    "location": {
+      "address": "456 Elm Avenue, Westside",
+      "latitude": 37.7833,
+      "longitude": -122.4167,
+      "description": "In the vacant lot"
+    },
+    "severity": "Medium",
+    "wasteType": "Household",
+    "description": "Several garbage bags and old furniture",
+    "reportDate": "2025-06-21T09:15:00Z",
+    "images": [
+      "https://example.com/images/dump002-1.jpg"
+    ],
+    "assignedTo": "John Doe",
+    "estimatedVolume": "1.5 cubic yards"
+  },
+  {
+    "id": "dump-003",
+    "reportedBy": "Michael Johnson",
+    "reporterEmail": "michael.johnson@email.com",
+    "reporterPhone": "555-345-6789",
+    "status": "Cleaned",
+    "location": {
+      "address": "789 Pine Road, Southside",
+      "latitude": 37.7800,
+      "longitude": -122.4200,
+      "description": "Next to the park entrance"
+    },
+    "severity": "Low",
+    "wasteType": "Yard Waste",
+    "description": "Pile of tree branches and garden refuse",
+    "reportDate": "2025-06-19T16:45:00Z",
+    "images": [
+      "https://example.com/images/dump003-1.jpg",
+      "https://example.com/images/dump003-2.jpg",
+      "https://example.com/images/dump003-3.jpg"
+    ],
+    "assignedTo": "Sarah Smith",
+    "estimatedVolume": "1 cubic yard",
+    "cleanupDate": "2025-06-21T15:30:00Z",
+    "cleanupNotes": "Area completely cleaned and sanitized"
+  }
+]

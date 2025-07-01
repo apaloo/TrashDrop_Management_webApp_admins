@@ -1,0 +1,96 @@
+[
+  {
+    "id": "alert-001",
+    "type": "critical",
+    "title": "Collector Vehicle Breakdown",
+    "message": "Vehicle #TD-VAN-001 has reported a breakdown in Downtown area",
+    "timestamp": "2025-06-22T14:30:00Z",
+    "status": "active",
+    "priority": "high",
+    "source": "Vehicle Tracking System",
+    "relatedEntity": {
+      "type": "collector",
+      "id": "collector-001",
+      "name": "John Doe"
+    },
+    "location": {
+      "address": "123 Market Street, Downtown",
+      "latitude": 37.7749,
+      "longitude": -122.4194
+    },
+    "assignedTo": null,
+    "actions": ["dispatch_maintenance", "reassign_collections", "notify_supervisor"]
+  },
+  {
+    "id": "alert-002",
+    "type": "warning",
+    "title": "Pickup Delay",
+    "message": "3 pickups are delayed by more than 30 minutes in the North region",
+    "timestamp": "2025-06-22T15:45:00Z",
+    "status": "active",
+    "priority": "medium",
+    "source": "Scheduling System",
+    "relatedEntity": {
+      "type": "region",
+      "id": "region-north",
+      "name": "North Region"
+    },
+    "assignedTo": null,
+    "actions": ["notify_customers", "reschedule_pickups"]
+  },
+  {
+    "id": "alert-003",
+    "type": "info",
+    "title": "Bag Inventory Low",
+    "message": "South region inventory below 20% threshold. Current count: 45 bags",
+    "timestamp": "2025-06-22T10:20:00Z",
+    "status": "resolved",
+    "priority": "low",
+    "source": "Inventory System",
+    "relatedEntity": {
+      "type": "region",
+      "id": "region-south",
+      "name": "South Region"
+    },
+    "assignedTo": "admin@trashdrop.example",
+    "resolvedAt": "2025-06-22T13:40:00Z",
+    "resolution": "Ordered 200 additional bags",
+    "actions": ["order_inventory", "notify_logistics"]
+  },
+  {
+    "id": "alert-004",
+    "type": "critical",
+    "title": "Application Error",
+    "message": "Payment processor connection failed. Transactions may be affected.",
+    "timestamp": "2025-06-22T16:15:00Z",
+    "status": "active",
+    "priority": "high",
+    "source": "System Monitor",
+    "relatedEntity": {
+      "type": "system",
+      "id": "payment-system",
+      "name": "Payment Processor"
+    },
+    "assignedTo": null,
+    "actions": ["restart_service", "notify_it_support", "switch_backup_processor"]
+  },
+  {
+    "id": "alert-005",
+    "type": "warning",
+    "title": "Collector Performance",
+    "message": "Collector Sarah Smith has completion rate below 85% this week",
+    "timestamp": "2025-06-21T09:30:00Z",
+    "status": "acknowledged",
+    "priority": "medium",
+    "source": "Performance Metrics",
+    "relatedEntity": {
+      "type": "collector",
+      "id": "collector-002",
+      "name": "Sarah Smith"
+    },
+    "assignedTo": "supervisor@trashdrop.example",
+    "acknowledgedAt": "2025-06-21T10:15:00Z",
+    "acknowledgement": "Will schedule performance review",
+    "actions": ["schedule_training", "performance_review"]
+  }
+]

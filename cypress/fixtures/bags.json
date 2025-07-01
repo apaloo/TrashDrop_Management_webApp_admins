@@ -1,0 +1,32 @@
+[
+  {
+    "id": "TD-BAG-1001",
+    "batchId": "BATCH-2025-06-001",
+    "status": "Active",
+    "location": "Downtown Area",
+    "createdAt": "2025-06-15T09:00:00Z",
+    "lastScan": "2025-06-21T14:30:00Z",
+    "scanCount": 4,
+    "assignedCollector": 1
+  },
+  {
+    "id": "TD-BAG-1002",
+    "batchId": "BATCH-2025-06-001",
+    "status": "Collected",
+    "location": "Riverfront Park",
+    "createdAt": "2025-06-15T09:00:00Z",
+    "lastScan": "2025-06-20T10:15:00Z",
+    "scanCount": 3,
+    "assignedCollector": 2
+  },
+  {
+    "id": "TD-BAG-1003",
+    "batchId": "BATCH-2025-06-001",
+    "status": "Processed",
+    "location": "Processing Center",
+    "createdAt": "2025-06-15T09:00:00Z",
+    "lastScan": "2025-06-19T16:45:00Z",
+    "scanCount": 5,
+    "assignedCollector": 1
+  }
+]

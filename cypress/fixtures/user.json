@@ -1,0 +1,21 @@
+{
+  "id": "test-user-id",
+  "email": "test@trashdrop.example",
+  "name": "Test User",
+  "avatar_url": null,
+  "user_metadata": {
+    "companyName": "TrashDrop Test Company",
+    "companyType": "Waste Management",
+    "operatingArea": "Urban Test Area",
+    "preferences": {
+      "notifyPickups": true,
+      "notifyReports": true,
+      "notifyAlerts": true,
+      "dashboardLayout": "compact"
+    },
+    "onboardingCompleted": true
+  },
+  "app_metadata": {
+    "role": "admin"
+  }
+}

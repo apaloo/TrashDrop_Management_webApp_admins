@@ -1,0 +1,82 @@
+[
+  {
+    "id": "log-001",
+    "timestamp": "2025-06-22T08:15:30Z",
+    "level": "ERROR",
+    "source": "API",
+    "user": "admin@trashdrop.example",
+    "message": "Failed to connect to database",
+    "details": "Connection timeout after 30s",
+    "ip": "192.168.1.1",
+    "related_entity": "Database",
+    "performance_ms": 31542,
+    "context": {
+      "attempt": 1,
+      "endpoint": "/api/collectors"
+    }
+  },
+  {
+    "id": "log-002",
+    "timestamp": "2025-06-22T09:20:45Z",
+    "level": "WARNING",
+    "source": "Frontend",
+    "user": "john.doe@example.com",
+    "message": "Form validation errors on collector creation",
+    "details": "Phone number format incorrect",
+    "ip": "192.168.1.2",
+    "related_entity": "Collector",
+    "performance_ms": 250,
+    "context": {
+      "form_id": "create-collector",
+      "field": "phone"
+    }
+  },
+  {
+    "id": "log-003",
+    "timestamp": "2025-06-22T10:35:12Z",
+    "level": "INFO",
+    "source": "System",
+    "user": "system",
+    "message": "Daily backup completed successfully",
+    "details": "All tables backed up to S3",
+    "ip": "internal",
+    "related_entity": "Backup",
+    "performance_ms": 15420,
+    "context": {
+      "size_mb": 256,
+      "tables": 15
+    }
+  },
+  {
+    "id": "log-004",
+    "timestamp": "2025-06-22T11:45:22Z",
+    "level": "DEBUG",
+    "source": "Mobile App",
+    "user": "sarah.smith@example.com",
+    "message": "Location data received from collector app",
+    "details": "Coordinates: 37.7749, -122.4194",
+    "ip": "10.0.0.15",
+    "related_entity": "Location",
+    "performance_ms": 120,
+    "context": {
+      "device": "iOS",
+      "app_version": "2.3.0"
+    }
+  },
+  {
+    "id": "log-005",
+    "timestamp": "2025-06-22T12:10:05Z",
+    "level": "ERROR",
+    "source": "API",
+    "user": "michael.brown@example.com",
+    "message": "Payment processing failed",
+    "details": "Invalid credit card information",
+    "ip": "192.168.1.5",
+    "related_entity": "Payment",
+    "performance_ms": 2100,
+    "context": {
+      "payment_id": "pay-1234",
+      "error_code": "INVALID_CARD"
+    }
+  }
+]

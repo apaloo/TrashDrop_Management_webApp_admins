@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Layout Test</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 250px;
+      background-color: #15803d;
+      color: white;
+      overflow-y: auto;
+      z-index: 50;
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 250px;
+      right: 0;
+      height: 56px;
+      background-color: white;
+      z-index: 40;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      margin-top: 56px;
+      padding: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.open {
+        transform: translateX(0) !important;
+      }
+      
+      .navbar {
+        left: 0;
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Sidebar Component -->
+  <div class="sidebar" id="sidebar" data-test="sidebar">
+    <!-- Logo and brand -->
+    <div class="px-6 pt-8 pb-6">
+      <a href="#" class="flex items-center">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTcuNTIzIDIgMjIgNi40NzcgMjIgMTJDMjIgMTcuNTIzIDE3LjUyMyAyMiAxMiAyMkM2LjQ3NyAyMiAyIDE3LjUyMyAyIDEyQzIgNi40NzcgNi40NzcgMiAxMiAyWk0xMCA4VjE2TDYgMTJMMTAgOFpNMTQgOEwxOCAxMkwxNCAxNlY4WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==" alt="TrashDrop Logo" class="h-10 w-auto">
+        <span class="ml-3 text-xl font-bold text-white">TrashDrop</span>
+      </a>
+    </div>
+    
+    <!-- User info -->
+    <div class="px-3">
+      <div class="bg-green-600 bg-opacity-30 rounded-md px-3 py-3 mb-5">
+        <div class="flex items-center">
+          <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white font-medium">
+            T
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-white">Test User</p>
+            <p class="text-xs text-green-100">test@example.com</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Navigation menu -->
+    <nav class="flex-1 px-3" data-test="sidebar-nav">
+      <div class="space-y-1">
+        <!-- Dashboard -->
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium bg-green-800 text-white">
+          <span class="inline-flex items-center justify-center mr-3 text-lg">
+            <i class="fas fa-tachometer-alt"></i>
+          </span>
+          <span>Dashboard</span>
+        </a>
+        
+        <!-- Request Pickup (with submenu) -->
+        <div class="mb-1">
+          <button class="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+            <span class="inline-flex items-center justify-center mr-3 text-lg">
+              <i class="fas fa-truck"></i>
+            </span>
+            <span>Request Pickup</span>
+            <span class="ml-auto">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+        </div>
+        
+        <!-- Bin Management (with submenu) -->
+        <div class="mb-1">
+          <button class="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+            <span class="inline-flex items-center justify-center mr-3 text-lg">
+              <i class="fas fa-dumpster"></i>
+            </span>
+            <span>Bin Management</span>
+            <span class="ml-auto">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+        </div>
+        
+        <!-- Illegal Dumping (with submenu) -->
+        <div class="mb-1">
+          <button class="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white" id="illegal-dumping-menu">
+            <span class="inline-flex items-center justify-center mr-3 text-lg">
+              <i class="fas fa-trash-alt"></i>
+            </span>
+            <span>Illegal Dumping</span>
+            <span class="ml-auto">
+              <svg class="w-4 h-4 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+          
+          <!-- Submenu -->
+          <div class="mt-1 pl-10 space-y-0.5" id="illegal-dumping-submenu">
+            <a href="#" class="group flex items-center px-4 py-1.5 text-sm font-medium rounded-md text-green-100 hover:text-white hover:bg-green-600">
+              <span>Map</span>
+            </a>
+            <a href="#" class="group flex items-center px-4 py-1.5 text-sm font-medium rounded-md text-green-100 hover:text-white hover:bg-green-600">
+              <span>Reports</span>
+            </a>
+            <a href="#" class="group flex items-center px-4 py-1.5 text-sm font-medium rounded-md text-green-100 hover:text-white hover:bg-green-600">
+              <span>History</span>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Settings -->
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white" id="settings-menu-item">
+          <span class="inline-flex items-center justify-center mr-3 text-lg">
+            <i class="fas fa-cog"></i>
+          </span>
+          <span>Settings</span>
+        </a>
+        
+        <!-- Logout -->
+        <div class="pt-4 mt-6 border-t border-green-600">
+          <button class="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white" id="logout-button">
+            <span class="inline-flex items-center justify-center mr-3 text-lg">
+              <i class="fas fa-sign-out-alt"></i>
+            </span>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </div>
+  
+  <!-- Navbar Component -->
+  <div class="navbar" data-test="navbar">
+    <div class="flex h-full items-center justify-between px-4">
+      <!-- Left side - Mobile menu toggle -->
+      <div class="lg:hidden">
+        <button class="text-gray-600 hover:text-gray-800 focus:outline-none" data-test="mobile-menu-button" id="mobile-menu-button">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+      
+      <!-- Right side - User actions -->
+      <div class="flex items-center ml-auto space-x-4">
+        <!-- Notification bell -->
+        <div class="relative" data-test="notification-bell">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-1">
+            <i class="fas fa-bell"></i>
+          </button>
+          <span class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-red-500 rounded-full text-xs text-white" data-test="notification-count">3</span>
+        </div>
+        
+        <!-- User menu -->
+        <div class="relative">
+          <div>
+            <button class="flex items-center focus:outline-none">
+              <div class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white">
+                T
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content" data-test="main-content">
+    <h1 class="text-3xl font-bold text-gray-900" data-test="page-title">Dashboard</h1>
+    <div class="mt-6 p-6 bg-white rounded-lg shadow">
+      <p>This is the main content area. It should have correct margins to account for the fixed sidebar and navbar.</p>
+      <div class="mt-4">
+        <p>The layout should persist across all pages except authentication pages.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+      // Force reflow to make the class take effect immediately for testing
+      void sidebar.offsetWidth;
+    });
+    
+    // Simulate page navigation
+    document.getElementById('settings-menu-item').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelector('[data-test="page-title"]').textContent = 'Settings';
+      
+      // Change content
+      const mainContent = document.querySelector('[data-test="main-content"]');
+      mainContent.innerHTML = `
+        <h1 class="text-3xl font-bold text-gray-900" data-test="page-title">Settings</h1>
+        <div class="mt-6 bg-white rounded-lg shadow">
+          <div class="flex border-b border-gray-200">
+            <button class="px-4 py-4 text-sm font-medium border-b-2 border-green-500 text-green-600">
+              <i class="fas fa-user mr-2"></i>
+              Profile
+            </button>
+            <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+              <i class="fas fa-bell mr-2"></i>
+              Notifications
+            </button>
+            <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+              <i class="fas fa-chart-line mr-2"></i>
+              Dashboard
+            </button>
+            <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+              <i class="fas fa-globe mr-2"></i>
+              Regional
+            </button>
+          </div>
+          <div class="p-6">
+            <div class="space-y-6">
+              <h3 class="text-lg font-medium text-gray-900">Profile Information</h3>
+              <p class="mt-1 text-sm text-gray-500">Update your account information and contact details.</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                  <input type="text" name="firstName" id="firstName" value="Test" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+                <div>
+                  <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                  <input type="text" name="lastName" id="lastName" value="User" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    // Simulate logout
+    document.getElementById('logout-button').addEventListener('click', function() {
+      // In a real app, this would redirect to login page
+      alert('Logged out successfully');
+    });
+  </script>
+</body>
+</html>
