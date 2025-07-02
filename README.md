@@ -1,70 +1,83 @@
-# Getting Started with Create React App
+# TrashDrop Management WebApp Admin Portal
+
+A comprehensive administration portal for the TrashDrop waste management system, built with React and Supabase.
+
+## Project Overview
+
+The TrashDrop Management WebApp Admin Portal allows administrators to manage various aspects of the trash collection system including:
+
+- **Bag Management**: Create, track, and monitor trash bag batches with QR codes
+- **Illegal Dumping Reports**: Track and manage cleanup of illegal dumping incidents
+- **Pickup Requests**: Schedule and manage waste pickup requests
+- **Collectors Management**: Monitor and assign collectors to pickup jobs
+- **Logs & Alerts**: Track system activities and important notifications
+
+## Key Features
+
+- Complete authentication system with Supabase integration
+- Multi-step onboarding flow for new admin users
+- Interactive dashboard with KPIs and visualizations
+- Comprehensive settings management
+- Robust filtering and search capabilities across all features
+- Responsive design using Tailwind CSS
+
+## Tech Stack
+
+- React 19
+- Tailwind CSS for styling
+- Supabase for backend and authentication
+- React Router v6 for navigation
+- Chart.js for data visualization
+- Cypress for end-to-end testing
+
+## Development Setup
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### Prerequisites
+
+- Node.js 16+
+- Supabase project with proper schema setup
+
+### Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```
+REACT_APP_SUPABASE_URL=your_supabase_project_url
+REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+REACT_APP_USE_DEV_AUTH=true  # Set to false for production
+```
+
+### Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+#### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Runs the app in development mode.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### `npm test`
 
-### `npm test`
+Launches the test runner in interactive watch mode.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### `npm run build`
 
-### `npm run build`
+Builds the app for production to the `build` folder.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### `npm run cypress:open`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Opens the Cypress test runner for end-to-end testing.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Project Structure
 
-### `npm run eject`
+- `/src/pages`: Main feature pages
+- `/src/components`: Reusable UI components
+- `/src/context`: React context providers
+- `/src/utils`: Utility functions including auth and Supabase client
+- `/src/mock`: Mock data for development
+- `/cypress`: End-to-end tests
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Current Status
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The application currently uses mock data for development and testing, with all UI components and features fully implemented. The next step is to integrate real Supabase data fetching and mutations.
