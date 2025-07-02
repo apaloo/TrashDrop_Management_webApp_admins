@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Sign Up</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
+      <div class="mb-6 text-center">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTcuNTIzIDIgMjIgNi40NzcgMjIgMTJDMjIgMTcuNTIzIDE3LjUyMyAyMiAxMiAyMkM2LjQ3NyAyMiAyIDE3LjUyMyAyIDEyQzIgNi40NzcgNi40NzcgMiAxMiAyWk0xMCA4VjE2TDYgMTJMMTAgOFpNMTQgOEwxOCAxMkwxNCAxNlY4WiIgZmlsbD0iIzE1ODAzZCIvPgo8L3N2Zz4=" alt="TrashDrop Logo" class="mx-auto h-12">
+        <h2 class="text-2xl font-bold text-gray-800 mt-4">Sign Up for TrashDrop Admin</h2>
+        <p class="text-gray-600 text-sm">Create an account to manage your organization</p>
+      </div>
+      
+      <form id="signupForm" data-test="signup-form">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="firstName">
+              First Name
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="firstName" 
+              type="text" 
+              placeholder="John"
+              data-test="first-name-input">
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="lastName">
+              Last Name
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="lastName" 
+              type="text" 
+              placeholder="Doe"
+              data-test="last-name-input">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+            Email
+          </label>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+            id="email" 
+            type="email" 
+            placeholder="your.email@example.com"
+            data-test="email-input">
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+            Password
+          </label>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+            id="password" 
+            type="password" 
+            placeholder="******************"
+            data-test="password-input">
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
+            Confirm Password
+          </label>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+            id="confirmPassword" 
+            type="password" 
+            placeholder="******************"
+            data-test="confirm-password-input">
+          <div class="hidden text-red-500 text-xs italic mt-1" data-test="password-match-error">
+            Passwords do not match
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="flex items-center">
+            <input type="checkbox" class="form-checkbox" data-test="terms-checkbox">
+            <span class="ml-2 text-sm text-gray-700">I agree to the <a href="#" class="text-green-600 hover:text-green-800">Terms and Conditions</a></span>
+          </label>
+        </div>
+        <div class="flex items-center justify-center">
+          <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
+            type="submit" 
+            data-test="signup-button">
+            Create Account
+          </button>
+        </div>
+        <div class="text-center mt-4">
+          <span class="text-gray-600 text-sm">Already have an account?</span>
+          <a class="text-green-600 hover:text-green-800 text-sm font-bold ml-1" href="#" data-test="login-link">
+            Log In
+          </a>
+        </div>
+      </form>
+    </div>
+    <p class="text-center text-gray-500 text-xs">
+      &copy;2025 TrashDrop. All rights reserved.
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const termsAccepted = document.querySelector('[data-test="terms-checkbox"]').checked;
+      
+      if (password !== confirmPassword) {
+        document.querySelector('[data-test="password-match-error"]').classList.remove('hidden');
+        return;
+      }
+      
+      if (firstName && lastName && email && password && termsAccepted) {
+        // Mock successful signup
+        window.location.href = '/onboarding'; // Would redirect in real app
+      }
+    });
+  </script>
+</body>
+</html>

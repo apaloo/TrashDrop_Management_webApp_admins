@@ -23,16 +23,28 @@ export const devModeSignIn = () => {
   // Store the mock user in localStorage to persist across page refreshes
   localStorage.setItem('trashdrop_dev_user', JSON.stringify(MOCK_USER));
   localStorage.setItem('trashdrop_onboarding_completed', 'true');
+  localStorage.setItem('trashdrop_authenticated', 'true');
+  localStorage.setItem('trashdrop_session_active', 'true');
+  localStorage.setItem('trashdrop_user_data', JSON.stringify(MOCK_USER));
+  
+  // Create a mock session structure that mimics Supabase's session structure
+  const mockSession = {
+    access_token: 'dev-mock-token',
+    refresh_token: 'dev-mock-refresh-token',
+    expires_at: new Date().getTime() + 3600000, // 1 hour from now
+    user: MOCK_USER
+  };
   
   return {
-    data: { user: MOCK_USER, session: { access_token: 'mock-token' } },
+    data: { user: MOCK_USER, session: mockSession },
     error: null
   };
 };
 
 // Function to check if development mode is enabled
 export const isDevMode = () => {
-  return process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_DEV_AUTH === 'true';
+  // Just check for the environment variable, regardless of whether we're in development or production
+  return process.env.REACT_APP_USE_DEV_AUTH === 'true';
 };
 
 // Function to get the mock user if it exists in localStorage

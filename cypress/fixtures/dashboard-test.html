@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 light-theme">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-green-800 text-white" data-test="sidebar">
+      <div class="p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">TrashDrop Admin</h1>
+        <button data-test="toggle-sidebar" class="text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+      <nav class="mt-6" data-test="sidebar-nav">
+        <a href="#" class="block py-2 px-4 bg-green-900"><span data-test="nav-labels">Dashboard</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Bag Management</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Generate Bag</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Request Pickup</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Collectors</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Illegal Dumping</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">System Logs</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Alerts</span></a>
+        <a href="#" class="block py-2 px-4"><span data-test="nav-labels">Settings</span></a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+      <!-- Top Navigation -->
+      <header class="bg-white shadow">
+        <div class="px-4 py-2 flex justify-between items-center">
+          <h2 class="text-xl font-semibold" data-test="page-title">Dashboard</h2>
+          <div class="flex items-center">
+            <!-- Theme Toggle -->
+            <button class="mr-4" data-test="theme-toggle">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+              </svg>
+            </button>
+            
+            <!-- Notification Bell -->
+            <div class="mr-4 relative" data-test="notification-bell">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+              <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" data-test="notification-count">3</span>
+              
+              <!-- Notification Dropdown (hidden by default) -->
+              <div class="hidden absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20" data-test="notification-dropdown">
+                <div class="py-2">
+                  <div class="flex justify-between items-center px-4 py-2 border-b">
+                    <h3 class="text-sm font-semibold">Notifications</h3>
+                    <button class="text-sm text-blue-600" data-test="refresh-notifications">Refresh</button>
+                  </div>
+                  <div data-test="notification-item" class="px-4 py-3 border-b hover:bg-gray-50">
+                    <p class="font-medium text-sm">New Pickup Request</p>
+                    <p class="text-xs text-gray-500">2 minutes ago</p>
+                  </div>
+                  <div data-test="notification-item" class="px-4 py-3 border-b hover:bg-gray-50">
+                    <p class="font-medium text-sm">Collector Status Update</p>
+                    <p class="text-xs text-gray-500">1 hour ago</p>
+                  </div>
+                  <div data-test="notification-item" class="px-4 py-3 hover:bg-gray-50">
+                    <p class="font-medium text-sm">System Maintenance</p>
+                    <p class="text-xs text-gray-500">yesterday</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- User Menu -->
+            <div class="relative" data-test="user-menu">
+              <div class="flex items-center cursor-pointer">
+                <img class="w-8 h-8 rounded-full" src="https://via.placeholder.com/40" alt="User Avatar">
+                <span class="ml-2">Admin User</span>
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+              
+              <!-- User Menu Dropdown (hidden by default) -->
+              <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20" data-test="user-menu-dropdown">
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-test="profile-option">Your Profile</a>
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-test="settings-option">Settings</a>
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-test="logout-option">Sign out</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <main class="p-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-test="stats-cards">
+          <!-- Collectors Card -->
+          <div class="bg-white p-4 rounded shadow" data-test="stat-card">
+            <div class="flex items-center justify-between" data-test="collectors-card">
+              <div>
+                <h3 class="text-gray-500 text-sm" data-test="stat-label">Collectors</h3>
+                <p class="text-2xl font-bold" data-test="stat-value">42</p>
+              </div>
+              <div class="bg-blue-100 p-2 rounded">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Bags Card -->
+          <div class="bg-white p-4 rounded shadow" data-test="stat-card">
+            <div class="flex items-center justify-between" data-test="bags-card">
+              <div>
+                <h3 class="text-gray-500 text-sm" data-test="stat-label">Active Bags</h3>
+                <p class="text-2xl font-bold" data-test="stat-value">256</p>
+              </div>
+              <div class="bg-green-100 p-2 rounded">
+                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pickups Card -->
+          <div class="bg-white p-4 rounded shadow" data-test="stat-card">
+            <div class="flex items-center justify-between" data-test="pickups-card">
+              <div>
+                <h3 class="text-gray-500 text-sm" data-test="stat-label">Pending Pickups</h3>
+                <p class="text-2xl font-bold" data-test="stat-value">18</p>
+              </div>
+              <div class="bg-yellow-100 p-2 rounded">
+                <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dumping Reports Card -->
+          <div class="bg-white p-4 rounded shadow" data-test="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-gray-500 text-sm" data-test="stat-label">Dumping Reports</h3>
+                <p class="text-2xl font-bold" data-test="stat-value">7</p>
+              </div>
+              <div class="bg-red-100 p-2 rounded">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Completed Today Card -->
+          <div class="bg-white p-4 rounded shadow" data-test="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-gray-500 text-sm" data-test="stat-label">Completed Today</h3>
+                <p class="text-2xl font-bold" data-test="stat-value">24</p>
+              </div>
+              <div class="bg-purple-100 p-2 rounded">
+                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="bg-white p-4 rounded shadow mb-8" data-test="recent-activity">
+          <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+          <ul>
+            <li class="border-b py-3" data-test="activity-item">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium" data-test="activity-type">Pickup Completed</span>
+                  <p class="text-sm text-gray-600" data-test="activity-details">By John Doe at Downtown Area</p>
+                </div>
+                <span class="text-sm text-gray-500" data-test="activity-time">Jun 22</span>
+              </div>
+            </li>
+            <li class="border-b py-3" data-test="activity-item">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium" data-test="activity-type">Collector Registered</span>
+                  <p class="text-sm text-gray-600" data-test="activity-details">Mark Wilson - East Region</p>
+                </div>
+                <span class="text-sm text-gray-500" data-test="activity-time">Jun 22</span>
+              </div>
+            </li>
+            <li class="py-3" data-test="activity-item">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium" data-test="activity-type">Dumping Reported</span>
+                  <p class="text-sm text-gray-600" data-test="activity-details">Westside Park - Medium Severity</p>
+                </div>
+                <span class="text-sm text-gray-500" data-test="activity-time">Jun 22</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Alerts Summary -->
+        <div class="bg-white p-4 rounded shadow mb-8" data-test="alerts-summary">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Recent Alerts</h3>
+            <span class="bg-red-500 text-white text-sm px-2 py-1 rounded-full" data-test="alerts-count">3</span>
+          </div>
+          <ul>
+            <li class="border-b py-3">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium text-red-600">Critical Alert</span>
+                  <p class="text-sm text-gray-600">Collector assignment failure</p>
+                </div>
+                <span class="text-sm text-gray-500">Jun 22</span>
+              </div>
+            </li>
+            <li class="border-b py-3">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium text-orange-500">Warning Alert</span>
+                  <p class="text-sm text-gray-600">Pickup request delayed</p>
+                </div>
+                <span class="text-sm text-gray-500">Jun 21</span>
+              </div>
+            </li>
+            <li class="py-3">
+              <div class="flex justify-between">
+                <div>
+                  <span class="font-medium text-yellow-500">System Notice</span>
+                  <p class="text-sm text-gray-600">Database maintenance scheduled</p>
+                </div>
+                <span class="text-sm text-gray-500">Jun 20</span>
+              </div>
+            </li>
+          </ul>
+          <div class="mt-4 text-right">
+            <a href="#" class="text-green-600 hover:text-green-800 font-medium text-sm" data-test="view-all-alerts">View All Alerts</a>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Handle notification bell click
+    document.querySelector('[data-test=notification-bell]').addEventListener('click', function() {
+      const dropdown = document.querySelector('[data-test=notification-dropdown]');
+      dropdown.classList.toggle('hidden');
+    });
+
+    // Handle user menu click
+    document.querySelector('[data-test=user-menu]').addEventListener('click', function() {
+      const dropdown = document.querySelector('[data-test=user-menu-dropdown]');
+      dropdown.classList.toggle('hidden');
+    });
+
+    // Handle logout click
+    document.querySelector('[data-test=logout-option]').addEventListener('click', function() {
+      // Clear localStorage auth
+      localStorage.removeItem('trashdrop_authenticated');
+      localStorage.removeItem('trashdrop_onboarding_completed');
+      // In a real app this would redirect to login
+    });
+
+    // Handle sidebar toggle
+    document.querySelector('[data-test=toggle-sidebar]').addEventListener('click', function() {
+      const sidebar = document.querySelector('[data-test=sidebar]');
+      sidebar.classList.toggle('collapsed');
+      
+      const navLabels = document.querySelectorAll('[data-test=nav-labels]');
+      navLabels.forEach(label => {
+        label.classList.toggle('hidden');
+      });
+    });
+
+    // Handle theme toggle
+    document.querySelector('[data-test=theme-toggle]').addEventListener('click', function() {
+      const body = document.querySelector('body');
+      if (body.classList.contains('light-theme')) {
+        body.classList.remove('light-theme');
+        body.classList.add('dark-theme');
+      } else {
+        body.classList.remove('dark-theme');
+        body.classList.add('light-theme');
+      }
+    });
+  </script>
+</body>
+</html>

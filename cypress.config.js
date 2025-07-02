@@ -1,16 +1,16 @@
-const { defineConfig } = require('cypress');
+const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
   e2e: {
-    // Base URL for all Cypress tests - used for React route testing
-    baseUrl: 'http://localhost:3000',
+    // Allow running tests without a baseUrl for fixture-based tests
+    baseUrl: null,
     setupNodeEvents(on, config) {
       // implement node event listeners here
-      
+
       // Allow running without a server
-      on('before:browser:launch', (browser, launchOptions) => {
-        if (browser.name === 'chrome' || browser.name === 'edge') {
-          launchOptions.args.push('--disable-web-security');
+      on("before:browser:launch", (browser, launchOptions) => {
+        if (browser.name === "chrome" || browser.name === "edge") {
+          launchOptions.args.push("--disable-web-security");
         }
         return launchOptions;
       });
@@ -27,6 +27,13 @@ module.exports = defineConfig({
     chromeWebSecurity: false,
     includeShadowDom: true,
     video: false,
-    screenshotOnRunFailure: true
-  }
+    screenshotOnRunFailure: true,
+  },
+
+  component: {
+    devServer: {
+      framework: "react",
+      bundler: "webpack",
+    },
+  },
 });

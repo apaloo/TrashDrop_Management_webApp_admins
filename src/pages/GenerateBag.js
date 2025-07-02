@@ -119,29 +119,29 @@ const GenerateBag = () => {
   };
   
   return (
-    <div className="container-fluid px-4 py-5">
-      <h2 className="mb-4">Generate Bag Batches</h2>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Generate Bag Batches</h2>
       
       {/* Form section */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <h5 className="card-title mb-3">Bag Batch Configuration</h5>
+      <div className="bg-white shadow-sm rounded-lg mb-6">
+        <div className="p-6">
+          <h5 className="text-xl font-semibold mb-4 text-gray-700">Bag Batch Configuration</h5>
           
           {error && (
-            <div className="alert alert-danger d-flex align-items-center" role="alert">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-              {error}
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center mb-4" role="alert">
+              <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
+              <span>{error}</span>
             </div>
           )}
           
           <form>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label htmlFor="trashType" className="form-label">Trash Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label htmlFor="trashType" className="block text-sm font-medium text-gray-700 mb-1">Trash Type</label>
                 <select 
                   id="trashType" 
                   name="trashType" 
-                  className="form-select" 
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md shadow-sm" 
                   value={formData.trashType}
                   onChange={handleInputChange}
                 >
@@ -149,15 +149,15 @@ const GenerateBag = () => {
                   <option value="Recyclable">Blue/Recyclable</option>
                   <option value="Hazardous">Red/Hazardous</option>
                 </select>
-                <div className="form-text">Select the type of trash for this batch.</div>
+                <p className="mt-2 text-sm text-gray-500">Select the type of trash for this batch.</p>
               </div>
               
-              <div className="col-md-6">
-                <label htmlFor="bagSize" className="form-label">Bag Size</label>
+              <div>
+                <label htmlFor="bagSize" className="block text-sm font-medium text-gray-700 mb-1">Bag Size</label>
                 <select 
                   id="bagSize" 
                   name="bagSize" 
-                  className="form-select" 
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md shadow-sm" 
                   value={formData.bagSize}
                   onChange={handleInputChange}
                 >
@@ -165,16 +165,16 @@ const GenerateBag = () => {
                   <option value="Medium">Medium/13 gallons</option>
                   <option value="Large">Large/30 gallons</option>
                 </select>
-                <div className="form-text">Select the size of the bags in this batch.</div>
+                <p className="mt-2 text-sm text-gray-500">Select the size of the bags in this batch.</p>
               </div>
             </div>
             
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label htmlFor="numberOfBags" className="form-label">Number of Bags</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label htmlFor="numberOfBags" className="block text-sm font-medium text-gray-700 mb-1">Number of Bags</label>
                 <input 
                   type="number" 
-                  className="form-control" 
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
                   id="numberOfBags" 
                   name="numberOfBags" 
                   min="1" 
@@ -182,14 +182,14 @@ const GenerateBag = () => {
                   value={formData.numberOfBags}
                   onChange={handleInputChange}
                 />
-                <div className="form-text">Enter a number between 1 and 1000.</div>
+                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 1000.</p>
               </div>
               
-              <div className="col-md-6">
-                <label htmlFor="numberOfBatches" className="form-label">Number of Batches</label>
+              <div>
+                <label htmlFor="numberOfBatches" className="block text-sm font-medium text-gray-700 mb-1">Number of Batches</label>
                 <input 
                   type="number" 
-                  className="form-control" 
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
                   id="numberOfBatches" 
                   name="numberOfBatches" 
                   min="1" 
@@ -197,33 +197,36 @@ const GenerateBag = () => {
                   value={formData.numberOfBatches}
                   onChange={handleInputChange}
                 />
-                <div className="form-text">Enter a number between 1 and 10.</div>
+                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 10.</p>
               </div>
             </div>
             
-            <div className="d-flex justify-content-end mt-4">
+            <div className="flex justify-end mt-6 space-x-4">
               <button 
                 type="button" 
-                className="btn btn-outline-primary me-2" 
+                className="py-2 px-4 border border-blue-500 rounded-md shadow-sm text-sm font-medium text-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
                 onClick={handlePreview}
               >
-                <FontAwesomeIcon icon={faMagic} className="me-1" /> Preview
+                <FontAwesomeIcon icon={faMagic} className="mr-2" /> Preview
               </button>
               
               <button 
                 type="button" 
-                className="btn btn-primary" 
+                className="py-2 px-4 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
                 onClick={handleGenerate}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                     Generating...
                   </>
                 ) : (
                   <>
-                    <FontAwesomeIcon icon={faQrcode} className="me-1" /> Generate
+                    <FontAwesomeIcon icon={faQrcode} className="mr-2" /> Generate
                   </>
                 )}
               </button>
@@ -234,69 +237,66 @@ const GenerateBag = () => {
       
       {/* QR Code Preview */}
       {previewVisible && (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <h5 className="card-title mb-3">QR Code Preview</h5>
+        <div className="bg-white shadow-sm rounded-lg mb-6">
+          <div className="p-6">
+            <h5 className="text-xl font-semibold mb-4 text-gray-700">QR Code Preview</h5>
             
-            <div className="row">
-              <div className="col-md-6">
-                <div className="d-flex flex-column align-items-center border rounded p-4 bg-light">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="flex flex-col items-center border rounded-lg p-6 bg-gray-50">
                   {/* This would be an actual QR code in production */}
-                  <div className="mb-3 p-3 bg-white border" style={{ width: '200px', height: '200px' }}>
-                    <div className="d-flex justify-content-center align-items-center h-100">
-                      <FontAwesomeIcon icon={faQrcode} size="6x" className="text-primary" />
+                  <div className="mb-4 p-3 bg-white border border-gray-300 rounded" style={{ width: '200px', height: '200px' }}>
+                    <div className="flex justify-center items-center h-full text-gray-400">
+                      <FontAwesomeIcon icon={faQrcode} size="4x" />
                     </div>
                   </div>
-                  <div className="text-center">
-                    <p className="mb-1 fw-bold">{previewQR?.sample}</p>
-                    <p className="text-muted small">{previewQR?.url}</p>
-                  </div>
+                  <h6 className="text-lg font-medium mb-2">{previewQR?.prefix}</h6>
+                  <p className="text-gray-500 text-sm">Sample: {previewQR?.sample}</p>
                 </div>
               </div>
               
-              <div className="col-md-6">
-                <h6>Batch Summary</h6>
-                <ul className="list-group">
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Trash Type:</span>
-                    <span className="fw-bold">{formData.trashType}</span>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Bag Size:</span>
-                    <span className="fw-bold">{formData.bagSize}</span>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Number of Bags:</span>
-                    <span className="fw-bold">{formData.numberOfBags}</span>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>Number of Batches:</span>
-                    <span className="fw-bold">{formData.numberOfBatches}</span>
-                  </li>
-                  <li className="list-group-item d-flex justify-content-between">
-                    <span>QR Code Prefix:</span>
-                    <span className="fw-bold">{previewQR?.prefix}</span>
-                  </li>
-                </ul>
+              <div>
+                <h6 className="text-lg font-medium mb-3">QR Code Details</h6>
+                <p className="mb-2"><span className="font-semibold">Prefix:</span> {previewQR?.prefix}</p>
+                <p className="mb-2"><span className="font-semibold">Sample Code:</span> {previewQR?.sample}</p>
+                <p className="mb-2"><span className="font-semibold">URL Format:</span> {previewQR?.url}</p>
+                <p className="text-sm text-gray-600 mt-4">This is an example of how your QR codes will be generated. In production, the actual QR code image will be displayed.</p>
                 
-                <div className="d-grid mt-3">
-                  <button 
-                    type="button" 
-                    className="btn btn-success" 
-                    onClick={handleGenerate}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <FontAwesomeIcon icon={faCheck} className="me-1" /> Confirm & Generate
-                      </>
-                    )}
-                  </button>
+                <div className="mt-6">
+                  <h6 className="text-lg font-medium mb-3">Batch Summary</h6>
+                  <ul className="divide-y divide-gray-200">
+                    <li className="py-3 flex justify-between">
+                      <span className="text-gray-600">Number of Batches:</span>
+                      <span className="font-bold">{formData.numberOfBatches}</span>
+                    </li>
+                    <li className="py-3 flex justify-between">
+                      <span className="text-gray-600">QR Code Prefix:</span>
+                      <span className="font-bold">{previewQR?.prefix}</span>
+                    </li>
+                  </ul>
+                
+                  <div className="mt-6">
+                    <button 
+                      type="button" 
+                      className="w-full py-2 px-4 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
+                      onClick={handleGenerate}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faCheck} className="mr-2" /> Confirm & Generate
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -305,60 +305,61 @@ const GenerateBag = () => {
       )}
       
       {/* Generated Batches Table */}
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <h5 className="card-title mb-3">Generated Batches</h5>
+      <div className="bg-white shadow-sm rounded-lg">
+        <div className="p-6">
+          <h5 className="text-xl font-semibold mb-4 text-gray-700">Generated Batches</h5>
           
           {generatedBatches.length === 0 ? (
-            <div className="alert alert-info" role="alert">
-              No batches have been generated yet. Use the form above to create new bag batches.
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-center" role="alert">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
+              <span>No batches have been generated yet. Use the form above to create new bag batches.</span>
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th>Batch ID</th>
-                    <th>Trash Type</th>
-                    <th>Bag Size</th>
-                    <th>Number of Bags</th>
-                    <th>Generation Date</th>
-                    <th>Actions</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch ID</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trash Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bag Size</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number of Bags</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation Date</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="bg-white divide-y divide-gray-200">
                   {generatedBatches.map((batch) => {
                     // Format the date
                     const formattedDate = new Date(batch.createdAt).toLocaleString();
                     
-                    // Get color for trash type
+                    // Get color for trash type using Tailwind classes
                     const getTrashTypeColor = (type) => {
                       switch(type) {
-                        case 'Organic': return 'success';
-                        case 'Recyclable': return 'primary';
-                        case 'Hazardous': return 'danger';
-                        default: return 'secondary';
+                        case 'Organic': return 'bg-green-100 text-green-800';
+                        case 'Recyclable': return 'bg-blue-100 text-blue-800';
+                        case 'Hazardous': return 'bg-red-100 text-red-800';
+                        default: return 'bg-gray-100 text-gray-800';
                       }
                     };
                     
                     return (
-                      <tr key={batch.id}>
-                        <td>{batch.id}</td>
-                        <td>
-                          <span className={`badge bg-${getTrashTypeColor(batch.type)} text-white`}>
+                      <tr key={batch.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTrashTypeColor(batch.type)}`}>
                             {batch.type}
                           </span>
                         </td>
-                        <td>{batch.size}</td>
-                        <td>{batch.quantity}</td>
-                        <td>{formattedDate}</td>
-                        <td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.size}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.quantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formattedDate}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button 
-                            className="btn btn-sm btn-outline-primary" 
+                            className="inline-flex items-center px-3 py-1 border border-blue-500 text-xs font-medium rounded text-blue-500 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
                             title="Download QR Codes"
                             onClick={() => alert(`Downloading QR codes for batch ${batch.id}`)}
                           >
-                            <FontAwesomeIcon icon={faQrcode} /> Download QRs
+                            <FontAwesomeIcon icon={faQrcode} className="mr-1" /> Download QRs
                           </button>
                         </td>
                       </tr>

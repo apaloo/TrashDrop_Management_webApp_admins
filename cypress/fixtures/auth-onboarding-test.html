@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Onboarding</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8 text-center">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTcuNTIzIDIgMjIgNi40NzcgMjIgMTJDMjIgMTcuNTIzIDE3LjUyMyAyMiAxMiAyMkM2LjQ3NyAyMiAyIDE3LjUyMyAyIDEyQzIgNi40NzcgNi40NzcgMiAxMiAyWk0xMCA4VjE2TDYgMTJMMTAgOFpNMTQgOEwxOCAxMkwxNCAxNlY4WiIgZmlsbD0iIzE1ODAzZCIvPgo8L3N2Zz4=" alt="TrashDrop Logo" class="mx-auto h-12">
+      <h1 class="text-3xl font-bold text-gray-800 mt-4">Welcome to TrashDrop Admin</h1>
+      <p class="text-gray-600">Let's set up your account to get started</p>
+    </div>
+    
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <!-- Progress steps -->
+      <div class="border-b border-gray-200">
+        <div class="flex">
+          <div class="w-1/3 py-3 px-4 bg-green-600 text-white font-medium text-center">
+            1. Organization Info
+          </div>
+          <div class="w-1/3 py-3 px-4 bg-green-100 text-gray-700 font-medium text-center" data-test="step-2">
+            2. Region Settings
+          </div>
+          <div class="w-1/3 py-3 px-4 bg-gray-100 text-gray-500 font-medium text-center" data-test="step-3">
+            3. Preferences
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 1: Organization Info -->
+      <div id="step1" class="p-6">
+        <h2 class="text-xl font-bold mb-4">Organization Information</h2>
+        <form id="orgForm" data-test="org-form">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="orgName">
+              Organization Name
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="orgName" 
+              type="text" 
+              placeholder="e.g. City Waste Management"
+              data-test="org-name-input">
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="orgType">
+              Organization Type
+            </label>
+            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="orgType"
+              data-test="org-type-select">
+              <option value="">Select an organization type</option>
+              <option value="government">Government</option>
+              <option value="nonprofit">Non-profit</option>
+              <option value="private">Private Company</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="orgAddress">
+              Address
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="orgAddress" 
+              type="text" 
+              placeholder="Street address"
+              data-test="org-address-input">
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="orgCity">
+                City
+              </label>
+              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                id="orgCity" 
+                type="text" 
+                placeholder="City"
+                data-test="org-city-input">
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="orgZip">
+                ZIP / Postal Code
+              </label>
+              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                id="orgZip" 
+                type="text" 
+                placeholder="ZIP Code"
+                data-test="org-zip-input">
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+              type="button" 
+              id="nextToStep2"
+              data-test="next-button">
+              Next
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Step 2: Region Settings (initially hidden) -->
+      <div id="step2" class="p-6 hidden">
+        <h2 class="text-xl font-bold mb-4">Region Settings</h2>
+        <form id="regionForm" data-test="region-form">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Select Service Regions
+            </label>
+            <div class="bg-gray-50 p-3 rounded border">
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" value="north" data-test="region-checkbox-north">
+                  <span class="ml-2">North District</span>
+                </label>
+              </div>
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" value="south" data-test="region-checkbox-south">
+                  <span class="ml-2">South District</span>
+                </label>
+              </div>
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" value="east" data-test="region-checkbox-east">
+                  <span class="ml-2">East District</span>
+                </label>
+              </div>
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" value="west" data-test="region-checkbox-west">
+                  <span class="ml-2">West District</span>
+                </label>
+              </div>
+              <div>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" value="central" data-test="region-checkbox-central">
+                  <span class="ml-2">Central District</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="mapCenter">
+              Map Center Coordinates
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                id="latitude" 
+                type="text" 
+                placeholder="Latitude"
+                data-test="latitude-input">
+              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                id="longitude" 
+                type="text" 
+                placeholder="Longitude"
+                data-test="longitude-input">
+            </div>
+          </div>
+          <div class="flex justify-between">
+            <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+              type="button" 
+              id="backToStep1"
+              data-test="back-button">
+              Back
+            </button>
+            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+              type="button" 
+              id="nextToStep3"
+              data-test="next-button">
+              Next
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Step 3: Preferences (initially hidden) -->
+      <div id="step3" class="p-6 hidden">
+        <h2 class="text-xl font-bold mb-4">System Preferences</h2>
+        <form id="preferencesForm" data-test="preferences-form">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Notification Settings
+            </label>
+            <div class="bg-gray-50 p-3 rounded border mb-4">
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" checked data-test="email-notifications-checkbox">
+                  <span class="ml-2">Email Notifications</span>
+                </label>
+              </div>
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" data-test="sms-notifications-checkbox">
+                  <span class="ml-2">SMS Notifications</span>
+                </label>
+              </div>
+              <div>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox" checked data-test="app-notifications-checkbox">
+                  <span class="ml-2">In-App Notifications</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Dashboard Default View
+            </label>
+            <div class="flex">
+              <label class="inline-flex items-center mr-6">
+                <input type="radio" class="form-radio" name="defaultView" value="map" checked data-test="map-view-radio">
+                <span class="ml-2">Map View</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" class="form-radio" name="defaultView" value="list" data-test="list-view-radio">
+                <span class="ml-2">List View</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="sessionTimeout">
+              Session Timeout (minutes)
+            </label>
+            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+              id="sessionTimeout"
+              data-test="session-timeout-select">
+              <option value="30">30 minutes</option>
+              <option value="60" selected>60 minutes</option>
+              <option value="120">120 minutes</option>
+              <option value="240">240 minutes</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+              type="button" 
+              id="backToStep2"
+              data-test="back-button">
+              Back
+            </button>
+            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+              type="submit" 
+              id="finishOnboarding"
+              data-test="finish-button">
+              Complete Setup
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // For test purposes
+    document.getElementById('nextToStep2').addEventListener('click', function() {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+      document.querySelector('[data-test="step-2"]').classList.remove('bg-green-100');
+      document.querySelector('[data-test="step-2"]').classList.add('bg-green-600', 'text-white');
+    });
+    
+    document.getElementById('backToStep1').addEventListener('click', function() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+      document.querySelector('[data-test="step-2"]').classList.remove('bg-green-600', 'text-white');
+      document.querySelector('[data-test="step-2"]').classList.add('bg-green-100');
+    });
+    
+    document.getElementById('nextToStep3').addEventListener('click', function() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.remove('hidden');
+      document.querySelector('[data-test="step-3"]').classList.remove('bg-gray-100', 'text-gray-500');
+      document.querySelector('[data-test="step-3"]').classList.add('bg-green-600', 'text-white');
+    });
+    
+    document.getElementById('backToStep2').addEventListener('click', function() {
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+      document.querySelector('[data-test="step-3"]').classList.remove('bg-green-600', 'text-white');
+      document.querySelector('[data-test="step-3"]').classList.add('bg-gray-100', 'text-gray-500');
+    });
+    
+    document.getElementById('finishOnboarding').addEventListener('click', function(e) {
+      e.preventDefault();
+      // Mock saving the onboarding completion
+      window.localStorage.setItem('trashdrop_onboarding_completed', 'true');
+      window.location.href = '/dashboard'; // Would redirect in real app
+    });
+  </script>
+</body>
+</html>

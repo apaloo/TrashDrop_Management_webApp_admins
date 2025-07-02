@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -30,18 +30,21 @@ const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, onboardingCompleted } = useAuth();
+  const { isAuthenticated, loading, onboardingCompleted, authInitialized, refreshAuthState } = useAuth();
   const currentPath = window.location.pathname;
   
   console.log('ProtectedRoute check:', { 
     path: currentPath,
     isAuthenticated,
     loading,
-    onboardingCompleted
+    onboardingCompleted,
+    authInitialized
   });
   
-  if (loading) {
-    console.log('ProtectedRoute: Loading state, showing spinner');
+  // Don't try to redirect or refresh until auth is fully initialized
+  // This prevents premature redirects that could cause loops
+  if (loading || !authInitialized) {
+    console.log('ProtectedRoute: Auth not initialized or loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -49,18 +52,18 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  // Check localStorage as a fallback for authentication state
-  const localAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
-  const effectiveAuthState = isAuthenticated || localAuthState;
-  
-  if (!effectiveAuthState) {
+  // Only attempt refresh if auth is initialized but user is not authenticated
+  if (authInitialized && !isAuthenticated) {
     console.log('ProtectedRoute: Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
-  // Redirect to onboarding if user is authenticated but onboarding is not completed
-  // Only redirect if not already on the onboarding page
-  if (!onboardingCompleted && currentPath !== '/onboarding') {
+  // Check onboarding status
+  const localOnboardingCompleted = localStorage.getItem('trashdrop_onboarding_completed') === 'true';
+  const effectiveOnboardingStatus = onboardingCompleted || localOnboardingCompleted;
+  
+  // Redirect to onboarding if needed, but only if we're not already there
+  if (!effectiveOnboardingStatus && currentPath !== '/onboarding') {
     console.log('ProtectedRoute: Onboarding not completed, redirecting to onboarding');
     return <Navigate to="/onboarding" replace />;
   }
@@ -71,17 +74,19 @@ const ProtectedRoute = ({ children }) => {
 
 // Public route - redirects to dashboard if already authenticated
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, authInitialized } = useAuth();
   const currentPath = window.location.pathname;
   
   console.log('PublicRoute check:', { 
     path: currentPath,
     isAuthenticated,
-    loading 
+    loading,
+    authInitialized
   });
   
-  if (loading) {
-    console.log('PublicRoute: Loading state, showing spinner');
+  // Don't redirect until auth is fully initialized
+  if (loading || !authInitialized) {
+    console.log('PublicRoute: Auth not initialized or loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -89,12 +94,12 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  // Check localStorage as a fallback for authentication state
-  const localAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
-  
-  if (isAuthenticated || localAuthState) {
+  if (isAuthenticated) {
     console.log('PublicRoute: User is authenticated, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
+    // Make sure we only redirect once after authenticated state is confirmed
+    if (currentPath !== '/dashboard') {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
   
   console.log('PublicRoute: User not authenticated, rendering public content');

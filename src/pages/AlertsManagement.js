@@ -414,17 +414,18 @@ const AlertsManagement = () => {
           <AlertsTable 
             alerts={filteredAlerts} 
             onViewDetails={(id) => setSelectedAlertId(id)}
-            toggleAlertStatus={toggleAlertStatus}
+            onToggleStatus={toggleAlertStatus}
             selectedAlerts={selectedAlerts}
-            onSelectAlert={handleSelectAlert}
-            onSelectAll={handleSelectAllAlerts}
-            sortConfig={sortConfig}
-            onSort={(key) => {
-              setSortConfig(prevConfig => ({
-                key,
-                direction: prevConfig.key === key && prevConfig.direction === 'desc' ? 'asc' : 'desc'
-              }));
+            toggleAlertSelection={handleSelectAlert}
+            toggleSelectAll={handleSelectAllAlerts}
+            sorting={sortConfig}
+            setSorting={(newSorting) => {
+              setSortConfig({
+                field: newSorting.field,
+                direction: newSorting.direction
+              });
             }}
+            allSelected={filteredAlerts.length > 0 && selectedAlerts.length === filteredAlerts.length}
           />
         )}
       </div>

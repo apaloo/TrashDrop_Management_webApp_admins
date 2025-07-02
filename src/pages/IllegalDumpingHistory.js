@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { mockIllegalDumpingHistory, calculateHistoryMetrics } from '../mock/illegalDumping';
+import { dumpingHistory, getCleanupMetrics } from '../mock/illegalDumping';
 import { format } from 'date-fns';
 
 const IllegalDumpingHistory = () => {
@@ -23,14 +23,31 @@ const IllegalDumpingHistory = () => {
   useEffect(() => {
     // Simulate API call with setTimeout
     setTimeout(() => {
-      setHistoryData(mockIllegalDumpingHistory);
+      // Transform the data to match the expected structure
+      const transformedData = dumpingHistory.map(item => ({
+        ...item,
+        // Map timestamp to both reportedAt and resolvedAt for compatibility
+        reportedAt: item.timestamp,
+        resolvedAt: item.timestamp,
+        // Add fallback values for fields that might be missing
+        resolutionType: item.action === 'Cleaned Up' ? 'Cleaned Up' : 
+                       item.action === 'Canceled' || item.action === 'Cancelled' ? 'Cancelled' : item.action,
+        cleanupTeam: item.performedBy?.includes('team') ? item.performedBy.split('@')[0].replace('_', ' ') : undefined,
+        wasteType: 'Mixed',  // Default value since it's not in the history data
+        severity: 'Medium',  // Default value
+        // Create a minimal location object if needed
+        location: item.location || null
+      }));
+      
+      setHistoryData(transformedData);
       setLoading(false);
+      console.log('Transformed history data:', transformedData);
     }, 500);
   }, []);
 
   // Calculate metrics for KPI cards
   const metrics = useMemo(() => {
-    return calculateHistoryMetrics(historyData);
+    return getCleanupMetrics();
   }, [historyData]);
    // Handle filter changes
    const handleFilterChange = (filterType, value) => {
@@ -65,7 +82,19 @@ const IllegalDumpingHistory = () => {
 
   // Format date for display
   const formatDate = (dateString) => {
-    return format(new Date(dateString), 'MMM d, yyyy h:mm a');
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      return format(date, 'MMM d, yyyy h:mm a');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
   // Filter data based on all active filters
   const filteredData = useMemo(() => {
@@ -84,8 +113,8 @@ const IllegalDumpingHistory = () => {
       // Filter by search term
       const searchMatch = !searchTerm || 
         item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.location.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.wasteType.toLowerCase().includes(searchTerm.toLowerCase());
+        (item.location && item.location.address && item.location.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.wasteType && item.wasteType.toLowerCase().includes(searchTerm.toLowerCase()));
       
       // Filter by tab selection
       const tabMatch = selectedTab === 'all' || 
@@ -322,7 +351,7 @@ const IllegalDumpingHistory = () => {
                       {item.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.location.address}
+                      {item.location && item.location.address ? item.location.address : 'Unknown location'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.resolutionType === 'Cleaned Up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -444,10 +473,10 @@ const IllegalDumpingHistory = () => {
                       {/* Location Details */}
                       <div>
                         <h4 className="text-md font-medium mb-2">Location</h4>
-                        <p className="text-sm">{selectedItem.location.address}</p>
-                        <div className="flex mt-2">
-                          <p className="text-xs text-gray-500 mr-2">Lat: {selectedItem.location.latitude}</p>
-                          <p className="text-xs text-gray-500">Lng: {selectedItem.location.longitude}</p>
+                        <p className="text-sm">{selectedItem.location && selectedItem.location.address ? selectedItem.location.address : 'Unknown location'}</p>
+                        <div className="flex">
+                          <p className="text-xs text-gray-500 mr-2">Lat: {selectedItem.location && selectedItem.location.latitude ? selectedItem.location.latitude : 'N/A'}</p>
+                          <p className="text-xs text-gray-500">Lng: {selectedItem.location && selectedItem.location.longitude ? selectedItem.location.longitude : 'N/A'}</p>
                         </div>
                       </div>
                                           {/* Waste Details */}

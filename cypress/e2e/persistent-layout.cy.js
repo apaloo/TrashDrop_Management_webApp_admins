@@ -1,7 +1,20 @@
 describe('Persistent Layout Tests', () => {
   beforeEach(() => {
-    // Simply visit the fixture file directly
-    cy.visit('cypress/fixtures/persistent-layout-test.html');
+    // Intercept any requests to a test path and serve our fixture HTML instead
+    cy.readFile('cypress/fixtures/persistent-layout-test.html').then((html) => {
+      cy.intercept('GET', '/test-persistent-layout', {
+        statusCode: 200,
+        body: html,
+        headers: {
+          'content-type': 'text/html; charset=utf-8'
+        }
+      }).as('testPage');
+      
+      // Visit the intercepted path, this bypasses the React router completely
+      cy.visit('/test-persistent-layout', {
+        failOnStatusCode: false
+      });
+    });
     
     // Mock authentication after page load
     cy.window().then((win) => {

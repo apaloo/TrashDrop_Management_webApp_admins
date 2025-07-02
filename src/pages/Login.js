@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { signIn } from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
+  const navigate = useNavigate();
+  const { refreshAuthState } = useAuth();
   
   useEffect(() => {
     // Check if user has saved email in localStorage
@@ -63,18 +66,32 @@ const Login = () => {
         localStorage.removeItem('trashdrop_remembered_email');
       }
       
-      // Store session token in localStorage (this is managed by Supabase but we can confirm it exists)
+      // Store session token and auth flags in localStorage
       const session = data?.session;
       if (session?.access_token) {
-        // Supabase already handles token storage, but we can set a flag
         localStorage.setItem('trashdrop_authenticated', 'true');
-        console.log('Authentication token stored');
+        localStorage.setItem('trashdrop_session_active', 'true');
+        
+        // Also check and set onboarding status
+        const onboardingCompleted = data.user?.user_metadata?.onboardingCompleted || false;
+        localStorage.setItem('trashdrop_onboarding_completed', onboardingCompleted.toString());
+        
+        console.log('Authentication data stored');
+        
+        // Explicitly refresh the auth context state
+        await refreshAuthState();
+        
+        console.log('Auth state refreshed, redirecting to dashboard...');
+        // Use a slightly longer timeout to ensure state updates are processed
+        // and context values have propagated to components
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 300);
+      } else {
+        // If no session token but auth succeeded, still try to redirect
+        console.log('No session token found, but auth succeeded. Redirecting anyway.');
+        navigate('/dashboard');
       }
-      
-      console.log('Redirecting to dashboard...');
-      // Use window.location.href for a hard redirect that doesn't rely on React Router
-      // This is more reliable for authentication redirects
-      window.location.href = '/dashboard';
       
     } catch (err) {
       console.error('Login error details:', err);

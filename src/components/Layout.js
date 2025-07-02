@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const Layout = ({ children }) => {
   const { user, role, isAuthenticated, loading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLayout, setShowLayout] = useState(false);
   const location = useLocation();
   
   // Check if current path is auth-related (login, signup, etc.)
@@ -15,8 +16,17 @@ const Layout = ({ children }) => {
   // Get user's first name from metadata for header greeting
   const firstName = user?.user_metadata?.firstName || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
   
-  // If we're on an auth page or app is loading, only render children without layout
-  if (isAuthPage || loading) {
+  // Check localStorage as a fallback for authentication state
+  const localAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
+  const effectiveAuthState = isAuthenticated || localAuthState;
+  
+  useEffect(() => {
+    // Only show layout if not on auth page and either authenticated or loading is complete
+    setShowLayout(!isAuthPage && effectiveAuthState);
+  }, [isAuthPage, effectiveAuthState, loading]);
+  
+  // If we're on an auth page, only render children without layout
+  if (isAuthPage) {
     return <div className="bg-gray-50">{children}</div>;
   }
   
@@ -24,7 +34,7 @@ const Layout = ({ children }) => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar for authenticated users - 250px width */}
-      {isAuthenticated && (
+      {showLayout && (
         <>
           {/* Desktop sidebar - fixed position */}
           <div className="hidden md:block fixed top-0 left-0 w-64 h-full">
@@ -55,9 +65,9 @@ const Layout = ({ children }) => {
       )}
       
       {/* Main content area */}
-      <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
+      <div className={`flex-1 flex flex-col ${showLayout ? 'md:ml-64' : ''} overflow-hidden`}>
         {/* Top navigation bar - 56px height */}
-        {isAuthenticated && (
+        {showLayout && (
           <Navbar 
             toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
             isMobileMenuOpen={isMobileMenuOpen}
@@ -65,12 +75,18 @@ const Layout = ({ children }) => {
         )}
         
         {/* Main content area - with correct top margin and padding */}
-        <main className="flex-1 overflow-y-auto mt-14 p-4 min-h-screen">
-          {children}
+        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen`}>
+          {loading ? (
+            <div className="min-h-screen flex items-center justify-center bg-green-50">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
         
         {/* Footer */}
-        {isAuthenticated && (
+        {showLayout && (
           <footer className="bg-white border-t border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
               <p>© {new Date().getFullYear()} TrashDrop. All rights reserved.</p>

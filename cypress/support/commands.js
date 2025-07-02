@@ -5,6 +5,10 @@
 // Import Testing Library commands
 import '@testing-library/cypress/add-commands';
 
+// Import logs management specific commands
+import './commands-logs';
+
+
 /**
  * Login to the TrashDrop Admin Portal
  * 

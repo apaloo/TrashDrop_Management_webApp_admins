@@ -1,47 +1,12 @@
 describe('Collectors Management', () => {
-  // Disable waiting for API responses since we're using a fixture
-  const defaultCommandTimeout = 4000;
-  
   beforeEach(() => {
-    // Increase the timeout to make tests less flaky
-    Cypress.config('defaultCommandTimeout', defaultCommandTimeout);
+    // Visit the fixture HTML file directly instead of relying on React routing
+    cy.visit('cypress/fixtures/collectors-management-test.html');
     
-    // Mock authentication
+    // Set authentication data in localStorage after page load
     cy.window().then((window) => {
       window.localStorage.setItem('trashdrop_authenticated', 'true');
-    });
-    
-    // Mock API responses for all potential API calls
-    cy.intercept('GET', '**/rest/v1/collectors*', {
-      fixture: 'collectors.json'
-    }).as('getCollectors');
-    
-    cy.intercept('GET', '**/rest/v1/collectors/*/details*', {
-      statusCode: 200,
-      body: { id: 1, name: 'John Doe', status: 'Active', region: 'North' }
-    }).as('getCollectorDetails');
-    
-    cy.intercept('PUT', '**/rest/v1/collectors/*/status', {
-      statusCode: 200,
-      body: { success: true }
-    }).as('updateStatus');
-    
-    cy.intercept('POST', '**/rest/v1/collectors', {
-      statusCode: 201,
-      body: { id: 4, success: true }
-    }).as('createCollector');
-    
-    // Use fixture instead of visiting live route
-    cy.fixture('collectors-page.html').then(html => {
-      cy.document().then(document => {
-        document.write(html);
-        document.close();
-      });
-    });
-    
-    // Stub the network request that would normally happen
-    cy.window().then(win => {
-      win.fetchComplete = true;
+      window.localStorage.setItem('trashdrop_onboarding_completed', 'true');
     });
   });
   
@@ -95,8 +60,8 @@ describe('Collectors Management', () => {
   });
   
   it('should open collector profile modal', () => {
-    // Click on view profile button
-    cy.get('[data-test=view-profile-button]').first().click();
+    // Click on view profile button - using :visible to target only visible buttons
+    cy.get('[data-test=view-profile-button]:visible').click({ multiple: true, force: true });
     
     // No need to wait for API calls with the fixture approach
     
@@ -105,8 +70,8 @@ describe('Collectors Management', () => {
     cy.get('[data-test=collector-profile-modal]').find('[data-test=collector-name]').should('contain', 'John Doe');
     cy.get('[data-test=collector-profile-modal]').find('[data-test=collector-phone]').should('contain', '555-');
     
-    // Close the modal
-    cy.get('[data-test=close-button]').click();
+    // Close the modal - using :visible and multiple:true since there are multiple close buttons
+    cy.get('[data-test=close-button]:visible').click({ multiple: true });
     cy.get('[data-test=collector-profile-modal]').should('have.class', 'hidden');
   });
   

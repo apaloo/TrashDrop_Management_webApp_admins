@@ -119,7 +119,7 @@ const Sidebar = () => {
       <nav className="flex-1 px-3">
         <div className="space-y-1">
           {menuItems
-            .filter(item => item.roles.includes(role))
+            .filter(item => canView(item.roles))
             .map((item, index) => {
               const isActive = location.pathname === item.path || 
                             (item.children && item.children.some(child => location.pathname === child.path));

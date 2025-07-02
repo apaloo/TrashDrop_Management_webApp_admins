@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
+      <div class="mb-6 text-center">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTcuNTIzIDIgMjIgNi40NzcgMjIgMTJDMjIgMTcuNTIzIDE3LjUyMyAyMiAxMiAyMkM2LjQ3NyAyMiAyIDE3LjUyMyAyIDEyQzIgNi40NzcgNi40NzcgMiAxMiAyWk0xMCA4VjE2TDYgMTJMMTAgOFpNMTQgOEwxOCAxMkwxNCAxNlY4WiIgZmlsbD0iIzE1ODAzZCIvPgo8L3N2Zz4=" alt="TrashDrop Logo" class="mx-auto h-12">
+        <h2 class="text-2xl font-bold text-gray-800 mt-4">TrashDrop Admin Portal</h2>
+        <p class="text-gray-600 text-sm">Sign in to access your dashboard</p>
+      </div>
+      
+      <div class="hidden text-red-500 text-sm mb-4" data-test="auth-error">Email or password is incorrect</div>
+      <form id="loginForm" data-test="login-form">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+            Email
+          </label>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+            id="email" 
+            type="email" 
+            placeholder="your.email@example.com"
+            data-test="email-input">
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+            Password
+          </label>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+            id="password" 
+            type="password" 
+            placeholder="******************"
+            data-test="password-input">
+          <div class="hidden text-red-500 text-xs italic mt-1" data-test="auth-error">
+            Invalid email or password
+          </div>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
+            type="submit" 
+            data-test="login-button">
+            Sign In
+          </button>
+          <a class="inline-block align-baseline font-bold text-sm text-green-600 hover:text-green-800" href="#" data-test="forgot-password-link">
+            Forgot Password?
+          </a>
+        </div>
+        <div class="text-center">
+          <span class="text-gray-600 text-sm">Don't have an account?</span>
+          <a class="text-green-600 hover:text-green-800 text-sm font-bold ml-1" href="#" data-test="signup-link">
+            Sign up
+          </a>
+        </div>
+      </form>
+    </div>
+    <p class="text-center text-gray-500 text-xs">
+      &copy;2025 TrashDrop. All rights reserved.
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      if (email === 'test@trashdrop.example' && password === 'password123') {
+        // Mock successful login
+        window.localStorage.setItem('trashdrop_authenticated', 'true');
+        window.localStorage.setItem('trashdrop_onboarding_completed', 'true');
+        window.location.href = '/dashboard'; // Would redirect in real app
+      } else {
+        // Show error for invalid credentials
+        document.querySelector('[data-test="auth-error"]').classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

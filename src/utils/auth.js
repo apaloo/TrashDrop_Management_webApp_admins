@@ -133,9 +133,43 @@ export const getUserRole = async () => {
   }
 };
 
-// New function to update user metadata
+// New function to update user metadata with session check
 export const updateUserMetadata = async (metadata) => {
   try {
+    // First check if there's an active session
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    // If no session exists and we're in dev mode, use local storage only
+    if (!sessionData?.session && isDevMode()) {
+      console.log('Dev mode: Storing metadata in localStorage only');
+      
+      // Update localStorage for development mode
+      if (metadata.onboardingCompleted !== undefined) {
+        localStorage.setItem('trashdrop_onboarding_completed', metadata.onboardingCompleted.toString());
+      }
+      
+      // Store user preferences in localStorage
+      if (metadata.notificationPreferences || metadata.dashboardPreferences) {
+        const currentPrefs = localStorage.getItem('trashdrop_user_preferences');
+        const userPrefs = currentPrefs ? JSON.parse(currentPrefs) : {};
+        
+        localStorage.setItem('trashdrop_user_preferences', JSON.stringify({
+          ...userPrefs,
+          notifications: metadata.notificationPreferences || userPrefs.notifications,
+          dashboard: metadata.dashboardPreferences || userPrefs.dashboard
+        }));
+      }
+      
+      // Return mock success for dev mode
+      return { data: { ...getDevModeUser(), user_metadata: metadata }, error: null };
+    }
+    
+    // If no session and not in dev mode, return error
+    if (!sessionData?.session) {
+      throw new Error('No active authentication session');
+    }
+    
+    // If we have a session, update the user metadata
     const { data, error } = await supabase.auth.updateUser({
       data: metadata
     });
@@ -149,7 +183,7 @@ export const updateUserMetadata = async (metadata) => {
     
     return { data: data.user, error: null };
   } catch (error) {
-    console.error('Error updating user metadata:', error.message);
+    console.error('Error updating user metadata:', error);
     return { data: null, error };
   }
 };
