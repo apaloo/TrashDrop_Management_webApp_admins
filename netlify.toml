@@ -1,9 +1,12 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm install --legacy-peer-deps --no-audit --no-fund && npm run build"
   publish = "build"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
-  NODE_VERSION = "18.17.1"  # Using a more stable Node version
+  NODE_VERSION = "16.20.2"  # Using an even more stable Node version compatible with React testing libraries
+  NPM_FLAGS = "--legacy-peer-deps"
+  CI = "true"
 
 # Handle Single Page Application routing
 [[redirects]]
