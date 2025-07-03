@@ -6,10 +6,9 @@ import AlertStats from '../components/alerts/AlertStats';
 import BulkActionModal from '../components/alerts/BulkActionModal';
 import CreateAlertModal from '../components/alerts/CreateAlertModal';
 import AlertExport from '../components/alerts/AlertExport';
-import mockAlerts from '../data/mockAlerts';
-
-// Note: Supabase integration will be added later
-// import { supabase } from '../utils/supabaseClient';
+import { fetchAlerts, updateAlertStatus } from '../utils/databaseUtils';
+import { appConfig, APP_CONSTANTS } from '../config';
+import { STATUS, PRIORITY } from '../config/constants';
 
 const AlertsManagement = () => {
   // State management
@@ -37,28 +36,50 @@ const AlertsManagement = () => {
     direction: 'desc'
   });
   
-  // Fetch alerts data (currently using mock data)
+  // Fetch alerts data from Supabase
   useEffect(() => {
-    const fetchAlerts = async () => {
+    const loadAlerts = async () => {
       try {
-        // Simulate API delay
-        setTimeout(() => {
-          setAlerts(mockAlerts);
-          setLoading(false);
-        }, 800);
+        setLoading(true);
+        let statusFilter = null;
+        if (filters.status !== 'all') {
+          statusFilter = filters.status;
+        }
         
-        // In the future, replace with Supabase call:
-        // const { data, error } = await supabase.from('alerts').select('*');
-        // if (error) throw error;
-        // setAlerts(data);
+        const data = await fetchAlerts(statusFilter);
+        
+        // Transform data from snake_case to camelCase
+        const formattedAlerts = data.map(alert => ({
+          id: alert.id,
+          title: alert.title,
+          description: alert.description,
+          status: alert.status,
+          priority: alert.priority,
+          createdAt: alert.created_at,
+          updatedAt: alert.updated_at,
+          relatedTo: alert.related_to ? {
+            type: alert.related_to.type,
+            id: alert.related_to.id,
+            location: alert.related_to.location
+          } : null,
+          assignedTo: alert.assigned_to ? {
+            id: alert.user?.id,
+            name: alert.user ? `${alert.user.first_name} ${alert.user.last_name}` : 'Unknown',
+            email: alert.user?.email
+          } : null,
+          comments: alert.comments || []
+        }));
+        
+        setAlerts(formattedAlerts);
       } catch (error) {
         console.error('Error fetching alerts:', error);
+      } finally {
         setLoading(false);
       }
     };
     
-    fetchAlerts();
-  }, []);
+    loadAlerts();
+  }, [filters.status]);
   
   // Handle filter changes
   const handleFilterChange = (filterName, value) => {
@@ -101,19 +122,21 @@ const AlertsManagement = () => {
     }
   };
   
-  // Toggle alert status (open/resolved)
-  const toggleAlertStatus = (id) => {
-    setAlerts(prevAlerts => 
-      prevAlerts.map(alert => 
-        alert.id === id 
-          ? { 
-              ...alert, 
-              status: alert.status === 'open' ? 'resolved' : 'open',
-              updatedAt: new Date().toISOString()
-            } 
-          : alert
-      )
-    );
+  // Handle status change
+  const handleStatusChange = async (alertId, newStatus) => {
+    try {
+      const updatedAlert = await updateAlertStatus(alertId, newStatus);
+      // Update the alerts list
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === alertId ? {...alert, status: newStatus} : alert
+        )
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating alert status:', error);
+      return false;
+    }
   };
   
   // Update alert assignment
@@ -156,12 +179,40 @@ const AlertsManagement = () => {
   };
   
   // Handle bulk actions
-  const handleBulkAction = (action, value) => {
-    if (action === 'status') {
+  const handleBulkAction = async (action, alertIds) => {
+    if (action === 'resolve') {
+      const newStatus = STATUS.ALERT.RESOLVED;
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
           selectedAlerts.includes(alert.id)
-            ? { ...alert, status: value, updatedAt: new Date().toISOString() }
+            ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
+            : alert
+        )
+      );
+    } else if (action === 'close') {
+      const newStatus = STATUS.ALERT.CLOSED;
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          selectedAlerts.includes(alert.id)
+            ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
+            : alert
+        )
+      );
+    } else if (action === 'reopen') {
+      const newStatus = STATUS.ALERT.OPEN;
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          selectedAlerts.includes(alert.id)
+            ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
+            : alert
+        )
+      );
+    } else if (action === 'progress') {
+      const newStatus = STATUS.ALERT.IN_PROGRESS;
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          selectedAlerts.includes(alert.id)
+            ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
             : alert
         )
       );
@@ -181,18 +232,44 @@ const AlertsManagement = () => {
   };
   
   // Handle create alert
-  const handleCreateAlert = (newAlert) => {
-    const alertToAdd = {
-      ...newAlert,
-      id: `alert-${new Date().getTime()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'open',
-      comments: []
-    };
-    
-    setAlerts(prevAlerts => [alertToAdd, ...prevAlerts]);
-    setIsCreateModalOpen(false);
+  const handleCreateAlert = async (newAlert) => {
+    try {
+      // In real implementation, we would call a database function here
+      // For now, we'll simulate it with the existing code structure
+      // but add placeholders for future database implementation
+      
+      // Generate an ID and add timestamps
+      const alert = {
+        ...newAlert,
+        id: `alert-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        comments: []
+      };
+      
+      // Add to state for immediate UI update
+      setAlerts([alert, ...alerts]);
+      setIsCreateModalOpen(false);
+      
+      // This would be replaced with a database insert
+      // For example:
+      // const { data, error } = await supabase
+      //   .from('alerts')
+      //   .insert([{
+      //     title: newAlert.title,
+      //     description: newAlert.description,
+      //     priority: newAlert.priority,
+      //     status: 'open',
+      //     related_to: newAlert.relatedTo,
+      //     assigned_to: newAlert.assignedTo?.id || null
+      //   }])
+      //   .select();
+      
+      console.log('New alert created:', alert);
+    } catch (error) {
+      console.error('Error creating alert:', error);
+      // You could add error handling UI here
+    }
   };
   
   // Apply date range filter
@@ -279,7 +356,7 @@ const AlertsManagement = () => {
     
     // Apply type filter
     if (filters.type !== 'all') {
-      filtered = filtered.filter(alert => alert.relatedTo.type === filters.type);
+      filtered = filtered.filter(alert => alert.relatedTo?.type === filters.type);
     }
     
     // Apply search query filter
@@ -289,8 +366,8 @@ const AlertsManagement = () => {
         return (
           alert.title.toLowerCase().includes(query) ||
           alert.description.toLowerCase().includes(query) ||
-          (alert.relatedTo.location && alert.relatedTo.location.toLowerCase().includes(query)) ||
-          alert.relatedTo.id.toLowerCase().includes(query)
+          (alert.relatedTo?.location && alert.relatedTo.location.toLowerCase().includes(query)) ||
+          (alert.relatedTo?.id && alert.relatedTo.id.toLowerCase().includes(query))
         );
       });
     }
@@ -319,9 +396,9 @@ const AlertsManagement = () => {
   
   // List of potential users to assign to alerts
   const assignmentOptions = [
-    { value: 'admin@trashdrop.com', label: 'Admin' },
-    { value: 'operations@trashdrop.com', label: 'Operations Team' },
-    { value: 'support@trashdrop.com', label: 'Support Team' },
+    { value: appConfig.app.adminEmail, label: 'Admin' },
+    { value: appConfig.app.supportEmail, label: 'Support Team' },
+    { value: appConfig.app.operationsEmail, label: 'Operations Team' },
     { value: 'manager@trashdrop.com', label: 'Regional Manager' },
     { value: null, label: 'Unassigned' }
   ];

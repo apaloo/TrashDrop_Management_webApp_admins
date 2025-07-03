@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { pickupRequests, collectors, alerts, getRequestsByStatus } from '../mock/pickupRequests';
+import { fetchPickupRequests, fetchCollectors, fetchAlerts, updatePickupRequestStatus } from '../utils/databaseUtils';
+import { appConfig, APP_CONSTANTS } from '../config';
+import { STATUS, PRIORITY } from '../config/constants';
 
 const RequestPickupManagement = () => {
   // State management
@@ -12,19 +14,98 @@ const RequestPickupManagement = () => {
   const [showCollectorModal, setShowCollectorModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  
+  // Function to filter requests by status
+  const getRequestsByStatus = (status) => {
+    return requests.filter(request => request.status === status);
+  };
   const [filterPriority, setFilterPriority] = useState('All');
   const [systemAlerts, setSystemAlerts] = useState([]);
 
-  // Load data
+  // Load data from Supabase
   useEffect(() => {
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setRequests(pickupRequests);
-      setActiveCollectors(collectors.filter(c => c.status === 'Active'));
-      setSystemAlerts(alerts);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch pickup requests
+        const requestsData = await fetchPickupRequests(filterStatus !== 'All' ? filterStatus : null);
+        
+        // Transform the data to match the expected structure
+        const formattedRequests = requestsData.map(req => ({
+          id: req.id,
+          requesterId: req.requester_id,
+          requesterName: req.requester?.name || 'Unknown',
+          requesterEmail: req.requester?.email || 'Unknown',
+          requesterPhone: req.requester?.phone || 'Unknown',
+          status: req.status,
+          priority: req.priority,
+          location: {
+            address: req.address,
+            coordinates: {
+              lat: req.latitude,
+              lng: req.longitude
+            }
+          },
+          scheduledDate: req.scheduled_date,
+          createdAt: req.created_at,
+          updatedAt: req.updated_at,
+          notes: req.notes || '',
+          bagCount: req.bag_count || 1,
+          collectorId: req.collector_id,
+          collectorName: req.collector ? `${req.collector.first_name} ${req.collector.last_name}` : null,
+          wasteType: req.waste_type || 'General',
+          estimatedWeight: req.estimated_weight
+        }));
+        
+        setRequests(formattedRequests);
+        
+        // Fetch collectors
+        const collectorsData = await fetchCollectors();
+        
+        // Transform the collector data
+        const formattedCollectors = collectorsData.map(col => ({
+          id: col.id,
+          name: `${col.first_name} ${col.last_name}`,
+          email: col.email,
+          phone: col.phone,
+          status: col.status,
+          currentLocation: {
+            lat: col.current_latitude,
+            lng: col.current_longitude
+          },
+          region: col.region,
+          completedPickups: col.completed_pickups,
+          rating: col.rating,
+          capacity: col.capacity,
+          vehicleType: col.vehicle_type,
+          lastActive: col.last_active
+        }));
+        
+        setActiveCollectors(formattedCollectors.filter(c => c.status === 'Active'));
+        
+        // Fetch alerts
+        const alertsData = await fetchAlerts();
+        
+        // Transform alerts data
+        const formattedAlerts = alertsData.map(alert => ({
+          id: alert.id,
+          title: alert.title,
+          message: alert.description,
+          type: alert.priority === 'critical' ? 'error' : 
+                alert.priority === 'medium' ? 'warning' : 'info',
+          timestamp: alert.created_at
+        }));
+        
+        setSystemAlerts(formattedAlerts);
+      } catch (error) {
+        console.error('Error fetching pickup management data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [filterStatus]);
 
   // Handle viewing request details
   const handleViewRequest = (request) => {
@@ -64,19 +145,29 @@ const RequestPickupManagement = () => {
     return true;
   });
 
-  // Handle request status updates
-  const updateRequestStatus = (requestId, newStatus) => {
-    setRequests(prevRequests => 
-      prevRequests.map(request => {
-        if (request.id === requestId) {
-          return { ...request, status: newStatus };
+  // Handle request status update
+  const updateRequestStatus = async (requestId, newStatus) => {
+    try {
+      // Update UI immediately for responsiveness
+      const updatedRequests = requests.map(req => {
+        if (req.id === requestId) {
+          return { ...req, status: newStatus, updatedAt: new Date().toISOString() };
         }
-        return request;
-      })
-    );
-    
-    if (selectedRequest && selectedRequest.id === requestId) {
-      setSelectedRequest(prev => ({ ...prev, status: newStatus }));
+        return req;
+      });
+      setRequests(updatedRequests);
+      
+      // Update in database
+      await updatePickupRequestStatus(requestId, newStatus);
+      console.log(`Pickup request ${requestId} updated to ${newStatus}`);
+      
+      // Close modal if it was open
+      setShowRequestModal(false);
+    } catch (error) {
+      console.error('Error updating pickup request status:', error);
+      // Revert UI changes if database update fails
+      const originalRequests = [...requests];
+      setRequests(originalRequests);
     }
   };
 
@@ -126,11 +217,11 @@ const RequestPickupManagement = () => {
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-500">Pending</p>
-            <p className="text-2xl font-bold">{getRequestsByStatus('Pending').length}</p>
+            <p className="text-2xl font-bold">{getRequestsByStatus(STATUS.PICKUP_REQUEST.PENDING).length}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-500">In Progress</p>
-            <p className="text-2xl font-bold">{getRequestsByStatus('In Progress').length}</p>
+            <p className="text-2xl font-bold">{getRequestsByStatus(STATUS.PICKUP_REQUEST.IN_PROGRESS).length}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-500">Active Collectors</p>
@@ -145,7 +236,7 @@ const RequestPickupManagement = () => {
           <h2 className="text-lg font-medium mb-3">Active Alerts</h2>
           <div className="space-y-2">
             {systemAlerts
-              .filter(alert => alert.status === 'Active')
+              .filter(alert => alert.status === STATUS.ALERT.ACTIVE)
               .map(alert => (
                 <div 
                   key={alert.id} 
@@ -187,10 +278,10 @@ const RequestPickupManagement = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value={STATUS.PICKUP_REQUEST.PENDING}>Pending</option>
+            <option value={STATUS.PICKUP_REQUEST.IN_PROGRESS}>In Progress</option>
+            <option value={STATUS.PICKUP_REQUEST.COMPLETED}>Completed</option>
+            <option value={STATUS.PICKUP_REQUEST.CANCELLED}>Cancelled</option>
           </select>
         </div>
         <div className="w-full md:w-1/4">
@@ -259,9 +350,9 @@ const RequestPickupManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      request.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                      request.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                      request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      request.status === STATUS.PICKUP_REQUEST.COMPLETED ? 'bg-green-100 text-green-800' :
+                      request.status === STATUS.PICKUP_REQUEST.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
+                      request.status === STATUS.PICKUP_REQUEST.PENDING ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
                       {request.status}
@@ -354,9 +445,9 @@ const RequestPickupManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <p className={`font-medium ${
-                  selectedRequest.status === 'Completed' ? 'text-green-600' : 
-                  selectedRequest.status === 'Cancelled' ? 'text-red-600' : 
-                  selectedRequest.status === 'In Progress' ? 'text-blue-600' :
+                  selectedRequest.status === STATUS.PICKUP_REQUEST.COMPLETED ? 'text-green-600' : 
+                  selectedRequest.status === STATUS.PICKUP_REQUEST.CANCELLED ? 'text-red-600' : 
+                  selectedRequest.status === STATUS.PICKUP_REQUEST.IN_PROGRESS ? 'text-blue-600' :
                   'text-yellow-600'
                 }`}>
                   {selectedRequest.status}
@@ -423,7 +514,7 @@ const RequestPickupManagement = () => {
             </div>
             
             {/* Action Buttons */}
-            {selectedRequest.status !== 'Completed' && selectedRequest.status !== 'Cancelled' && (
+            {selectedRequest.status !== STATUS.PICKUP_REQUEST.COMPLETED && selectedRequest.status !== STATUS.PICKUP_REQUEST.CANCELLED && (
               <div className="border-t pt-4 mb-4">
                 <h3 className="font-medium mb-2">Actions</h3>
                 <div className="flex flex-wrap gap-2">
@@ -451,18 +542,18 @@ const RequestPickupManagement = () => {
                     </div>
                   )}
                   
-                  {selectedRequest.status === 'Pending' && (
+                  {selectedRequest.status === STATUS.PICKUP_REQUEST.PENDING && (
                     <button
-                      onClick={() => updateRequestStatus(selectedRequest.id, 'In Progress')}
+                      onClick={() => updateRequestStatus(selectedRequest.id, STATUS.PICKUP_REQUEST.IN_PROGRESS)}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
                       Start Pickup
                     </button>
                   )}
                   
-                  {selectedRequest.status === 'In Progress' && (
+                  {selectedRequest.status === STATUS.PICKUP_REQUEST.IN_PROGRESS && (
                     <button
-                      onClick={() => updateRequestStatus(selectedRequest.id, 'Completed')}
+                      onClick={() => updateRequestStatus(selectedRequest.id, STATUS.PICKUP_REQUEST.COMPLETED)}
                       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                     >
                       Mark as Completed
@@ -470,7 +561,7 @@ const RequestPickupManagement = () => {
                   )}
                   
                   <button
-                    onClick={() => updateRequestStatus(selectedRequest.id, 'Cancelled')}
+                    onClick={() => updateRequestStatus(selectedRequest.id, STATUS.PICKUP_REQUEST.CANCELLED)}
                     className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                   >
                     Cancel Request
@@ -513,7 +604,7 @@ const RequestPickupManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <p className={`font-medium ${
-                  selectedCollector.status === 'Active' ? 'text-green-600' : 'text-gray-600'
+                  selectedCollector.status === STATUS.COLLECTOR.ACTIVE ? 'text-green-600' : 'text-gray-600'
                 }`}>
                   {selectedCollector.status}
                 </p>

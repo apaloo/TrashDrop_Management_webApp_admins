@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
-// Note: Supabase integration will be added later
-// import { supabase } from '../utils/supabaseClient';
+import { fetchLogs } from '../utils/databaseUtils';
+import { LOG_LEVEL } from '../config/constants';
+import { appConfig } from '../config';
 
 // Generate mock log entries
 const generateMockLogs = () => {
-  const logLevels = ['INFO', 'WARNING', 'ERROR', 'DEBUG'];
+  const logLevels = [LOG_LEVEL.INFO, LOG_LEVEL.WARNING, LOG_LEVEL.ERROR, LOG_LEVEL.DEBUG];
   const sources = ['System', 'Authentication', 'Pickup Request', 'Collector', 'Bag Management', 'User Action'];
-  const users = ['admin@trashdrop.com', 'support@trashdrop.com', 'john.doe@trashdrop.com', 'collector1@trashdrop.com', null];
+  const users = [appConfig.app.adminEmail, appConfig.app.supportEmail, 'john.doe@trashdrop.com', 'collector1@trashdrop.com', null];
   const actions = [
     'User login',
     'Password reset request',
@@ -124,24 +124,44 @@ const LogsManagement = () => {
     logsPerPage: 10
   });
   
-  // Load mock logs data
+  // Load logs data from Supabase
   useEffect(() => {
-    const fetchLogs = async () => {
+    const loadLogs = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        // Simulate network request
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        // Get filter parameters
+        const logLevel = filters.level !== 'all' ? filters.level : null;
+        const logSource = filters.source !== 'all' ? filters.source : null;
+        const dateRange = filters.dateRange.start && filters.dateRange.end ? {
+          start: filters.dateRange.start,
+          end: filters.dateRange.end
+        } : null;
         
-        // In a real app, this would be a Supabase query
-        // const { data, error } = await supabase
-        //   .from('logs')
-        //   .select('*')
-        //   .order('timestamp', { ascending: false });
-        // 
-        // if (error) throw error;
-        setLogs(mockLogs);
+        // Fetch logs from Supabase with filters
+        const logsData = await fetchLogs(logLevel, logSource, dateRange, filters.searchQuery);
+        
+        // Transform data from snake_case to camelCase
+        const formattedLogs = logsData.map(log => ({
+          id: log.id,
+          timestamp: log.timestamp,
+          level: log.level,
+          source: log.source,
+          message: log.message,
+          userId: log.user_id,
+          userName: log.user_name,
+          userEmail: log.user_email,
+          details: log.details || {},
+          ip: log.ip,
+          requestPath: log.request_path,
+          requestMethod: log.request_method,
+          requestDuration: log.request_duration,
+          relatedEntityId: log.related_entity_id,
+          relatedEntityType: log.related_entity_type
+        }));
+        
+        setLogs(formattedLogs);
       } catch (err) {
         console.error('Error fetching logs:', err);
         setError('Failed to load logs. Please try again.');
@@ -150,8 +170,8 @@ const LogsManagement = () => {
       }
     };
     
-    fetchLogs();
-  }, []);
+    loadLogs();
+  }, [filters]); // Re-fetch when filters change
   
   // Helper function to handle filter changes
   const handleFilterChange = (filterType, value) => {
@@ -232,8 +252,8 @@ const LogsManagement = () => {
     });
   }, [logs, filters]);
   
-  // Get unique log levels and sources for filter options
-  const uniqueLogLevels = useMemo(() => [...new Set(logs.map(log => log.level))], [logs]);
+  // Use centralized constants for log levels and get unique sources for filter options
+  const uniqueLogLevels = useMemo(() => Object.values(LOG_LEVEL), []);
   const uniqueSources = useMemo(() => [...new Set(logs.map(log => log.source))], [logs]);
   
   // Get current logs for pagination
@@ -266,7 +286,7 @@ const LogsManagement = () => {
             </div>
             <div>
               <p className="text-xs text-gray-500">Errors</p>
-              <p className="font-semibold">{logs.filter(log => log.level === 'ERROR').length}</p>
+              <p className="font-semibold">{logs.filter(log => log.level === LOG_LEVEL.ERROR).length}</p>
             </div>
           </div>
           
@@ -276,7 +296,7 @@ const LogsManagement = () => {
             </div>
             <div>
               <p className="text-xs text-gray-500">Warnings</p>
-              <p className="font-semibold">{logs.filter(log => log.level === 'WARNING').length}</p>
+              <p className="font-semibold">{logs.filter(log => log.level === LOG_LEVEL.WARNING).length}</p>
             </div>
           </div>
           
@@ -443,15 +463,15 @@ const LogsManagement = () => {
                         {/* Level */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            log.level === 'ERROR' ? 'bg-red-100 text-red-800' : 
-                            log.level === 'WARNING' ? 'bg-yellow-100 text-yellow-800' : 
-                            log.level === 'INFO' ? 'bg-green-100 text-green-800' : 
+                            log.level === LOG_LEVEL.ERROR ? 'bg-red-100 text-red-800' : 
+                            log.level === LOG_LEVEL.WARNING ? 'bg-yellow-100 text-yellow-800' : 
+                            log.level === LOG_LEVEL.INFO ? 'bg-green-100 text-green-800' : 
                             'bg-blue-100 text-blue-800'
                           }`}>
-                            {log.level === 'ERROR' && <i className="fas fa-exclamation-circle mr-1"></i>}
-                            {log.level === 'WARNING' && <i className="fas fa-exclamation-triangle mr-1"></i>}
-                            {log.level === 'INFO' && <i className="fas fa-info-circle mr-1"></i>}
-                            {log.level === 'DEBUG' && <i className="fas fa-bug mr-1"></i>}
+                            {log.level === LOG_LEVEL.ERROR && <i className="fas fa-exclamation-circle mr-1"></i>}
+                            {log.level === LOG_LEVEL.WARNING && <i className="fas fa-exclamation-triangle mr-1"></i>}
+                            {log.level === LOG_LEVEL.INFO && <i className="fas fa-info-circle mr-1"></i>}
+                            {log.level === LOG_LEVEL.DEBUG && <i className="fas fa-bug mr-1"></i>}
                             {log.level}
                           </span>
                         </td>

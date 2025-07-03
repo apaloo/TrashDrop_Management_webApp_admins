@@ -1,4 +1,5 @@
 import React from 'react';
+import { STATUS, PRIORITY } from '../../config/constants';
 
 const AlertsTable = ({ 
   alerts, 
@@ -117,19 +118,29 @@ const AlertsTable = ({
                 {/* Status */}
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    alert.status === 'open' 
+                    alert.status === STATUS.ALERT.OPEN 
                     ? 'bg-yellow-100 text-yellow-800' 
                     : 'bg-green-100 text-green-800'
                   }`}>
-                    {alert.status === 'open' ? (
+                    {alert.status === STATUS.ALERT.OPEN ? (
                       <>
                         <i className="fas fa-circle text-xs mr-1"></i>
                         Open
                       </>
-                    ) : (
+                    ) : alert.status === STATUS.ALERT.RESOLVED ? (
                       <>
                         <i className="fas fa-check text-xs mr-1"></i>
                         Resolved
+                      </>
+                    ) : alert.status === STATUS.ALERT.IN_PROGRESS ? (
+                      <>
+                        <i className="fas fa-sync text-xs mr-1"></i>
+                        In Progress
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-times text-xs mr-1"></i>
+                        Closed
                       </>
                     )}
                   </span>
@@ -151,11 +162,11 @@ const AlertsTable = ({
                   </button>
                   <button
                     className={`${
-                      alert.status === 'open' ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'
+                      alert.status === STATUS.ALERT.OPEN ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'
                     }`}
                     onClick={() => onToggleStatus(alert.id)}
                   >
-                    {alert.status === 'open' ? (
+                    {alert.status === STATUS.ALERT.OPEN ? (
                       <>
                         <i className="fas fa-check-circle mr-1"></i>
                         Resolve

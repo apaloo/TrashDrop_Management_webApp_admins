@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { STATUS, PRIORITY } from '../../config/constants';
 
 const CreateAlertModal = ({ onClose, onCreateAlert }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: PRIORITY.MEDIUM,
     relatedToType: 'system',
     relatedToId: '',
     relatedToLocation: '',
@@ -137,10 +138,10 @@ const CreateAlertModal = ({ onClose, onCreateAlert }) => {
                 value={formData.priority}
                 onChange={handleChange}
               >
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
+                <option value={PRIORITY.CRITICAL}>Critical</option>
+                <option value={PRIORITY.HIGH}>High</option>
+                <option value={PRIORITY.MEDIUM}>Medium</option>
+                <option value={PRIORITY.LOW}>Low</option>
               </select>
             </div>
             

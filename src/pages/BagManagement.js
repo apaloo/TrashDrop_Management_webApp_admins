@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { bagBatches, generateNewBatch } from '../mock/bags';
 import { useAuth } from '../context/AuthContext';
+import { fetchBagBatches, createBagBatch } from '../utils/databaseUtils';
+import { STATUS } from '../config/constants';
+import { appConfig } from '../config';
 
 const BagManagement = () => {
   const [batches, setBatches] = useState([]);
@@ -18,32 +20,96 @@ const BagManagement = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setBatches(bagBatches);
-      setLoading(false);
-    }, 1000);
+    const loadBatches = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchBagBatches();
+        // Transform from snake_case to camelCase if needed
+        const formattedData = data.map(batch => ({
+          id: batch.id,
+          createdAt: batch.created_at,
+          createdBy: batch.created_by,
+          quantity: batch.quantity,
+          type: batch.type,
+          size: batch.size,
+          status: batch.status,
+          distributed: batch.distributed,
+          scanned: batch.scanned,
+          qrPrefix: batch.qr_prefix
+        }));
+        setBatches(formattedData);
+      } catch (error) {
+        console.error('Error loading bag batches:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadBatches();
   }, []);
 
-  const handleCreateBatch = (e) => {
+  const handleCreateBatch = async (e) => {
     e.preventDefault();
-    const { batch, qrCodes } = generateNewBatch(
-      formData.type,
-      formData.size,
-      parseInt(formData.quantity),
-      user?.email || 'admin@trashdrop.com'
-    );
+    setLoading(true);
     
-    setBatches([batch, ...batches]);
-    setShowModal(false);
-    setFormData({
-      type: 'Recyclable',
-      size: 'Medium',
-      quantity: 50
-    });
-    
-    // In a real app, you would save the batch and QR codes to the database
-    console.log('Generated QR Codes:', qrCodes);
+    try {
+      // Create batch in database
+      const typeMap = {
+        'Recyclable': 'REC',
+        'Organic': 'ORG',
+        'Hazardous': 'HAZ',
+        'Electronic': 'ELE',
+        'Other': 'OTH'
+      };
+      
+      const sizeMap = {
+        'Small': 'S',
+        'Medium': 'M',
+        'Large': 'L'
+      };
+      
+      const prefix = `TD-${typeMap[formData.type]}-${sizeMap[formData.size]}`;
+      
+      const batchData = {
+        createdBy: user?.email || 'admin@trashdrop.com',
+        quantity: parseInt(formData.quantity),
+        type: formData.type,
+        size: formData.size,
+        qrPrefix: prefix
+      };
+      
+      const { batch, qrCodes } = await createBagBatch(batchData);
+      
+      // Format the returned batch to match our frontend format
+      const newBatch = {
+        id: batch.id,
+        createdAt: batch.created_at,
+        createdBy: batch.created_by,
+        quantity: batch.quantity,
+        type: batch.type,
+        size: batch.size,
+        status: batch.status,
+        distributed: batch.distributed,
+        scanned: batch.scanned,
+        qrPrefix: batch.qr_prefix
+      };
+      
+      // Add the new batch to the state
+      setBatches([newBatch, ...batches]);
+      setShowModal(false);
+      setFormData({
+        type: 'Recyclable',
+        size: 'Medium',
+        quantity: 50
+      });
+      
+      console.log('Generated QR Codes:', qrCodes.length);
+    } catch (error) {
+      console.error('Error creating batch:', error);
+      // You could add error handling UI here
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -162,8 +228,11 @@ const BagManagement = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value={STATUS.BAG.GENERATED.toString()}>{STATUS.BAG.GENERATED}</option>
+            <option value={STATUS.BAG.DISTRIBUTED.toString()}>{STATUS.BAG.DISTRIBUTED}</option>
+            <option value={STATUS.BAG.FILLED.toString()}>{STATUS.BAG.FILLED}</option>
+            <option value={STATUS.BAG.COLLECTED.toString()}>{STATUS.BAG.COLLECTED}</option>
+            <option value={STATUS.BAG.PROCESSED.toString()}>{STATUS.BAG.PROCESSED}</option>
           </select>
         </div>
       </div>
@@ -217,9 +286,15 @@ const BagManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      batch.status === 'Active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
+                      batch.status === STATUS.BAG.GENERATED || batch.status === STATUS.BAG.DISTRIBUTED
+                        ? 'bg-green-100 text-green-800'
+                        : batch.status === STATUS.BAG.FILLED
+                          ? 'bg-blue-100 text-blue-800'
+                          : batch.status === STATUS.BAG.COLLECTED
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : batch.status === STATUS.BAG.PROCESSED
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-red-100 text-red-800'
                     }`}>
                       {batch.status}
                     </span>
@@ -245,13 +320,25 @@ const BagManagement = () => {
                     <button className="text-green-600 hover:text-green-900 mr-3">
                       Print QR
                     </button>
-                    {batch.status === 'Active' ? (
-                      <button className="text-red-600 hover:text-red-900">
-                        Deactivate
+                    {batch.status === STATUS.BAG.GENERATED ? (
+                      <button className="text-blue-600 hover:text-blue-900">
+                        Distribute
+                      </button>
+                    ) : batch.status === STATUS.BAG.DISTRIBUTED ? (
+                      <button className="text-yellow-600 hover:text-yellow-900">
+                        Mark Filled
+                      </button>
+                    ) : batch.status === STATUS.BAG.FILLED ? (
+                      <button className="text-purple-600 hover:text-purple-900">
+                        Collect
+                      </button>
+                    ) : batch.status === STATUS.BAG.COLLECTED ? (
+                      <button className="text-green-600 hover:text-green-900">
+                        Process
                       </button>
                     ) : (
-                      <button className="text-green-600 hover:text-green-900">
-                        Activate
+                      <button className="text-gray-600 hover:text-gray-900">
+                        Archive
                       </button>
                     )}
                   </td>
@@ -378,7 +465,17 @@ const BagManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <p className={`font-medium ${
-                  selectedBatch.status === 'Active' ? 'text-green-600' : 'text-red-600'
+                  selectedBatch.status === STATUS.BAG.GENERATED
+                    ? 'text-green-600'
+                    : selectedBatch.status === STATUS.BAG.DISTRIBUTED
+                      ? 'text-blue-600'
+                      : selectedBatch.status === STATUS.BAG.FILLED
+                        ? 'text-yellow-600'
+                        : selectedBatch.status === STATUS.BAG.COLLECTED
+                          ? 'text-purple-600'
+                          : selectedBatch.status === STATUS.BAG.PROCESSED
+                            ? 'text-indigo-600'
+                            : 'text-red-600'
                 }`}>
                   {selectedBatch.status}
                 </p>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { dumpingHistory, getCleanupMetrics } from '../mock/illegalDumping';
+import { fetchIllegalDumpingReports, updateIllegalDumpingStatus } from '../utils/databaseUtils';
 import { format } from 'date-fns';
+import { STATUS } from '../config/constants';
+import { appConfig } from '../config';
 
 const IllegalDumpingHistory = () => {
   // State management hooks will go here
@@ -21,33 +23,93 @@ const IllegalDumpingHistory = () => {
 
   // Fetch history data
   useEffect(() => {
-    // Simulate API call with setTimeout
-    setTimeout(() => {
-      // Transform the data to match the expected structure
-      const transformedData = dumpingHistory.map(item => ({
-        ...item,
-        // Map timestamp to both reportedAt and resolvedAt for compatibility
-        reportedAt: item.timestamp,
-        resolvedAt: item.timestamp,
-        // Add fallback values for fields that might be missing
-        resolutionType: item.action === 'Cleaned Up' ? 'Cleaned Up' : 
-                       item.action === 'Canceled' || item.action === 'Cancelled' ? 'Cancelled' : item.action,
-        cleanupTeam: item.performedBy?.includes('team') ? item.performedBy.split('@')[0].replace('_', ' ') : undefined,
-        wasteType: 'Mixed',  // Default value since it's not in the history data
-        severity: 'Medium',  // Default value
-        // Create a minimal location object if needed
-        location: item.location || null
-      }));
-      
-      setHistoryData(transformedData);
-      setLoading(false);
-      console.log('Transformed history data:', transformedData);
-    }, 500);
-  }, []);
+    const loadIllegalDumpingData = async () => {
+      setLoading(true);
+      try {
+        let statusFilter = null;
+        if (selectedTab === 'open') statusFilter = STATUS.ILLEGAL_DUMPING.REPORTED;
+        else if (selectedTab === 'in-progress') statusFilter = STATUS.ILLEGAL_DUMPING.VERIFIED;
+        else if (selectedTab === 'resolved') statusFilter = STATUS.ILLEGAL_DUMPING.CLEANED_UP;
+        
+        const data = await fetchIllegalDumpingReports(statusFilter);
+        
+        // Transform the data to match the expected structure
+        const transformedData = data.map(item => ({
+          id: item.id,
+          reportedAt: item.reported_at,
+          reportedBy: item.reporter?.email || 'unknown',
+          resolvedAt: item.resolved_at,
+          location: {
+            lat: item.latitude,
+            lng: item.longitude,
+            address: item.address
+          },
+          description: item.description,
+          images: item.images || [],
+          severity: item.severity || 'Medium',
+          wasteType: item.waste_type || 'Mixed',
+          status: item.status,
+          verifiedAt: item.verified_at,
+          verifiedBy: item.verified_by,
+          cleanupAssigned: !!item.assigned_to,
+          cleanupTeam: item.assignee?.first_name ? `${item.assignee.first_name} ${item.assignee.last_name}` : undefined,
+          estimatedCleanupDate: item.estimated_cleanup_date,
+          resolutionType: item.resolution_type || (item.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? STATUS.ILLEGAL_DUMPING.CLEANED_UP : item.status)
+        }));
+        
+        setHistoryData(transformedData);
+      } catch (error) {
+        console.error('Error loading illegal dumping data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadIllegalDumpingData();
+  }, [selectedTab]);
 
   // Calculate metrics for KPI cards
   const metrics = useMemo(() => {
-    return getCleanupMetrics();
+    // Calculate metrics from the actual data instead of using mock function
+    const totalReports = historyData.length;
+    const resolvedCount = historyData.filter(item => item.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length;
+    const verifiedCount = historyData.filter(item => item.status === STATUS.ILLEGAL_DUMPING.VERIFIED).length;
+    const reportedCount = historyData.filter(item => item.status === STATUS.ILLEGAL_DUMPING.REPORTED).length;
+    
+    const averageResolutionTime = historyData.reduce((acc, item) => {
+      if (item.resolvedAt && item.reportedAt) {
+        const reported = new Date(item.reportedAt).getTime();
+        const resolved = new Date(item.resolvedAt).getTime();
+        return acc + (resolved - reported);
+      }
+      return acc;
+    }, 0) / (resolvedCount || 1);
+    
+    const averageResolutionDays = Math.round(averageResolutionTime / (1000 * 60 * 60 * 24) * 10) / 10;
+    
+    const wasteTypeCounts = historyData.reduce((acc, item) => {
+      const type = item.wasteType || 'Unknown';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const severityCounts = historyData.reduce((acc, item) => {
+      const severity = item.severity || 'Medium';
+      acc[severity] = (acc[severity] || 0) + 1;
+      return acc;
+    }, {});
+    
+    return {
+      totalReports,
+      resolvedCount,
+      reportedCount,
+      verifiedCount,
+      averageResolutionDays,
+      wasteTypes: wasteTypeCounts,
+      severityBreakdown: severityCounts,
+      cleanupEfficiency: resolvedCount > 0 ? Math.round((resolvedCount / totalReports) * 100) : 0,
+      monthlyTrend: [32, 36, 28, 40, 45, totalReports], // Keep last month's trend static except current month
+    };
   }, [historyData]);
    // Handle filter changes
    const handleFilterChange = (filterType, value) => {
@@ -233,9 +295,9 @@ const IllegalDumpingHistory = () => {
           <div>
             <p className="text-sm font-medium mb-2">Resolution Type</p>
             <div className="flex flex-wrap gap-2">
-              {['Cleaned Up', 'Cancelled'].map(type => {
+              {[STATUS.ILLEGAL_DUMPING.CLEANED_UP, 'Cancelled'].map(type => {
                 const isActive = filters.resolution.includes(type);
-                const typeColor = type === 'Cleaned Up' ? '#4CAF50' : '#F44336';
+                const typeColor = type === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#4CAF50' : '#F44336';
                 return (
                   <button
                     key={type}
@@ -354,7 +416,7 @@ const IllegalDumpingHistory = () => {
                       {item.location && item.location.address ? item.location.address : 'Unknown location'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.resolutionType === 'Cleaned Up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.resolutionType === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {item.resolutionType}
                       </span>
                     </td>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { STATUS, PRIORITY } from '../../config/constants';
 
 const AlertsFilter = ({ filters, handleFilterChange, clearFilters }) => {
   return (
@@ -30,8 +31,10 @@ const AlertsFilter = ({ filters, handleFilterChange, clearFilters }) => {
             onChange={(e) => handleFilterChange('status', e.target.value)}
           >
             <option value="all">All Statuses</option>
-            <option value="open">Open</option>
-            <option value="resolved">Resolved</option>
+            <option value={STATUS.ALERT.OPEN}>Open</option>
+            <option value={STATUS.ALERT.IN_PROGRESS}>In Progress</option>
+            <option value={STATUS.ALERT.RESOLVED}>Resolved</option>
+            <option value={STATUS.ALERT.CLOSED}>Closed</option>
           </select>
         </div>
         
@@ -44,10 +47,10 @@ const AlertsFilter = ({ filters, handleFilterChange, clearFilters }) => {
             onChange={(e) => handleFilterChange('priority', e.target.value)}
           >
             <option value="all">All Priorities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value={PRIORITY.CRITICAL}>Critical</option>
+            <option value={PRIORITY.HIGH}>High</option>
+            <option value={PRIORITY.MEDIUM}>Medium</option>
+            <option value={PRIORITY.LOW}>Low</option>
           </select>
         </div>
         

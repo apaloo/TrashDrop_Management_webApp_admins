@@ -693,8 +693,8 @@ const CollectorsManagement = () => {
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value={STATUS.COLLECTOR.ACTIVE.toLowerCase()}>{STATUS.COLLECTOR.ACTIVE}</option>
-                    <option value={STATUS.COLLECTOR.INACTIVE.toLowerCase()}>{STATUS.COLLECTOR.INACTIVE}</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
                 
@@ -825,8 +825,8 @@ const CollectorsManagement = () => {
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value={STATUS.COLLECTOR.ACTIVE.toLowerCase()}>{STATUS.COLLECTOR.ACTIVE}</option>
-                    <option value={STATUS.COLLECTOR.INACTIVE.toLowerCase()}>{STATUS.COLLECTOR.INACTIVE}</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
                 

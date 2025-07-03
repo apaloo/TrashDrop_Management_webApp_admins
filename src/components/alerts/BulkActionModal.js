@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { STATUS, PRIORITY } from '../../config/constants';
+import { appConfig } from '../../config';
 
 const BulkActionModal = ({ selectedAlerts, onClose, onBulkUpdateStatus, onBulkAssign }) => {
   const [actionType, setActionType] = useState('status');
-  const [statusValue, setStatusValue] = useState('resolved');
+  const [statusValue, setStatusValue] = useState(STATUS.ALERT.RESOLVED);
   const [assignedTo, setAssignedTo] = useState('');
   
   const handleAction = () => {
@@ -65,8 +67,10 @@ const BulkActionModal = ({ selectedAlerts, onClose, onBulkUpdateStatus, onBulkAs
                   value={statusValue}
                   onChange={(e) => setStatusValue(e.target.value)}
                 >
-                  <option value="resolved">Resolved</option>
-                  <option value="open">Open</option>
+                  <option value={STATUS.ALERT.RESOLVED}>Resolved</option>
+                  <option value={STATUS.ALERT.OPEN}>Open</option>
+                  <option value={STATUS.ALERT.IN_PROGRESS}>In Progress</option>
+                  <option value={STATUS.ALERT.CLOSED}>Closed</option>
                 </select>
               </div>
             )}
@@ -85,9 +89,9 @@ const BulkActionModal = ({ selectedAlerts, onClose, onBulkUpdateStatus, onBulkAs
                   onChange={(e) => setAssignedTo(e.target.value)}
                 >
                   <option value="">Not assigned</option>
-                  <option value="admin@trashdrop.com">Admin</option>
-                  <option value="support@trashdrop.com">Support Team</option>
-                  <option value="operations@trashdrop.com">Operations</option>
+                  <option value={appConfig.app.adminEmail}>Admin</option>
+                  <option value={appConfig.app.supportEmail}>Support Team</option>
+                  <option value={appConfig.app.operationsEmail}>Operations</option>
                 </select>
               </div>
             )}

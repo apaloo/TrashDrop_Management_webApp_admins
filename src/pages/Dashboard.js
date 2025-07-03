@@ -14,7 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import { Doughnut, Line, Bar, Pie } from 'react-chartjs-2';
-import { supabase } from '../utils/supabase';
+import { fetchDashboardStats } from '../utils/databaseUtils';
 
 // Register ChartJS components
 ChartJS.register(
@@ -265,45 +265,82 @@ const Dashboard = () => {
     }
   };
   
-  // Load dashboard data
+  // Load dashboard data from Supabase
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // In a real application, this would be fetched from Supabase
-        // For now, using mock data
+        // Fetch real data from Supabase
+        const dashboardData = await fetchDashboardStats();
         
-        // Simulating API call
-        setTimeout(() => {
-          setStats({
-            totalRequests: 150,
-            pendingRequests: 20,
-            activeCollectors: 10,
-            slaCompliance: 95,
-            totalTrend: '+5%',
-            pendingTrend: '-2%',
-            activeCollectorPercent: 67,
-            slaComplianceTrend: '+3%'
-          });
-          setLoading(false);
-        }, 800);
+        // Update the stats with real data
+        setStats({
+          totalRequests: dashboardData.totalRequests || 0,
+          pendingRequests: dashboardData.pendingRequests || 0,
+          activeCollectors: dashboardData.activeCollectors || 0,
+          slaCompliance: dashboardData.slaCompliance || 0,
+          totalTrend: dashboardData.totalTrend || '0%',
+          pendingTrend: dashboardData.pendingTrend || '0%',
+          activeCollectorPercent: dashboardData.activeCollectorPercent || 0,
+          slaComplianceTrend: dashboardData.slaComplianceTrend || '0%'
+        });
         
-        // Example of how you would fetch from Supabase in a real application:
-        // const { data, error } = await supabase
-        //   .from('dashboard_stats')
-        //   .select('*')
-        //   .single();
-        // 
-        // if (error) throw error;
-        // setStats(data);
-        
+        // Update chart data with real values
+        updateChartData(dashboardData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
+  
+  // Function to update chart data with real values
+  const updateChartData = (dashboardData) => {
+    // Update pickup status chart
+    if (dashboardData.pickupStatusDistribution) {
+      pickupStatusData.datasets[0].data = [
+        dashboardData.pickupStatusDistribution.completed || 0,
+        dashboardData.pickupStatusDistribution.inProgress || 0,
+        dashboardData.pickupStatusDistribution.pending || 0,
+        dashboardData.pickupStatusDistribution.cancelled || 0
+      ];
+    }
+    
+    // Update collector activity chart
+    if (dashboardData.collectorActivityDistribution) {
+      collectorActivityData.datasets[0].data = [
+        dashboardData.collectorActivityDistribution.active || 0,
+        dashboardData.collectorActivityDistribution.idle || 0,
+        dashboardData.collectorActivityDistribution.onBreak || 0,
+        dashboardData.collectorActivityDistribution.offDuty || 0
+      ];
+    }
+    
+    // Update dumping reports chart
+    if (dashboardData.dumpingReportsByDay) {
+      dumpingReportsData.datasets[0].data = dashboardData.dumpingReportsByDay;
+    }
+    
+    // Update bag utilization chart
+    if (dashboardData.bagUtilizationTrend) {
+      bagUtilizationData.datasets[0].data = dashboardData.bagUtilizationTrend.distributed || [];
+      bagUtilizationData.datasets[1].data = dashboardData.bagUtilizationTrend.collected || [];
+    }
+    
+    // Update waste distribution chart
+    if (dashboardData.wasteDistribution) {
+      wasteDistributionData.datasets[0].data = [
+        dashboardData.wasteDistribution.recyclable || 0,
+        dashboardData.wasteDistribution.organic || 0,
+        dashboardData.wasteDistribution.hazardous || 0,
+        dashboardData.wasteDistribution.electronic || 0,
+        dashboardData.wasteDistribution.other || 0
+      ];
+    }
+  };
   
   // Initialize gauge chart after component mounts and cleanup on unmount
   useEffect(() => {

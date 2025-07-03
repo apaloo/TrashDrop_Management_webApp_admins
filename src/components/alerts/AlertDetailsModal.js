@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { STATUS, PRIORITY } from '../../config/constants';
 
 const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssignment }) => {
   const [newComment, setNewComment] = useState('');
@@ -108,9 +109,12 @@ const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssig
               </span>
               
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                alert.status === 'open' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                alert.status === STATUS.ALERT.OPEN ? 'bg-yellow-100 text-yellow-800' : 
+                alert.status === STATUS.ALERT.RESOLVED ? 'bg-green-100 text-green-800' : 
+                alert.status === STATUS.ALERT.IN_PROGRESS ? 'bg-blue-100 text-blue-800' : 
+                'bg-gray-100 text-gray-800'
               }`}>
-                {alert.status === 'open' ? (
+                {alert.status === STATUS.ALERT.OPEN ? (
                   <>
                     <i className="fas fa-circle text-xs mr-1"></i>
                     Open
@@ -296,7 +300,7 @@ const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssig
           
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-              alert.status === 'open' 
+              alert.status === STATUS.ALERT.OPEN 
               ? 'bg-green-600 hover:bg-green-700' 
               : 'bg-yellow-600 hover:bg-yellow-700'
             }`}
@@ -305,7 +309,7 @@ const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssig
               onClose();
             }}
           >
-            {alert.status === 'open' ? (
+            {alert.status === STATUS.ALERT.OPEN ? (
               <>
                 <i className="fas fa-check-circle mr-1"></i>
                 Mark as Resolved

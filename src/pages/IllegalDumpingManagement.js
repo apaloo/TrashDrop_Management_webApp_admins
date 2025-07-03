@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dumpingReports, dumpingHistory, getCleanupMetrics } from '../mock/illegalDumping';
+import { STATUS } from '../config/constants';
 
 const IllegalDumpingManagement = () => {
   const [reports, setReports] = useState([]);
@@ -54,7 +55,7 @@ const IllegalDumpingManagement = () => {
             ...report, 
             cleanupAssigned: true,
             cleanupTeam: teamName,
-            status: 'Cleanup Scheduled',
+            status: STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED,
             estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
           };
         }
@@ -67,7 +68,7 @@ const IllegalDumpingManagement = () => {
         ...prev, 
         cleanupAssigned: true,
         cleanupTeam: teamName,
-        status: 'Cleanup Scheduled',
+        status: STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED,
         estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
       }));
     }
@@ -146,11 +147,11 @@ const IllegalDumpingManagement = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value="Reported">Reported</option>
-            <option value="Under Investigation">Under Investigation</option>
-            <option value="Cleanup Scheduled">Cleanup Scheduled</option>
-            <option value="Cleaned Up">Cleaned Up</option>
-            <option value="Canceled">Canceled</option>
+            <option value={STATUS.ILLEGAL_DUMPING.REPORTED.toString()}>{STATUS.ILLEGAL_DUMPING.REPORTED}</option>
+            <option value={STATUS.ILLEGAL_DUMPING.VERIFIED.toString()}>{STATUS.ILLEGAL_DUMPING.VERIFIED}</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED.toString()}>{STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED}</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CLEANED_UP.toString()}>{STATUS.ILLEGAL_DUMPING.CLEANED_UP}</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CANCELLED.toString()}>{STATUS.ILLEGAL_DUMPING.CANCELLED}</option>
           </select>
         </div>
         <div className="w-full md:w-1/4">
@@ -230,10 +231,10 @@ const IllegalDumpingManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      report.status === 'Cleaned Up' ? 'bg-green-100 text-green-800' :
-                      report.status === 'Cleanup Scheduled' ? 'bg-blue-100 text-blue-800' :
-                      report.status === 'Under Investigation' ? 'bg-yellow-100 text-yellow-800' :
-                      report.status === 'Canceled' ? 'bg-gray-100 text-gray-800' :
+                      report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? 'bg-green-100 text-green-800' :
+                      report.status === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? 'bg-blue-100 text-blue-800' :
+                      report.status === STATUS.ILLEGAL_DUMPING.VERIFIED ? 'bg-yellow-100 text-yellow-800' :
+                      report.status === STATUS.ILLEGAL_DUMPING.CANCELLED ? 'bg-gray-100 text-gray-800' :
                       'bg-purple-100 text-purple-800'
                     }`}>
                       {report.status}
@@ -246,9 +247,9 @@ const IllegalDumpingManagement = () => {
                     >
                       Details
                     </button>
-                    {report.status !== 'Cleaned Up' && report.status !== 'Canceled' && (
+                    {report.status !== STATUS.ILLEGAL_DUMPING.CLEANED_UP && report.status !== STATUS.ILLEGAL_DUMPING.CANCELLED && (
                       <button 
-                        onClick={() => updateReportStatus(report.id, 'Cleaned Up')}
+                        onClick={() => updateReportStatus(report.id, STATUS.ILLEGAL_DUMPING.CLEANED_UP)}
                         className="text-green-600 hover:text-green-900"
                       >
                         Mark Cleaned
@@ -380,7 +381,7 @@ const IllegalDumpingManagement = () => {
             )}
             
             {/* Action Buttons */}
-            {selectedReport.status !== 'Cleaned Up' && selectedReport.status !== 'Canceled' && (
+            {selectedReport.status !== STATUS.ILLEGAL_DUMPING.CLEANED_UP && selectedReport.status !== STATUS.ILLEGAL_DUMPING.CANCELLED && (
               <div className="border-t pt-4 flex flex-wrap justify-end gap-2">
                 {!selectedReport.cleanupAssigned && (
                   <button
@@ -392,14 +393,14 @@ const IllegalDumpingManagement = () => {
                 )}
                 
                 <button
-                  onClick={() => updateReportStatus(selectedReport.id, 'Cleaned Up')}
+                  onClick={() => updateReportStatus(selectedReport.id, STATUS.ILLEGAL_DUMPING.CLEANED_UP)}
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                 >
                   Mark as Cleaned Up
                 </button>
                 
                 <button
-                  onClick={() => updateReportStatus(selectedReport.id, 'Canceled')}
+                  onClick={() => updateReportStatus(selectedReport.id, STATUS.ILLEGAL_DUMPING.CANCELLED)}
                   className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                 >
                   Cancel Report

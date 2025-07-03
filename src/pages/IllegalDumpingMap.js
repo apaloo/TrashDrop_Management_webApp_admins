@@ -3,8 +3,12 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Import mock data
-import { dumpingReports, getCleanupMetrics } from '../mock/illegalDumping';
+// Import configuration
+import { appConfig, APP_CONSTANTS } from '../config';
+import { SEVERITY, WASTE_TYPE, STATUS } from '../config/constants';
+
+// Import Supabase utilities
+import { fetchIllegalDumpingReports, fetchDashboardStats } from '../utils/databaseUtils';
 
 // Helper component to fix map invalidation issues
 function MapInvalidator() {
@@ -25,16 +29,18 @@ function MapInvalidator() {
 const getMarkerIcon = (severity) => {
   // Color coding based on severity
   const iconColor = 
-    severity === 'Low' ? '#4CAF50' :
-    severity === 'Medium' ? '#FF9800' :
-    severity === 'High' ? '#F44336' :
-    severity === 'Critical' ? '#9C27B0' : '#9E9E9E';
+    severity === SEVERITY.LOW ? '#4CAF50' :
+    severity === SEVERITY.MEDIUM ? '#FF9800' :
+    severity === SEVERITY.HIGH ? '#F44336' :
+    severity === SEVERITY.CRITICAL ? '#9C27B0' : '#9E9E9E';
+  
+  const { iconSize, iconAnchor } = appConfig.services.maps.markers.dumpingReport;
   
   return L.divIcon({
     className: 'custom-marker-icon',
-    html: `<div style="background-color: ${iconColor}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
+    html: `<div style="background-color: ${iconColor}; width: ${iconSize[0]}px; height: ${iconSize[1]}px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+    iconSize: iconSize,
+    iconAnchor: iconAnchor
   });
 };
 
@@ -58,18 +64,54 @@ const IllegalDumpingMap = () => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef();
 
-  // Load map data
+  // Load map data from Supabase
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // In a real app, this would fetch from Supabase
-        setTimeout(() => {
-          setDumpingReportData(dumpingReports);
-          setMetrics(getCleanupMetrics());
-          setLoading(false);
-        }, 800);
+        setLoading(true);
+        
+        // Fetch all illegal dumping reports from Supabase
+        const data = await fetchIllegalDumpingReports(null); // null to get all statuses
+        
+        // Transform data to the expected format
+        const transformedData = data.map(item => ({
+          id: item.id,
+          reportedAt: item.reported_at,
+          reportedBy: item.reporter?.email || 'unknown',
+          resolvedAt: item.resolved_at,
+          location: { 
+            lat: parseFloat(item.latitude) || 37.7749, 
+            lng: parseFloat(item.longitude) || -122.4194, 
+            address: item.address 
+          },
+          description: item.description,
+          images: item.images || [],
+          severity: item.severity || SEVERITY.MEDIUM,
+          wasteType: item.waste_type || WASTE_TYPE.MIXED,
+          status: item.status,
+          verifiedAt: item.verified_at,
+          verifiedBy: item.verified_by,
+          cleanupAssigned: !!item.assigned_to,
+          cleanupTeam: item.assignee ? `${item.assignee.first_name} ${item.assignee.last_name}` : undefined,
+          estimatedCleanupDate: item.estimated_cleanup_date,
+          resolutionType: item.resolution_type || ''
+        }));
+        
+        setDumpingReportData(transformedData);
+        
+        // Get metrics from dashboard stats
+        const stats = await fetchDashboardStats();
+        const cleanupMetrics = {
+          totalReports: stats.totalIllegalDumpingReports || 0,
+          openReports: stats.openIllegalDumpingReports || 0,
+          resolvedReports: stats.resolvedIllegalDumpingReports || 0,
+          avgResolutionTime: stats.avgCleanupTimeInDays || 0
+        };
+        
+        setMetrics(cleanupMetrics);
       } catch (error) {
         console.error('Error loading map data:', error);
+      } finally {
         setLoading(false);
       }
     };
@@ -82,12 +124,12 @@ const IllegalDumpingMap = () => {
     if (mapRef.current) {
       const map = mapRef.current;
       // San Francisco coordinates
-      map.setView([37.7749, -122.4194], 13);
+      map.setView(appConfig.services.maps.defaultCenter, appConfig.services.maps.defaultZoom);
     }
   };
 
   // Filter reports based on current filters
-  const filteredReports = dumpingReportData.filter(report => {
+  const filteredReports = dumpingReportData?.filter(report => {
     // Status filter
     if (filters.status.length > 0 && !filters.status.includes(report.status)) {
       return false;
@@ -181,7 +223,7 @@ const IllegalDumpingMap = () => {
             ...report, 
             cleanupAssigned: true,
             cleanupTeam: teamName,
-            status: 'Cleanup Scheduled',
+            status: STATUS.CLEANUP_SCHEDULED,
             estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
           };
         }
@@ -253,24 +295,25 @@ const IllegalDumpingMap = () => {
           <div>
             <p className="text-sm font-medium mb-2">Status</p>
             <div className="flex flex-wrap gap-2">
-              {['Reported', 'Under Investigation', 'Cleanup Scheduled', 'Cleaned Up'].map(status => {
-                const isActive = filters.status.includes(status);
+              {Object.entries(STATUS.ILLEGAL_DUMPING).map(([key, value]) => {
+                const isActive = filters.status.includes(value);
                 const statusColor = 
-                  status === 'Reported' ? '#9C27B0' : 
-                  status === 'Under Investigation' ? '#FF9800' :
-                  status === 'Cleanup Scheduled' ? '#2196F3' :
-                  status === 'Cleaned Up' ? '#4CAF50' : '#9E9E9E';
+                  value === STATUS.ILLEGAL_DUMPING.REPORTED ? '#9C27B0' : 
+                  value === STATUS.ILLEGAL_DUMPING.VERIFIED ? '#FF9800' :
+                  value === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? '#2196F3' :
+                  value === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#4CAF50' : 
+                  value === STATUS.ILLEGAL_DUMPING.CANCELLED ? '#9E9E9E' : '#9E9E9E';
                 return (
                   <button
-                    key={status}
+                    key={value}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white' : 'text-gray-700'}`}
                     style={{ 
                       backgroundColor: isActive ? statusColor : 'white',
                       borderColor: statusColor
                     }}
-                    onClick={() => handleFilterChange('status', status)}
+                    onClick={() => handleFilterChange('status', value)}
                   >
-                    {status}
+                    {value}
                   </button>
                 );
               })}
@@ -281,24 +324,24 @@ const IllegalDumpingMap = () => {
           <div>
             <p className="text-sm font-medium mb-2">Severity</p>
             <div className="flex flex-wrap gap-2">
-              {['Low', 'Medium', 'High', 'Critical'].map(severity => {
-                const isActive = filters.severity.includes(severity);
+              {Object.entries(SEVERITY).map(([key, value]) => {
+                const isActive = filters.severity.includes(value);
                 const severityColor = 
-                  severity === 'Low' ? '#4CAF50' :
-                  severity === 'Medium' ? '#FF9800' :
-                  severity === 'High' ? '#F44336' :
-                  severity === 'Critical' ? '#9C27B0' : '#9E9E9E';
+                  value === SEVERITY.LOW ? '#4CAF50' :
+                  value === SEVERITY.MEDIUM ? '#FF9800' :
+                  value === SEVERITY.HIGH ? '#F44336' :
+                  value === SEVERITY.CRITICAL ? '#9C27B0' : '#9E9E9E';
                 return (
                   <button
-                    key={severity}
+                    key={value}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white' : 'text-gray-700'}`}
                     style={{ 
                       backgroundColor: isActive ? severityColor : 'white',
                       borderColor: severityColor
                     }}
-                    onClick={() => handleFilterChange('severity', severity)}
+                    onClick={() => handleFilterChange('severity', value)}
                   >
-                    {severity}
+                    {value}
                   </button>
                 );
               })}
@@ -309,16 +352,16 @@ const IllegalDumpingMap = () => {
           <div>
             <p className="text-sm font-medium mb-2">Waste Type</p>
             <div className="flex flex-wrap gap-2">
-              {['Household', 'Construction', 'Industrial', 'Hazardous', 'Electronic', 'Green', 'Bulky', 'Mixed'].map(type => {
-                const isActive = filters.wasteType.includes(type);
+              {Object.entries(WASTE_TYPE).map(([key, value]) => {
+                const isActive = filters.wasteType.includes(value);
                 return (
                   <button
-                    key={type}
+                    key={value}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700'}`}
                     style={{ borderColor: '#2196F3' }}
-                    onClick={() => handleFilterChange('wasteType', type)}
+                    onClick={() => handleFilterChange('wasteType', value)}
                   >
-                    {type}
+                    {value}
                   </button>
                 );
               })}
@@ -359,8 +402,8 @@ const IllegalDumpingMap = () => {
             </div>
           ) : (
             <MapContainer 
-              center={[37.7749, -122.4194]} 
-              zoom={13} 
+              center={appConfig.services.maps.defaultCenter} 
+              zoom={appConfig.services.maps.defaultZoom} 
               style={{ height: "100%", width: "100%" }}
               ref={(ref) => {
                 mapContainerRef.current = ref;
@@ -371,13 +414,13 @@ const IllegalDumpingMap = () => {
               {/* Map Tile Layer based on selected mode */}
               {mapMode === 'default' ? (
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution={appConfig.services.maps.tileProviders.openStreetMap.attribution}
+                  url={appConfig.services.maps.tileProviders.openStreetMap.url}
                 />
               ) : (
                 <TileLayer
-                  attribution='&copy; <a href="https://www.esri.com">Esri</a>'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  attribution={appConfig.services.maps.tileProviders.satellite.attribution}
+                  url={appConfig.services.maps.tileProviders.satellite.url}
                 />
               )}
               
