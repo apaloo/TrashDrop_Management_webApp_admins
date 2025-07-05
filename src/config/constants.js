@@ -81,6 +81,7 @@ export const SEVERITY = {
   LOW: 'Low',
   MEDIUM: 'Medium',
   HIGH: 'High',
+  CRITICAL: 'Critical',
 };
 
 /**

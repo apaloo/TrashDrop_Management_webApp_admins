@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import MobileReportsVerification from '../components/MobileReportsVerification';
 import { fetchIllegalDumpingReports, updateIllegalDumpingStatus } from '../utils/databaseUtils';
 import { format } from 'date-fns';
 import { STATUS } from '../config/constants';
@@ -278,7 +279,15 @@ const IllegalDumpingHistory = () => {
         </div>
       </div>
 
-         {/* Filters section */}
+      {/* Mobile App Reports Verification */}
+      <MobileReportsVerification 
+        onReportVerified={() => {
+          // Refresh illegal dumping data when a new report is verified
+          loadIllegalDumpingData();
+        }}
+      />
+
+      {/* Filters section */}
          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold">Filters</h3>

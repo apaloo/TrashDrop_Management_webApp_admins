@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchPickupRequests, fetchCollectors, fetchAlerts, updatePickupRequestStatus } from '../utils/databaseUtils';
+import { fetchPickupRequests, fetchCollectors, fetchAlerts, updatePickupRequest } from '../utils/databaseUtils';
 import { appConfig, APP_CONSTANTS } from '../config';
 import { STATUS, PRIORITY } from '../config/constants';
 
@@ -158,7 +158,7 @@ const RequestPickupManagement = () => {
       setRequests(updatedRequests);
       
       // Update in database
-      await updatePickupRequestStatus(requestId, newStatus);
+      await updatePickupRequest(requestId, newStatus);
       console.log(`Pickup request ${requestId} updated to ${newStatus}`);
       
       // Close modal if it was open
@@ -361,7 +361,7 @@ const RequestPickupManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {request.assignedTo ? (
                       <button
-                        onClick={() => handleViewCollector(collectors.find(c => c.id === request.assignedTo.id))}
+                        onClick={() => handleViewCollector(activeCollectors.find(c => c.id === request.assignedTo.id))}
                         className="text-indigo-600 hover:text-indigo-900"
                       >
                         {request.assignedTo.name}
@@ -525,7 +525,7 @@ const RequestPickupManagement = () => {
                         defaultValue=""
                         onChange={(e) => {
                           if (e.target.value) {
-                            const collector = collectors.find(c => c.id === e.target.value);
+                            const collector = activeCollectors.find(c => c.id === e.target.value);
                             if (collector) {
                               assignCollector(selectedRequest.id, collector);
                             }

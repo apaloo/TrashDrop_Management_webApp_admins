@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { dumpingReports, dumpingHistory, getCleanupMetrics } from '../mock/illegalDumping';
-import { STATUS } from '../config/constants';
+import { fetchIllegalDumpingReports, updateIllegalDumpingStatus, fetchIllegalDumpingHistory, assignCleanupTeam } from '../utils/databaseUtils';
+import { STATUS, SEVERITY } from '../config/constants';
 
 const IllegalDumpingManagement = () => {
   const [reports, setReports] = useState([]);
@@ -14,76 +14,121 @@ const IllegalDumpingManagement = () => {
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setReports(dumpingReports);
-      setMetrics(getCleanupMetrics());
-      setLoading(false);
-    }, 1000);
+    const loadData = async () => {
+      try {
+        // Fetch reports from Supabase
+        const data = await fetchIllegalDumpingReports();
+        setReports(data);
+        
+        // Calculate metrics from the fetched data
+        if (data && data.length > 0) {
+          const metrics = {
+            totalReports: data.length,
+            verifiedReports: data.filter(report => report.status === STATUS.ILLEGAL_DUMPING.VERIFIED || 
+                                          report.status === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED || 
+                                          report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
+            cleanedUpReports: data.filter(report => report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
+            avgCleanupTimeHours: 24 // Default value, would need a more complex calculation in a real scenario
+          };
+          setMetrics(metrics);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading illegal dumping data:', error);
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
-  const handleViewDetails = (report) => {
+  const handleViewDetails = async (report) => {
     setSelectedReport(report);
-    // Filter history for this report
-    const history = dumpingHistory.filter(item => item.reportId === report.id);
-    setSelectedReportHistory(history);
+    
+    try {
+      // Fetch history for this report from Supabase
+      const history = await fetchIllegalDumpingHistory(report.id);
+      setSelectedReportHistory(history);
+    } catch (error) {
+      console.error('Error fetching report history:', error);
+      setSelectedReportHistory([]);
+    }
+    
     setShowDetailsModal(true);
   };
 
-  const updateReportStatus = (reportId, newStatus, notes = '') => {
-    setReports(prevReports => 
-      prevReports.map(report => {
-        if (report.id === reportId) {
-          return { ...report, status: newStatus };
-        }
-        return report;
-      })
-    );
-    
-    if (selectedReport && selectedReport.id === reportId) {
-      setSelectedReport(prev => ({ ...prev, status: newStatus }));
+  const updateReportStatus = async (reportId, newStatus, notes = '') => {
+    try {
+      // Update status in Supabase
+      await updateIllegalDumpingStatus(reportId, newStatus);
+      
+      // Update local state
+      setReports(prevReports => 
+        prevReports.map(report => {
+          if (report.id === reportId) {
+            return { ...report, status: newStatus };
+          }
+          return report;
+        })
+      );
+      
+      if (selectedReport && selectedReport.id === reportId) {
+        setSelectedReport(prev => ({ ...prev, status: newStatus }));
+      }
+      
+      // Refresh report history if the details modal is open
+      if (selectedReport && selectedReport.id === reportId) {
+        handleViewDetails(reportId);
+      }
+    } catch (error) {
+      console.error('Error updating report status:', error);
     }
-    
-    // In a real application, you would also update the database and add a history entry
   };
 
-  const assignCleanup = (reportId, teamName) => {
-    setReports(prevReports => 
-      prevReports.map(report => {
-        if (report.id === reportId) {
-          return { 
-            ...report, 
-            cleanupAssigned: true,
-            cleanupTeam: teamName,
-            status: STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED,
-            estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
-          };
-        }
-        return report;
-      })
-    );
+  const assignCleanup = async (reportId, teamName) => {
+    try {
+      // Calculate date 2 days in the future for estimated cleanup
+      const estimatedCleanupDate = new Date(Date.now() + 2*24*60*60*1000).toISOString();
+      
+      // Update in Supabase
+      const updatedReport = await assignCleanupTeam(reportId, teamName, estimatedCleanupDate);
+      
+      // Update local state
+      setReports(prevReports => 
+        prevReports.map(report => {
+          if (report.id === reportId) {
+            return updatedReport;
+          }
+          return report;
+        })
+      );
     
-    if (selectedReport && selectedReport.id === reportId) {
-      setSelectedReport(prev => ({ 
-        ...prev, 
-        cleanupAssigned: true,
-        cleanupTeam: teamName,
-        status: STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED,
-        estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
-      }));
+      // Update selected report if it's the one being modified
+      if (selectedReport && selectedReport.id === reportId) {
+        setSelectedReport(updatedReport);
+        
+        // Refresh history
+        const history = await fetchIllegalDumpingHistory(reportId);
+        setSelectedReportHistory(history);
+      }
+      
+    } catch (error) {
+      console.error('Error assigning cleanup team:', error);
+      // Show an error message to the user (could add a toast notification here)
     }
   };
 
   const filteredReports = reports
     .filter(report => {
       if (filterStatus !== 'All') {
-        return report.status === filterStatus;
+        return (report.status || '').toUpperCase() === filterStatus.toUpperCase();
       }
       return true;
     })
     .filter(report => {
       if (filterSeverity !== 'All') {
-        return report.severity === filterSeverity;
+        return (report.severity || '').toUpperCase() === filterSeverity.toUpperCase();
       }
       return true;
     })
@@ -91,10 +136,11 @@ const IllegalDumpingManagement = () => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         return (
-          report.id.toLowerCase().includes(searchLower) ||
-          report.location.address.toLowerCase().includes(searchLower) ||
-          report.description.toLowerCase().includes(searchLower) ||
-          report.wasteType.toLowerCase().includes(searchLower)
+          (report.id || '').toString().toLowerCase().includes(searchLower) ||
+          (report.location_address || report.address || 
+            (report.location && report.location.address) || '').toLowerCase().includes(searchLower) ||
+          (report.description || '').toLowerCase().includes(searchLower) ||
+          (report.waste_type || report.wasteType || '').toLowerCase().includes(searchLower)
         );
       }
       return true;
@@ -161,10 +207,10 @@ const IllegalDumpingManagement = () => {
             onChange={(e) => setFilterSeverity(e.target.value)}
           >
             <option value="All">All Severities</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
+            <option value={SEVERITY.LOW.toString()}>{SEVERITY.LOW}</option>
+            <option value={SEVERITY.MEDIUM.toString()}>{SEVERITY.MEDIUM}</option>
+            <option value={SEVERITY.HIGH.toString()}>{SEVERITY.HIGH}</option>
+            <option value={SEVERITY.CRITICAL.toString()}>{SEVERITY.CRITICAL}</option>
           </select>
         </div>
       </div>
@@ -209,35 +255,37 @@ const IllegalDumpingManagement = () => {
                     {report.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(report.reportedAt).toLocaleDateString()}
+                    {new Date(report.reported_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="truncate max-w-xs">
-                      {report.location.address}
+                      {report.location_address || report.address || (report.location && report.location.address) || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {report.wasteType}
+                    {report.waste_type || report.wasteType || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      report.severity === 'Low' ? 'bg-green-100 text-green-800' : 
-                      report.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      report.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                      'bg-red-100 text-red-800'
+                      (report.severity || '').toUpperCase() === SEVERITY.LOW.toUpperCase() ? 'bg-green-100 text-green-800' : 
+                      (report.severity || '').toUpperCase() === SEVERITY.MEDIUM.toUpperCase() ? 'bg-yellow-100 text-yellow-800' :
+                      (report.severity || '').toUpperCase() === SEVERITY.HIGH.toUpperCase() ? 'bg-orange-100 text-orange-800' :
+                      (report.severity || '').toUpperCase() === SEVERITY.CRITICAL.toUpperCase() ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
-                      {report.severity}
+                      {report.severity || 'Unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? 'bg-green-100 text-green-800' :
-                      report.status === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? 'bg-blue-100 text-blue-800' :
-                      report.status === STATUS.ILLEGAL_DUMPING.VERIFIED ? 'bg-yellow-100 text-yellow-800' :
-                      report.status === STATUS.ILLEGAL_DUMPING.CANCELLED ? 'bg-gray-100 text-gray-800' :
-                      'bg-purple-100 text-purple-800'
+                      (report.status || '').toUpperCase() === STATUS.ILLEGAL_DUMPING.CLEANED_UP.toUpperCase() ? 'bg-green-100 text-green-800' :
+                      (report.status || '').toUpperCase() === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED.toUpperCase() ? 'bg-blue-100 text-blue-800' :
+                      (report.status || '').toUpperCase() === STATUS.ILLEGAL_DUMPING.VERIFIED.toUpperCase() ? 'bg-yellow-100 text-yellow-800' :
+                      (report.status || '').toUpperCase() === STATUS.ILLEGAL_DUMPING.CANCELLED.toUpperCase() ? 'bg-gray-100 text-gray-800' :
+                      (report.status || '').toUpperCase() === STATUS.ILLEGAL_DUMPING.REPORTED.toUpperCase() ? 'bg-purple-100 text-purple-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
-                      {report.status}
+                      {report.status || 'Unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
@@ -301,48 +349,52 @@ const IllegalDumpingManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Severity</p>
                 <p className={`font-medium ${
-                  selectedReport.severity === 'Low' ? 'text-green-600' : 
-                  selectedReport.severity === 'Medium' ? 'text-yellow-600' :
-                  selectedReport.severity === 'High' ? 'text-orange-600' :
-                  'text-red-600'
+                  (selectedReport.severity || '').toUpperCase() === SEVERITY.LOW.toUpperCase() ? 'text-green-600' : 
+                  (selectedReport.severity || '').toUpperCase() === SEVERITY.MEDIUM.toUpperCase() ? 'text-yellow-600' :
+                  (selectedReport.severity || '').toUpperCase() === SEVERITY.HIGH.toUpperCase() ? 'text-orange-600' :
+                  (selectedReport.severity || '').toUpperCase() === SEVERITY.CRITICAL.toUpperCase() ? 'text-red-600' :
+                  'text-gray-600'
                 }`}>
-                  {selectedReport.severity}
+                  {selectedReport.severity || 'Unknown'}
                 </p>
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Location</p>
-                <p className="font-medium">{selectedReport.location.address}</p>
+                <p className="font-medium">{selectedReport.location_address || selectedReport.address || (selectedReport.location && selectedReport.location.address) || 'N/A'}</p>
                 <p className="text-sm text-gray-500">
-                  Lat: {selectedReport.location.lat.toFixed(4)}, Lng: {selectedReport.location.lng.toFixed(4)}
+                  Lat: {selectedReport.location_lat || (selectedReport.location && selectedReport.location.lat) ? 
+                    (selectedReport.location_lat || selectedReport.location.lat).toFixed(4) : 'N/A'}, 
+                  Lng: {selectedReport.location_lng || (selectedReport.location && selectedReport.location.lng) ? 
+                    (selectedReport.location_lng || selectedReport.location.lng).toFixed(4) : 'N/A'}
                 </p>
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Description</p>
-                <p className="font-medium">{selectedReport.description}</p>
+                <p className="font-medium">{selectedReport.description || 'No description available'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Waste Type</p>
-                <p className="font-medium">{selectedReport.wasteType}</p>
+                <p className="font-medium">{selectedReport.waste_type || selectedReport.wasteType || 'N/A'}</p>
               </div>
-              {selectedReport.verifiedAt && (
+              {(selectedReport.verified_at || selectedReport.verifiedAt) && (
                 <div>
                   <p className="text-gray-600 text-sm">Verified At</p>
                   <p className="font-medium">
-                    {new Date(selectedReport.verifiedAt).toLocaleString()}
+                    {new Date(selectedReport.verified_at || selectedReport.verifiedAt).toLocaleString()}
                   </p>
                 </div>
               )}
-              {selectedReport.cleanupTeam && (
+              {(selectedReport.cleanup_team || selectedReport.cleanupTeam) && (
                 <div>
                   <p className="text-gray-600 text-sm">Cleanup Team</p>
-                  <p className="font-medium">{selectedReport.cleanupTeam}</p>
+                  <p className="font-medium">{selectedReport.cleanup_team || selectedReport.cleanupTeam}</p>
                 </div>
               )}
-              {selectedReport.estimatedCleanupDate && (
+              {(selectedReport.estimated_cleanup_date || selectedReport.estimatedCleanupDate) && (
                 <div>
                   <p className="text-gray-600 text-sm">Estimated Cleanup</p>
                   <p className="font-medium">
-                    {new Date(selectedReport.estimatedCleanupDate).toLocaleString()}
+                    {new Date(selectedReport.estimated_cleanup_date || selectedReport.estimatedCleanupDate).toLocaleString()}
                   </p>
                 </div>
               )}
@@ -350,13 +402,19 @@ const IllegalDumpingManagement = () => {
             
             {/* Images section - in a real app these would display actual images */}
             <div className="mb-6">
-              <h3 className="font-medium mb-2">Images ({selectedReport.images.length})</h3>
+              <h3 className="font-medium mb-2">Images ({selectedReport.images ? selectedReport.images.length : 0})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {selectedReport.images.map((img, index) => (
-                  <div key={index} className="bg-gray-200 p-4 rounded flex items-center justify-center">
-                    <p className="text-gray-500">[Image: {img}]</p>
+                {selectedReport.images && selectedReport.images.length > 0 ? (
+                  selectedReport.images.map((img, index) => (
+                    <div key={index} className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                      <p className="text-gray-500">[Image: {img}]</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-gray-100 p-4 rounded col-span-3 text-center">
+                    <p className="text-gray-500">No images available</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
             
@@ -369,11 +427,11 @@ const IllegalDumpingManagement = () => {
                     <div key={item.id} className="ml-6 mb-4 relative">
                       <div className="absolute -left-9 mt-1.5 w-4 h-4 rounded-full bg-blue-500"></div>
                       <p className="text-sm text-gray-500">
-                        {new Date(item.timestamp).toLocaleString()}
+                        {new Date(item.changed_at || item.timestamp).toLocaleString()}
                       </p>
-                      <p className="font-medium">{item.action}</p>
-                      <p className="text-gray-600">By: {item.performedBy}</p>
-                      {item.notes && <p className="text-sm mt-1">{item.notes}</p>}
+                      <p className="font-medium">{item.status || item.action}</p>
+                      <p className="text-gray-600">By: {item.user ? `${item.user.first_name} ${item.user.last_name}` : (item.changed_by || item.performedBy || 'System')}</p>
+                      {(item.notes) && <p className="text-sm mt-1">{item.notes}</p>}
                     </div>
                   ))}
                 </div>
@@ -383,7 +441,7 @@ const IllegalDumpingManagement = () => {
             {/* Action Buttons */}
             {selectedReport.status !== STATUS.ILLEGAL_DUMPING.CLEANED_UP && selectedReport.status !== STATUS.ILLEGAL_DUMPING.CANCELLED && (
               <div className="border-t pt-4 flex flex-wrap justify-end gap-2">
-                {!selectedReport.cleanupAssigned && (
+                {!(selectedReport.cleanup_assigned || selectedReport.cleanupAssigned) && (
                   <button
                     onClick={() => assignCleanup(selectedReport.id, 'Team Alpha')}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

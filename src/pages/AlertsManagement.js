@@ -122,6 +122,11 @@ const AlertsManagement = () => {
     }
   };
   
+  // Toggle alert status
+  const toggleAlertStatus = async (alertId, newStatus) => {
+    return handleStatusChange(alertId, newStatus);
+  };
+
   // Handle status change
   const handleStatusChange = async (alertId, newStatus) => {
     try {
@@ -179,7 +184,7 @@ const AlertsManagement = () => {
   };
   
   // Handle bulk actions
-  const handleBulkAction = async (action, alertIds) => {
+  const handleBulkAction = async (action, alertIds, assignmentValue = null) => {
     if (action === 'resolve') {
       const newStatus = STATUS.ALERT.RESOLVED;
       setAlerts(prevAlerts => 
@@ -216,11 +221,11 @@ const AlertsManagement = () => {
             : alert
         )
       );
-    } else if (action === 'assign') {
+    } else if (action === 'assign' && assignmentValue) {
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
           selectedAlerts.includes(alert.id)
-            ? { ...alert, assignedTo: value, updatedAt: new Date().toISOString() }
+            ? { ...alert, assignedTo: assignmentValue, updatedAt: new Date().toISOString() }
             : alert
         )
       );

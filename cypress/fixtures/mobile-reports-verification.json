@@ -1,0 +1,60 @@
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "created_at": "2025-07-01T14:32:22Z",
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "address": "123 Main St, San Francisco",
+    "waste_type": "Household",
+    "approximate_size": "Medium",
+    "description": "Several bags and furniture items dumped by the roadside",
+    "is_anonymous": false,
+    "reporter_id": "auth0|1234567890",
+    "images": [
+      "https://example.com/images/dump1.jpg",
+      "https://example.com/images/dump2.jpg"
+    ],
+    "profiles": {
+      "first_name": "John",
+      "last_name": "Doe"
+    },
+    "status": "Reported"
+  },
+  {
+    "id": "223e4567-e89b-12d3-a456-426614174001",
+    "created_at": "2025-07-02T10:15:30Z",
+    "latitude": 37.7833,
+    "longitude": -122.4167,
+    "address": "",
+    "waste_type": "Construction",
+    "approximate_size": "Large",
+    "description": "Construction materials dumped in empty lot",
+    "is_anonymous": true,
+    "reporter_id": "auth0|9876543210",
+    "images": [
+      "https://example.com/images/construction1.jpg",
+      "https://example.com/images/construction2.jpg",
+      "https://example.com/images/construction3.jpg"
+    ],
+    "profiles": null,
+    "status": "Reported"
+  },
+  {
+    "id": "323e4567-e89b-12d3-a456-426614174002",
+    "created_at": "2025-07-03T08:45:12Z",
+    "latitude": 37.7694,
+    "longitude": -122.4862,
+    "address": "456 Ocean Ave, San Francisco",
+    "waste_type": "Electronics",
+    "approximate_size": "Small",
+    "description": "Old television and computer monitors",
+    "is_anonymous": false,
+    "reporter_id": "auth0|1122334455",
+    "images": [],
+    "profiles": {
+      "first_name": "Jane",
+      "last_name": "Smith"
+    },
+    "status": "Reported"
+  }
+]

@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchBagBatches, createBagBatch } from '../utils/databaseUtils';
+import { 
+  fetchBagBatches, 
+  createBagBatch, 
+  fetchBagRequestStats, 
+  fetchCollectorStats, 
+  fetchPerformanceStats 
+} from '../utils/databaseUtils';
 import { STATUS } from '../config/constants';
 import { appConfig } from '../config';
 
@@ -17,7 +23,70 @@ const BagManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   
+  // Stats state variables for live data
+  const [bagRequestStats, setBagRequestStats] = useState({
+    total: 0,
+    pending: 0,
+    collected: 0,
+    awaiting: 0,
+    weeklyChange: 0,
+    dailyTrend: [0,0,0,0,0,0,0],
+    dayLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    todayChange: 0,
+    avgDailyRequests: 0
+  });
+  
+  const [collectorStats, setCollectorStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    regions: 0,
+    lastUpdated: new Date()
+  });
+  
+  const [performanceStats, setPerformanceStats] = useState({
+    overall: 0,
+    responseTime: 0,
+    collectionTime: 0,
+    completionRate: 0,
+    scanAccuracy: 0,
+    monthlyChange: 0,
+    changeInterval: 'week'
+  });
+  
+  const [statsLoading, setStatsLoading] = useState(true);
+  
   const { user } = useAuth();
+
+  // Function to fetch all dashboard statistics from Supabase
+  const refreshStats = async () => {
+    setStatsLoading(true);
+    try {
+      console.log('BagManagement: Starting fetch of live statistics...');
+      
+      // Fetch all stats in parallel for better performance
+      const [bagStats, collectorData, performanceData] = await Promise.all([
+        fetchBagRequestStats(),
+        fetchCollectorStats(),
+        fetchPerformanceStats()
+      ]);
+      
+      console.log('BagManagement: Stats fetched successfully:');
+      console.log('BagManagement: Bag Stats:', bagStats);
+      console.log('BagManagement: Collector Stats:', collectorData);
+      console.log('BagManagement: Performance Stats:', performanceData);
+      
+      // Update state with fetched statistics
+      setBagRequestStats(bagStats);
+      setCollectorStats(collectorData);
+      setPerformanceStats(performanceData);
+      
+    } catch (error) {
+      console.error('BagManagement: Error fetching statistics:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadBatches = async () => {
@@ -45,7 +114,15 @@ const BagManagement = () => {
       }
     };
     
+    // Load batches and fetch statistics
     loadBatches();
+    refreshStats();
+    
+    // Set up an interval to refresh the stats periodically (every 5 minutes)
+    const statsInterval = setInterval(refreshStats, 5 * 60 * 1000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(statsInterval);
   }, []);
 
   const handleCreateBatch = async (e) => {
@@ -159,55 +236,96 @@ const BagManagement = () => {
         {/* Live Bag Requests KPI */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-700 mb-2">Live Bag Requests</h3>
-          <div className="flex items-center justify-between">
-            <div className="text-3xl font-bold text-green-600">12</div>
-            <div className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">+3 today</div>
-          </div>
-          <div className="text-sm text-gray-500 mt-2">4 pending collection</div>
-          <div className="h-1 w-full bg-gray-200 mt-3">
-            <div className="h-1 bg-green-500" style={{width: '75%'}}></div>
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-xs text-gray-500">8 collected</span>
-            <span className="text-xs text-gray-500">4 awaiting</span>
-          </div>
+          {statsLoading ? (
+            <div className="flex justify-center items-center h-24">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-green-600">{bagRequestStats.total || 0}</div>
+                <div className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {bagRequestStats.todayChange >= 0 ? '+' : ''}{bagRequestStats.todayChange || 0} today
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 mt-2">{bagRequestStats.pending || 0} pending collection</div>
+              
+              <div className="w-full bg-gray-200 h-1 mt-4">
+                {/* Calculate width as percentage of collected bags from total */}
+                <div 
+                  className="bg-green-500 h-1" 
+                  style={{
+                    width: `${bagRequestStats.total > 0 ? 
+                      (bagRequestStats.collected / bagRequestStats.total) * 100 : 0}%`
+                  }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>{bagRequestStats.collected || 0} collected</span>
+                <span>{bagRequestStats.awaiting || 0} awaiting</span>
+              </div>
+            </>
+          )}
         </div>
         
         {/* Collector Status KPI */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-700 mb-2">Collector Status</h3>
-          <div className="flex items-center justify-between">
-            <div className="text-3xl font-bold text-blue-600">8/10</div>
-            <div className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">80% Active</div>
-          </div>
-          <div className="text-sm text-gray-500 mt-2">2 collectors inactive</div>
-          <div className="mt-3 flex justify-between">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              Active: 8
-            </span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              Inactive: 2
-            </span>
-          </div>
+          {statsLoading ? (
+            <div className="flex justify-center items-center h-24">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-blue-600">{collectorStats.active || 0}/{collectorStats.total || 0}</div>
+                <div className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {collectorStats.total > 0 ? Math.round((collectorStats.active / collectorStats.total) * 100) : 0}% Active
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 mt-2">{collectorStats.inactive || 0} collectors inactive</div>
+              <div className="mt-3 flex justify-between">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Active: {collectorStats.active || 0}
+                </span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Inactive: {collectorStats.inactive || 0}
+                </span>
+              </div>
+            </>
+          )}
         </div>
         
         {/* Performance Timeline KPI */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-700 mb-2">Performance Timeline</h3>
-          <div className="flex items-center justify-between">
-            <div className="text-3xl font-bold text-indigo-600">85%</div>
-            <div className="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded">+5% from last week</div>
-          </div>
-          <div className="text-sm text-gray-500 mt-2">Avg. collection time: 28 min</div>
-          <div className="mt-3">
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Response Time</span>
-              <span>12 min</span>
+          {statsLoading ? (
+            <div className="flex justify-center items-center h-24">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
-            <div className="h-1 w-full bg-gray-200">
-              <div className="h-1 bg-indigo-500" style={{width: '85%'}}></div>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-indigo-600">{performanceStats.overall || 0}%</div>
+                <div className="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded">
+                  {performanceStats.monthlyChange >= 0 ? '+' : ''}{performanceStats.monthlyChange || 0}% from last {performanceStats.changeInterval || 'week'}
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 mt-2">Avg. collection time: {performanceStats.collectionTime || 0} min</div>
+              <div className="mt-3">
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>Response Time</span>
+                  <span>{performanceStats.responseTime || 0} min</span>
+                </div>
+                <div className="h-1 w-full bg-gray-200">
+                  <div 
+                    className="h-1 bg-indigo-500" 
+                    style={{width: `${Math.min(100, ((performanceStats.responseTime || 0) / 60) * 100)}%`}}
+                  ></div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
