@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import MessagesModal from './modals/MessagesModal';
 import NotificationsModal from './modals/NotificationsModal';
-import { notifications, getUnreadCount, getUnreadMessageCount } from '../mock/messages';
+import { fetchNotifications, subscribeToNotifications, getUnreadNotificationsCount, markNotificationAsRead } from '../utils/notificationService';
+import { fetchContacts, getUnreadMessageCount, markAllMessagesFromSenderAsRead, subscribeToMessages } from '../utils/messageService';
 
 const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const { user } = useAuth();
@@ -14,12 +15,90 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showMessagesModal, setShowMessagesModal] = useState(false);
   
-  // Get counts from mock data
-  const unreadNotificationsCount = getUnreadCount();
-  const unreadMessagesCount = getUnreadMessageCount();
+  const [notifications, setNotifications] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [notificationError, setNotificationError] = useState(null);
+  const [messageError, setMessageError] = useState(null);
   
-  // Recent notifications (just first 3)
+  // Get counts from notifications and messages data
+  const unreadNotificationsCount = getUnreadNotificationsCount(notifications);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  
+  // Recent notifications and contacts (just first 3 of each)
   const recentNotifications = notifications.slice(0, 3);
+  const recentContacts = contacts.slice(0, 3);
+  
+  // Fetch notifications on component mount
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        setIsLoadingNotifications(true);
+        const notificationsData = await fetchNotifications();
+        setNotifications(notificationsData);
+        setNotificationError(null);
+      } catch (err) {
+        console.error('Error loading notifications:', err);
+        setNotificationError('Failed to load notifications');
+      } finally {
+        setIsLoadingNotifications(false);
+      }
+    };
+    
+    loadNotifications();
+    
+    // Subscribe to real-time notification updates
+    const subscription = subscribeToNotifications((updatedNotifications) => {
+      setNotifications(updatedNotifications);
+    });
+    
+    return () => {
+      // Clean up subscription when component unmounts
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Fetch messages and contacts on component mount
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        setIsLoadingMessages(true);
+        const contactsData = await fetchContacts();
+        setContacts(contactsData);
+        
+        // Get the unread message count
+        const count = await getUnreadMessageCount();
+        setUnreadMessagesCount(count);
+        setMessageError(null);
+      } catch (err) {
+        console.error('Error loading messages:', err);
+        setMessageError('Failed to load messages');
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+    
+    loadContacts();
+    
+    // Subscribe to real-time message updates
+    const subscription = subscribeToMessages(async () => {
+      // When messages change, update contacts and count
+      try {
+        const contactsData = await fetchContacts();
+        setContacts(contactsData);
+        const count = await getUnreadMessageCount();
+        setUnreadMessagesCount(count);
+      } catch (err) {
+        console.error('Error in message subscription:', err);
+      }
+    });
+    
+    return () => {
+      // Clean up subscription when component unmounts
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -150,19 +229,34 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               
               {/* Notification dropdown */}
               {showNotificationsDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg overflow-hidden z-20">
-                  <div className="px-4 py-3 bg-gray-100 border-b flex justify-between items-center">
-                    <h3 className="font-semibold">Notifications</h3>
-                    <button 
-                      onClick={openNotificationsModal}
-                      className="text-sm text-green-600 hover:text-green-700"
-                    >
-                      View all
-                    </button>
+                <div className={`dropdown-menu ${showNotificationsDropdown ? 'show' : ''}`}>
+                  <div className="py-2 px-4 border-b border-gray-200">
+                    <h6 className="text-sm font-medium">Notifications</h6>
                   </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {recentNotifications.map(notification => (
-                      <div key={notification.id} className="px-4 py-3 border-b hover:bg-gray-50 cursor-pointer">
+                  <div className="max-h-64 overflow-y-auto">
+                    {isLoadingNotifications ? (
+                      <div className="p-4 text-center">
+                        <p className="text-gray-500">Loading notifications...</p>
+                      </div>
+                    ) : notificationError ? (
+                      <div className="p-4 text-center">
+                        <p className="text-red-500">{notificationError}</p>
+                      </div>
+                    ) : recentNotifications.length === 0 ? (
+                      <div className="p-4 text-center">
+                        <p className="text-gray-500">No notifications</p>
+                      </div>
+                    ) : recentNotifications.map(notification => (
+                      <div 
+                        key={notification.id} 
+                        className="px-4 py-3 border-b hover:bg-gray-50 cursor-pointer"
+                        onClick={() => markNotificationAsRead(notification.id).then(() => {
+                          // Update local state to show notification as read
+                          setNotifications(notifications.map(n => 
+                            n.id === notification.id ? {...n, read: true} : n
+                          ));
+                        })}
+                      >
                         <div className="flex items-start">
                           <div className={`mt-1 mr-3 rounded-full p-2 ${
                             notification.type === 'alert' ? 'bg-red-100 text-red-500' : 

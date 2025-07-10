@@ -80,4 +80,21 @@ Opens the Cypress test runner for end-to-end testing.
 
 ## Current Status
 
-The application currently uses mock data for development and testing, with all UI components and features fully implemented. The next step is to integrate real Supabase data fetching and mutations.
+The application now uses real-time Supabase data integration throughout the core features:
+
+- **Dashboard**: All metrics, charts, and activity feeds pull live data from Supabase
+- **Navbar**: Real-time notifications and messages with unread counts and subscriptions
+- **Live Map**: Dynamic collector status and location data from Supabase
+
+Additional features like Bag Management, Illegal Dumping Reports, and Pickup Requests have their UI components fully implemented and are ready for Supabase integration following the established patterns.
+
+## Supabase Integration
+
+The application uses a service-based architecture for Supabase integration:
+
+- **Service Modules**: Encapsulate Supabase queries and subscriptions (e.g., `notificationService.js`, `messageService.js`, `dashboardService.js`)
+- **Real-time Subscriptions**: Components subscribe to data changes using Supabase Channels
+- **Error Handling**: Consistent patterns for error handling and loading states
+- **Documentation**: See `/docs/supabase-integration.md` for detailed implementation guidelines
+
+All services follow a consistent pattern of exposing functions for fetching data, updating data, and subscribing to real-time changes.

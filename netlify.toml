@@ -1,5 +1,6 @@
 [build]
-  command = "npm install --legacy-peer-deps --no-audit --no-fund && npm run build"
+  # Temporary: skip build step for direct deployment
+  command = "echo 'Skipping build, using pre-built files'"
   publish = "build"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 

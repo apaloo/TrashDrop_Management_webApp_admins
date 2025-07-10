@@ -34,7 +34,7 @@ const Sidebar = () => {
       title: 'Bin Management', 
       path: '/bin-management',
       icon: 'fas fa-dumpster',
-      roles: ['admin', 'manager'],
+      roles: ['user', 'admin', 'manager'],
       children: [
         { title: 'Generate Bag', path: '/bin-management/generate' },
         { title: 'Bag Management', path: '/bin-management/manage' },
@@ -45,7 +45,7 @@ const Sidebar = () => {
       title: 'Illegal Dumping', 
       path: '/illegal-dumping',
       icon: 'fas fa-trash-alt',
-      roles: ['admin', 'manager'],
+      roles: ['user', 'admin', 'manager'],
       children: [
         { title: 'Map', path: '/illegal-dumping/map' },
         { title: 'Reports', path: '/illegal-dumping/reports' },

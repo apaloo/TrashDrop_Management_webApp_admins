@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -7,70 +7,17 @@ import CollectorMapMarker from '../components/maps/CollectorMapMarker';
 import ServiceAreaLayer from '../components/maps/ServiceAreaLayer';
 import MapControls from '../components/maps/MapControls';
 import CollectorDetailPanel from '../components/maps/CollectorDetailPanel';
+import { fetchCollectors, updateCollectorStatus, fetchCollectorById } from '../utils/collectorService';
+import { fetchPickupRequests, subscribeToPickupUpdates } from '../utils/pickupService';
+import { fetchServiceAreas, subscribeToServiceAreaUpdates } from '../utils/serviceAreaService';
+import { supabase } from '../utils/supabase';
 
-import mockCollectorLocations from '../data/mockCollectorLocations';
-import mockServiceAreas from '../data/mockServiceAreas';
-
-// Mock data - would be replaced with Supabase data
-const pickupLocations = [
-  {
-    id: 'req-001',
-    location: { lat: 37.7749, lng: -122.4194 },
-    status: 'New',
-    address: '123 Main St, San Francisco, CA',
-    customer: 'John Doe',
-    phone: '(555) 123-4567',
-    requestTime: '2025-06-21T09:15:00',
-    priority: 'High',
-    collector: null,
-    wasteType: 'Recyclable'
-  },
-  {
-    id: 'req-002',
-    location: { lat: 37.7833, lng: -122.4167 },
-    status: 'En Route',
-    address: '456 Market St, San Francisco, CA',
-    customer: 'Jane Smith',
-    phone: '(555) 987-6543',
-    requestTime: '2025-06-21T10:30:00',
-    priority: 'Normal',
-    collector: 'Mike Johnson',
-    wasteType: 'Organic'
-  },
-  {
-    id: 'req-003',
-    location: { lat: 37.7694, lng: -122.4862 },
-    status: 'Completed',
-    address: '789 Sunset Ave, San Francisco, CA',
-    customer: 'Robert Brown',
-    phone: '(555) 246-8101',
-    requestTime: '2025-06-20T14:45:00',
-    priority: 'Normal',
-    collector: 'Sarah Miller',
-    wasteType: 'General Waste'
-  },
-  {
-    id: 'req-004',
-    location: { lat: 37.8044, lng: -122.4241 },
-    status: 'Flagged',
-    address: '321 Lombard St, San Francisco, CA',
-    customer: 'Emma Wilson',
-    phone: '(555) 135-7924',
-    requestTime: '2025-06-22T08:00:00',
-    priority: 'High',
-    collector: 'James Taylor',
-    wasteType: 'Hazardous'
-  }
-];
-
-// Mock collectors data
-const collectors = [
-  { id: 1, name: 'Mike Johnson', active: true },
-  { id: 2, name: 'Sarah Miller', active: true },
-  { id: 3, name: 'James Taylor', active: true },
-  { id: 4, name: 'Linda Davis', active: false },
-  { id: 5, name: 'Carlos Rodriguez', active: true }
-];
+// Default coordinates for San Francisco
+const DEFAULT_COORDINATES = {
+  lat: 37.7749,
+  lng: -122.4194,
+  zoom: 12
+};
 
 // Helper component to fix map invalidation issues
 function MapInvalidator() {
@@ -129,39 +76,165 @@ const LiveMap = () => {
   
   // Load map data
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
       try {
-        // In a real app, this would fetch from Supabase
-        setTimeout(() => {
-          setLocations(pickupLocations);
-          setCollectors(mockCollectorLocations);
-          setServiceAreas(mockServiceAreas);
-          setLoading(false);
-        }, 800);
+        setLoading(true);
+        
+        // Fetch all data in parallel
+        const [collectorsData, pickupRequests, serviceAreasData] = await Promise.all([
+          fetchCollectors(),
+          fetchPickupRequests({ limit: 50 }), // Limit to 50 most recent requests
+          fetchServiceAreas()
+        ]);
+        
+        if (!isMounted) return;
+        
+        setCollectors(collectorsData);
+        setLocations(pickupRequests);
+        setServiceAreas(serviceAreasData);
+        
       } catch (error) {
         console.error('Error loading map data:', error);
-        setLoading(false);
+        setToastMessage('Failed to load data. Some features may be limited.');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 5000);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     fetchData();
+    
+    // Set up real-time subscriptions
+    const subscriptions = [];
+    
+    // Subscribe to collector updates
+    const collectorChannel = supabase.channel('collector_updates');
+    collectorChannel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'collectors' },
+        async () => {
+          try {
+            const updatedCollectors = await fetchCollectors();
+            if (isMounted) {
+              setCollectors(updatedCollectors);
+            }
+          } catch (error) {
+            console.error('Error updating collectors:', error);
+          }
+        }
+      )
+      .subscribe();
+    
+    // Subscribe to pickup request updates
+    const pickupSubscription = subscribeToPickupUpdates(async () => {
+      try {
+        const updatedPickups = await fetchPickupRequests({ limit: 50 });
+        if (isMounted) {
+          setLocations(updatedPickups);
+        }
+      } catch (error) {
+        console.error('Error updating pickup requests:', error);
+      }
+    });
+    
+    // Subscribe to service area updates
+    const serviceAreaSubscription = subscribeToServiceAreaUpdates(async () => {
+      try {
+        const updatedAreas = await fetchServiceAreas();
+        if (isMounted) {
+          setServiceAreas(updatedAreas);
+        }
+      } catch (error) {
+        console.error('Error updating service areas:', error);
+      }
+    });
+    
+    // Store subscriptions for cleanup
+    subscriptions.push(
+      { unsubscribe: () => supabase.removeChannel(collectorChannel) },
+      pickupSubscription,
+      serviceAreaSubscription
+    );
+    
+    // Clean up on unmount
+    return () => {
+      isMounted = false;
+      subscriptions.forEach(sub => {
+        if (sub && typeof sub.unsubscribe === 'function') {
+          sub.unsubscribe();
+        }
+      });
+    };
   }, []);
   
   // Reset map view to show all points
-  const centerMap = () => {
+  const centerMap = useCallback(() => {
     if (mapRef.current) {
       const map = mapRef.current;
-      // San Francisco coordinates
-      map.setView([37.7749, -122.4194], 13);
+      // Use default coordinates or calculate bounds from data
+      if (locations && locations.length > 0) {
+        const bounds = L.latLngBounds(
+          locations.map(loc => [loc.location?.lat || 0, loc.location?.lng || 0])
+            .filter(([lat, lng]) => lat !== 0 && lng !== 0)
+        );
+        
+        if (!bounds.isValid()) {
+          // Fallback to default coordinates if bounds are invalid
+          map.setView([DEFAULT_COORDINATES.lat, DEFAULT_COORDINATES.lng], DEFAULT_COORDINATES.zoom);
+        } else if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+          // If all points are the same, just center on that point
+          map.setView(bounds.getCenter(), 15);
+        } else {
+          // Fit bounds with padding
+          map.fitBounds(bounds, { 
+            padding: [50, 50],
+            maxZoom: 15
+          });
+        }
+      } else {
+        // Fallback to default coordinates
+        map.setView([DEFAULT_COORDINATES.lat, DEFAULT_COORDINATES.lng], DEFAULT_COORDINATES.zoom);
+      }
     }
-  };
+  }, [locations]);
   
   const mapRef = useRef();
   
   // Handle collector selection
-  const openCollectorDetailPanel = (collector) => {
-    setSelectedCollector(collector);
-    setShowDetailModal(false); // Close other details if open
+  const openCollectorDetailPanel = async (collector) => {
+    try {
+      // Fetch the latest collector data when selected
+      const updatedCollector = await fetchCollectorById(collector.id);
+      setSelectedCollector(updatedCollector || collector);
+      setShowDetailModal(false); // Close other details if open
+    } catch (error) {
+      console.error('Error fetching collector details:', error);
+      // Fallback to the passed collector data if there's an error
+      setSelectedCollector(collector);
+      setShowDetailModal(false);
+    }
+  };
+  
+  // Handle collector status change
+  const handleStatusChange = async (collectorId, newStatus) => {
+    try {
+      await updateCollectorStatus(collectorId, newStatus);
+      // The subscription will handle the UI update
+      setToastMessage(`Status updated to ${newStatus}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error('Error updating collector status:', error);
+      setToastMessage('Failed to update status');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   // Filter locations based on current filters
@@ -236,9 +309,22 @@ const LiveMap = () => {
   };
   
   // Handle marker click
-  const handleMarkerClick = (location) => {
+  const handleMarkerClick = useCallback((location) => {
+    if (!location?.location?.lat || !location?.location?.lng) {
+      console.warn('Invalid location data:', location);
+      return;
+    }
+    
     setSelectedLocation(location);
-  };
+    
+    // Pan to the clicked location
+    if (mapRef.current) {
+      const map = mapRef.current;
+      map.flyTo([location.location.lat, location.location.lng], 15, {
+        duration: 1
+      });
+    }
+  }, [mapRef]);
   
   // Open detail modal
   const openDetailModal = (location) => {
@@ -247,219 +333,97 @@ const LiveMap = () => {
   };
   
   return (
-    <div className="p-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Live Pickup Map</h1>
-        <p className="text-gray-600">Real-time tracking of pickup requests and collectors</p>
-      </div>
-      
-      {/* Toast notification */}
-      {showToast && (
-        <div className="fixed top-20 right-4 bg-white shadow-lg rounded-md p-4 z-50 animate-fade-in-down flex items-center">
-          <i className="fas fa-info-circle text-blue-500 mr-2"></i>
-          <span>{toastMessage}</span>
-          <button className="ml-4 text-gray-400 hover:text-gray-600" onClick={() => setShowToast(false)}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-      )}
-      
-      {/* Filters section - horizontal layout with 3-column grid */}
-      <div className="bg-white rounded-lg shadow-sm border-0 p-4 mb-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Filters</h3>
-          <button 
-            className="text-blue-600 text-sm flex items-center hover:underline"
-            onClick={resetFilters}
-          >
-            <i className="fas fa-undo-alt mr-1"></i> Reset All
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Status filters */}
-          <div>
-            <p className="text-sm font-medium mb-2">Status</p>
-            <div className="flex flex-wrap gap-2">
-              {['New', 'En Route', 'Completed', 'Flagged'].map(status => {
-                const isActive = filters.status.includes(status);
-                const statusColor = 
-                  status === 'New' ? '#2196F3' :
-                  status === 'En Route' ? '#FF9800' :
-                  status === 'Completed' ? '#4CAF50' :
-                  status === 'Flagged' ? '#dc3545' : '#9E9E9E';
-                return (
-                  <button
-                    key={status}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white' : 'text-gray-700'}`}
-                    style={{ 
-                      backgroundColor: isActive ? statusColor : 'white',
-                      borderColor: statusColor
-                    }}
-                    onClick={() => handleFilterChange('status', status)}
-                  >
-                    {status}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Collector filters */}
-          <div>
-            <p className="text-sm font-medium mb-2">Collector</p>
-            <div className="flex flex-wrap gap-2">
-              {collectors
-                .filter(c => c.active)
-                .map(collector => {
-                  const isActive = filters.collector.includes(collector.id.toString());
-                  return (
-                    <button
-                      key={collector.id}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                        isActive ? 'bg-blue-600 text-white' : 'text-gray-700'
-                      }`}
-                      style={{ borderColor: '#2196F3' }}
-                      onClick={() => handleFilterChange('collector', collector.id.toString())}
-                    >
-                      {collector.name}
-                    </button>
-                  );
-              })}
-            </div>
-          </div>
-          
-          {/* Priority filters */}
-          <div>
-            <p className="text-sm font-medium mb-2">Priority</p>
-            <div className="flex flex-wrap gap-2">
-              {['High', 'Normal', 'Low'].map(priority => {
-                const isActive = filters.priority.includes(priority);
-                const priorityColor = 
-                  priority === 'High' ? '#dc3545' :
-                  priority === 'Normal' ? '#FF9800' :
-                  '#4CAF50';
-                return (
-                  <button
-                    key={priority}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white' : 'text-gray-700'}`}
-                    style={{ 
-                      backgroundColor: isActive ? priorityColor : 'white',
-                      borderColor: priorityColor
-                    }}
-                    onClick={() => handleFilterChange('priority', priority)}
-                  >
-                    {priority}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Map Controls */}
-      <MapControls 
-        mapMode={mapMode}
-        setMapMode={setMapMode}
-        showCollectors={showCollectors}
-        setShowCollectors={setShowCollectors}
-        showPickups={showPickups}
-        setShowPickups={setShowPickups}
-        showServiceAreas={showServiceAreas}
-        setShowServiceAreas={setShowServiceAreas}
-        centerMap={centerMap}
-      />
-      
-      {/* Map container and collector panel grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Map container - 2/3 width on md+ screens */}
-        <div className="md:col-span-2 rounded-lg overflow-hidden" style={{ height: "600px" }}>
+    <>
+      <div className="h-full flex flex-col">
+        {/* Map container */}
+        <div className="flex-1 relative">
           {loading ? (
-            <div className="bg-gray-100 h-full flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading map data...</p>
+              </div>
             </div>
           ) : (
-            <MapContainer 
-              center={[37.7749, -122.4194]} 
-              zoom={13} 
-              style={{ height: "100%", width: "100%" }}
-              ref={(ref) => {
-                mapContainerRef.current = ref;
-                mapRef.current = ref;
-              }}
-              preferCanvas={true}
-            >
-              {/* Map Tile Layer based on selected mode */}
-              {mapMode === 'default' ? (
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          <MapContainer 
+            center={[DEFAULT_COORDINATES.lat, DEFAULT_COORDINATES.lng]} 
+            zoom={DEFAULT_COORDINATES.zoom}
+            style={{ height: "100%", width: "100%" }}
+            whenCreated={mapInstance => { 
+              mapRef.current = mapInstance;
+              // Center the map once it's loaded
+              setTimeout(centerMap, 100);
+            }}
+            zoomControl={false}
+            className="z-0"
+          >
+            {mapMode === 'default' ? (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            ) : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.esri.com">Esri</a>'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              />
+            )}
+            
+            {/* Service Area Boundaries */}
+            {showServiceAreas && serviceAreas.map(area => (
+              <ServiceAreaLayer key={area.id} area={area} />
+            ))}
+            
+            {/* Pickup Request Markers */}
+            {showPickups && filteredLocations.map(location => (
+              <Marker
+                key={location.id}
+                position={[location.location.lat, location.location.lng]}
+                icon={getMarkerIcon(location.status)}
+                eventHandlers={{
+                  click: () => handleMarkerClick(location)
+                }}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-semibold">{location.address}</h3>
+                    <p className="text-sm text-gray-600">Status: {location.status}</p>
+                    <p className="text-sm">Customer: {location.customer}</p>
+                    <p className="text-sm">Type: {location.wasteType}</p>
+                    <button
+                      className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDetailModal(location);
+                      }}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {/* Collector Markers */}
+            {showCollectors && collectors.map(collector => (
+              <React.Fragment key={collector.id}>
+                <CollectorMapMarker
+                  collector={collector}
+                  onClick={() => openCollectorDetailPanel(collector)}
+                  isSelected={selectedCollector?.id === collector.id}
                 />
-              ) : (
-                <TileLayer
-                  attribution='&copy; <a href="https://www.esri.com">Esri</a>'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                />
-              )}
-              
-              {/* Service Area Boundaries */}
-              {showServiceAreas && serviceAreas.map(area => (
-                <ServiceAreaLayer key={area.id} area={area} />
-              ))}
-              
-              {/* Pickup Request Markers */}
-              {showPickups && filteredLocations.map(location => (
-                <Marker 
-                  key={location.id} 
-                  position={[location.location.lat, location.location.lng]}
-                  icon={getMarkerIcon(location.status)}
-                  eventHandlers={{
-                    click: () => handleMarkerClick(location)
-                  }}
-                >
-                  <Popup>
-                    <div className="p-2">
-                      <h3 className="font-semibold">{location.address}</h3>
-                      <p className="text-sm">Customer: {location.customer}</p>
-                      <p className="text-sm">Status: <span className={`font-medium ${
-                        location.status === 'Completed' ? 'text-green-600' :
-                        location.status === 'En Route' ? 'text-orange-500' :
-                        location.status === 'New' ? 'text-blue-600' :
-                        'text-red-600'
-                      }`}>{location.status}</span></p>
-                      <button 
-                        className="mt-2 text-blue-600 text-sm hover:underline"
-                        onClick={() => openDetailModal(location)}
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-              
-              {/* Collector Markers */}
-              {showCollectors && collectors.map(collector => (
-                <React.Fragment key={collector.id}>
-                  <CollectorMapMarker 
-                    collector={collector} 
-                    openDetailModal={openCollectorDetailPanel} 
+                {collector.locationHistory?.length > 1 && (
+                  <Polyline
+                    positions={collector.locationHistory.map(pos => [pos.lat, pos.lng])}
+                    pathOptions={{ color: '#3388ff', weight: 3, opacity: 0.6, dashArray: '10, 10' }}
                   />
-                  
-                  {/* Location history trail for active collectors */}
-                  {collector.status === 'active' && collector.locationHistory && collector.locationHistory.length > 1 && (
-                    <Polyline
-                      positions={collector.locationHistory.map(pos => [pos.lat, pos.lng])}
-                      pathOptions={{ color: '#3388ff', weight: 3, opacity: 0.6, dashArray: '10, 10' }}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
+                )}
+              </React.Fragment>
+            ))}
               
               <MapInvalidator />
             </MapContainer>
-        )}
+          )}
         </div>
         
         {/* Collector side panel - 1/3 width on md+ screens */}
@@ -467,7 +431,8 @@ const LiveMap = () => {
           {selectedCollector ? (
             <CollectorDetailPanel 
               collector={selectedCollector} 
-              onClose={() => setSelectedCollector(null)} 
+              onClose={() => setSelectedCollector(null)}
+              onStatusChange={handleStatusChange}
             />
           ) : (
             <div className="bg-white rounded-lg shadow-sm border-0 p-4 h-full">
@@ -476,7 +441,6 @@ const LiveMap = () => {
                 <h3 className="font-semibold">Collector Status</h3>
               </div>
               
-              {/* Collector summary cards */}
               <div className="space-y-3">
                 {collectors
                   .filter(c => c.status === 'active')
@@ -502,7 +466,9 @@ const LiveMap = () => {
                           <p className="text-xs text-gray-500">{collector.assignedRegion}</p>
                         </div>
                         <div>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${collector.capacityRemaining < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            collector.capacityRemaining < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                          }`}>
                             {collector.capacityRemaining}% Cap
                           </span>
                         </div>
@@ -571,9 +537,9 @@ const LiveMap = () => {
       
       {/* Detail Modal */}
       {showDetailModal && selectedLocation && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="border-b p-4 flex justify-between items-center">
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="border-b p-4 flex justify-between items-center">
               <h3 className="text-lg font-semibold">Pickup Request Details</h3>
               <button 
                 className="text-gray-500 hover:text-gray-700"
@@ -655,7 +621,7 @@ const LiveMap = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

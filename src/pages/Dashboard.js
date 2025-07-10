@@ -14,7 +14,15 @@ import {
   Filler
 } from 'chart.js';
 import { Doughnut, Line, Bar, Pie } from 'react-chartjs-2';
-import { fetchDashboardStats } from '../utils/databaseUtils';
+import {
+  fetchDashboardMetrics,
+  fetchPickupStatusChartData,
+  fetchCollectorActivityChartData,
+  fetchWasteDistributionChartData,
+  fetchBagUtilizationTrendData,
+  fetchDashboardAlerts,
+  subscribeToDashboardUpdates
+} from '../utils/dashboardService';
 
 // Register ChartJS components
 ChartJS.register(
@@ -131,27 +139,24 @@ const createGaugeChart = (ctx, percentage) => {
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     totalRequests: 0,
     pendingRequests: 0,
     activeCollectors: 0,
     slaCompliance: 0,
-    totalTrend: '+5%',
-    pendingTrend: '-2%',
-    activeCollectorPercent: 67,
-    slaComplianceTrend: '+3%'
+    totalTrend: '0%',
+    pendingTrend: '0%',
+    activeCollectorPercent: 0,
+    slaComplianceTrend: '0%'
   });
   
-  // References for chart cleanup
-  const gaugeChartRef = useRef(null);
-  const gaugeChartInstance = useRef(null);
-
-  // Pickup Requests Status - Doughnut chart data
-  const pickupStatusData = {
+  // Chart data state
+  const [pickupStatusData, setPickupStatusData] = useState({
     labels: ['Completed', 'In Progress', 'Pending', 'Cancelled'],
     datasets: [
       {
-        data: [65, 20, 10, 5],
+        data: [0, 0, 0, 0],
         backgroundColor: [
           '#4CAF50', // green for completed
           '#2196F3', // blue for in progress
@@ -161,14 +166,13 @@ const Dashboard = () => {
         borderWidth: 1,
       },
     ],
-  };
+  });
   
-  // Collector Activity - Pie chart data
-  const collectorActivityData = {
+  const [collectorActivityData, setCollectorActivityData] = useState({
     labels: ['Active', 'Idle', 'On Break', 'Off Duty'],
     datasets: [
       {
-        data: [67, 15, 10, 8],
+        data: [0, 0, 0, 0],
         backgroundColor: [
           '#4CAF50', // green for active
           '#FFC107', // yellow for idle
@@ -178,29 +182,14 @@ const Dashboard = () => {
         borderWidth: 1,
       },
     ],
-  };
+  });
   
-  // Dumping Reports - Bar chart data
-  const dumpingReportsData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Reports',
-        data: [12, 19, 8, 15, 10, 5, 3],
-        backgroundColor: '#FF5722',
-        borderColor: '#E64A19',
-        borderWidth: 1,
-      },
-    ],
-  };
-  
-  // Bag Utilization Trend - Line chart data
-  const bagUtilizationData = {
+  const [bagUtilizationData, setBagUtilizationData] = useState({
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
     datasets: [
       {
         label: 'Bags Distributed',
-        data: [120, 145, 170, 190, 210, 235],
+        data: [0, 0, 0, 0, 0, 0],
         borderColor: '#2196F3',
         backgroundColor: 'rgba(33, 150, 243, 0.2)',
         tension: 0.3,
@@ -208,22 +197,21 @@ const Dashboard = () => {
       },
       {
         label: 'Bags Collected',
-        data: [95, 125, 150, 175, 190, 215],
+        data: [0, 0, 0, 0, 0, 0],
         borderColor: '#4CAF50',
         backgroundColor: 'rgba(76, 175, 80, 0.2)',
         tension: 0.3,
         fill: true,
       }
     ],
-  };
+  });
   
-  // Waste Distribution Chart with direct percentage labels
-  const wasteDistributionData = {
+  const [wasteDistributionData, setWasteDistributionData] = useState({
     labels: ['Recyclable', 'Organic', 'Hazardous', 'Electronic', 'Other'],
     datasets: [
       {
         label: 'Waste Distribution',
-        data: [42, 28, 10, 15, 5],
+        data: [0, 0, 0, 0, 0],
         backgroundColor: [
           'rgba(76, 175, 80, 0.7)', // green for recyclable
           'rgba(255, 193, 7, 0.7)', // yellow for organic
@@ -241,7 +229,27 @@ const Dashboard = () => {
         borderWidth: 1,
       },
     ],
-  };
+  });
+  
+  // Dumping Reports - Bar chart data
+  const [dumpingReportsData, setDumpingReportsData] = useState({
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [
+      {
+        label: 'Reports',
+        data: [0, 0, 0, 0, 0, 0, 0],
+        backgroundColor: '#FF5722',
+        borderColor: '#E64A19',
+        borderWidth: 1,
+      },
+    ],
+  });
+  
+  const [alertsData, setAlertsData] = useState([]);
+  
+  // References for chart cleanup
+  const gaugeChartRef = useRef(null);
+  const gaugeChartInstance = useRef(null);
 
   // Chart options with plugins for direct percentage labels
   const wasteChartOptions = {
@@ -269,59 +277,117 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        // Fetch real data from Supabase
-        const dashboardData = await fetchDashboardStats();
+        // Fetch all dashboard data in parallel
+        const [
+          metricsData,
+          pickupData,
+          collectorData,
+          wasteData,
+          bagData,
+          alerts
+        ] = await Promise.all([
+          fetchDashboardMetrics(),
+          fetchPickupStatusChartData(),
+          fetchCollectorActivityChartData(),
+          fetchWasteDistributionChartData(),
+          fetchBagUtilizationTrendData(),
+          fetchDashboardAlerts()
+        ]);
         
-        // Update the stats with real data
-        setStats({
-          totalRequests: dashboardData.totalRequests || 0,
-          pendingRequests: dashboardData.pendingRequests || 0,
-          activeCollectors: dashboardData.activeCollectors || 0,
-          slaCompliance: dashboardData.slaCompliance || 0,
-          totalTrend: dashboardData.totalTrend || '0%',
-          pendingTrend: dashboardData.pendingTrend || '0%',
-          activeCollectorPercent: dashboardData.activeCollectorPercent || 0,
-          slaComplianceTrend: dashboardData.slaComplianceTrend || '0%'
+        // Update all state with real data
+        setStats(metricsData);
+        setPickupStatusData(pickupData);
+        setCollectorActivityData(collectorData);
+        setWasteDistributionData(wasteData);
+        setBagUtilizationData(bagData);
+        setAlertsData(alerts);
+        
+        // Set dumping reports data (we could add a fetchDumpingReportsData function in dashboardService.js)
+        setDumpingReportsData({
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [
+            {
+              label: 'Reports',
+              data: [0, 0, 0, 0, 0, 0, 0], // Replace with real data when available
+              backgroundColor: '#FF5722',
+              borderColor: '#E64A19',
+              borderWidth: 1,
+            },
+          ],
         });
         
-        // Update chart data with real values
-        updateChartData(dashboardData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    
+    // Subscribe to real-time dashboard updates
+    const subscription = subscribeToDashboardUpdates((dashboardData) => {
+      if (dashboardData.metrics) setStats(dashboardData.metrics);
+      if (dashboardData.pickupStatusData) setPickupStatusData(dashboardData.pickupStatusData);
+      if (dashboardData.collectorActivityData) setCollectorActivityData(dashboardData.collectorActivityData);
+      if (dashboardData.wasteDistributionData) setWasteDistributionData(dashboardData.wasteDistributionData);
+      if (dashboardData.bagUtilizationData) setBagUtilizationData(dashboardData.bagUtilizationData);
+      if (dashboardData.alerts) setAlertsData(dashboardData.alerts);
+      if (dashboardData.dumpingReportsData) setDumpingReportsData(dashboardData.dumpingReportsData);
+    });
+    
+    return () => {
+      // Clean up subscription when component unmounts
+      subscription.unsubscribe();
+    };
   }, []);
   
   // Function to update chart data with real values
   const updateChartData = (dashboardData) => {
     // Update pickup status chart
     if (dashboardData.pickupStatusDistribution) {
-      pickupStatusData.datasets[0].data = [
-        dashboardData.pickupStatusDistribution.completed || 0,
-        dashboardData.pickupStatusDistribution.inProgress || 0,
-        dashboardData.pickupStatusDistribution.pending || 0,
-        dashboardData.pickupStatusDistribution.cancelled || 0
-      ];
+      setPickupStatusData(prevData => ({
+        ...prevData,
+        datasets: [{
+          ...prevData.datasets[0],
+          data: [
+            dashboardData.pickupStatusDistribution.completed || 0,
+            dashboardData.pickupStatusDistribution.inProgress || 0,
+            dashboardData.pickupStatusDistribution.pending || 0,
+            dashboardData.pickupStatusDistribution.cancelled || 0
+          ]
+        }]
+      }));
     }
     
     // Update collector activity chart
     if (dashboardData.collectorActivityDistribution) {
-      collectorActivityData.datasets[0].data = [
-        dashboardData.collectorActivityDistribution.active || 0,
-        dashboardData.collectorActivityDistribution.idle || 0,
-        dashboardData.collectorActivityDistribution.onBreak || 0,
-        dashboardData.collectorActivityDistribution.offDuty || 0
-      ];
+      setCollectorActivityData(prevData => ({
+        ...prevData,
+        datasets: [{
+          ...prevData.datasets[0],
+          data: [
+            dashboardData.collectorActivityDistribution.active || 0,
+            dashboardData.collectorActivityDistribution.idle || 0,
+            dashboardData.collectorActivityDistribution.onBreak || 0,
+            dashboardData.collectorActivityDistribution.offDuty || 0
+          ]
+        }]
+      }));
     }
     
     // Update dumping reports chart
     if (dashboardData.dumpingReportsByDay) {
-      dumpingReportsData.datasets[0].data = dashboardData.dumpingReportsByDay;
+      setDumpingReportsData(prevData => ({
+        ...prevData,
+        datasets: [{
+          ...prevData.datasets[0],
+          data: dashboardData.dumpingReportsByDay
+        }]
+      }));
     }
     
     // Update bag utilization chart
@@ -529,7 +595,7 @@ const Dashboard = () => {
         </div>
         
         {/* Bag Utilization Trend (Line Chart) */}
-        <div className="bg-white rounded-lg shadow-sm border-0 p-6 col-span-1 lg:col-span-2">
+        <div className="bg-white rounded-lg shadow-sm border-0 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Bag Utilization Trend</h3>
           <div className="h-80">
             {loading ? (
@@ -561,69 +627,84 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-        ) : (
+        ) : alertsData.length > 0 ? (
           <ul className="divide-y divide-gray-200">
-            <li className="py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2">
-              <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(220, 53, 69, 0.1)' }}>
-                <i className="fas fa-exclamation-triangle" style={{ color: '#dc3545' }}></i>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <p className="text-sm font-medium text-gray-900">Critical: SLA breach risk for request #12378</p>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(220, 53, 69, 0.1)', color: '#dc3545' }}>Critical</span>
-                </div>
-                <p className="text-xs text-gray-500">Now - Requires immediate attention</p>
-              </div>
-            </li>
-            <li className="py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2">
-              <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)' }}>
-                <i className="fas fa-check-circle" style={{ color: '#4CAF50' }}></i>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <p className="text-sm font-medium text-gray-900">Pickup request #12345 completed</p>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50' }}>Success</span>
-                </div>
-                <p className="text-xs text-gray-500">10 min ago - by John Doe</p>
-              </div>
-            </li>
-            <li className="py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2">
-              <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(33, 150, 243, 0.1)' }}>
-                <i className="fas fa-plus-circle" style={{ color: '#2196F3' }}></i>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <p className="text-sm font-medium text-gray-900">New pickup request #12350 received</p>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(33, 150, 243, 0.1)', color: '#2196F3' }}>New</span>
-                </div>
-                <p className="text-xs text-gray-500">30 min ago - from 123 Main St</p>
-              </div>
-            </li>
-            <li className="py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2">
-              <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(255, 193, 7, 0.1)' }}>
-                <i className="fas fa-exclamation-circle" style={{ color: '#FFC107' }}></i>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <p className="text-sm font-medium text-gray-900">Collector #113 approaching idle time limit</p>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(255, 193, 7, 0.1)', color: '#FFC107' }}>Warning</span>
-                </div>
-                <p className="text-xs text-gray-500">45 min ago - Michael Williams</p>
-              </div>
-            </li>
-            <li className="py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2">
-              <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(156, 39, 176, 0.1)' }}>
-                <i className="fas fa-map-marker-alt" style={{ color: '#9C27B0' }}></i>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <p className="text-sm font-medium text-gray-900">Illegal dumping report #5678 submitted</p>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(156, 39, 176, 0.1)', color: '#9C27B0' }}>Report</span>
-                </div>
-                <p className="text-xs text-gray-500">2 hours ago - by Jane Smith</p>
-              </div>
-            </li>
+            {alertsData.map((alert) => {
+              // Determine icon and colors based on alert type
+              let icon = 'info-circle';
+              let iconColor = '#2196F3';
+              let bgColor = 'rgba(33, 150, 243, 0.1)';
+              let statusText = 'Info';
+              
+              switch(alert.type.toLowerCase()) {
+                case 'critical':
+                  icon = 'exclamation-triangle';
+                  iconColor = '#dc3545';
+                  bgColor = 'rgba(220, 53, 69, 0.1)';
+                  statusText = 'Critical';
+                  break;
+                case 'success':
+                  icon = 'check-circle';
+                  iconColor = '#4CAF50';
+                  bgColor = 'rgba(76, 175, 80, 0.1)';
+                  statusText = 'Success';
+                  break;
+                case 'warning':
+                  icon = 'exclamation-circle';
+                  iconColor = '#FFC107';
+                  bgColor = 'rgba(255, 193, 7, 0.1)';
+                  statusText = 'Warning';
+                  break;
+                case 'new':
+                  icon = 'plus-circle';
+                  iconColor = '#2196F3';
+                  bgColor = 'rgba(33, 150, 243, 0.1)';
+                  statusText = 'New';
+                  break;
+                case 'report':
+                  icon = 'map-marker-alt';
+                  iconColor = '#9C27B0';
+                  bgColor = 'rgba(156, 39, 176, 0.1)';
+                  statusText = 'Report';
+                  break;
+                default:
+                  icon = 'info-circle';
+                  iconColor = '#2196F3';
+                  bgColor = 'rgba(33, 150, 243, 0.1)';
+                  statusText = 'Info';
+              }
+              
+              return (
+                <li key={alert.id} className={`py-3 flex items-center hover:bg-gray-50 transition-colors rounded-md px-2 ${!alert.read ? 'bg-blue-50' : ''}`}>
+                  <div className="rounded-full p-2 mr-3" style={{ backgroundColor: bgColor }}>
+                    <i className={`fas fa-${icon}`} style={{ color: iconColor }}></i>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className="text-sm font-medium text-gray-900">{alert.title}</p>
+                      <span 
+                        className="text-xs font-medium px-2 py-1 rounded-full capitalize" 
+                        style={{ backgroundColor: bgColor, color: iconColor }}
+                      >
+                        {statusText}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {alert.created_at} - {alert.creator ? `by ${alert.creator}` : 'System'}
+                    </p>
+                    {alert.description && (
+                      <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
+        ) : (
+          <div className="text-center py-6">
+            <i className="far fa-bell-slash text-gray-300 text-3xl mb-2"></i>
+            <p className="text-gray-500">No recent alerts</p>
+          </div>
         )}
       </div>
     </div>

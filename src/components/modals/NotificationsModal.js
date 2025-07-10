@@ -1,9 +1,29 @@
-import React, { useState } from 'react';
-import { notifications as allNotifications } from '../../mock/messages';
+import React, { useState, useEffect } from 'react';
+import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../utils/notificationService';
 
 const NotificationsModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('all');
-  const [notifications, setNotifications] = useState(allNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        setIsLoading(true);
+        const notificationsData = await fetchNotifications();
+        setNotifications(notificationsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading notifications:', err);
+        setError('Failed to load notifications');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadNotifications();
+  }, []);
 
   if (!isOpen) return null;
 
@@ -11,19 +31,33 @@ const NotificationsModal = ({ isOpen, onClose }) => {
     ? notifications 
     : notifications.filter(notification => notification.category === activeTab);
 
-  const markAllAsRead = () => {
-    const updatedNotifications = notifications.map(notification => ({
-      ...notification,
-      read: true
-    }));
-    setNotifications(updatedNotifications);
+  const markAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      // Update local state
+      const updatedNotifications = notifications.map(notification => ({
+        ...notification,
+        read: true
+      }));
+      setNotifications(updatedNotifications);
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+      setError('Failed to mark all as read');
+    }
   };
 
-  const markAsRead = (id) => {
-    const updatedNotifications = notifications.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    );
-    setNotifications(updatedNotifications);
+  const markAsRead = async (id) => {
+    try {
+      await markNotificationAsRead(id);
+      // Update local state
+      const updatedNotifications = notifications.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      );
+      setNotifications(updatedNotifications);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+      // We don't set the error state here to avoid disrupting the UI for a single notification
+    }
   };
 
   const getTabCount = (tabName) => {
@@ -135,7 +169,35 @@ const NotificationsModal = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto">
           {filteredNotifications.length > 0 ? (
             <div className="divide-y">
-              {filteredNotifications.map(notification => (
+              {isLoading ? (
+                <div className="p-6 text-center">
+                  <p className="text-gray-500">Loading notifications...</p>
+                </div>
+              ) : error ? (
+                <div className="p-6 text-center">
+                  <p className="text-red-500">{error}</p>
+                  <button 
+                    onClick={() => {
+                      setError(null);
+                      setIsLoading(true);
+                      fetchNotifications().then(data => {
+                        setNotifications(data);
+                        setIsLoading(false);
+                      }).catch(err => {
+                        setError('Failed to reload notifications');
+                        setIsLoading(false);
+                      });
+                    }} 
+                    className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : filteredNotifications.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p className="text-gray-500">No notifications in this category</p>
+                </div>
+              ) : filteredNotifications.map(notification => (
                 <div 
                   key={notification.id}
                   className={`p-4 flex hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}

@@ -22,20 +22,19 @@ const IllegalDumpingHistory = () => {
     endDate: ''
   });
 
-  // Fetch history data
-  useEffect(() => {
-    const loadIllegalDumpingData = async () => {
-      setLoading(true);
-      try {
-        let statusFilter = null;
-        if (selectedTab === 'open') statusFilter = STATUS.ILLEGAL_DUMPING.REPORTED;
-        else if (selectedTab === 'in-progress') statusFilter = STATUS.ILLEGAL_DUMPING.VERIFIED;
-        else if (selectedTab === 'resolved') statusFilter = STATUS.ILLEGAL_DUMPING.CLEANED_UP;
-        
-        const data = await fetchIllegalDumpingReports(statusFilter);
-        
-        // Transform the data to match the expected structure
-        const transformedData = data.map(item => ({
+  // Fetch history data function
+  const loadIllegalDumpingData = async () => {
+    setLoading(true);
+    try {
+      let statusFilter = null;
+      if (selectedTab === 'open') statusFilter = STATUS.ILLEGAL_DUMPING.REPORTED;
+      else if (selectedTab === 'in-progress') statusFilter = STATUS.ILLEGAL_DUMPING.VERIFIED;
+      else if (selectedTab === 'resolved') statusFilter = STATUS.ILLEGAL_DUMPING.CLEANED_UP;
+      
+      const data = await fetchIllegalDumpingReports(statusFilter);
+      
+      // Transform the data to match the expected structure
+      const transformedData = data.map(item => ({
           id: item.id,
           reportedAt: item.reported_at,
           reportedBy: item.reporter?.email || 'unknown',
@@ -66,8 +65,11 @@ const IllegalDumpingHistory = () => {
       }
     };
     
+  // Call the data loading function when component mounts or filters change
+  useEffect(() => {
     loadIllegalDumpingData();
-  }, [selectedTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab, filters]);
 
   // Calculate metrics for KPI cards
   const metrics = useMemo(() => {

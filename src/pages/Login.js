@@ -95,7 +95,9 @@ const Login = () => {
       
     } catch (err) {
       console.error('Login error details:', err);
-      if (err.message && err.message.includes('credentials')) {
+      if (err.message && err.message.includes('Email not confirmed')) {
+        setError('Email not confirmed. Please check your inbox and click the verification link, or contact support for assistance.');
+      } else if (err.message && err.message.includes('credentials')) {
         setError('Invalid email or password');
       } else {
         setError(err.message || 'Failed to sign in');
