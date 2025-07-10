@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQrcode, faCheck, faExclamationTriangle, faMagic } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faQrcode, 
+  faCheck, 
+  faExclamationTriangle, 
+  faMagic, 
+  faSpinner, 
+  faDownload,
+  faTimes
+} from '@fortawesome/free-solid-svg-icons';
 import { generateNewBatch } from '../mock/bags';
+import { saveAs } from 'file-saver';
 
 const GenerateBag = () => {
   // State for form values
@@ -17,10 +27,18 @@ const GenerateBag = () => {
   
   // State for loading and errors
   const [isLoading, setIsLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingBatch, setDownloadingBatch] = useState(null);
   const [error, setError] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewQR, setPreviewQR] = useState(null);
-  
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
+  const [workerError, setWorkerError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const qrCodeRefs = useRef({});
+  const workerRef = useRef(null);
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +57,213 @@ const GenerateBag = () => {
     } else {
       setFormData({ ...formData, [name]: value });
     }
+  };
+
+  // State for download progress
+  const [downloadProgress, setDownloadProgress] = useState({
+    progress: 0,
+    stage: 'Preparing...',
+    isProcessing: false,
+    showProgress: false
+  });
+
+  // Initialize Web Worker with retry mechanism
+  const initWorker = useCallback(() => {
+    try {
+      // Use the Worker constructor with import.meta.url to load the worker as a module
+      const worker = new Worker(new URL('../workers/QRCodeWorker.js', import.meta.url), {
+        type: 'module'
+      });
+      
+      // Handle worker ready state
+      worker.postMessage({ type: 'WORKER_READY' });
+      
+      worker.onmessage = (e) => {
+        const { type, progress, stage, chunks, content, filename, error } = e.data;
+        
+        if (type === 'WORKER_READY') {
+          setIsWorkerReady(true);
+          setWorkerError(null);
+        } else if (type === 'PROGRESS') {
+          setDownloadProgress(prev => ({
+            ...prev,
+            progress,
+            stage: stage || prev.stage,
+            isProcessing: progress < 100
+          }));
+        } else if (type === 'CHUNKS_READY') {
+          // Start creating ZIP with the chunks
+          workerRef.current.postMessage({
+            type: 'CREATE_ZIP',
+            payload: {
+              chunks: e.data.chunks,
+              batch: downloadingBatch
+            }
+          });
+        } else if (type === 'ZIP_READY') {
+          console.log('ZIP_READY received, starting download...');
+          try {
+            // Ensure the filename ends with .zip
+            const safeFilename = filename.endsWith('.zip') ? filename : `${filename}.zip`;
+            
+            try {
+              // Convert Uint8Array to Blob
+              const blob = new Blob([content], { type: 'application/zip' });
+              
+              // Create object URL and trigger download
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.style.display = 'none';
+              a.href = url;
+              a.download = safeFilename;
+              document.body.appendChild(a);
+              a.click();
+              
+              // Clean up
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+            } catch (error) {
+              console.error('Error creating download:', error);
+              throw new Error('Failed to create download');
+            }
+            
+            console.log('Download started successfully');
+            setDownloadProgress(prev => ({
+              ...prev,
+              progress: 100,
+              stage: 'Download complete!',
+              isProcessing: false
+            }));
+            setIsDownloading(false);
+            setRetryCount(0); // Reset retry count on success
+          } catch (error) {
+            console.error('Error saving file:', error);
+            handleWorkerError('Failed to save the ZIP file');
+          }
+        } else if (type === 'ERROR') {
+          handleWorkerError(error || 'An error occurred while generating QR codes');
+        }
+      };
+      
+      worker.onerror = (error) => {
+        console.error('Worker error:', error);
+        handleWorkerError('Failed to initialize QR code generator');
+      };
+      
+      workerRef.current = worker;
+      
+      return () => {
+        worker.terminate();
+      };
+    } catch (error) {
+      console.error('Error initializing worker:', error);
+      handleWorkerError('Failed to initialize QR code generator');
+    }
+  }, []);
+
+  // Handle worker errors with retry logic
+  const handleWorkerError = useCallback((error) => {
+    console.error('QR Code Worker Error:', error);
+    setWorkerError(error);
+    
+    if (retryCount < MAX_RETRIES) {
+      setRetryCount(prev => prev + 1);
+      setError(`Attempting to recover... (${retryCount + 1}/${MAX_RETRIES})`);
+      
+      // Retry after a delay
+      const timer = setTimeout(() => {
+        if (workerRef.current) {
+          workerRef.current.terminate();
+        }
+        initWorker();
+      }, 1000 * (retryCount + 1)); // Exponential backoff
+      
+      return () => clearTimeout(timer);
+    } else {
+      setError('Failed to generate QR codes after several attempts. Please refresh the page and try again.');
+      setDownloadProgress(prev => ({
+        ...prev,
+        isProcessing: false,
+        showProgress: false
+      }));
+      setIsDownloading(false);
+    }
+  }, [retryCount]);
+
+  // Initialize worker on mount and retries
+  useEffect(() => {
+    const cleanup = initWorker();
+    return () => {
+      if (cleanup) cleanup();
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
+    };
+  }, [initWorker]);
+
+  // Function to handle downloading QR codes for a batch using Web Worker
+  const handleDownloadClick = async (batch) => {
+    try {
+      setDownloadingBatch(batch.id);
+      setIsDownloading(true);
+      setError(null);
+      setDownloadProgress({
+        progress: 0,
+        stage: 'Preparing...',
+        isProcessing: true,
+        showProgress: true
+      });
+      
+      if (!isWorkerReady) {
+        throw new Error('QR code generator is not ready yet');
+      }
+      
+      // Reset retry count for this operation
+      setRetryCount(0);
+      
+      // Add a small delay to ensure worker is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Start the process
+      workerRef.current.postMessage({
+        type: 'GENERATE_QR_CODES',
+        payload: {
+          batch,
+          email: 'admin@trashdrop.com',
+          baseUrl: 'https://trashdrops.com/scan',
+          chunkSize: 20 // Process 20 QR codes at a time
+        }
+      });
+    } catch (error) {
+      console.error('Error initiating download:', error);
+      setError(error.message || 'Failed to start QR code generation');
+      setIsDownloading(false);
+      setDownloadProgress(prev => ({
+        ...prev,
+        isProcessing: false,
+        showProgress: false
+      }));
+    }
+  };
+
+  // Function to render a QR code for a specific bag in the batch
+  const renderQRCode = (batch, index) => {
+    const qrCodeId = `${batch.id}_${index + 1}`;
+    const qrValue = `https://trashdrops.com/bag/TD-${batch.type.substring(0, 3).toUpperCase()}-${batch.size.charAt(0)}-${String(index + 1).padStart(3, '0')}`;
+    
+    return (
+      <div key={qrCodeId} id={`qrcode-${qrCodeId}`} className="hidden">
+        <QRCodeSVG
+          value={qrValue}
+          size={200}
+          level="M"
+          includeMargin={false}
+          renderAs="svg"
+          fgColor="#000000"
+          bgColor="#ffffff"
+        />
+      </div>
+    );
   };
 
   // Generate QR code preview
@@ -244,14 +469,21 @@ const GenerateBag = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <div className="flex flex-col items-center border rounded-lg p-6 bg-gray-50">
-                  {/* This would be an actual QR code in production */}
-                  <div className="mb-4 p-3 bg-white border border-gray-300 rounded" style={{ width: '200px', height: '200px' }}>
-                    <div className="flex justify-center items-center h-full text-gray-400">
-                      <FontAwesomeIcon icon={faQrcode} size="4x" />
-                    </div>
+                  <div className="mb-4 p-3 bg-white border border-gray-300 rounded flex justify-center items-center" style={{ width: '200px', height: '200px' }}>
+                    {previewQR && (
+                      <QRCodeSVG
+                        value={previewQR.url}
+                        size={180}
+                        level="M"
+                        includeMargin={false}
+                        renderAs="svg"
+                        fgColor="#000000"
+                        bgColor="#ffffff"
+                      />
+                    )}
                   </div>
-                  <h6 className="text-lg font-medium mb-2">{previewQR?.prefix}</h6>
-                  <p className="text-gray-500 text-sm">Sample: {previewQR?.sample}</p>
+                  <h6 className="text-lg font-medium mb-2 text-center">{previewQR?.prefix}</h6>
+                  <p className="text-gray-500 text-sm text-center">Sample: {previewQR?.sample}</p>
                 </div>
               </div>
               
@@ -260,7 +492,7 @@ const GenerateBag = () => {
                 <p className="mb-2"><span className="font-semibold">Prefix:</span> {previewQR?.prefix}</p>
                 <p className="mb-2"><span className="font-semibold">Sample Code:</span> {previewQR?.sample}</p>
                 <p className="mb-2"><span className="font-semibold">URL Format:</span> {previewQR?.url}</p>
-                <p className="text-sm text-gray-600 mt-4">This is an example of how your QR codes will be generated. In production, the actual QR code image will be displayed.</p>
+                <p className="text-sm text-gray-600 mt-4">Scan this QR code to view the bag details in the TrashDrop app.</p>
                 
                 <div className="mt-6">
                   <h6 className="text-lg font-medium mb-3">Batch Summary</h6>
@@ -304,8 +536,46 @@ const GenerateBag = () => {
         </div>
       )}
       
+      {/* Download Progress Modal */}
+      {downloadProgress.showProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Generating QR Codes</h3>
+              <button 
+                onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
+                className="text-gray-500 hover:text-gray-700"
+                disabled={downloadProgress.isProcessing}
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>{downloadProgress.stage}</span>
+                <span>{Math.round(downloadProgress.progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${downloadProgress.progress}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div className="text-sm text-gray-500 text-center">
+              {downloadProgress.progress < 100 
+                ? 'Please wait while we prepare your download...'
+                : 'Download complete! The file should start downloading shortly.'
+              }
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Generated Batches Table */}
-      <div className="bg-white shadow-sm rounded-lg">
+      <div className="mt-8 bg-white shadow-sm rounded-lg">
         <div className="p-6">
           <h5 className="text-xl font-semibold mb-4 text-gray-700">Generated Batches</h5>
           
@@ -344,6 +614,10 @@ const GenerateBag = () => {
                     
                     return (
                       <tr key={batch.id} className="hover:bg-gray-50">
+                        {/* Hidden QR codes for this batch */}
+                        {Array.from({ length: Math.min(batch.quantity, 10) }).map((_, index) => (
+                          renderQRCode(batch, index)
+                        ))}
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTrashTypeColor(batch.type)}`}>
@@ -354,12 +628,18 @@ const GenerateBag = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.quantity}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formattedDate}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button 
-                            className="inline-flex items-center px-3 py-1 border border-blue-500 text-xs font-medium rounded text-blue-500 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
+                          <button
+                            onClick={() => handleDownloadClick(batch)}
+                            disabled={isDownloading && downloadingBatch === batch.id}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             title="Download QR Codes"
-                            onClick={() => alert(`Downloading QR codes for batch ${batch.id}`)}
                           >
-                            <FontAwesomeIcon icon={faQrcode} className="mr-1" /> Download QRs
+                            <FontAwesomeIcon 
+                              icon={isDownloading && downloadingBatch === batch.id ? faSpinner : faDownload} 
+                              className={isDownloading && downloadingBatch === batch.id ? 'animate-spin mr-2' : 'mr-2'} 
+                            />
+                            <span>Download QRs</span>
+                            )}
                           </button>
                         </td>
                       </tr>
@@ -373,6 +653,10 @@ const GenerateBag = () => {
       </div>
     </div>
   );
+
+
+
+
 };
 
 export default GenerateBag;
