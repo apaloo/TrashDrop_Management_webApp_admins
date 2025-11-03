@@ -49,33 +49,79 @@ const supabaseConfig = {
   },
 };
 
-// Singleton pattern to avoid multiple client instances
-let supabaseInstance = null;
-let supabaseAdminInstance = null;
+// Singleton pattern using global window storage to persist across hot reloads
+// This prevents multiple client instances during development hot module reloading
+const SUPABASE_CLIENT_KEY = '__trashdrop_supabase_client__';
+const SUPABASE_ADMIN_KEY = '__trashdrop_supabase_admin__';
 
-// Initialize main Supabase client once
-if (!supabaseInstance) {
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, supabaseConfig);
-  console.log('✅ Supabase client initialized (singleton)');
-}
+// Get or create Supabase client - persists across hot reloads
+const getSupabaseClient = () => {
+  // Check if client already exists in global scope
+  if (typeof window !== 'undefined' && window[SUPABASE_CLIENT_KEY]) {
+    console.log('♻️ Reusing existing Supabase main client from global cache');
+    return window[SUPABASE_CLIENT_KEY];
+  }
+  
+  // Create new client
+  console.log('🔧 Creating Supabase main client singleton...');
+  const client = createClient(supabaseUrl, supabaseAnonKey, supabaseConfig);
+  
+  // Store in global scope to persist across hot reloads
+  if (typeof window !== 'undefined') {
+    window[SUPABASE_CLIENT_KEY] = client;
+  }
+  
+  console.log('✅ Supabase main client initialized and cached globally');
+  return client;
+};
 
-// Initialize admin client once (if service key available)
-if (!supabaseAdminInstance && supabaseServiceKey) {
-  supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
+// Get or create admin client - persists across hot reloads
+const getSupabaseAdminClient = () => {
+  if (!supabaseServiceKey) {
+    return null;
+  }
+  
+  // Check if admin client already exists in global scope
+  if (typeof window !== 'undefined' && window[SUPABASE_ADMIN_KEY]) {
+    console.log('♻️ Reusing existing Supabase admin client from global cache');
+    return window[SUPABASE_ADMIN_KEY];
+  }
+  
+  // Create new admin client with separate storage to avoid conflicts
+  console.log('🔧 Creating Supabase admin client singleton...');
+  const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+      detectSessionInUrl: false,
+      // Use a different storage key to avoid conflicts with main client
+      storageKey: 'trashdrop-admin-auth',
     },
     db: {
       schema: 'public',
     },
   });
-  console.log('✅ Supabase admin client initialized (singleton)');
-}
+  
+  // Store in global scope to persist across hot reloads
+  if (typeof window !== 'undefined') {
+    window[SUPABASE_ADMIN_KEY] = adminClient;
+  }
+  
+  console.log('✅ Supabase admin client initialized and cached globally');
+  return adminClient;
+};
 
 // Export singleton instances
-export const supabase = supabaseInstance;
-export const supabaseAdmin = supabaseAdminInstance;
+// Call getters once - they handle window caching internally
+export const supabase = getSupabaseClient();
+
+// IMPORTANT: Don't create admin client unless absolutely needed
+// Most applications don't need admin privileges
+// If you need admin client, import and call getSupabaseAdminClient() directly
+export const supabaseAdmin = null; // Don't auto-initialize admin client
+
+// Export getter function for admin client (call only when needed)
+export { getSupabaseAdminClient };
 
 // Connection health check - configurable error handling based on environment
 export const checkConnection = async () => {

@@ -4,10 +4,9 @@ import { STATUS, LOG_LEVEL, LOG_SOURCE, ID_PREFIX } from '../config/constants';
 import { safeDatabaseService } from './safeDatabaseService';
 import * as realDataUtils from './realDataUtils';
 
-// IMPORTANT: Override for development mode - force use of real Supabase data
-// Set to true to use real Supabase data instead of mock data
+// Direct Supabase connection - no mock data or fallbacks for Bag Management
 const FORCE_LIVE_DATA = true; // Always use real data from Supabase
-const ALLOW_MOCK_FALLBACK = true; // Allow fallback to mock data if real data fails
+const ALLOW_MOCK_FALLBACK = false; // NO fallback to mock data - direct DB connection only
 
 /**
  * Generate mock bag batch data
@@ -661,368 +660,149 @@ export const generateMockIllegalDumpingReports = (options = {}) => {
 };
 
 /**
- * Fetch all bag batches with pagination and sorting support
+ * Fetch bag batches from Supabase with pagination and sorting
+ * Direct database connection - NO MOCK DATA, NO CACHE
  * @param {Object} options - Options for pagination and sorting
  * @returns {Promise<Object>} Promise that resolves to an object with data and pagination info
  */
 export const fetchBagBatches = async (options = {}) => {
-  const { page = 1, limit = 10, sortBy = 'updated_at', sortOrder = 'desc' } = options;
+  const { page = 1, limit = 10, sortBy = 'updated_at', sortOrder = 'desc', filters = {} } = options;
   
-  try {
-    // Force use of real data when FORCE_LIVE_DATA is true
-    if (FORCE_LIVE_DATA) {
-      // Calculate offset
-      const offset = (page - 1) * limit;
-      
-      // Get data with pagination and include related data
-      let query = supabase
-        .from('batches')
-        .select(`
-          id,
-          batch_number,
-          bag_count,
-          status,
-          notes,
-          created_at,
-          updated_at,
-          bags(count),
-          scanned_count:bags(count).eq(scanned, true),
-          collected_count:bags(count).eq(status, 'collected')
-        `, { count: 'exact' })
-        .order(sortBy, { ascending: sortOrder === 'asc' })
-        .range(offset, offset + limit - 1);
-      
-      const { data, error, count } = await query;
-      
-      if (error) {
-        console.error('Error fetching batches from Supabase:', error);
-        // If error, fall back to simplified query
-        const { data: fallbackData, error: fallbackError, count: fallbackCount } = await supabase
-          .from('batches')
-          .select('*', { count: 'exact' })
-          .order(sortBy, { ascending: sortOrder === 'asc' })
-          .range(offset, offset + limit - 1);
-          
-        if (fallbackError) {
-          throw fallbackError;
-        }
-        
-        return {
-          data: (fallbackData || []).map(batch => ({
-            ...batch,
-            scan_rate: 0,
-            scanned_count: 0,
-            collected_count: 0
-          })),
-          totalCount: fallbackCount || 0,
-          page,
-          limit,
-          totalPages: Math.ceil((fallbackCount || 0) / limit)
-        };
-      }
-      
-      // Process the data to calculate rates
-      const processedData = (data || []).map(batch => {
-        const scannedCount = batch.scanned_count || 0;
-        const collectedCount = batch.collected_count || 0;
-        const scanRate = batch.bag_count > 0 ? Math.round((scannedCount / batch.bag_count) * 100) : 0;
-        
-        return {
-          ...batch,
-          scanned_count: scannedCount,
-          collected_count: collectedCount,
-          scan_rate: scanRate
-        };
-      });
-      
+  // Calculate offset
+  const offset = (page - 1) * limit;
+  
+  // Build query - Direct Supabase query with no fallbacks
+  let query = supabase
+    .from('batches')
+    .select('*', { count: 'exact' })
+    .order(sortBy, { ascending: sortOrder === 'asc' })
+    .range(offset, offset + limit - 1);
+  
+  // Apply status filter if provided
+  if (filters.status && filters.status !== 'All') {
+    query = query.eq('status', filters.status);
+  }
+  
+  // Apply search filter if provided
+  if (filters.search) {
+    query = query.or(`id.ilike.%${filters.search}%,type.ilike.%${filters.search}%,qr_prefix.ilike.%${filters.search}%`);
+  }
+  
+  const { data, error, count } = await query;
+  
+  if (error) {
+    console.error('Error fetching batches from Supabase:', error);
+    throw error; // No fallback - throw error directly
+  }
+  
+  // Calculate scan statistics for each batch
+  const batchesWithStats = await Promise.all((data || []).map(async (batch) => {
+    // Get bag count and scanned count from bags table
+    const { data: bags, error: bagsError } = await supabase
+      .from('bags')
+      .select('id, status', { count: 'exact' })
+      .eq('batch_id', batch.id);
+    
+    if (bagsError) {
+      console.error(`Error fetching bags for batch ${batch.id}:`, bagsError);
       return {
-        data: processedData,
-        totalCount: count || 0,
-        page,
-        limit,
-        totalPages: Math.ceil((count || 0) / limit)
+        ...batch,
+        distributed: 0,
+        scanned: 0,
+        scan_rate: 0
       };
     }
     
-    // Check if table exists (only when not forcing live data)
-    const tableExists = await safeDatabaseService.checkTableExists('batches');
-    if (!tableExists) {
-      console.warn('Batches table does not exist, returning mock data');
-      return generateMockBagBatches({ page, limit, sortBy, sortOrder });
-    }
-
-    // Calculate offset
-    const offset = (page - 1) * limit;
-    
-    // Get data with pagination
-    let query = supabase
-      .from('batches')
-      .select('*', { count: 'exact' })
-      .order(sortBy, { ascending: sortOrder === 'asc' })
-      .range(offset, offset + limit - 1);
-    
-    const { data, error, count } = await query;
-    
-    if (error) {
-      console.error('Error fetching batches:', error);
-      throw error;
-    }
+    const totalBags = bags?.length || 0;
+    const scannedBags = bags?.filter(bag => bag.status === 'scanned' || bag.status === 'collected').length || 0;
+    const scanRate = totalBags > 0 ? Math.round((scannedBags / totalBags) * 100) : 0;
     
     return {
-      data: data || [],
-      totalCount: count || 0,
-      page,
-      limit,
-      totalPages: Math.ceil((count || 0) / limit)
+      ...batch,
+      distributed: totalBags,
+      scanned: scannedBags,
+      scan_rate: scanRate
     };
-  } catch (error) {
-    console.error('Error in fetchBagBatches:', error);
-    // Return mock data as fallback only if not forcing live data
-    if (!FORCE_LIVE_DATA) {
-      return generateMockBagBatches({ page, limit, sortBy, sortOrder });
-    }
-    throw error; // Re-throw error when forcing live data
-  }
-};
-
-// =============================================================================
-// REAL DATA WRAPPER FUNCTIONS
-// =============================================================================
-
-/**
- * Fetch bag request statistics from real data or fallback to mock
- */
-export const fetchBagRequestStatsReal = async () => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchBagRequestStats();
-    } catch (error) {
-      console.error('Error fetching real bag request stats:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockBagStats();
-      }
-      throw error;
-    }
-  }
-  return generateMockBagStats();
-};
-
-/**
- * Fetch collector statistics from real data or fallback to mock
- */
-export const fetchCollectorStatsReal = async () => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchCollectorStats();
-    } catch (error) {
-      console.error('Error fetching real collector stats:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockCollectorStats();
-      }
-      throw error;
-    }
-  }
-  return generateMockCollectorStats();
-};
-
-/**
- * Fetch performance statistics from real data or fallback to mock
- */
-export const fetchPerformanceStatsReal = async () => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchPerformanceStats();
-    } catch (error) {
-      console.error('Error fetching real performance stats:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockPerformanceStats();
-      }
-      throw error;
-    }
-  }
-  return generateMockPerformanceStats();
-};
-
-/**
- * Fetch pickup requests from real data or fallback to mock
- */
-export const fetchPickupRequestsReal = async (status = null) => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchPickupRequests(status);
-    } catch (error) {
-      console.error('Error fetching real pickup requests:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockPickupRequests(status);
-      }
-      throw error;
-    }
-  }
-  return generateMockPickupRequests(status);
-};
-
-/**
- * Fetch collectors from real data or fallback to mock
- */
-export const fetchCollectorsReal = async (status = null) => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchCollectors(status);
-    } catch (error) {
-      console.error('Error fetching real collectors:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockCollectors(status);
-      }
-      throw error;
-    }
-  }
-  return generateMockCollectors(status);
-};
-
-/**
- * Fetch illegal dumping reports from real data or fallback to mock
- */
-export const fetchIllegalDumpingReportsReal = async (options = {}) => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchIllegalDumpingReports(options);
-    } catch (error) {
-      console.error('Error fetching real illegal dumping reports:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockIllegalDumpingReports(options);
-      }
-      throw error;
-    }
-  }
-  return generateMockIllegalDumpingReports(options);
-};
-
-/**
- * Fetch service areas from real data or fallback to mock
- */
-export const fetchServiceAreasReal = async () => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchServiceAreas();
-    } catch (error) {
-      console.error('Error fetching real service areas:', error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        return generateMockServiceAreas();
-      }
-      throw error;
-    }
-  }
-  return generateMockServiceAreas();
-};
-
-/**
- * Fetch dashboard chart data from real data or fallback to mock
- */
-export const fetchDashboardChartDataReal = async (chartType) => {
-  if (FORCE_LIVE_DATA) {
-    try {
-      return await realDataUtils.fetchDashboardChartData(chartType);
-    } catch (error) {
-      console.error(`Error fetching real ${chartType} chart data:`, error);
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Tables not found, falling back to mock data');
-        // Return appropriate mock data based on chart type
-        switch (chartType) {
-          case 'collections':
-            return generateMockCollectionsData();
-          case 'wasteDistribution':
-            return generateMockWasteDistribution();
-          case 'collectorActivity':
-            return generateMockCollectorActivityData();
-          case 'pickupStatus':
-            return generateMockPickupStatusData();
-          case 'bagUtilization':
-            return generateMockBagUtilizationData();
-          default:
-            throw new Error(`Unknown chart type: ${chartType}`);
-        }
-      }
-      throw error;
-    }
-  }
+  }));
   
-  // Return appropriate mock data based on chart type
-  switch (chartType) {
-    case 'collections':
-      return generateMockCollectionsData();
-    case 'wasteDistribution':
-      return generateMockWasteDistribution();
-    case 'collectorActivity':
-      return generateMockCollectorActivityData();
-    case 'pickupStatus':
-      return generateMockPickupStatusData();
-    case 'bagUtilization':
-      return generateMockBagUtilizationData();
-    default:
-      throw new Error(`Unknown chart type: ${chartType}`);
-  }
+  return {
+    data: batchesWithStats,
+    totalCount: count || 0,
+    page,
+    limit,
+    totalPages: Math.ceil((count || 0) / limit)
+  };
 };
 
 /**
- * Fetch bag history (scan records) for a specific batch
+ * Fetch bag scan history from Supabase
+ * Direct database connection - NO MOCK DATA, NO CACHE
  * @param {string} batchId - Batch ID to fetch history for
  * @returns {Promise<Array>} Array of scan history records
  */
 export const fetchBagHistory = async (batchId = null) => {
-  try {
-    // Check if scans table exists
-    const tableExists = await safeDatabaseService.checkTableExists('scans');
-    if (!tableExists) {
-      console.warn('Table scans does not exist. Using mock data.');
-      return generateMockBagHistory(batchId);
-    }
-
-    let query = supabase
-      .from('scans')
-      .select(`
-        id,
-        bag_id,
-        scanned_at,
-        scanned_by,
-        bags:bag_id(
-          batch_id
-        ),
-        scanned_by
-      `)
-      .order('scanned_at', { ascending: false });
-
-    if (batchId) {
-      // Filter by batch ID if provided
-      query = query.eq('bags.batch_id', batchId);
-    }
-
-    const { data, error } = await query;
-    
-    if (error) {
-      // Handle specific table not found errors
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Table scans does not exist. Using mock data.');
-        return generateMockBagHistory(batchId);
-      }
-      throw error;
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching bag history:', error);
-    return generateMockBagHistory(batchId);
+  // Step 1: Get bags for the batch
+  let bagsQuery = supabase
+    .from('bags')
+    .select('id, batch_id');
+  
+  if (batchId) {
+    bagsQuery = bagsQuery.eq('batch_id', batchId);
   }
+  
+  const { data: bags, error: bagsError } = await bagsQuery;
+  
+  if (bagsError) {
+    console.error('Error fetching bags:', bagsError);
+    throw bagsError; // No fallback - throw error directly
+  }
+  
+  if (!bags || bags.length === 0) {
+    return []; // No bags found, return empty array
+  }
+  
+  // Step 2: Get scans for these bags with collector information
+  const bagIds = bags.map(bag => bag.id);
+  
+  const { data: scans, error: scansError } = await supabase
+    .from('scans')
+    .select(`
+      id,
+      bag_id,
+      scanned_at,
+      scanned_by,
+      location,
+      status,
+      notes,
+      collectors:scanned_by (
+        id,
+        first_name,
+        last_name,
+        email
+      )
+    `)
+    .in('bag_id', bagIds)
+    .order('scanned_at', { ascending: false });
+  
+  if (scansError) {
+    console.error('Error fetching scans:', scansError);
+    throw scansError; // No fallback - throw error directly
+  }
+  
+  // Enrich scans with batch information
+  const enrichedScans = (scans || []).map(scan => {
+    const bag = bags.find(b => b.id === scan.bag_id);
+    return {
+      ...scan,
+      bags: bag ? { batch_id: bag.batch_id } : null
+    };
+  });
+  
+  return enrichedScans;
 };
 
 /**
- * Generate mock bag history data
+ * Generate mock bag history data (kept for backward compatibility but not used)
  * @param {string} batchId - Batch ID (optional)
  * @returns {Array} Mock scan history data
  */
@@ -1054,91 +834,82 @@ const generateMockBagHistory = (batchId = null) => {
 
 /**
  * Create a new bag batch in the database
+ * Schema: batches (id, batch_number, bag_count, status, notes, batch_name, created_at, updated_at, created_by)
+ * Mobile app scans BATCH-LEVEL QR code containing the batch UUID
  * @param {Object} batchData - Batch data to create
- * @returns {Promise<{batch: Object, qrCodes: Array}>} Created batch record and generated QR codes (if any)
+ * @returns {Promise<{batch: Object, batchQRCode: string}>} Created batch and batch QR code (UUID)
  */
 export const createBagBatch = async (batchData) => {
-  try {
-    // Check if batches table exists
-    const tableExists = await safeDatabaseService.checkTableExists('batches');
-    if (!tableExists) {
-      console.warn('Table batches does not exist. Returning mock batch creation.');
-      return generateMockBatchCreation(batchData);
-    }
+  // Build batch payload matching actual Supabase schema
+  const batchPayload = {
+    batch_number: batchData.batch_number || batchData.batchNumber || String(Date.now()).slice(-8),
+    batch_name: batchData.batch_name || batchData.batchName || `${batchData.type || 'Bags'} - ${batchData.size || 'Standard'}`,
+    bag_count: Number(batchData.bag_count ?? batchData.quantity ?? 0),
+    status: 'active', // Mobile app expects 'active' status initially
+    notes: batchData.notes || `Type: ${batchData.type || 'Unknown'}, Size: ${batchData.size || 'Unknown'}`
+  };
 
-    // Build initial payload (include qr_prefix only if provided)
-    const basePayload = {
-      batch_number: batchData.batch_number || batchData.batchNumber || null,
-      bag_count: Number(batchData.bag_count ?? batchData.quantity ?? 0),
-      type: batchData.type || null,
-      size: batchData.size || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      status: STATUS?.BAG?.GENERATED || 'Generated'
-    };
-    if (batchData.qrPrefix || batchData.qr_prefix) {
-      basePayload.qr_prefix = batchData.qrPrefix || batchData.qr_prefix;
-    }
-
-    // Attempt insert with retries removing missing columns on 42703 errors
-    let payload = { ...basePayload };
-    const removedCols = new Set();
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const { data, error } = await supabase
-        .from('batches')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (!error) {
-        return { batch: data, qrCodes: [] };
-      }
-
-      // Handle specific table not found errors
-      if (error.code === '42P01' || error.message?.includes('relation "batches" does not exist')) {
-        console.warn('Table batches does not exist. Returning mock batch creation.');
-        return generateMockBatchCreation(batchData);
-      }
-
-      // Detect missing column errors and retry without that column
-      const errText = `${error.message || ''} ${error.details || ''}`;
-      const isMissingColumn = error.code === '42703' || /column .* does not exist/i.test(errText);
-      if (isMissingColumn) {
-        let missingCol = null;
-        const match = errText.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+does not exist/i);
-        if (match && match[1]) missingCol = match[1];
-
-        if (missingCol && Object.prototype.hasOwnProperty.call(payload, missingCol) && !removedCols.has(missingCol)) {
-          console.warn(`Column ${missingCol} missing on batches; retrying without it`);
-          removedCols.add(missingCol);
-          const { [missingCol]: _omit, ...rest } = payload;
-          payload = rest;
-          continue;
-        }
-
-        // If we couldn't parse the column, remove known optional fields and retry once
-        const optionalFields = ['qr_prefix', 'created_at'];
-        let modified = false;
-        optionalFields.forEach((col) => {
-          if (Object.prototype.hasOwnProperty.call(payload, col) && !removedCols.has(col)) {
-            removedCols.add(col);
-            delete payload[col];
-            modified = true;
-          }
-        });
-        if (modified) continue;
-      }
-
-      // For other errors, throw to be handled by catch -> mock fallback
-      throw error;
-    }
-
-    // If we exhausted retries, fall back to mock
-    throw new Error('Failed to create batch after retries due to missing columns');
-  } catch (error) {
-    console.error('Error creating bag batch:', error);
-    return generateMockBatchCreation(batchData);
+  // Get current user for created_by field
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    batchPayload.created_by = user.id;
   }
+
+  console.log('Creating batch with payload:', batchPayload);
+
+  // Insert batch into database
+  const { data: batch, error: batchError } = await supabase
+    .from('batches')
+    .insert([batchPayload])
+    .select()
+    .single();
+
+  if (batchError) {
+    console.error('Error creating batch:', batchError);
+    throw batchError;
+  }
+  
+  console.log('✅ Batch created successfully:', batch);
+  
+  // IMPORTANT: Mobile app scans the BATCH ID (UUID), not individual bag QR codes
+  // The QR code contains just the batch UUID
+  const batchQRCode = batch.id;
+  
+  // Create individual bags for this batch (for tracking purposes)
+  const bagCount = batchPayload.bag_count;
+  const bags = [];
+  
+  for (let i = 1; i <= bagCount; i++) {
+    bags.push({
+      batch_id: batch.id,
+      qr_code: `${batch.id}-${String(i).padStart(4, '0')}`, // Bag-specific code
+      status: 'active',
+      scanned: false
+    });
+  }
+  
+  // Insert bags in batches of 100 to avoid hitting limits
+  if (bags.length > 0) {
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < bags.length; i += BATCH_SIZE) {
+      const batchToInsert = bags.slice(i, i + BATCH_SIZE);
+      const { error: bagsError } = await supabase
+        .from('bags')
+        .insert(batchToInsert);
+      
+      if (bagsError) {
+        console.error('Error creating bags:', bagsError);
+        console.warn(`Warning: Batch ${batch.id} created but some bags failed to insert`);
+      }
+    }
+    console.log(`✅ ${bags.length} individual bags created for tracking`);
+  }
+  
+  return { 
+    batch,
+    batchQRCode, // This is what gets encoded in the QR code for mobile scanning
+    bagCount: bags.length
+  };
 };
 
 /**
@@ -1721,4 +1492,48 @@ const generateMockLogs = (options) => {
   }
   
   return filteredLogs;
+};
+
+// =============================================================================
+// STATISTICS FUNCTIONS - Wrappers for real data utils
+// =============================================================================
+
+/**
+ * Fetch bag request statistics from real data
+ * Wrapper for realDataUtils.fetchBagRequestStats
+ */
+export const fetchBagRequestStatsReal = async () => {
+  return await realDataUtils.fetchBagRequestStats();
+};
+
+/**
+ * Fetch collector statistics from real data
+ * Wrapper for realDataUtils.fetchCollectorStats
+ */
+export const fetchCollectorStatsReal = async () => {
+  return await realDataUtils.fetchCollectorStats();
+};
+
+/**
+ * Fetch performance statistics from real data
+ * Wrapper for realDataUtils.fetchPerformanceStats
+ */
+export const fetchPerformanceStatsReal = async () => {
+  return await realDataUtils.fetchPerformanceStats();
+};
+
+/**
+ * Fetch collectors from real data
+ * Wrapper for realDataUtils.fetchCollectors
+ */
+export const fetchCollectorsReal = async (status = null) => {
+  return await realDataUtils.fetchCollectors(status);
+};
+
+/**
+ * Fetch illegal dumping reports from real data
+ * Wrapper for realDataUtils.fetchIllegalDumpingReportsReal
+ */
+export const fetchIllegalDumpingReportsReal = async (filters = {}) => {
+  return await realDataUtils.fetchIllegalDumpingReportsReal(filters);
 };
