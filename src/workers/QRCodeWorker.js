@@ -64,7 +64,7 @@ async function processMessage(e, JSZip, operation) {
   if (type === 'GENERATE_QR_CODES') {
     const { batch, email, baseUrl, chunkSize = 20, attempt = 1 } = payload;
     const chunks = [];
-    const total = batch.quantity;
+    const total = batch.bag_count || batch.quantity;
     
     try {
       // Process in chunks to prevent UI blocking
@@ -136,7 +136,7 @@ async function processMessage(e, JSZip, operation) {
   }
   
   if (type === 'CREATE_ZIP') {
-    const { chunks, batch, attempt = 1 } = payload;
+    const { chunks, batch, baseUrl = 'https://trashdrops.com/scan', email = 'admin@trashdrop.com', attempt = 1 } = payload;
     
     // Initialize JSZip
     const JSZipInstance = await ensureJSZip();
@@ -151,7 +151,28 @@ async function processMessage(e, JSZip, operation) {
     }
     
     try {
-      // Add each QR code to the ZIP with error handling for each file
+      // Ensure we have a valid batch ID (batch can be string or object)
+      const batchId = (typeof batch === 'string') ? batch : (batch?.id || new Date().getTime().toString());
+
+      // Prepare folders
+      const bagsFolder = zip.folder('bags');
+
+      // Add batch-level QR at the root of the ZIP
+      try {
+        const batchQR = {
+          id: `batch-${batchId}`,
+          url: `${baseUrl}?batch=${encodeURIComponent(batchId)}`,
+          bagNumber: null,
+          batchId,
+          email
+        };
+        const batchSvg = generateQRCodeSVG(batchQR);
+        zip.file(`Batch_QR_${batchId}.svg`, batchSvg);
+      } catch (err) {
+        console.error('Error creating batch-level QR SVG:', err);
+      }
+
+      // Add each bag QR code SVG to the 'bags/' folder
       for (const qrData of flatChunks) {
         if (operation.cancel) {
           self.postMessage({ type: 'CANCELLED' });
@@ -160,7 +181,12 @@ async function processMessage(e, JSZip, operation) {
         
         try {
           const svgContent = generateQRCodeSVG(qrData);
-          zip.file(`QR_${qrData.batchId}_${qrData.bagNumber}.svg`, svgContent);
+          const fileName = `QR_${qrData.batchId}_${qrData.bagNumber}.svg`;
+          if (bagsFolder) {
+            bagsFolder.file(fileName, svgContent);
+          } else {
+            zip.file(`bags/${fileName}`, svgContent);
+          }
           processed++;
           
           // Update progress every 5 files or when reaching the end
@@ -198,24 +224,21 @@ async function processMessage(e, JSZip, operation) {
       });
       
       try {
-        // Ensure we have a valid batch ID
-        const batchId = batch?.id || new Date().getTime().toString();
+        // Use the computed batchId from above
         const filename = `QR_Codes_${batchId}.zip`;
         
         console.log('Starting ZIP generation for batch:', batchId);
         const startTime = performance.now();
         
-        // Generate ZIP with minimal options for maximum compatibility
+        // Generate ZIP as a Blob for maximum compatibility with unzip tools
         const content = await zip.generateAsync({
-          type: 'uint8array', // Use Uint8Array for binary data
+          type: 'blob',
           compression: 'DEFLATE',
           compressionOptions: {
             level: 6
           },
-          platform: 'DOS', // Use DOS for maximum compatibility
-          encodeFileName: (string) => {
-            return string; // Keep original filenames
-          }
+          platform: 'DOS',
+          encodeFileName: (string) => string
         });
         
         const endTime = performance.now();

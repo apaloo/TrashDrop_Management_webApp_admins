@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchIllegalDumpingReports, updateIllegalDumpingStatus, fetchIllegalDumpingHistory, assignCleanupTeam } from '../utils/databaseUtils';
 import { STATUS, SEVERITY } from '../config/constants';
+import { reverseGeocodeWithCache } from '../utils/geocoding';
 
 const IllegalDumpingManagement = () => {
   const [reports, setReports] = useState([]);
@@ -12,39 +13,69 @@ const IllegalDumpingManagement = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterSeverity, setFilterSeverity] = useState('All');
   const [metrics, setMetrics] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
+  const [autoRefreshIntervalMs] = useState(60000);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [geocodedAddress, setGeocodedAddress] = useState(null);
+  const [loadingAddress, setLoadingAddress] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Fetch reports from Supabase
-        const data = await fetchIllegalDumpingReports();
-        setReports(data);
-        
-        // Calculate metrics from the fetched data
-        if (data && data.length > 0) {
-          const metrics = {
-            totalReports: data.length,
-            verifiedReports: data.filter(report => report.status === STATUS.ILLEGAL_DUMPING.VERIFIED || 
-                                          report.status === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED || 
-                                          report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
-            cleanedUpReports: data.filter(report => report.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
-            avgCleanupTimeHours: 24 // Default value, would need a more complex calculation in a real scenario
-          };
-          setMetrics(metrics);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading illegal dumping data:', error);
-        setLoading(false);
+  // Unified refresh function
+  const refreshReports = async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
+
+      const statusParam = filterStatus !== 'All' ? filterStatus : null;
+      const response = await fetchIllegalDumpingReports({ limit: 100, page: 1, status: statusParam });
+      const data = Array.isArray(response) ? response : (response?.data || []);
+      setReports(data);
+
+      // Calculate metrics
+      const computed = {
+        totalReports: data.length,
+        verifiedReports: data.filter(r => r.status === STATUS.ILLEGAL_DUMPING.VERIFIED || r.status === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED || r.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
+        cleanedUpReports: data.filter(r => r.status === STATUS.ILLEGAL_DUMPING.CLEANED_UP).length,
+        avgCleanupTimeHours: 24
+      };
+      setMetrics(computed);
+
+      setLastUpdated(new Date());
+      if (!silent) {
+        setToastMessage('Data refreshed');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
       }
-    };
-    
-    loadData();
+    } catch (error) {
+      console.error('Error refreshing illegal dumping data:', error);
+      if (!silent) {
+        setToastMessage('Failed to refresh data');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2500);
+      }
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    refreshReports(true).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-refresh interval
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+    const id = setInterval(() => {
+      refreshReports(true);
+    }, autoRefreshIntervalMs);
+    return () => clearInterval(id);
+  }, [autoRefreshEnabled, autoRefreshIntervalMs, filterStatus]);
 
   const handleViewDetails = async (report) => {
     setSelectedReport(report);
+    setGeocodedAddress(null); // Reset geocoded address
     
     try {
       // Fetch history for this report from Supabase
@@ -58,10 +89,55 @@ const IllegalDumpingManagement = () => {
     setShowDetailsModal(true);
   };
 
+  // Reverse geocode coordinates when report is selected
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (!selectedReport) {
+        setGeocodedAddress(null);
+        return;
+      }
+
+      // If location_description already exists, use it
+      if (selectedReport.location_description) {
+        setGeocodedAddress(selectedReport.location_description);
+        return;
+      }
+
+      // Try to get coordinates
+      const lat = selectedReport.latitude || selectedReport.location_lat || selectedReport.location?.lat;
+      const lng = selectedReport.longitude || selectedReport.location_lng || selectedReport.location?.lng;
+
+      if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        setLoadingAddress(true);
+        try {
+          const address = await reverseGeocodeWithCache(lat, lng);
+          setGeocodedAddress(address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        } catch (error) {
+          console.error('Error geocoding address:', error);
+          setGeocodedAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        } finally {
+          setLoadingAddress(false);
+        }
+      } else {
+        setGeocodedAddress(null);
+      }
+    };
+
+    fetchAddress();
+  }, [selectedReport]);
+
   const updateReportStatus = async (reportId, newStatus, notes = '') => {
     try {
+      console.log('Updating report status:', reportId, newStatus);
+      
       // Update status in Supabase
-      await updateIllegalDumpingStatus(reportId, newStatus);
+      const result = await updateIllegalDumpingStatus(reportId, newStatus);
+      console.log('Update result:', result);
+      
+      // Check for error in response
+      if (result?.error) {
+        throw new Error(result.error.message || 'Failed to update status');
+      }
       
       // Update local state
       setReports(prevReports => 
@@ -77,28 +153,51 @@ const IllegalDumpingManagement = () => {
         setSelectedReport(prev => ({ ...prev, status: newStatus }));
       }
       
+      // Show success message
+      setToastMessage(`Status updated to ${newStatus}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      
       // Refresh report history if the details modal is open
       if (selectedReport && selectedReport.id === reportId) {
-        handleViewDetails(reportId);
+        const history = await fetchIllegalDumpingHistory(reportId);
+        setSelectedReportHistory(history);
       }
+      
+      // Refresh reports list
+      await refreshReports(true);
     } catch (error) {
       console.error('Error updating report status:', error);
+      setToastMessage(`Failed to update status: ${error.message}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
   const assignCleanup = async (reportId, teamName) => {
     try {
+      console.log('Assigning cleanup:', reportId, teamName);
+      
       // Calculate date 2 days in the future for estimated cleanup
       const estimatedCleanupDate = new Date(Date.now() + 2*24*60*60*1000).toISOString();
       
       // Update in Supabase
-      const updatedReport = await assignCleanupTeam(reportId, teamName, estimatedCleanupDate);
+      const result = await assignCleanupTeam(reportId, teamName, estimatedCleanupDate);
+      console.log('Assign cleanup result:', result);
+      
+      // Check for error in response
+      if (result?.error) {
+        throw new Error(result.error.message || 'Failed to assign cleanup team');
+      }
+      
+      // Extract the data from result
+      const updatedReport = result?.data || result;
       
       // Update local state
       setReports(prevReports => 
         prevReports.map(report => {
           if (report.id === reportId) {
-            return updatedReport;
+            return { ...report, ...updatedReport, cleanup_team: teamName, estimated_cleanup_date: estimatedCleanupDate };
           }
           return report;
         })
@@ -106,16 +205,26 @@ const IllegalDumpingManagement = () => {
     
       // Update selected report if it's the one being modified
       if (selectedReport && selectedReport.id === reportId) {
-        setSelectedReport(updatedReport);
+        setSelectedReport(prev => ({ ...prev, ...updatedReport, cleanup_team: teamName, estimated_cleanup_date: estimatedCleanupDate }));
         
         // Refresh history
         const history = await fetchIllegalDumpingHistory(reportId);
         setSelectedReportHistory(history);
       }
       
+      // Show success message
+      setToastMessage(`Cleanup assigned to ${teamName}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      
+      // Refresh reports list
+      await refreshReports(true);
+      
     } catch (error) {
       console.error('Error assigning cleanup team:', error);
-      // Show an error message to the user (could add a toast notification here)
+      setToastMessage(`Failed to assign cleanup team: ${error.message}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
@@ -152,6 +261,49 @@ const IllegalDumpingManagement = () => {
         <h1 className="text-2xl font-semibold text-gray-800">Illegal Dumping Management</h1>
         <p className="text-gray-600">Track and manage illegal dumping reports and cleanups</p>
       </div>
+      {/* Toolbar: Refresh and Auto-Refresh */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-gray-500">
+          {lastUpdated && `Last updated: ${new Date(lastUpdated).toLocaleTimeString()}`}
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="form-checkbox h-4 w-4"
+              checked={autoRefreshEnabled}
+              onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
+            />
+            Auto-Refresh 60s
+          </label>
+          <button
+            onClick={() => refreshReports(false)}
+            disabled={loading}
+            className={`px-3 py-2 rounded text-white text-sm font-medium ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+          >
+            {loading ? (
+              <span className="inline-flex items-center">
+                <i className="fas fa-spinner fa-spin mr-2"></i> Refreshing...
+              </span>
+            ) : (
+              <span className="inline-flex items-center">
+                <i className="fas fa-sync mr-2"></i> Refresh
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Toast notification */}
+      {showToast && (
+        <div className="fixed top-20 right-4 bg-white shadow-lg rounded-md p-4 z-50 animate-fade-in-down flex items-center">
+          <i className="fas fa-info-circle text-blue-500 mr-2"></i>
+          <span>{toastMessage}</span>
+          <button className="ml-4 text-gray-400 hover:text-gray-600" onClick={() => setShowToast(false)}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
 
       {/* Metrics Cards */}
       {!loading && metrics && (
@@ -360,13 +512,13 @@ const IllegalDumpingManagement = () => {
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Location</p>
-                <p className="font-medium">{selectedReport.location_address || selectedReport.address || (selectedReport.location && selectedReport.location.address) || 'N/A'}</p>
-                <p className="text-sm text-gray-500">
-                  Lat: {selectedReport.location_lat || (selectedReport.location && selectedReport.location.lat) ? 
-                    (selectedReport.location_lat || selectedReport.location.lat).toFixed(4) : 'N/A'}, 
-                  Lng: {selectedReport.location_lng || (selectedReport.location && selectedReport.location.lng) ? 
-                    (selectedReport.location_lng || selectedReport.location.lng).toFixed(4) : 'N/A'}
-                </p>
+                {loadingAddress ? (
+                  <p className="font-medium text-gray-500">
+                    <span className="animate-pulse">Loading address...</span>
+                  </p>
+                ) : (
+                  <p className="font-medium">{geocodedAddress || 'Location not available'}</p>
+                )}
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Description</p>
@@ -400,19 +552,31 @@ const IllegalDumpingManagement = () => {
               )}
             </div>
             
-            {/* Images section - in a real app these would display actual images */}
+            {/* Images section */}
             <div className="mb-6">
               <h3 className="font-medium mb-2">Images ({selectedReport.images ? selectedReport.images.length : 0})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {selectedReport.images && selectedReport.images.length > 0 ? (
                   selectedReport.images.map((img, index) => (
-                    <div key={index} className="bg-gray-200 p-4 rounded flex items-center justify-center">
-                      <p className="text-gray-500">[Image: {img}]</p>
+                    <div key={index} className="bg-gray-100 rounded overflow-hidden">
+                      <img 
+                        src={img} 
+                        alt={`Report evidence ${index + 1}`}
+                        className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(img, '_blank')}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EImage unavailable%3C/text%3E%3C/svg%3E';
+                        }}
+                      />
                     </div>
                   ))
                 ) : (
                   <div className="bg-gray-100 p-4 rounded col-span-3 text-center">
                     <p className="text-gray-500">No images available</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Images must be uploaded to Supabase Storage
+                    </p>
                   </div>
                 )}
               </div>

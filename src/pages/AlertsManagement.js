@@ -6,7 +6,7 @@ import AlertStats from '../components/alerts/AlertStats';
 import BulkActionModal from '../components/alerts/BulkActionModal';
 import CreateAlertModal from '../components/alerts/CreateAlertModal';
 import AlertExport from '../components/alerts/AlertExport';
-import { fetchAlerts, updateAlertStatus } from '../utils/databaseUtils';
+import { alertsNotificationService } from '../services/alertsNotificationService';
 import { appConfig, APP_CONSTANTS } from '../config';
 import { STATUS, PRIORITY } from '../config/constants';
 
@@ -46,15 +46,23 @@ const AlertsManagement = () => {
           statusFilter = filters.status;
         }
         
-        const data = await fetchAlerts(statusFilter);
+        const { data, error } = await alertsNotificationService.getAlerts({
+          status: statusFilter || 'all',
+          limit: 1000 // Set a high limit to get all alerts
+        });
         
-        // Transform data from snake_case to camelCase
-        const formattedAlerts = data.map(alert => ({
+        if (error) throw error;
+        
+        // Transform data to match expected format with null safety
+        // alertsNotificationService.getAlerts() returns `{ success, data, totalCount, ... }`
+        // where `data` is the array of rows. Fall back to `data.data` if the shape changes.
+        const rows = Array.isArray(data) ? data : (data?.data || []);
+        const formattedAlerts = rows.map(alert => ({
           id: alert.id,
           title: alert.title,
-          description: alert.description,
+          description: alert.message || alert.description || '',
           status: alert.status,
-          priority: alert.priority,
+          priority: alert.severity || 'medium',
           createdAt: alert.created_at,
           updatedAt: alert.updated_at,
           relatedTo: alert.related_to ? {
@@ -62,10 +70,10 @@ const AlertsManagement = () => {
             id: alert.related_to.id,
             location: alert.related_to.location
           } : null,
-          assignedTo: alert.assigned_to ? {
-            id: alert.user?.id,
-            name: alert.user ? `${alert.user.first_name} ${alert.user.last_name}` : 'Unknown',
-            email: alert.user?.email
+          assignedTo: alert.assigned_user ? {
+            id: alert.assigned_user.id,
+            name: `${alert.assigned_user.first_name || ''} ${alert.assigned_user.last_name || ''}`.trim() || 'Unassigned',
+            email: alert.assigned_user.email
           } : null,
           comments: alert.comments || []
         }));
@@ -130,14 +138,18 @@ const AlertsManagement = () => {
   // Handle status change
   const handleStatusChange = async (alertId, newStatus) => {
     try {
-      const updatedAlert = await updateAlertStatus(alertId, newStatus);
+      const { success, error } = await alertsNotificationService.updateAlert(alertId, { status: newStatus });
+      
+      if (error) throw error;
+      
       // Update the alerts list
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
-          alert.id === alertId ? {...alert, status: newStatus} : alert
+          alert.id === alertId ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() } : alert
         )
       );
-      return true;
+      
+      return success;
     } catch (error) {
       console.error('Error updating alert status:', error);
       return false;

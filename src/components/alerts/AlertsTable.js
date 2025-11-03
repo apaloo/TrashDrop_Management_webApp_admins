@@ -104,11 +104,11 @@ const AlertsTable = ({
                 <td className="px-6 py-4">
                   <div className="text-sm">
                     <div className="font-medium text-gray-500 uppercase">
-                      {alert.relatedTo.type.replace('_', ' ')}
+                      {(alert.relatedTo?.type?.replace('_', ' ')) || '—'}
                     </div>
                     <div>
-                      <span className="text-gray-900">{alert.relatedTo.id}</span>
-                      {alert.relatedTo.location && (
+                      <span className="text-gray-900">{alert.relatedTo?.id || '—'}</span>
+                      {alert.relatedTo?.location && (
                         <span className="text-gray-500 ml-1">({alert.relatedTo.location})</span>
                       )}
                     </div>
@@ -155,7 +155,7 @@ const AlertsTable = ({
                 <td className="px-6 py-4 text-right text-sm font-medium">
                   <button
                     className="text-blue-600 hover:text-blue-900 mr-4"
-                    onClick={() => onViewDetails(alert)}
+                    onClick={() => onViewDetails(alert.id)}
                   >
                     <i className="fas fa-eye mr-1"></i>
                     View

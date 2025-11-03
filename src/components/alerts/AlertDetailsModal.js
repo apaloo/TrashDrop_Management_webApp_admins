@@ -29,29 +29,31 @@ const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssig
     }
   };
   
-  // Get entity type display text and icon
+  // Get entity type display text and icon (null-safe)
   const getEntityInfo = () => {
-    switch (alert.relatedTo.type) {
+    const type = alert.relatedTo?.type || 'unknown';
+    const id = alert.relatedTo?.id || '';
+    switch (type) {
       case 'pickup_request':
         return { 
           title: 'Pickup Request', 
           icon: 'fa-truck',
           viewText: 'View Request',
-          link: `/request-pickups?id=${alert.relatedTo.id}`
+          link: id ? `/request-pickups?id=${id}` : '#'
         };
       case 'collector':
         return { 
           title: 'Collector', 
           icon: 'fa-user',
           viewText: 'View Collector',
-          link: `/collectors?id=${alert.relatedTo.id}`
+          link: id ? `/collectors?id=${id}` : '#'
         };
       case 'region':
         return { 
           title: 'Region', 
           icon: 'fa-map-marker-alt',
           viewText: 'View Region',
-          link: `/regions?id=${alert.relatedTo.id}`
+          link: id ? `/regions?id=${id}` : '#'
         };
       case 'system':
         return { 
@@ -149,8 +151,8 @@ const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssig
               <div>
                 <p className="font-medium">{entityInfo.title}</p>
                 <p className="text-sm text-gray-500">
-                  ID: {alert.relatedTo.id}
-                  {alert.relatedTo.location && (
+                  ID: {alert.relatedTo?.id || '—'}
+                  {alert.relatedTo?.location && (
                     <span className="ml-2">• {alert.relatedTo.location}</span>
                   )}
                 </p>

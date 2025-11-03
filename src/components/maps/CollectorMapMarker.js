@@ -4,12 +4,17 @@ import L from 'leaflet';
 
 // Custom collector marker component
 const CollectorMapMarker = ({ collector, openDetailModal }) => {
+  // Add safety checks for collector and location
+  if (!collector || !collector.currentLocation || !collector.currentLocation.lat || !collector.currentLocation.lng) {
+    return null; // Don't render if location data is missing
+  }
+
   // Create custom collector icon
   const collectorIcon = L.divIcon({
     className: 'custom-collector-icon',
     html: `
       <div class="relative">
-        <div style="background-color: ${collector.status === 'active' ? '#4CAF50' : '#9E9E9E'}; 
+        <div style="background-color: ${(collector.status === 'active') ? '#4CAF50' : '#9E9E9E'}; 
                     width: 36px; 
                     height: 36px; 
                     border-radius: 50%; 
@@ -25,8 +30,8 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
         <div style="position: absolute;
                     bottom: -5px;
                     right: -5px;
-                    background-color: ${collector.capacityRemaining < 30 ? '#dc3545' : 
-                                         collector.capacityRemaining < 60 ? '#FF9800' : 
+                    background-color: ${(collector.capacityRemaining || 0) < 30 ? '#dc3545' : 
+                                         (collector.capacityRemaining || 0) < 60 ? '#FF9800' : 
                                          '#4CAF50'};
                     width: 16px;
                     height: 16px;
@@ -37,7 +42,7 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
                     align-items: center;
                     justify-content: center;
                     color: white;">
-          ${collector.capacityRemaining}%
+          ${collector.capacityRemaining || 0}%
         </div>
       </div>
     `,
@@ -55,8 +60,8 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
           <div className="flex items-center mb-2">
             <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden mr-3">
               <img 
-                src={collector.profilePic} 
-                alt={collector.name}
+                src={collector.profilePic || 'https://via.placeholder.com/40'} 
+                alt={collector.name || 'Collector'}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = 'https://via.placeholder.com/40';
@@ -64,36 +69,36 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
               />
             </div>
             <div>
-              <h3 className="font-semibold">{collector.name}</h3>
-              <p className="text-xs text-gray-500">Vehicle {collector.vehicle}</p>
+              <h3 className="font-semibold">{collector.name || 'Unknown Collector'}</h3>
+              <p className="text-xs text-gray-500">Vehicle {collector.vehicle || 'N/A'}</p>
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
             <div>
               <p className="text-gray-500">Status</p>
-              <p className={`font-medium ${collector.status === 'active' ? 'text-green-600' : 'text-gray-500'}`}>
-                {collector.status === 'active' ? 'Active' : 'Inactive'}
+              <p className={`font-medium ${(collector.status === 'active') ? 'text-green-600' : 'text-gray-500'}`}>
+                {(collector.status === 'active') ? 'Active' : 'Inactive'}
               </p>
             </div>
             <div>
               <p className="text-gray-500">Region</p>
-              <p className="font-medium">{collector.assignedRegion}</p>
+              <p className="font-medium">{collector.assignedRegion || 'Unassigned'}</p>
             </div>
           </div>
           
           <div className="flex justify-between text-xs bg-gray-50 p-2 rounded mb-2">
             <div className="text-center">
               <p className="text-gray-500">Completed</p>
-              <p className="font-semibold">{collector.stats.completedToday}</p>
+              <p className="font-semibold">{collector.stats?.completedToday || 0}</p>
             </div>
             <div className="text-center">
               <p className="text-gray-500">Pending</p>
-              <p className="font-semibold">{collector.stats.pendingPickups}</p>
+              <p className="font-semibold">{collector.stats?.pendingPickups || 0}</p>
             </div>
             <div className="text-center">
               <p className="text-gray-500">Capacity</p>
-              <p className="font-semibold">{collector.capacityRemaining}%</p>
+              <p className="font-semibold">{collector.capacityRemaining || 0}%</p>
             </div>
           </div>
           

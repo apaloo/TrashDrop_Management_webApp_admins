@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { fetchMobileAppDumpingReports, verifyDumpingReport, assignDumpingCleaner, fetchCollectors } from '../utils/databaseUtils';
+import { fetchCollectors } from '../utils/collectorService';
+import { illegalDumpingService } from '../services/illegalDumpingService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import ImageGalleryModal from './common/ImageGalleryModal';
@@ -98,11 +99,19 @@ const MobileReportsVerification = ({ onReportVerified }) => {
   const loadReports = async () => {
     try {
       setLoading(true);
-      const data = await fetchMobileAppDumpingReports('reported');
-      setReports(data);
+      const { data, error } = await illegalDumpingService.getReports({ 
+        status: 'reported',
+        source: 'mobile_app' 
+      });
+      
+      if (error) throw error;
+      
+      setReports(data || []);
       setError(null);
     } catch (err) {
-      setError('Failed to load reports: ' + err.message);
+      console.error('Error loading reports:', err);
+      setError('Failed to load reports: ' + (err.message || 'Unknown error'));
+      setReports([]); // Ensure we have an empty array on error
     } finally {
       setLoading(false);
     }
@@ -118,8 +127,20 @@ const MobileReportsVerification = ({ onReportVerified }) => {
   const handleVerify = async (reportId) => {
     try {
       setProcessingId(reportId);
-      const verifiedReport = await verifyDumpingReport(reportId, user.id, 'Verified via admin portal');
-      toast.success('Report verified and task created successfully');
+      // Update report status to 'verified' with the current user as the verifier
+      const { data: verifiedReport, error } = await illegalDumpingService.updateReportStatus(
+        reportId, 
+        'verified', 
+        { 
+          verified_by: user.id,
+          notes: 'Verified via admin portal',
+          verified_at: new Date().toISOString()
+        }
+      );
+      
+      if (error) throw error;
+      
+      toast.success('Report verified successfully');
       
       // Save the verified report for possible assignment
       setVerifiedReports(prev => ({
@@ -183,13 +204,20 @@ const MobileReportsVerification = ({ onReportVerified }) => {
         throw new Error('Could not find the verified report');
       }
       
-      await assignDumpingCleaner(
+      // Update report status to 'assigned' with assignment details
+      const { data: assignedReport, error } = await illegalDumpingService.updateReportStatus(
         illegalDumpingId,
-        selectedCollector,
-        user.id,
-        scheduledDate,
-        assignmentNotes || 'Assigned via admin portal'
+        'assigned',
+        {
+          assigned_to: selectedCollector,
+          assigned_by: user.id,
+          scheduled_cleanup_date: scheduledDate,
+          assignment_notes: assignmentNotes || 'Assigned via admin portal',
+          assigned_at: new Date().toISOString()
+        }
       );
+      
+      if (error) throw error;
       
       toast.success('Cleaner assigned successfully');
       setShowAssignModal(false);
@@ -199,7 +227,7 @@ const MobileReportsVerification = ({ onReportVerified }) => {
       
       // Notify parent component about assignment
       if (onReportVerified) {
-        onReportVerified();
+        onReportVerified(assignedReport);
       }
     } catch (err) {
       toast.error('Failed to assign cleaner: ' + err.message);

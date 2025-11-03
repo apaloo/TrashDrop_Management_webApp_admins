@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 import { formatDistanceToNow } from 'date-fns';
+import { safeDatabaseService } from './safeDatabaseService';
+import { getUserContacts, fetchMessages as dbFetchMessages } from './dbUtils';
 
 /**
  * Fetch messages for the current user
@@ -9,25 +11,25 @@ export const fetchMessages = async () => {
   try {
     // Get the current user session
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No active session');
+    if (!session) {
+      throw new Error('No active session - user must be authenticated');
+    }
     
     const userId = session.user.id;
     
-    // Fetch messages where the current user is either the sender or the recipient
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select(`
-        *,
-        sender:sender_id(id, first_name, last_name, email, avatar_url, role),
-        recipient:recipient_id(id, first_name, last_name, email, avatar_url, role)
-      `)
-      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
-      .order('created_at', { ascending: false });
+    // Use dbUtils to fetch messages with proper error handling
+    const { data: messages, error } = await dbFetchMessages({ 
+      userId,
+      limit: 50 
+    });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching messages:', error);
+      return [];
+    }
     
     // Transform the data to match the format used in the UI
-    return messages.map(message => ({
+    return (messages || []).map(message => ({
       id: message.id,
       text: message.content,
       timestamp: message.created_at,
@@ -64,19 +66,22 @@ export const fetchContacts = async () => {
   try {
     // Get the current user session
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No active session');
+    if (!session) {
+      throw new Error('No active session - user must be authenticated');
+    }
     
     const userId = session.user.id;
     
-    // Get users the current user has communicated with
-    const { data: contacts, error } = await supabase.rpc('get_user_contacts', { 
-      user_id: userId 
-    });
+    // Use dbUtils for contacts with proper error handling
+    const { data: contacts, error } = await getUserContacts(userId);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching contacts:', error);
+      return [];
+    }
     
     // Format the contacts data
-    return contacts.map(contact => ({
+    return (contacts || []).map(contact => ({
       id: contact.id,
       name: `${contact.first_name} ${contact.last_name}`,
       avatar: contact.avatar_url,
@@ -99,6 +104,13 @@ export const fetchContacts = async () => {
  */
 export const markMessageAsRead = async (messageId) => {
   try {
+    const tableExists = await safeDatabaseService.checkTableExists('messages');
+    
+    if (!tableExists) {
+      console.warn('Messages table does not exist, simulating read status');
+      return true;
+    }
+    
     const { data, error } = await supabase
       .from('messages')
       .update({ read: true })
@@ -108,7 +120,7 @@ export const markMessageAsRead = async (messageId) => {
     return data;
   } catch (error) {
     console.error('Error marking message as read:', error);
-    throw error;
+    return false;
   }
 };
 
@@ -152,13 +164,29 @@ export const getUnreadMessageCount = async () => {
     
     const userId = session.user.id;
     
+    // Check if table exists first
+    const tableExists = await safeDatabaseService.checkTableExists('messages');
+    
+    if (!tableExists) {
+      console.warn('Messages table does not exist, returning 0 unread count');
+      return 0;
+    }
+    
     const { count, error } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('recipient_id', userId)
       .eq('read', false);
     
-    if (error) throw error;
+    if (error) {
+      // Check if it's a table missing error
+      if (error.code === 'PGRST116' || error.code === 'PGRST204' || error.code === '42P01') {
+        console.warn('Messages table query failed, returning 0 unread count');
+        return 0;
+      }
+      throw error;
+    }
+    
     return count || 0;
   } catch (error) {
     console.error('Error getting unread message count:', error);
@@ -173,31 +201,25 @@ export const getUnreadMessageCount = async () => {
  */
 export const subscribeToMessages = (callback) => {
   try {
-    const subscription = supabase
-      .channel('messages_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages' 
-        }, 
-        async (payload) => {
-          // When messages change, fetch all messages again
-          try {
-            const messages = await fetchMessages();
-            callback(messages);
-          } catch (err) {
-            console.error('Error in message subscription callback:', err);
-          }
+    // Use safe subscription with polling fallback
+    return safeDatabaseService.safeSubscription('messages', {
+      callback: async (payload) => {
+        try {
+          const messages = await fetchMessages();
+          callback(messages);
+        } catch (err) {
+          console.error('Error in message subscription callback:', err);
         }
-      )
-      .subscribe();
-    
-    return {
-      unsubscribe: () => {
-        subscription.unsubscribe();
       }
-    };
+    }, async () => {
+      // Polling fallback when table doesn't exist
+      try {
+        const messages = await fetchMessages();
+        callback(messages);
+      } catch (err) {
+        console.error('Error in message polling:', err);
+      }
+    });
   } catch (error) {
     console.error('Error setting up message subscription:', error);
     return {
@@ -216,9 +238,20 @@ export const sendMessage = async (recipientId, content) => {
   try {
     // Get current user
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No active session');
+    if (!session) {
+      console.warn('No active session for sending message');
+      return null;
+    }
     
     const senderId = session.user.id;
+    
+    // Check if table exists first
+    const tableExists = await safeDatabaseService.checkTableExists('messages');
+    
+    if (!tableExists) {
+      console.warn('Messages table does not exist, cannot send message');
+      return null;
+    }
     
     const { data, error } = await supabase
       .from('messages')
@@ -230,11 +263,19 @@ export const sendMessage = async (recipientId, content) => {
         created_at: new Date().toISOString()
       });
     
-    if (error) throw error;
+    if (error) {
+      // Check if it's a table missing error
+      if (error.code === 'PGRST116' || error.code === 'PGRST204' || error.code === '42P01') {
+        console.warn('Messages table insert failed, table may not exist');
+        return null;
+      }
+      throw error;
+    }
+    
     return data;
   } catch (error) {
     console.error('Error sending message:', error);
-    throw error;
+    return null;
   }
 };
 

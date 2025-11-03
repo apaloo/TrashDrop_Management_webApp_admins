@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { fetchPickupRequests, fetchCollectors, fetchAlerts, updatePickupRequest } from '../utils/databaseUtils';
-import { appConfig, APP_CONSTANTS } from '../config';
-import { STATUS, PRIORITY } from '../config/constants';
+import { fetchPickupRequests, updatePickupRequest } from '../utils/pickupService';
+import { fetchCollectors } from '../utils/collectorService';
+import { alertsNotificationService } from '../services/alertsNotificationService';
+import { STATUS } from '../config/constants';
 
 const RequestPickupManagement = () => {
   // State management
@@ -27,79 +28,97 @@ const RequestPickupManagement = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        console.log('Loading pickup requests with filter:', filterStatus !== 'All' ? filterStatus : null);
         // Fetch pickup requests
-        const requestsData = await fetchPickupRequests(filterStatus !== 'All' ? filterStatus : null);
+        const requestsData = await fetchPickupRequests({ status: filterStatus !== 'All' ? filterStatus : null });
         
-        // Transform the data to match the expected structure
-        const formattedRequests = requestsData.map(req => ({
-          id: req.id,
-          requesterId: req.requester_id,
-          requesterName: req.requester?.name || 'Unknown',
-          requesterEmail: req.requester?.email || 'Unknown',
-          requesterPhone: req.requester?.phone || 'Unknown',
-          status: req.status,
-          priority: req.priority,
-          location: {
-            address: req.address,
-            coordinates: {
-              lat: req.latitude,
-              lng: req.longitude
-            }
-          },
-          scheduledDate: req.scheduled_date,
-          createdAt: req.created_at,
-          updatedAt: req.updated_at,
-          notes: req.notes || '',
-          bagCount: req.bag_count || 1,
-          collectorId: req.collector_id,
-          collectorName: req.collector ? `${req.collector.first_name} ${req.collector.last_name}` : null,
-          wasteType: req.waste_type || 'General',
-          estimatedWeight: req.estimated_weight
-        }));
+        // Transform the data to match the expected structure with proper nested objects
+        const formattedRequests = (requestsData || []).map(req => {
+          // Handle customer/requester information
+          const customerName = req?.customer || req?.requester?.name || 
+            (req?.requestor?.first_name && req?.requestor?.last_name ? 
+              `${req.requestor.first_name} ${req.requestor.last_name}` : 'Unknown');
+          
+          const customerEmail = req?.requester?.email || req?.requestor?.email || 'unknown@example.com';
+          const customerPhone = req?.requester?.phone || req?.requestor?.phone || req?.phone || 'N/A';
+          
+          // Handle collector assignment information
+          const collectorName = req?.collector ? 
+            `${req.collector.first_name} ${req.collector.last_name}` : 
+            req?.collectorName || null;
+          
+          return {
+            id: req?.id || `request-${Math.random()}`,
+            requesterId: req?.requester_id || req?.requested_by,
+            
+            // Create requestedBy object structure expected by UI
+            requestedBy: {
+              id: req?.requester_id || req?.requested_by,
+              name: customerName,
+              email: customerEmail,
+              phone: customerPhone
+            },
+            
+            // Create assignedTo object structure expected by UI  
+            assignedTo: req?.collector_id ? {
+              id: req?.collector_id,
+              name: collectorName || 'Unknown Collector'
+            } : null,
+            
+            status: req?.status || 'pending',
+            priority: req?.priority || 'medium',
+            location: {
+              address: req?.location?.address || req?.address || 'Address not provided',
+              coordinates: {
+                lat: req?.location?.lat || req?.latitude || 5.6037,
+                lng: req?.location?.lng || req?.longitude || -0.1870
+              }
+            },
+            scheduledDate: req?.scheduled_date,
+            createdAt: req?.created_at || req?.requestTime,
+            updatedAt: req?.updated_at,
+            notes: req?.notes || req?.specialInstructions || '',
+            bagCount: req?.bag_count || req?.bags || 1,
+            collectorId: req?.collector_id,
+            wasteType: req?.waste_type || req?.wasteType || 'General',
+            estimatedWeight: req?.estimated_weight || 'Not specified'
+          };
+        });
         
         setRequests(formattedRequests);
         
-        // Fetch collectors
-        const collectorsData = await fetchCollectors();
+        // Fetch collectors - use new parameter format
+        const collectorsData = await fetchCollectors({ 
+          status: STATUS.COLLECTOR.ACTIVE, 
+          limit: 50 
+        });
         
-        // Transform the collector data
-        const formattedCollectors = collectorsData.map(col => ({
-          id: col.id,
-          name: `${col.first_name} ${col.last_name}`,
-          email: col.email,
-          phone: col.phone,
-          status: col.status,
-          currentLocation: {
-            lat: col.current_latitude,
-            lng: col.current_longitude
-          },
-          region: col.region,
-          completedPickups: col.completed_pickups,
-          rating: col.rating,
-          capacity: col.capacity,
-          vehicleType: col.vehicle_type,
-          lastActive: col.last_active
-        }));
+        console.log('Loaded collectors:', collectorsData?.length || 0);
         
-        setActiveCollectors(formattedCollectors.filter(c => c.status === 'Active'));
+        // Only show active collectors for assignment
+        setActiveCollectors(collectorsData.filter(c => c?.status === STATUS.COLLECTOR.ACTIVE));
+
+        // Fetch alerts using alerts notification service
+        const { data: alertsData, error } = await alertsNotificationService.getAlerts({
+          limit: 50, // Get the most recent 50 alerts
+          status: 'active',
+          orderBy: 'created_at',
+          order: 'desc'
+        });
         
-        // Fetch alerts
-        const alertsData = await fetchAlerts();
+        if (error) {
+          console.error('Error loading alerts:', error);
+          setSystemAlerts([]);
+        } else {
+          setSystemAlerts(alertsData || []);
+        }
         
-        // Transform alerts data
-        const formattedAlerts = alertsData.map(alert => ({
-          id: alert.id,
-          title: alert.title,
-          message: alert.description,
-          type: alert.priority === 'critical' ? 'error' : 
-                alert.priority === 'medium' ? 'warning' : 'info',
-          timestamp: alert.created_at
-        }));
-        
-        setSystemAlerts(formattedAlerts);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching pickup management data:', error);
-      } finally {
+        console.error('Error loading data:', error);
+        setRequests([]);
+        setActiveCollectors([]);
+        setSystemAlerts([]);
         setLoading(false);
       }
     };
@@ -121,83 +140,154 @@ const RequestPickupManagement = () => {
 
   // Filter requests based on search term and filters
   const filteredRequests = requests.filter(request => {
-    // Status filter
-    if (filterStatus !== 'All' && request.status !== filterStatus) {
-      return false;
-    }
+    const matchesSearch = searchTerm === '' ||
+      (request.requestedBy?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (request.location?.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (request.assignedTo?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesStatus = filterStatus === 'All' || request.status === filterStatus;
+    const matchesPriority = filterPriority === 'All' || request.priority === filterPriority;
     
-    // Priority filter
-    if (filterPriority !== 'All' && request.priority !== filterPriority) {
-      return false;
-    }
-    
-    // Search term
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        request.id.toLowerCase().includes(searchLower) ||
-        request.requestedBy.name.toLowerCase().includes(searchLower) ||
-        request.location.address.toLowerCase().includes(searchLower) ||
-        (request.assignedTo && request.assignedTo.name.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    return true;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  // Handle request status update
+  // Handle updating request status
   const updateRequestStatus = async (requestId, newStatus) => {
+    if (!requestId) {
+      console.error('No request ID provided for status update');
+      return;
+    }
+    
     try {
-      // Update UI immediately for responsiveness
-      const updatedRequests = requests.map(req => {
-        if (req.id === requestId) {
-          return { ...req, status: newStatus, updatedAt: new Date().toISOString() };
+      setLoading(true);
+      console.log(`Updating request ${requestId} to status: ${newStatus}`);
+      
+      // Call the enhanced updatePickupRequest with status object
+      const response = await updatePickupRequest(requestId, { status: newStatus });
+      
+      if (response && response.success) {
+        console.log(`Successfully updated request ${requestId} status to ${newStatus}`, response);
+        
+        // Update local state
+        setRequests(requests.map(req => 
+          req.id === requestId ? { ...req, status: newStatus } : req
+        ));
+        
+        if (selectedRequest && selectedRequest.id === requestId) {
+          setSelectedRequest({ ...selectedRequest, status: newStatus });
         }
-        return req;
-      });
-      setRequests(updatedRequests);
+        
+        // If it's a mock response, show a friendly notification
+        if (response.mock) {
+          console.info(`Using mock data for request ${requestId} update (database table may be unavailable)`);
+        }
+      } else {
+        console.error('Error updating request status:', response?.error || 'Unknown error');
+        // Show user-friendly toast/notification here if needed
+      }
       
-      // Update in database
-      await updatePickupRequest(requestId, newStatus);
-      console.log(`Pickup request ${requestId} updated to ${newStatus}`);
-      
-      // Close modal if it was open
+      setLoading(false);
       setShowRequestModal(false);
     } catch (error) {
-      console.error('Error updating pickup request status:', error);
-      // Revert UI changes if database update fails
-      const originalRequests = [...requests];
-      setRequests(originalRequests);
+      console.error('Error updating request status:', error);
+      setLoading(false);
     }
   };
 
   // Handle assigning collector to request
-  const assignCollector = (requestId, collector) => {
-    setRequests(prevRequests => 
-      prevRequests.map(request => {
-        if (request.id === requestId) {
-          return { 
-            ...request, 
-            assignedTo: {
-              id: collector.id,
-              name: collector.name
-            },
-            status: 'In Progress'
-          };
-        }
-        return request;
-      })
-    );
+  const assignCollector = async (requestId, collector) => {
+    if (!requestId || !collector) {
+      console.error('Missing request ID or collector for assignment');
+      return;
+    }
     
-    if (selectedRequest && selectedRequest.id === requestId) {
-      setSelectedRequest(prev => ({
-        ...prev, 
-        assignedTo: {
-          id: collector.id,
-          name: collector.name
-        },
-        status: 'In Progress'
-      }));
+    try {
+      setLoading(true);
+      console.log(`Assigning collector ${collector?.id || 'unknown'} to request ${requestId}`);
+      
+      // Prepare update data with collector info and timestamps
+      const updateData = { 
+        collector_id: collector?.id || 'unknown',
+        status: STATUS.COLLECTOR.ASSIGNED,
+        assigned_at: new Date().toISOString(),
+        collector_name: collector?.name || 'Unknown Collector',
+        collector_phone: collector?.phone || null,
+        collector_rating: collector?.rating || 0,
+        collector_vehicle_type: collector?.vehicle?.type || 'Unknown',
+        collector_vehicle_plate: collector?.vehicle?.plate || 'Unknown'
+      };
+      
+      // Call enhanced updatePickupRequest with structured data
+      const response = await updatePickupRequest(requestId, updateData);
+      
+      if (response && response.success) {
+        console.log(`Successfully assigned collector to request ${requestId}:`, response);
+        
+        // Get vehicle data with safe fallbacks
+        const vehicleType = collector?.vehicle?.type || 'Standard';
+        const vehiclePlate = collector?.vehicle?.plate || 'Unknown';
+        
+        // Update local state with comprehensive object structure
+        setRequests(requests.map(req => {
+          if (req.id === requestId) {
+            return { 
+              ...req, 
+              collectorId: collector?.id || 'unknown',
+              assignedTo: {
+                id: collector?.id || 'unknown',
+                name: collector?.name || 'Unknown Collector',
+                phone: collector?.phone || null,
+                email: collector?.email || null,
+                vehicle: {
+                  type: vehicleType,
+                  plate: vehiclePlate,
+                  capacity: collector?.vehicle?.capacity || 'Standard'
+                },
+                rating: collector?.rating || 0
+              },
+              status: STATUS.COLLECTOR.ASSIGNED,
+              assignedAt: response.assigned_at || new Date().toISOString()
+            };
+          }
+          return req;
+        }));
+        
+        // Update selected request if this is the one being viewed
+        if (selectedRequest && selectedRequest.id === requestId) {
+          setSelectedRequest({
+            ...selectedRequest,
+            collectorId: collector?.id || 'unknown',
+            assignedTo: {
+              id: collector?.id || 'unknown',
+              name: collector?.name || 'Unknown Collector',
+              phone: collector?.phone || null,
+              email: collector?.email || null,
+              vehicle: {
+                type: collector?.vehicle?.type || 'Standard',
+                plate: collector?.vehicle?.plate || 'Unknown',
+                capacity: collector?.vehicle?.capacity || 'Standard'
+              },
+              rating: collector?.rating || 0
+            },
+            status: STATUS.COLLECTOR.ASSIGNED,
+            assignedAt: response.assigned_at || new Date().toISOString()
+          });
+        }
+        
+        // If it was a mock response, log it
+        if (response.mock) {
+          console.info(`Using mock data for collector assignment (database table may be unavailable)`);
+        }
+      } else {
+        console.error('Error assigning collector:', response?.error || 'Unknown error');
+        // Show user-friendly toast/notification here if needed
+      }
+      
+      setLoading(false);
+      setShowRequestModal(false);
+    } catch (error) {
+      console.error('Error assigning collector:', error);
+      setLoading(false);
     }
   };
 
@@ -335,14 +425,19 @@ const RequestPickupManagement = () => {
               {filteredRequests.map((request) => (
                 <tr key={request.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {request.id}
+                    <span 
+                      className="cursor-pointer text-blue-600 hover:text-blue-800"
+                      onClick={() => handleViewRequest(request)}
+                    >
+                      {request.id}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.requestedBy.name}
+                    {request.requestedBy?.name || 'Unknown'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="truncate max-w-xs">
-                      {request.location.address}
+                      {request.location?.address || 'Address not provided'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -360,12 +455,12 @@ const RequestPickupManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {request.assignedTo ? (
-                      <button
-                        onClick={() => handleViewCollector(activeCollectors.find(c => c.id === request.assignedTo.id))}
-                        className="text-indigo-600 hover:text-indigo-900"
+                      <span 
+                        className="cursor-pointer text-blue-600 hover:text-blue-800"
+                        onClick={() => handleViewCollector(request.assignedTo)}
                       >
-                        {request.assignedTo.name}
-                      </button>
+                        {request.assignedTo?.name || 'Unknown Collector'}
+                      </span>
                     ) : (
                       <span className="text-gray-400">Not assigned</span>
                     )}
@@ -396,7 +491,7 @@ const RequestPickupManagement = () => {
               className="bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-medium">{collector.name}</h3>
+                <h3 className="font-medium">{collector?.name || 'Unknown Collector'}</h3>
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                   Active
                 </span>
@@ -429,12 +524,12 @@ const RequestPickupManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-gray-600 text-sm">Customer Name</p>
-                <p className="font-medium">{selectedRequest.requestedBy.name}</p>
+                <p className="font-medium">{selectedRequest.requestedBy?.name || 'Unknown Customer'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Customer Contact</p>
-                <p className="font-medium">{selectedRequest.requestedBy.email}</p>
-                <p className="text-sm">{selectedRequest.requestedBy.phone}</p>
+                <p className="font-medium">{selectedRequest.requestedBy?.email || 'No email provided'}</p>
+                <p className="text-sm">{selectedRequest.requestedBy?.phone || 'No phone provided'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Request Date</p>
@@ -473,15 +568,15 @@ const RequestPickupManagement = () => {
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Location</p>
-                <p className="font-medium">{selectedRequest.location.address}</p>
+                <p className="font-medium">{selectedRequest.location?.address || 'Address not provided'}</p>
                 <p className="text-sm text-gray-500">
-                  Lat: {selectedRequest.location.lat.toFixed(4)}, Lng: {selectedRequest.location.lng.toFixed(4)}
+                  Lat: {selectedRequest.location?.lat?.toFixed(4) || 'N/A'}, Lng: {selectedRequest.location?.lng?.toFixed(4) || 'N/A'}
                 </p>
               </div>
               {selectedRequest.assignedTo && (
                 <div>
                   <p className="text-gray-600 text-sm">Assigned To</p>
-                  <p className="font-medium">{selectedRequest.assignedTo.name}</p>
+                  <p className="font-medium">{selectedRequest.assignedTo?.name || 'Unknown Collector'}</p>
                 </div>
               )}
               {selectedRequest.scheduledTime && (
@@ -518,30 +613,46 @@ const RequestPickupManagement = () => {
               <div className="border-t pt-4 mb-4">
                 <h3 className="font-medium mb-2">Actions</h3>
                 <div className="flex flex-wrap gap-2">
-                  {!selectedRequest.assignedTo && (
-                    <div className="w-full md:w-auto">
-                      <select
-                        className="p-2 border border-gray-300 rounded mr-2"
-                        defaultValue=""
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            const collector = activeCollectors.find(c => c.id === e.target.value);
-                            if (collector) {
-                              assignCollector(selectedRequest.id, collector);
+                  {/* Assign a collector dropdown */}
+                  {selectedRequest.status === STATUS.PICKUP_REQUEST.PENDING && (
+                    <div className="mt-4">
+                      <label className="text-gray-600 text-sm">Assign Collector</label>
+                      <div className="flex space-x-2 mt-1">
+                        <select 
+                          className="form-select flex-grow px-3 py-2 border rounded"
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const collector = activeCollectors.find(c => c.id === e.target.value);
+                              if (collector) {
+                                // Validate collector data before assignment
+                                if (!collector.id) {
+                                  console.error('Cannot assign collector with invalid ID');
+                                  return;
+                                }
+                                assignCollector(selectedRequest.id, collector);
+                              } else {
+                                console.warn(`Collector with ID ${e.target.value} not found in active collectors list`);
+                              }
                             }
-                          }
-                        }}
-                      >
-                        <option value="" disabled>Assign to collector...</option>
-                        {activeCollectors.map(collector => (
-                          <option key={collector.id} value={collector.id}>
-                            {collector.name} ({collector.activeRequests} active)
-                          </option>
-                        ))}
-                      </select>
+                          }}
+                          disabled={loading}
+                        >
+                          <option value="">{loading ? 'Assigning...' : 'Select a collector'}</option>
+                          {activeCollectors.map(collector => (
+                            <option 
+                              key={collector?.id || `collector-${Math.random()}`} 
+                              value={collector?.id || ''}
+                              disabled={!collector?.id}
+                            >
+                              {collector?.name || 'Unknown'} ({collector?.activeRequests || 0} active)
+                              {collector?.vehicle?.type ? ` - ${collector?.vehicle?.type}` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   )}
-                  
                   {selectedRequest.status === STATUS.PICKUP_REQUEST.PENDING && (
                     <button
                       onClick={() => updateRequestStatus(selectedRequest.id, STATUS.PICKUP_REQUEST.IN_PROGRESS)}
@@ -587,7 +698,7 @@ const RequestPickupManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Collector Profile: {selectedCollector.name}</h2>
+              <h2 className="text-xl font-semibold">Collector Profile: {selectedCollector?.name || 'Unknown'}</h2>
               <button 
                 onClick={() => setShowCollectorModal(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -599,54 +710,54 @@ const RequestPickupManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-gray-600 text-sm">Name</p>
-                <p className="font-medium">{selectedCollector.name}</p>
+                <p className="font-medium">{selectedCollector?.name || 'Unknown'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <p className={`font-medium ${
-                  selectedCollector.status === STATUS.COLLECTOR.ACTIVE ? 'text-green-600' : 'text-gray-600'
+                  selectedCollector?.status === STATUS.COLLECTOR.ACTIVE ? 'text-green-600' : 'text-gray-600'
                 }`}>
-                  {selectedCollector.status}
+                  {selectedCollector?.status || 'Unknown'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Email</p>
-                <p className="font-medium">{selectedCollector.email}</p>
+                <p className="font-medium">{selectedCollector?.email || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Phone</p>
-                <p className="font-medium">{selectedCollector.phone}</p>
+                <p className="font-medium">{selectedCollector?.phone || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Vehicle</p>
-                <p className="font-medium">{selectedCollector.vehicle.type} ({selectedCollector.vehicle.plate})</p>
+                <p className="font-medium">{selectedCollector?.vehicle?.type || 'N/A'} ({selectedCollector?.vehicle?.plate || 'N/A'})</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Capacity</p>
-                <p className="font-medium">{selectedCollector.vehicle.capacity}</p>
+                <p className="font-medium">{selectedCollector?.vehicle?.capacity || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Rating</p>
                 <p className="font-medium flex items-center">
-                  <span className="mr-1">{selectedCollector.rating}</span>
+                  <span className="mr-1">{selectedCollector?.rating || 'N/A'}</span>
                   <span className="text-yellow-500">⭐</span>
                 </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Today's Performance</p>
-                <p className="font-medium">{selectedCollector.completedToday} completed, {selectedCollector.activeRequests} active</p>
+                <p className="font-medium">{selectedCollector?.completedToday || 0} completed, {selectedCollector?.activeRequests || 0} active</p>
               </div>
             </div>
             
             {/* Map with current location - In a real app, this would be an actual map */}
-            {selectedCollector.currentLocation && (
+            {selectedCollector?.currentLocation && (
               <div className="mb-6">
                 <p className="text-gray-600 text-sm mb-2">Current Location</p>
                 <div className="h-48 bg-gray-200 flex items-center justify-center rounded">
                   <p className="text-gray-500">Map with live location would be displayed here</p>
                   <p className="text-gray-500 text-sm">
-                    Lat: {selectedCollector.currentLocation.lat.toFixed(4)}, 
-                    Lng: {selectedCollector.currentLocation.lng.toFixed(4)}
+                    Lat: {selectedCollector?.currentLocation?.lat?.toFixed(4) || 'N/A'}, 
+                    Lng: {selectedCollector?.currentLocation?.lng?.toFixed(4) || 'N/A'}
                   </p>
                 </div>
               </div>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear Storage</title>
+  <script>
+    window.onload = function() {
+      try {
+        localStorage.clear();
+        document.getElementById('result').textContent = 'localStorage cleared successfully!';
+        console.log('localStorage cleared successfully!');
+      } catch(e) {
+        document.getElementById('result').textContent = 'Error: ' + e.message;
+        console.error('Error:', e);
+      }
+    }
+  </script>
+</head>
+<body>
+  <h2>Storage Clearing Utility</h2>
+  <div id="result">Clearing storage...</div>
+</body>
+</html>

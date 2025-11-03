@@ -238,13 +238,16 @@ const LogsManagement = () => {
       // Filter by search query
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
+        const detailsText = typeof log.details === 'string'
+          ? log.details
+          : JSON.stringify(log.details || '');
         return (
           log.message?.toLowerCase().includes(query) ||
-          log.details?.toLowerCase().includes(query) ||
+          detailsText?.toLowerCase().includes(query) ||
           log.source?.toLowerCase().includes(query) ||
-          log.user?.toLowerCase().includes(query) ||
-          log.relatedEntity?.id.toLowerCase().includes(query) ||
-          log.id.toLowerCase().includes(query)
+          log.user?.toLowerCase?.().includes(query) ||
+          log.relatedEntity?.id?.toLowerCase?.().includes(query) ||
+          log.id?.toLowerCase?.().includes(query)
         );
       }
       
@@ -534,7 +537,15 @@ const LogsManagement = () => {
                               {/* Details */}
                               <div className="mb-4">
                                 <h4 className="text-sm font-medium text-gray-900 mb-2">Details</h4>
-                                <p className="bg-white p-3 border border-gray-200 rounded">{log.details}</p>
+                                {log.details == null || (typeof log.details === 'string' && log.details.trim() === '') ? (
+                                  <p className="text-gray-500">No details</p>
+                                ) : typeof log.details === 'string' ? (
+                                  <p className="bg-white p-3 border border-gray-200 rounded break-words whitespace-pre-wrap">{log.details}</p>
+                                ) : (
+                                  <pre className="bg-white p-3 border border-gray-200 rounded overflow-auto text-xs">
+{JSON.stringify(log.details, null, 2)}
+                                  </pre>
+                                )}
                               </div>
                               
                               {/* Related entity if any */}

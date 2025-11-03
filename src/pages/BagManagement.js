@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   fetchBagBatches, 
   createBagBatch, 
-  fetchBagRequestStats, 
-  fetchCollectorStats, 
-  fetchPerformanceStats 
+  fetchBagRequestStatsReal, 
+  fetchCollectorStatsReal, 
+  fetchPerformanceStatsReal 
 } from '../utils/databaseUtils';
 import { STATUS } from '../config/constants';
 import { appConfig } from '../config';
+import { archiveBagBatch } from '../utils/databaseUtils';
 
 const BagManagement = () => {
   const [batches, setBatches] = useState([]);
@@ -58,6 +61,124 @@ const BagManagement = () => {
   
   const { user } = useAuth();
 
+  // QR ZIP download state and worker
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingBatch, setDownloadingBatch] = useState(null);
+  const [downloadProgress, setDownloadProgress] = useState({ progress: 0, stage: 'Preparing...', isProcessing: false, showProgress: false });
+  const workerRef = useRef(null);
+
+  const handleWorkerError = useCallback((message) => {
+    console.error('QR Code Worker Error:', message);
+    setDownloadProgress(prev => ({ ...prev, isProcessing: false }));
+    setIsDownloading(false);
+    alert(message || 'Failed to generate QR ZIP');
+  }, []);
+
+  const initWorker = useCallback(() => {
+    try {
+      const worker = new Worker(new URL('../workers/QRCodeWorker.js', import.meta.url), { type: 'module' });
+      worker.postMessage({ type: 'WORKER_READY' });
+
+      worker.onmessage = (e) => {
+        const { type, progress, stage, content, filename, error } = e.data || {};
+        if (type === 'WORKER_READY') {
+          setIsWorkerReady(true);
+          return;
+        }
+        if (type === 'PROGRESS') {
+          setDownloadProgress(prev => ({ ...prev, progress, stage: stage || prev.stage, isProcessing: progress < 100 }));
+          return;
+        }
+        if (type === 'CHUNKS_READY') {
+          workerRef.current?.postMessage({
+            type: 'CREATE_ZIP',
+            payload: {
+              chunks: e.data.chunks,
+              batch: { id: downloadingBatch },
+              baseUrl: 'https://trashdrops.com/scan',
+              email: user?.email || 'admin@trashdrop.com'
+            }
+          });
+          return;
+        }
+        if (type === 'ZIP_READY') {
+          try {
+            const safeFilename = (filename && filename.endsWith('.zip')) ? filename : `QR_Codes_${downloadingBatch || 'batch'}.zip`;
+            // Use Blob directly if provided; otherwise wrap Uint8Array
+            const blob = (content instanceof Blob)
+              ? content
+              : new Blob([content], { type: 'application/zip' });
+            saveAs(blob, safeFilename);
+            setDownloadProgress(prev => ({ ...prev, progress: 100, stage: 'Download complete!', isProcessing: false }));
+          } catch (err) {
+            handleWorkerError('Failed to save the ZIP file');
+          } finally {
+            setIsDownloading(false);
+          }
+          return;
+        }
+        if (type === 'ERROR') {
+          handleWorkerError(error || 'An error occurred while generating QR codes');
+          return;
+        }
+      };
+
+      worker.onerror = (err) => {
+        console.error('Worker error:', err);
+        handleWorkerError('Failed to initialize QR code generator');
+      };
+
+      workerRef.current = worker;
+    } catch (err) {
+      console.error('Error initializing worker:', err);
+      handleWorkerError('Failed to initialize QR code generator');
+    }
+  }, [downloadingBatch, handleWorkerError]);
+
+  useEffect(() => {
+    initWorker();
+    return () => {
+      if (workerRef.current) workerRef.current.terminate();
+    };
+  }, [initWorker]);
+
+  const handleDownloadQRs = async (batch) => {
+    try {
+      if (!isWorkerReady) {
+        alert('QR code generator is not ready yet');
+        return;
+      }
+      setDownloadingBatch(batch.id);
+      setIsDownloading(true);
+      setDownloadProgress({ progress: 0, stage: 'Preparing...', isProcessing: true, showProgress: true });
+
+      // Ensure required fields for worker
+      const payloadBatch = {
+        id: batch.id,
+        bag_count: batch.bag_count || batch.quantity || 0,
+        quantity: batch.bag_count || batch.quantity || 0,
+        startNumber: 1
+      };
+
+      // small delay to ensure worker is ready
+      await new Promise(r => setTimeout(r, 50));
+
+      workerRef.current.postMessage({
+        type: 'GENERATE_QR_CODES',
+        payload: {
+          batch: payloadBatch,
+          email: user?.email || 'admin@trashdrop.com',
+          baseUrl: 'https://trashdrops.com/scan',
+          chunkSize: 20
+        }
+      });
+    } catch (err) {
+      console.error('Error initiating QR download:', err);
+      handleWorkerError(err.message || 'Failed to start QR code generation');
+    }
+  };
+
   // Function to fetch all dashboard statistics from Supabase
   const refreshStats = async () => {
     setStatsLoading(true);
@@ -66,9 +187,9 @@ const BagManagement = () => {
       
       // Fetch all stats in parallel for better performance
       const [bagStats, collectorData, performanceData] = await Promise.all([
-        fetchBagRequestStats(),
-        fetchCollectorStats(),
-        fetchPerformanceStats()
+        fetchBagRequestStatsReal(),
+        fetchCollectorStatsReal(),
+        fetchPerformanceStatsReal()
       ]);
       
       console.log('BagManagement: Stats fetched successfully:');
@@ -92,13 +213,16 @@ const BagManagement = () => {
     const loadBatches = async () => {
       setLoading(true);
       try {
-        const data = await fetchBagBatches();
+        const response = await fetchBagBatches();
+        // Handle the response structure properly - fetchBagBatches returns { data, totalCount, page, limit, totalPages }
+        const batchData = response.data || [];
+        
         // Transform from snake_case to camelCase if needed
-        const formattedData = data.map(batch => ({
+        const formattedData = batchData.map(batch => ({
           id: batch.id,
-          createdAt: batch.created_at,
-          createdBy: batch.created_by,
-          quantity: batch.quantity,
+          createdAt: batch.created_at || batch.updated_at,
+          quantity: batch.bag_count || batch.quantity,
+          bag_count: batch.bag_count || batch.quantity,
           type: batch.type,
           size: batch.size,
           status: batch.status,
@@ -109,6 +233,8 @@ const BagManagement = () => {
         setBatches(formattedData);
       } catch (error) {
         console.error('Error loading bag batches:', error);
+        // Set empty array as fallback
+        setBatches([]);
       } finally {
         setLoading(false);
       }
@@ -161,8 +287,7 @@ const BagManagement = () => {
       const newBatch = {
         id: batch.id,
         createdAt: batch.created_at,
-        createdBy: batch.created_by,
-        quantity: batch.quantity,
+        quantity: batch.bag_count,
         type: batch.type,
         size: batch.size,
         status: batch.status,
@@ -201,6 +326,20 @@ const BagManagement = () => {
     setSelectedBatch(batch);
   };
 
+  const handleArchiveBatch = async (batch) => {
+    try {
+      const confirmArchive = window.confirm(`Archive batch ${batch.id}? This will mark it as Archived.`);
+      if (!confirmArchive) return;
+
+      await archiveBagBatch(batch.id);
+      // Optimistically update UI
+      setBatches(prev => prev.map(b => b.id === batch.id ? { ...b, status: 'Archived' } : b));
+    } catch (error) {
+      console.error('Error archiving batch:', error);
+      alert('Failed to archive batch. Please try again.');
+    }
+  };
+
   const filteredBatches = batches
     .filter(batch => {
       if (filterStatus !== 'All') {
@@ -210,10 +349,14 @@ const BagManagement = () => {
     })
     .filter(batch => {
       if (searchTerm) {
+        const term = String(searchTerm || '').toLowerCase();
+        const idStr = String(batch?.id ?? '').toLowerCase();
+        const typeStr = String(batch?.type ?? '').toLowerCase();
+        const prefixStr = String(batch?.qrPrefix ?? '').toLowerCase();
         return (
-          batch.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          batch.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          batch.qrPrefix.toLowerCase().includes(searchTerm.toLowerCase())
+          idStr.includes(term) ||
+          typeStr.includes(term) ||
+          prefixStr.includes(term)
         );
       }
       return true;
@@ -400,7 +543,7 @@ const BagManagement = () => {
                     {batch.type} ({batch.size})
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {batch.quantity}
+                    {batch.bag_count || batch.quantity}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -421,11 +564,11 @@ const BagManagement = () => {
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div 
                         className="bg-green-600 h-2.5 rounded-full" 
-                        style={{ width: `${(batch.distributed / batch.quantity) * 100}%` }}
+                        style={{ width: `${(batch.distributed / (batch.bag_count || batch.quantity)) * 100}%` }}
                       ></div>
                     </div>
                     <span className="text-xs mt-1 block">
-                      {batch.distributed} of {batch.quantity} distributed
+                      {batch.distributed} of {batch.bag_count || batch.quantity} distributed
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
@@ -435,8 +578,8 @@ const BagManagement = () => {
                     >
                       View
                     </button>
-                    <button className="text-green-600 hover:text-green-900 mr-3">
-                      Print QR
+                    <button onClick={() => handleDownloadQRs(batch)} className="text-green-600 hover:text-green-900 mr-3">
+                      Download QRs
                     </button>
                     {batch.status === STATUS.BAG.GENERATED ? (
                       <button className="text-blue-600 hover:text-blue-900">
@@ -455,9 +598,18 @@ const BagManagement = () => {
                         Process
                       </button>
                     ) : (
-                      <button className="text-gray-600 hover:text-gray-900">
-                        Archive
-                      </button>
+                      <>
+                        {batch.status === 'Archived' ? (
+                          <span className="text-gray-500">Archived</span>
+                        ) : (
+                          <button
+                            onClick={() => handleArchiveBatch(batch)}
+                            className="text-gray-600 hover:text-gray-900"
+                          >
+                            Archive
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
@@ -605,25 +757,86 @@ const BagManagement = () => {
               <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                 <div 
                   className="bg-green-600 h-2.5 rounded-full" 
-                  style={{ width: `${(selectedBatch.distributed / selectedBatch.quantity) * 100}%` }}
+                  style={{ width: `${(selectedBatch.distributed / (selectedBatch.bag_count || selectedBatch.quantity)) * 100}%` }}
                 ></div>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
                 <span>{selectedBatch.distributed} distributed</span>
                 <span>{selectedBatch.scanned} scanned</span>
-                <span>{selectedBatch.quantity} total</span>
+                <span>{selectedBatch.bag_count || selectedBatch.quantity} total</span>
               </div>
             </div>
-            
+
+            <div className="mb-6">
+              <h3 className="font-medium mb-2">Batch QR Code</h3>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white border rounded-md inline-block">
+                  <QRCodeSVG
+                    value={`https://trashdrops.com/scan?batch=${encodeURIComponent(selectedBatch.id)}`}
+                    size={192}
+                    includeMargin={true}
+                  />
+                </div>
+                <div className="text-sm text-gray-600 break-all">
+                  <div className="font-medium mb-1">Scan URL</div>
+                  <a
+                    href={`https://trashdrops.com/scan?batch=${encodeURIComponent(selectedBatch.id)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    {`https://trashdrops.com/scan?batch=${encodeURIComponent(selectedBatch.id)}`}
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-2">
               <button
                 className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                onClick={() => handleDownloadQRs(selectedBatch)}
               >
-                Print QR Codes
+                Download QRs
               </button>
               <button
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                 onClick={() => setSelectedBatch(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Download Progress Modal */}
+      {downloadProgress.showProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Generating QR Codes</h3>
+            </div>
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>{downloadProgress.stage}</span>
+                <span>{Math.round(downloadProgress.progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${downloadProgress.progress}%` }}></div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-500 text-center">
+              {downloadProgress.progress < 100 ? 'Please wait while we prepare your download...' : 'Download complete! The file should start downloading shortly.'}
+            </div>
+
+            {/* Close button for dismissing the prompt */}
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
+                className={`px-4 py-2 text-sm rounded-md border ${downloadProgress.isProcessing ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'}`}
+                disabled={downloadProgress.isProcessing}
+                aria-label="Close download prompt"
               >
                 Close
               </button>

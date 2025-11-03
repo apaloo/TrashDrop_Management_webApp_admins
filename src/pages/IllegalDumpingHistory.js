@@ -33,6 +33,13 @@ const IllegalDumpingHistory = () => {
       
       const data = await fetchIllegalDumpingReports(statusFilter);
       
+      // Ensure data is an array before mapping
+      if (!Array.isArray(data)) {
+        console.warn('fetchIllegalDumpingReports returned non-array data:', typeof data, data);
+        setHistoryData([]);
+        return;
+      }
+      
       // Transform the data to match the expected structure
       const transformedData = data.map(item => ({
           id: item.id,

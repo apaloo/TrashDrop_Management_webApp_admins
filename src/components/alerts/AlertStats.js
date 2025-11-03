@@ -11,10 +11,10 @@ const AlertStats = ({ alerts }) => {
       medium: alerts.filter(alert => alert.priority === 'medium' && alert.status === 'open').length,
       low: alerts.filter(alert => alert.priority === 'low' && alert.status === 'open').length,
       byType: {
-        pickup_request: alerts.filter(alert => alert.relatedTo.type === 'pickup_request').length,
-        collector: alerts.filter(alert => alert.relatedTo.type === 'collector').length,
-        system: alerts.filter(alert => alert.relatedTo.type === 'system').length,
-        region: alerts.filter(alert => alert.relatedTo.type === 'region').length,
+        pickup_request: alerts.filter(alert => alert.relatedTo?.type === 'pickup_request').length,
+        collector: alerts.filter(alert => alert.relatedTo?.type === 'collector').length,
+        system: alerts.filter(alert => alert.relatedTo?.type === 'system').length,
+        region: alerts.filter(alert => alert.relatedTo?.type === 'region').length,
       }
     };
   }, [alerts]);

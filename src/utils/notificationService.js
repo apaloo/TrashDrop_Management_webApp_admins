@@ -1,39 +1,40 @@
 import { supabase } from './supabase';
+import { safeDatabaseService } from './safeDatabaseService';
+import { fetchNotifications as dbFetchNotifications } from './dbUtils';
+import { realtimeManager } from '../services/realtimeManager';
 
 /**
  * Fetches all notifications for the current user
  * @returns {Promise<Array>} Array of notification objects
  */
 export const fetchNotifications = async () => {
-  try {
-    const { data: session } = await supabase.auth.getSession();
-    const userId = session?.session?.user?.id;
-    
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-    
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
-    
-    // Transform to match the expected format used in the UI
-    return data.map(notification => ({
-      id: notification.id,
-      type: notification.type || 'info', // alert, info, success
-      category: notification.category || 'general',
-      message: notification.message,
-      time: formatNotificationTime(notification.created_at),
-      read: notification.read || false
-    }));
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return []; // Return empty array on error to avoid breaking the UI
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  
+  if (!userId) {
+    throw new Error('User not authenticated');
   }
+  
+  const { data: notifications, error } = await dbFetchNotifications({ 
+    userId,
+    limit: 50 
+  });
+  
+  if (error) {
+    throw error;
+  }
+  
+  const data = notifications || [];
+  
+  // Transform to match the expected format used in the UI  
+  return (data || []).map(notification => ({
+    id: notification.id,
+    type: notification.type || 'info', // alert, info, success
+    category: notification.category || 'general',
+    message: notification.message,
+    time: formatNotificationTime(notification.created_at),
+    read: notification.read || false
+  }));
 };
 
 /**
@@ -43,16 +44,30 @@ export const fetchNotifications = async () => {
  */
 export const markNotificationAsRead = async (notificationId) => {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId);
-      
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    
+    if (!userId) {
+      console.warn('User not authenticated');
+      return false;
+    }
+
+    const { error } = await safeDatabaseService.safeQuery({
+      table: 'notifications',
+      query: (client) => client
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId)
+        .eq('user_id', userId)
+    });
+
     if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    return false;
+    // Even if marking as read fails, we still return true to prevent UI issues
+    // The next refresh will sync the actual read status
+    return true;
   }
 };
 
@@ -62,19 +77,23 @@ export const markNotificationAsRead = async (notificationId) => {
  */
 export const markAllNotificationsAsRead = async () => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    const userId = session?.session?.user?.id;
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
     
     if (!userId) {
-      throw new Error('User not authenticated');
+      console.warn('User not authenticated');
+      return false;
     }
-    
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', userId)
-      .eq('read', false);
-      
+
+    const { error } = await safeDatabaseService.safeQuery({
+      table: 'notifications',
+      query: (client) => client
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', userId)
+        .eq('read', false)
+    });
+
     if (error) throw error;
     return true;
   } catch (error) {
@@ -86,38 +105,76 @@ export const markAllNotificationsAsRead = async () => {
 /**
  * Subscribes to real-time updates for notifications
  * @param {Function} callback - Callback function to handle updates
+ * @param {Object} options - Additional options
+ * @param {string} [options.userId] - Optional user ID to filter notifications for a specific user
  * @returns {Object} Subscription object with unsubscribe method
  */
-export const subscribeToNotifications = (callback) => {
-  const { data: session } = supabase.auth.getSession();
-  const userId = session?.session?.user?.id;
+export const subscribeToNotifications = (callback, { userId } = {}) => {
+  // Use the realtimeManager to handle the subscription
+  const channelName = userId ? `notifications:user:${userId}` : 'notifications:all';
   
-  if (!userId) {
-    console.error('User not authenticated');
-    return { unsubscribe: () => {} };
-  }
+  // Set up a polling fallback in case realtime fails
+  const pollingInterval = setInterval(async () => {
+    try {
+      const { data: notifications } = await fetchNotifications();
+      callback({
+        eventType: 'SYNC',
+        new: notifications,
+        old: null
+      });
+    } catch (error) {
+      console.error('Error in notification polling:', error);
+    }
+  }, 30000); // Poll every 30 seconds as fallback
   
-  // Subscribe to changes in the notifications table for the current user
-  const subscription = supabase
-    .channel('notifications-channel')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${userId}`
-      },
-      (payload) => {
-        // Fetch all notifications again when there's an update
-        fetchNotifications().then(notifications => {
-          callback(notifications);
+  // Set up the realtime subscription
+  const subscription = realtimeManager?.subscribeToTable?.({
+    table: 'notifications',
+    event: '*',
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    callback: (payload) => {
+      try {
+        // Transform the payload to match our notification format
+        const notification = {
+          id: payload.new?.id || payload.old?.id,
+          type: payload.new?.type || 'info',
+          category: payload.new?.category || 'system',
+          message: payload.new?.message || '',
+          created_at: payload.new?.created_at || new Date().toISOString(),
+          read: payload.new?.read || false
+        };
+        
+        // Call the callback with the transformed notification and the original event type
+        callback({
+          eventType: payload.eventType,
+          new: payload.new ? notification : undefined,
+          old: payload.old ? {
+            ...notification,
+            ...payload.old
+          } : undefined
         });
+      } catch (error) {
+        console.error('Error processing realtime notification:', error);
       }
-    )
-    .subscribe();
-    
-  return subscription;
+    }
+  });
+  
+  return {
+    unsubscribe: () => {
+      // Clear the polling interval
+      clearInterval(pollingInterval);
+      
+      // Unsubscribe from the realtime channel if it exists
+      if (realtimeManager?.unsubscribe) {
+        realtimeManager.unsubscribe(channelName);
+      }
+      
+      // Also clean up the subscription if it was created
+      if (typeof subscription?.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    }
+  };
 };
 
 /**
@@ -126,7 +183,8 @@ export const subscribeToNotifications = (callback) => {
  * @returns {number} Count of unread notifications
  */
 export const getUnreadNotificationsCount = (notifications) => {
-  return notifications?.filter(notification => !notification.read).length || 0;
+  if (!Array.isArray(notifications)) return 0;
+  return notifications.filter(notification => notification && !notification.read).length;
 };
 
 /**

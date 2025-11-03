@@ -8,6 +8,7 @@ import IllegalDumpingMap from './pages/IllegalDumpingMap';
 import IllegalDumpingHistory from './pages/IllegalDumpingHistory';
 import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
+import { safeDatabaseService } from './utils/safeDatabaseService';
 
 // Lazy load components for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -107,6 +108,21 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+  // Initialize database safety checks on app start
+  useEffect(() => {
+    const initializeDatabaseCheck = async () => {
+      try {
+        console.log('Initializing database schema check...');
+        await safeDatabaseService.initializeSchemaCheck();
+        console.log('Database schema check completed');
+      } catch (error) {
+        console.warn('Database schema check failed:', error.message);
+      }
+    };
+    
+    initializeDatabaseCheck();
+  }, []);
+  
   return (
     <AuthProvider>
       <ModalProvider>

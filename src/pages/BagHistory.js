@@ -3,10 +3,9 @@ import { Modal } from 'react-bootstrap';
 import { 
   fetchBagBatches, 
   fetchBagHistory,
-  // Add imports for new statistics functions that we'll create
-  fetchBagRequestStats,
-  fetchCollectorStats,
-  fetchPerformanceStats
+  fetchBagRequestStatsReal,
+  fetchCollectorStatsReal,
+  fetchPerformanceStatsReal
 } from '../utils/databaseUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCalendar, faHistory, faChartLine, faBoxOpen, faRecycle, faMapMarkerAlt, faUser, faQrcode } from '@fortawesome/free-solid-svg-icons';
@@ -92,8 +91,8 @@ const BagHistory = () => {
       const formattedData = result.data.map(batch => ({
         id: batch.id,
         createdAt: batch.created_at,
-        createdBy: batch.created_by,
-        quantity: batch.quantity,
+        quantity: batch.bag_count || batch.quantity,
+        bag_count: batch.bag_count || batch.quantity,
         type: batch.type,
         size: batch.size,
         status: batch.status,
@@ -139,9 +138,9 @@ const BagHistory = () => {
       
       // Fetch all stats in parallel for better performance
       const [bagStats, collectorData, performanceData] = await Promise.all([
-        fetchBagRequestStats(),
-        fetchCollectorStats(),
-        fetchPerformanceStats()
+        fetchBagRequestStatsReal(),
+        fetchCollectorStatsReal(),
+        fetchPerformanceStatsReal()
       ]);
       
       console.log('BagHistory: Stats fetched successfully:');
@@ -805,7 +804,7 @@ const BagHistory = () => {
                       };
                       
                       // Calculate scan percentage
-                      const scanPercentage = (batch.scanned / batch.quantity) * 100;
+                      const scanPercentage = (batch.scanned / (batch.bag_count || batch.quantity)) * 100;
                       
                       return (
                         <tr key={batch.id} className="hover:bg-gray-50">
@@ -816,7 +815,7 @@ const BagHistory = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.size}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.quantity}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.bag_count || batch.quantity}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(batch.createdAt).toLocaleDateString()}
                           </td>
@@ -828,7 +827,7 @@ const BagHistory = () => {
                               ></div>
                             </div>
                             <span className="text-xs text-gray-500 mt-1 block">
-                              {batch.scanned} of {batch.quantity} ({Math.round(scanPercentage)}%)
+                              {batch.scanned} of {batch.bag_count || batch.quantity} ({Math.round(scanPercentage)}%)
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -954,7 +953,7 @@ const BagHistory = () => {
             <h3 className="text-lg font-semibold text-gray-900">
               Scan History for Batch: {selectedBatch?.id}
               <span className="ml-2 text-sm text-gray-500">
-                ({selectedBatch?.scanned} of {selectedBatch?.quantity} bags scanned)
+                ({selectedBatch?.scanned} of {selectedBatch?.bag_count || selectedBatch?.quantity} bags scanned)
               </span>
             </h3>
             <button 
@@ -1007,15 +1006,15 @@ const BagHistory = () => {
                     <div>
                       <p className="mb-2">
                         <span className="font-medium text-gray-700">Progress:</span> 
-                        <span className="ml-2">{selectedBatch.scanned} of {selectedBatch.quantity} bags</span>
+                        <span className="ml-2">{selectedBatch.scanned} of {selectedBatch.bag_count || selectedBatch.quantity} bags</span>
                       </p>
                       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div 
                           className="bg-indigo-600 h-2.5 rounded-full" 
-                          style={{ width: `${(selectedBatch.scanned / selectedBatch.quantity) * 100}%` }}
+                          style={{ width: `${(selectedBatch.scanned / (selectedBatch.bag_count || selectedBatch.quantity)) * 100}%` }}
                         ></div>
                       </div>
-                      <p className="mt-2 text-xs text-gray-500">{Math.round((selectedBatch.scanned / selectedBatch.quantity) * 100)}% complete</p>
+                      <p className="mt-2 text-xs text-gray-500">{Math.round((selectedBatch.scanned / (selectedBatch.bag_count || selectedBatch.quantity)) * 100)}% complete</p>
                     </div>
                   </div>
                 </div>

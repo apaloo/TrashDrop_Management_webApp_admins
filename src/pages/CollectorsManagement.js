@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCollectors, createCollector, updateCollector, updateCollectorStatus } from '../utils/databaseUtils';
+import { fetchCollectors, updateCollectorStatus } from '../utils/collectorService';
+import { createCollector, updateCollector } from '../utils/databaseUtils';
 import { STATUS } from '../config/constants';
 
 // This mock data will be replaced with real data from Supabase
@@ -147,6 +148,8 @@ const CollectorsManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCollector, setSelectedCollector] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   
   // Load collector data from Supabase
   useEffect(() => {
@@ -154,26 +157,37 @@ const CollectorsManagement = () => {
       try {
         setLoading(true);
         
-        // Fetch collectors from Supabase
-        const data = await fetchCollectors(filters.status !== 'all' ? filters.status : null);
-        
-        // Transform data to match the expected structure
-        const formattedCollectors = data.map(collector => ({
-          id: collector.id,
-          name: `${collector.first_name} ${collector.last_name}`,
-          email: collector.email,
-          phone: collector.phone,
-          status: collector.status,
-          region: collector.region,
-          completedPickups: collector.completed_pickups || 0,
-          rating: collector.rating || 5.0,
-          joinDate: collector.join_date,
-          lastActive: collector.last_active,
-          vehicleInfo: collector.vehicle_info,
-          notes: collector.notes || '',
-          avatar: collector.avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
-        }));
-        
+        // Fetch collectors from Supabase using service options
+        const data = await fetchCollectors({
+          status: filters.status !== 'all' ? filters.status : null,
+          region: filters.region !== 'all' ? filters.region : null,
+          limit: 100
+        });
+
+        // Transform data to match the expected structure used in this component
+        const formattedCollectors = (data || []).map(collector => {
+          // The service returns a UI-friendly object with fields like name, profilePic, joined_date, total_collections, etc.
+          const vehicleInfo = collector.vehicle
+            ? `${collector.vehicle.type || 'Vehicle'} - ${collector.vehicle.plate || 'N/A'} - ${collector.vehicle.capacity || ''}`.trim()
+            : (collector.vehicle_info || '');
+
+          return {
+            id: collector.id,
+            name: collector.name || `${collector.first_name || ''} ${collector.last_name || ''}`.trim() || 'Unknown',
+            email: collector.email,
+            phone: collector.phone,
+            status: collector.status,
+            region: collector.region,
+            completedPickups: collector.total_collections ?? collector.completed_pickups ?? 0,
+            rating: collector.rating ?? 5.0,
+            joinDate: collector.joined_date || collector.join_date,
+            lastActive: collector.last_active,
+            vehicleInfo,
+            notes: collector.notes || '',
+            avatar: collector.profilePic || collector.avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+          };
+        });
+
         setCollectors(formattedCollectors);
       } catch (err) {
         console.error('Error fetching collectors:', err);
@@ -184,7 +198,7 @@ const CollectorsManagement = () => {
     };
     
     loadCollectors();
-  }, [filters.status]);  // Re-fetch when status filter changes
+  }, [filters.status, filters.region]);  // Re-fetch when status or region filter changes
   
   // Handle sorting
   const handleSort = (key) => {
@@ -485,6 +499,84 @@ const CollectorsManagement = () => {
           <p>{error}</p>
         </div>
       )}
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedCollector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Collector Details</h2>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowDetailsModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center space-x-4">
+                <img src={selectedCollector.avatar} alt={selectedCollector.name} className="w-16 h-16 rounded-full object-cover border" />
+                <div>
+                  <h3 className="text-xl font-medium">{selectedCollector.name}</h3>
+                  <p className="text-sm text-gray-600">{selectedCollector.region}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Email</p>
+                  <p className="font-medium break-words">{selectedCollector.email}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Phone</p>
+                  <p className="font-medium">{selectedCollector.phone}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Status</p>
+                  <p className="font-medium capitalize">{selectedCollector.status}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Join Date</p>
+                  <p className="font-medium">{new Date(selectedCollector.joinDate).toLocaleDateString()}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-500">Vehicle</p>
+                  <p className="font-medium">{selectedCollector.vehicleInfo || 'N/A'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-500">Notes</p>
+                  <p className="font-medium whitespace-pre-wrap">{selectedCollector.notes || '—'}</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button className="px-4 py-2 border text-gray-700 rounded-md hover:bg-gray-50" onClick={() => setShowDetailsModal(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Pickups Modal */}
+      {showAssignModal && selectedCollector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Assign Pickups</h2>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowAssignModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-700">Assign pickups to <span className="font-medium">{selectedCollector.name}</span>.</p>
+              {/* Placeholder content - integrate with real assignment flow later */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
+                <textarea className="w-full p-2 border rounded" rows="3" placeholder="Add assignment notes..." />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button className="px-4 py-2 border text-gray-700 rounded-md hover:bg-gray-50" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => setShowAssignModal(false)}>Assign</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Loading state */}
       {loading ? (
@@ -584,10 +676,8 @@ const CollectorsManagement = () => {
                   <button 
                     className="text-blue-600 hover:text-blue-800 mr-6 text-sm flex items-center"
                     onClick={() => {
-                      // View collector details functionality
                       setSelectedCollector(collector);
-                      // This would typically show a detailed view modal
-                      alert(`View details for ${collector.name}`); // Placeholder
+                      setShowDetailsModal(true);
                     }}
                   >
                     <i className="fas fa-eye mr-1"></i> View Details
@@ -596,9 +686,8 @@ const CollectorsManagement = () => {
                   <button 
                     className="text-blue-600 hover:text-blue-800 mr-6 text-sm flex items-center"
                     onClick={() => {
-                      // Assign pickups functionality
-                      // This would typically show an assignment modal
-                      alert(`Assign pickups to ${collector.name}`); // Placeholder
+                      setSelectedCollector(collector);
+                      setShowAssignModal(true);
                     }}
                   >
                     <i className="fas fa-tasks mr-1"></i> Assign Pickups
@@ -606,9 +695,17 @@ const CollectorsManagement = () => {
                   
                   <button 
                     className={`${collector.status === STATUS.COLLECTOR.ACTIVE.toLowerCase() ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'} text-sm flex items-center`}
-                    onClick={() => {
-                      // Toggle status functionality
-                      alert(`Toggle status for ${collector.name} to ${collector.status === STATUS.COLLECTOR.ACTIVE.toLowerCase() ? STATUS.COLLECTOR.INACTIVE.toLowerCase() : STATUS.COLLECTOR.ACTIVE.toLowerCase()}`); // Placeholder
+                    onClick={async () => {
+                      const newStatus = collector.status === STATUS.COLLECTOR.ACTIVE.toLowerCase()
+                        ? STATUS.COLLECTOR.INACTIVE.toLowerCase()
+                        : STATUS.COLLECTOR.ACTIVE.toLowerCase();
+                      try {
+                        await updateCollectorStatus(collector.id, newStatus);
+                        setCollectors(prev => prev.map(c => c.id === collector.id ? { ...c, status: newStatus } : c));
+                      } catch (e) {
+                        console.error('Failed to toggle status', e);
+                        alert('Failed to update status.');
+                      }
                     }}
                   >
                     <i className={`fas ${collector.status === STATUS.COLLECTOR.ACTIVE.toLowerCase() ? 'fa-user-slash' : 'fa-user-check'} mr-1`}></i> 
@@ -918,4 +1015,5 @@ const CollectorsManagement = () => {
   );
 };
 
-export default CollectorsManagement;
+const CollectorsManagementComponent = CollectorsManagement;
+export { CollectorsManagementComponent as default };

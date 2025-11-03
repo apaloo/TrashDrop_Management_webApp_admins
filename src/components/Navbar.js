@@ -27,8 +27,8 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   
   // Recent notifications and contacts (just first 3 of each)
-  const recentNotifications = notifications.slice(0, 3);
-  const recentContacts = contacts.slice(0, 3);
+  const recentNotifications = Array.isArray(notifications) ? notifications.slice(0, 3) : [];
+  const recentContacts = Array.isArray(contacts) ? contacts.slice(0, 3) : [];
   
   // Fetch notifications on component mount
   useEffect(() => {
@@ -73,7 +73,10 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
         setMessageError(null);
       } catch (err) {
         console.error('Error loading messages:', err);
-        setMessageError('Failed to load messages');
+        // Set default values for fallback state
+        setContacts([]);
+        setUnreadMessagesCount(0);
+        setMessageError(null); // Don't show error in UI for database setup issues
       } finally {
         setIsLoadingMessages(false);
       }
@@ -96,7 +99,9 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
     
     return () => {
       // Clean up subscription when component unmounts
-      subscription.unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 

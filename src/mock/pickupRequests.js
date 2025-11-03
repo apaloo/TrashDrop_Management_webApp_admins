@@ -16,6 +16,7 @@ export const pickupRequests = [
     },
     wasteType: 'Recyclable',
     quantity: 2,
+    bag_count: 2,
     status: 'Completed',
     priority: 'Medium',
     assignedTo: {
@@ -42,6 +43,7 @@ export const pickupRequests = [
     },
     wasteType: 'Organic',
     quantity: 3,
+    bag_count: 3,
     status: 'In Progress',
     priority: 'High',
     assignedTo: {
@@ -68,6 +70,7 @@ export const pickupRequests = [
     },
     wasteType: 'Mixed',
     quantity: 1,
+    bag_count: 1,
     status: 'Pending',
     priority: 'Medium',
     assignedTo: null,
@@ -91,7 +94,8 @@ export const pickupRequests = [
     },
     wasteType: 'Electronic',
     quantity: 2,
-    status: 'Completed',
+    bag_count: 2,
+    status: 'In Progress',
     priority: 'Low',
     assignedTo: {
       id: 'collector-002',
@@ -117,7 +121,8 @@ export const pickupRequests = [
     },
     wasteType: 'Hazardous',
     quantity: 1,
-    status: 'Cancelled',
+    bag_count: 1,
+    status: 'Pending',
     priority: 'High',
     assignedTo: {
       id: 'collector-004',

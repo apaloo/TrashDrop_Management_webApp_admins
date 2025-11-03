@@ -442,8 +442,8 @@ const LiveMap = () => {
               </div>
               
               <div className="space-y-3">
-                {collectors
-                  .filter(c => c.status === 'active')
+                {(collectors || [])
+                  .filter(c => c?.status === 'active')
                   .map(collector => (
                     <div 
                       key={collector.id}
@@ -467,9 +467,9 @@ const LiveMap = () => {
                         </div>
                         <div>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            collector.capacityRemaining < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            (collector.capacityRemaining || 0) < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                           }`}>
-                            {collector.capacityRemaining}% Cap
+                            {collector.capacityRemaining || 0}% Cap
                           </span>
                         </div>
                       </div>
@@ -477,11 +477,11 @@ const LiveMap = () => {
                       <div className="flex justify-between text-xs">
                         <div>
                           <span className="text-gray-500">Completed: </span>
-                          <span className="font-medium">{collector.stats.completedToday}</span>
+                          <span className="font-medium">{collector.stats?.completedToday || 0}</span>
                         </div>
                         <div>
                           <span className="text-gray-500">Pending: </span>
-                          <span className="font-medium">{collector.stats.pendingPickups}</span>
+                          <span className="font-medium">{collector.stats?.pendingPickups || 0}</span>
                         </div>
                         <div>
                           <span className="text-gray-500">Last update: </span>
@@ -491,7 +491,7 @@ const LiveMap = () => {
                     </div>
                   ))}
                   
-                {collectors.filter(c => c.status === 'active').length === 0 && (
+                {(collectors || []).filter(c => c?.status === 'active').length === 0 && (
                   <div className="text-center py-6">
                     <div className="inline-flex rounded-full bg-gray-100 p-3 mb-3">
                       <i className="fas fa-user-clock text-gray-500 text-xl"></i>
@@ -502,12 +502,12 @@ const LiveMap = () => {
               </div>
               
               {/* Inactive collectors section */}
-              {collectors.filter(c => c.status === 'inactive').length > 0 && (
+              {(collectors || []).filter(c => c?.status === 'inactive').length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-medium text-sm text-gray-500 mb-2">Inactive Collectors</h4>
                   <div className="space-y-2">
-                    {collectors
-                      .filter(c => c.status === 'inactive')
+                    {(collectors || [])
+                      .filter(c => c?.status === 'inactive')
                       .map(collector => (
                         <div 
                           key={collector.id}

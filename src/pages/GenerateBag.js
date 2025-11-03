@@ -11,9 +11,12 @@ import {
   faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { generateNewBatch } from '../mock/bags';
+import { createBagBatch } from '../utils/databaseUtils';
 import { saveAs } from 'file-saver';
+import { useAuth } from '../context/AuthContext';
 
 const GenerateBag = () => {
+  const { user } = useAuth();
   // State for form values
   const [formData, setFormData] = useState({
     trashType: 'Organic',
@@ -97,7 +100,9 @@ const GenerateBag = () => {
             type: 'CREATE_ZIP',
             payload: {
               chunks: e.data.chunks,
-              batch: downloadingBatch
+              batch: { id: downloadingBatch },
+              baseUrl: 'https://trashdrops.com/scan',
+              email: user?.email || 'admin@trashdrop.com'
             }
           });
         } else if (type === 'ZIP_READY') {
@@ -107,21 +112,13 @@ const GenerateBag = () => {
             const safeFilename = filename.endsWith('.zip') ? filename : `${filename}.zip`;
             
             try {
-              // Convert Uint8Array to Blob
-              const blob = new Blob([content], { type: 'application/zip' });
-              
-              // Create object URL and trigger download
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.style.display = 'none';
-              a.href = url;
-              a.download = safeFilename;
-              document.body.appendChild(a);
-              a.click();
-              
-              // Clean up
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
+              // Use Blob directly if provided by worker; otherwise wrap Uint8Array
+              const blob = (content instanceof Blob)
+                ? content
+                : new Blob([content], { type: 'application/zip' });
+
+              // Use file-saver for robust cross-browser downloads
+              saveAs(blob, safeFilename);
             } catch (error) {
               console.error('Error creating download:', error);
               throw new Error('Failed to create download');
@@ -228,8 +225,13 @@ const GenerateBag = () => {
       workerRef.current.postMessage({
         type: 'GENERATE_QR_CODES',
         payload: {
-          batch,
-          email: 'admin@trashdrop.com',
+          batch: {
+            id: batch.id,
+            bag_count: batch.bag_count || batch.quantity || 0,
+            quantity: batch.bag_count || batch.quantity || 0,
+            startNumber: 1
+          },
+          email: user?.email || 'admin@trashdrop.com',
           baseUrl: 'https://trashdrops.com/scan',
           chunkSize: 20 // Process 20 QR codes at a time
         }
@@ -258,7 +260,6 @@ const GenerateBag = () => {
           size={200}
           level="M"
           includeMargin={false}
-          renderAs="svg"
           fgColor="#000000"
           bgColor="#ffffff"
         />
@@ -266,87 +267,128 @@ const GenerateBag = () => {
     );
   };
 
-  // Generate QR code preview
-  const handlePreview = () => {
-    setError(null);
+
+
+  // Initialize worker on mount and retries
+  useEffect(() => {
+    const cleanup = initWorker();
+    return () => {
+      if (cleanup) cleanup();
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
+    };
+  }, [initWorker]);
+
+
+
+
+// Generate QR code preview
+const handlePreview = () => {
+  setIsLoading(true);
+  setError(null);
+
+  // Validate inputs
+  if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
+    setError('Number of bags must be between 1 and 1000');
+    setIsLoading(false);
+    return;
+  }
+
+  // Generate sample QR code for preview
+  const trashTypePrefix = formData.trashType === 'Organic' ? 'ORG' :
+                         formData.trashType === 'Recyclable' ? 'REC' : 'HAZ';
+  const bagSizePrefix = formData.bagSize === 'Small' ? 'S' :
+                       formData.bagSize === 'Medium' ? 'M' : 'L';
+
+  setPreviewQR({
+    prefix: `TD-${trashTypePrefix}-${bagSizePrefix}`,
+    sample: `TD-${trashTypePrefix}-${bagSizePrefix}-001`,
+    url: `https://trashdrop.com/bag/TD-${trashTypePrefix}-${bagSizePrefix}-001`
+  });
+
+  setPreviewVisible(true);
+  setIsLoading(false);
+};
+
+// Generate actual QR codes and save to database
+const handleGenerate = async () => {
+  setIsLoading(true);
+  setError(null);
+
+  // Validate inputs
+  if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
+    setError('Number of bags must be between 1 and 1000');
+    setIsLoading(false);
+    return;
+  }
+
+  if (formData.numberOfBatches < 1 || formData.numberOfBatches > 10) {
+    setError('Number of batches must be between 1 and 10');
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    const newBatches = [];
     
-    // Validate inputs
-    if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
-      setError('Number of bags must be between 1 and 1000');
-      return;
-    }
-    
-    if (formData.numberOfBatches < 1 || formData.numberOfBatches > 10) {
-      setError('Number of batches must be between 1 and 10');
-      return;
-    }
-    
-    setPreviewVisible(true);
-    
-    // Generate sample QR code for preview
-    const trashTypePrefix = formData.trashType === 'Organic' ? 'ORG' : 
-                           formData.trashType === 'Recyclable' ? 'REC' : 'HAZ';
-    const bagSizePrefix = formData.bagSize === 'Small' ? 'S' : 
-                         formData.bagSize === 'Medium' ? 'M' : 'L';
-    
-    setPreviewQR({
-      prefix: `TD-${trashTypePrefix}-${bagSizePrefix}`,
-      sample: `TD-${trashTypePrefix}-${bagSizePrefix}-001`,
-      url: `https://trashdrop.com/bag/TD-${trashTypePrefix}-${bagSizePrefix}-001`
-    });
-  };
-  
-  // Generate actual QR codes
-  const handleGenerate = () => {
-    setIsLoading(true);
-    setError(null);
-    
-    // Validate inputs again
-    if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
-      setError('Number of bags must be between 1 and 1000');
-      setIsLoading(false);
-      return;
-    }
-    
-    if (formData.numberOfBatches < 1 || formData.numberOfBatches > 10) {
-      setError('Number of batches must be between 1 and 10');
-      setIsLoading(false);
-      return;
-    }
-    
-    // Simulate API call delay
-    setTimeout(() => {
+    for (let i = 0; i < formData.numberOfBatches; i++) {
+      // Generate batch data
+      const { batch } = generateNewBatch(
+        formData.trashType,
+        formData.bagSize,
+        formData.numberOfBags,
+        user?.email || 'admin@trashdrop.com' // Use current user when available
+      );
+      
+      // Convert to format expected by createBagBatch
+      const batchData = {
+        createdBy: batch.createdBy,
+        bag_count: batch.quantity, // Use bag_count for database
+        quantity: batch.quantity,   // Keep for backward compatibility
+        type: batch.type,
+        size: batch.size,
+        qrPrefix: batch.qrPrefix,
+        batchNumber: batch.id.replace('batch-', '') // Extract the batch number
+      };
+      
       try {
-        const newBatches = [];
+        // Save to database
+        console.log('Saving batch to database:', batchData);
+        const result = await createBagBatch(batchData);
+        console.log('Batch saved successfully:', result);
         
-        for (let i = 0; i < formData.numberOfBatches; i++) {
-          // Use the helper function from bags.js
-          const { batch } = generateNewBatch(
-            formData.trashType,
-            formData.bagSize,
-            formData.numberOfBags,
-            'admin@trashdrop.com' // In a real app, this would be the current user
-          );
-          
+        // Add the saved batch to our local state
+        if (result && result.batch) {
+          newBatches.push(result.batch);
+        } else {
+          // Fallback to using local batch if save failed
           newBatches.push(batch);
         }
-        
-        setGeneratedBatches(prevBatches => [...newBatches, ...prevBatches]);
-        setPreviewVisible(false);
-        setPreviewQR(null);
-        
-      } catch (err) {
-        setError('Error generating QR codes: ' + err.message);
-      } finally {
-        setIsLoading(false);
+      } catch (dbError) {
+        console.error('Error saving batch to database:', dbError);
+        // Still add the local batch version
+        newBatches.push(batch);
+        // Show warning but don't stop the process
+        setError(prev => prev ? `${prev}. Database error: ${dbError.message}` : `Database error: ${dbError.message}`);
       }
-    }, 1500); // Simulate 1.5s API delay
-  };
-  
+    }
+    
+    // Update UI with the new batches
+    setGeneratedBatches(prevBatches => [...newBatches, ...prevBatches]);
+    setPreviewVisible(false);
+    setPreviewQR(null);
+    
+  } catch (err) {
+    setError('Error generating QR codes: ' + err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  // Main component JSX
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Generate Bag Batches</h2>
-      
+    <div className="container mx-auto p-6">
       {/* Form section */}
       <div className="bg-white shadow-sm rounded-lg mb-6">
         <div className="p-6">
@@ -570,6 +612,19 @@ const GenerateBag = () => {
                 : 'Download complete! The file should start downloading shortly.'
               }
             </div>
+
+            {/* Close button for dismissing the prompt */}
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
+                className={`px-4 py-2 text-sm rounded-md border ${downloadProgress.isProcessing ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'}`}
+                disabled={downloadProgress.isProcessing}
+                aria-label="Close download prompt"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -614,11 +669,7 @@ const GenerateBag = () => {
                     
                     return (
                       <tr key={batch.id} className="hover:bg-gray-50">
-                        {/* Hidden QR codes for this batch */}
-                        {Array.from({ length: Math.min(batch.quantity, 10) }).map((_, index) => (
-                          renderQRCode(batch, index)
-                        ))}
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTrashTypeColor(batch.type)}`}>
                             {batch.type}
@@ -639,10 +690,9 @@ const GenerateBag = () => {
                               className={isDownloading && downloadingBatch === batch.id ? 'animate-spin mr-2' : 'mr-2'} 
                             />
                             <span>Download QRs</span>
-                            )}
                           </button>
                         </td>
-                      </tr>
+                        </tr>
                     );
                   })}
                 </tbody>
@@ -650,6 +700,21 @@ const GenerateBag = () => {
             </div>
           )}
         </div>
+        
+        {/* Hidden QR codes for download - rendered outside conditional */}
+        {generatedBatches.length > 0 && (
+          <div style={{ display: 'none' }}>
+            {generatedBatches.map((batch) => (
+              <div key={`qr-container-${batch.id}`}>
+                {Array.from({ length: Math.min(batch.quantity, 10) }).map((_, index) => (
+                  <div key={`qr-${batch.id}-${index}`}>
+                    {renderQRCode(batch, index)}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
