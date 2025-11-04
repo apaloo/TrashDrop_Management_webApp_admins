@@ -1532,8 +1532,8 @@ export const fetchCollectorsReal = async (status = null) => {
 
 /**
  * Fetch illegal dumping reports from real data
- * Wrapper for realDataUtils.fetchIllegalDumpingReportsReal
+ * Wrapper for realDataUtils.fetchIllegalDumpingReports
  */
 export const fetchIllegalDumpingReportsReal = async (filters = {}) => {
-  return await realDataUtils.fetchIllegalDumpingReportsReal(filters);
+  return await realDataUtils.fetchIllegalDumpingReports(filters);
 };
