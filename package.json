@@ -38,9 +38,12 @@
     "build:netlify": "npm install --legacy-peer-deps && npm run build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx",
+    "lint:fix": "eslint src --ext .js,.jsx --fix",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "cy:test": "start-server-and-test start http://localhost:3000 cy:run"
+    "cy:test": "start-server-and-test start http://localhost:3000 cy:run",
+    "prepare": "husky install"
   },
   "eslintConfig": {
     "extends": [
