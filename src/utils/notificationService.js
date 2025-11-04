@@ -2,14 +2,15 @@ import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
 import { fetchNotifications as dbFetchNotifications } from './dbUtils';
 import { realtimeManager } from '../services/realtimeManager';
+import { getCurrentSession } from './auth';
 
 /**
  * Fetches all notifications for the current user
  * @returns {Promise<Array>} Array of notification objects
  */
 export const fetchNotifications = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
+  const { user } = await getCurrentSession();
+  const userId = user?.id;
   
   if (!userId) {
     throw new Error('User not authenticated');
@@ -44,8 +45,8 @@ export const fetchNotifications = async () => {
  */
 export const markNotificationAsRead = async (notificationId) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
+    const { user } = await getCurrentSession();
+    const userId = user?.id;
     
     if (!userId) {
       console.warn('User not authenticated');

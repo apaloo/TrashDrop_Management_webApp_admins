@@ -122,6 +122,45 @@ export const getCurrentUser = async () => {
   }
 };
 
+/**
+ * Get current user session that works in both dev and production modes
+ * @returns {Promise<{session: object|null, user: object|null, error: Error|null}>}
+ */
+export const getCurrentSession = async () => {
+  // Check for dev mode first
+  if (isDevMode()) {
+    const devUser = getDevModeUser();
+    if (devUser) {
+      // Create a mock session structure
+      const mockSession = {
+        access_token: 'dev-mock-token',
+        refresh_token: 'dev-mock-refresh-token',
+        expires_at: new Date().getTime() + 3600000,
+        user: devUser
+      };
+      return { session: mockSession, user: devUser, error: null };
+    }
+  }
+  
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return { session, user: session?.user || null, error: null };
+  } catch (error) {
+    console.error('Error getting session:', error.message);
+    return { session: null, user: null, error };
+  }
+};
+
+/**
+ * Get current user ID that works in both dev and production modes
+ * @returns {Promise<string|null>}
+ */
+export const getCurrentUserId = async () => {
+  const { user } = await getCurrentSession();
+  return user?.id || null;
+};
+
 export const getUserRole = async () => {
   try {
     const { user, error } = await getCurrentUser();

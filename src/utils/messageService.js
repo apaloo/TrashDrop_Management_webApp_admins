@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { formatDistanceToNow } from 'date-fns';
 import { safeDatabaseService } from './safeDatabaseService';
 import { getUserContacts, fetchMessages as dbFetchMessages } from './dbUtils';
+import { getCurrentSession } from './auth';
 
 /**
  * Fetch messages for the current user
@@ -9,13 +10,13 @@ import { getUserContacts, fetchMessages as dbFetchMessages } from './dbUtils';
  */
 export const fetchMessages = async () => {
   try {
-    // Get the current user session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get the current user session (works in both dev and production modes)
+    const { user } = await getCurrentSession();
+    if (!user) {
       throw new Error('No active session - user must be authenticated');
     }
     
-    const userId = session.user.id;
+    const userId = user.id;
     
     // Use dbUtils to fetch messages with proper error handling
     const { data: messages, error } = await dbFetchMessages({ 
@@ -64,13 +65,13 @@ export const fetchMessages = async () => {
  */
 export const fetchContacts = async () => {
   try {
-    // Get the current user session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get the current user session (works in both dev and production modes)
+    const { user } = await getCurrentSession();
+    if (!user) {
       throw new Error('No active session - user must be authenticated');
     }
     
-    const userId = session.user.id;
+    const userId = user.id;
     
     // Use dbUtils for contacts with proper error handling
     const { data: contacts, error } = await getUserContacts(userId);
@@ -131,11 +132,11 @@ export const markMessageAsRead = async (messageId) => {
  */
 export const markAllMessagesFromSenderAsRead = async (senderId) => {
   try {
-    // Get current user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No active session');
+    // Get current user (works in both dev and production modes)
+    const { user } = await getCurrentSession();
+    if (!user) throw new Error('No active session');
     
-    const userId = session.user.id;
+    const userId = user.id;
     
     const { data, error } = await supabase
       .from('messages')
@@ -158,11 +159,11 @@ export const markAllMessagesFromSenderAsRead = async (senderId) => {
  */
 export const getUnreadMessageCount = async () => {
   try {
-    // Get current user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return 0;
+    // Get current user (works in both dev and production modes)
+    const { user } = await getCurrentSession();
+    if (!user) return 0;
     
-    const userId = session.user.id;
+    const userId = user.id;
     
     // Check if table exists first
     const tableExists = await safeDatabaseService.checkTableExists('messages');
@@ -236,14 +237,14 @@ export const subscribeToMessages = (callback) => {
  */
 export const sendMessage = async (recipientId, content) => {
   try {
-    // Get current user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get current user (works in both dev and production modes)
+    const { user } = await getCurrentSession();
+    if (!user) {
       console.warn('No active session for sending message');
       return null;
     }
     
-    const senderId = session.user.id;
+    const senderId = user.id;
     
     // Check if table exists first
     const tableExists = await safeDatabaseService.checkTableExists('messages');

@@ -226,13 +226,44 @@ class SafeDatabaseService {
         };
       }
       
-      // If we got an error, check if it's a missing table/function
+      // Check if we're in dev mode
+      const isDevMode = process.env.REACT_APP_USE_DEV_AUTH === 'true';
+      
+      // If we got an error, check if it's a missing table/function or dev mode UUID error
       const isMissingError = result.error && (
         result.error.code === 'PGRST116' ||
         result.error.code === '42P01' ||  // relation does not exist
         result.error.code === '42883' ||  // function does not exist
         result.error.message?.includes('does not exist')
       );
+      
+      // Check if it's a UUID validation error in dev mode (dev user doesn't exist in DB)
+      const isDevModeUuidError = isDevMode && result.error && (
+        result.error.code === '22P02' ||  // invalid input syntax for type uuid
+        (result.error.message && result.error.message.includes('uuid'))
+      );
+      
+      // Handle dev mode UUID errors (dev user doesn't exist in database)
+      if (isDevModeUuidError) {
+        console.warn(`⚠️ Dev mode: User not found in database. Using mock data fallback for ${tableName}.`);
+        if (typeof mockDataFn === 'function') {
+          const mockData = mockDataFn(mockDataParams);
+          return {
+            data: mockData,
+            count: mockData?.length || 0,
+            error: null,
+            isMock: true
+          };
+        } else {
+          // Return empty data if no mock function available
+          return {
+            data: [],
+            count: 0,
+            error: null,
+            isMock: true
+          };
+        }
+      }
       
       if (isMissingError) {
         if (useStrict) {

@@ -3,8 +3,9 @@
 // It should NOT be used in production
 
 // Mock user object that mimics Supabase auth user structure
+// Using a valid UUID format that matches PostgreSQL requirements
 export const MOCK_USER = {
-  id: 'dev-user-123',
+  id: '00000000-0000-0000-0000-000000000001', // Valid UUID format for dev mode
   email: 'admin@trashdrop.com',
   user_metadata: {
     full_name: 'Development Admin',

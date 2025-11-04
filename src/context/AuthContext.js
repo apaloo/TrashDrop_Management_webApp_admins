@@ -14,19 +14,20 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  // Initialize state from localStorage to avoid flash of unauthenticated content
-  const initialAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
-  const initialOnboardingState = localStorage.getItem('trashdrop_onboarding_completed') === 'true';
-  const initialUserData = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
+  // Only use localStorage in dev mode, otherwise rely on Supabase session
+  const devMode = isDevMode();
+  const initialAuthState = devMode ? localStorage.getItem('trashdrop_authenticated') === 'true' : false;
+  const initialOnboardingState = devMode ? localStorage.getItem('trashdrop_onboarding_completed') === 'true' : false;
+  const initialUserData = devMode ? JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null') : null;
   
-  // Get current authenticated user state with localStorage as initial values
+  // Get current authenticated user state - only use localStorage in dev mode
   const [user, setUser] = useState(initialUserData);
   const [role, setRole] = useState(initialUserData?.user_metadata?.role || 'user');
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(initialOnboardingState);
   const [authInitialized, setAuthInitialized] = useState(false);
   // Explicitly track authentication status in its own state variable instead of derived
-  const [isAuthenticated, setIsAuthenticated] = useState(!!initialUserData || initialAuthState);
+  const [isAuthenticated, setIsAuthenticated] = useState(devMode && (!!initialUserData || initialAuthState));
 
   // Function to update user data on auth events
   const setAuthData = (session) => {
@@ -40,11 +41,13 @@ export const AuthProvider = ({ children }) => {
       // Explicitly set authenticated state
       setIsAuthenticated(true);
       
-      // Store all auth data in localStorage for persistence
-      localStorage.setItem('trashdrop_authenticated', 'true');
-      localStorage.setItem('trashdrop_session_active', 'true');
-      localStorage.setItem('trashdrop_onboarding_completed', onboardingStatus.toString());
-      localStorage.setItem('trashdrop_user_data', JSON.stringify(session.user));
+      // Only store in localStorage if in dev mode
+      if (isDevMode()) {
+        localStorage.setItem('trashdrop_authenticated', 'true');
+        localStorage.setItem('trashdrop_session_active', 'true');
+        localStorage.setItem('trashdrop_onboarding_completed', onboardingStatus.toString());
+        localStorage.setItem('trashdrop_user_data', JSON.stringify(session.user));
+      }
       
       console.log('AuthContext: User authenticated, state updated');
     } else {
@@ -54,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       setOnboardingCompleted(false);
       setIsAuthenticated(false);
       
-      // Clear all auth data from localStorage
+      // Clear all auth data from localStorage (always clear to ensure clean state)
       localStorage.removeItem('trashdrop_authenticated');
       localStorage.removeItem('trashdrop_session_active');
       localStorage.removeItem('trashdrop_onboarding_completed');
@@ -149,17 +152,18 @@ export const AuthProvider = ({ children }) => {
           if (isMounted) {
             setAuthData(session);
           }
-        } else if (localStorage.getItem('trashdrop_authenticated') === 'true') {
-          // No active session but localStorage indicates authenticated state
-          console.log('AuthContext: Using localStorage auth state');
+        } else if (isDevMode() && localStorage.getItem('trashdrop_authenticated') === 'true') {
+          // Only use localStorage fallback in dev mode
+          console.log('AuthContext: Dev mode - Using localStorage auth state');
           const localUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
           
           if (localUser) {
-            // Create a pseudo-session for the local user
+            // Create a pseudo-session for the local user in dev mode
             if (isMounted) {
               setUser(localUser);
               setRole(localUser.user_metadata?.role || 'user');
               setOnboardingCompleted(localStorage.getItem('trashdrop_onboarding_completed') === 'true');
+              setIsAuthenticated(true);
               setAuthInitialized(true);
               setLoading(false);
             }
@@ -172,11 +176,10 @@ export const AuthProvider = ({ children }) => {
             }
           }
         } else {
-          // No session and no localStorage auth state
-          console.log('AuthContext: No auth state found');
+          // No session - in production mode, this means not authenticated
+          console.log('AuthContext: No active Supabase session found');
           if (isMounted) {
-            setAuthInitialized(true);
-            setLoading(false);
+            setAuthData(null); // Clear any stale state
           }
         }
       } catch (error) {
