@@ -318,8 +318,8 @@ class RealtimeManager {
    */
   subscribeToCollectors(callback) {
     return this.subscribe(
-      'collectors',
-      ['collectors', 'collector_sessions', 'scans'],
+      'collector-profiles',
+      ['collector_profiles', 'collector_sessions', 'scans'],
       callback
     );
   }

@@ -21,7 +21,7 @@ export const REQUIRED_TABLES = [
   'batches',
   'bags',
   'scans',
-  'collectors',
+  'collector_profiles',
   'pickup_requests',
   'service_areas',
   'illegal_dumping_mobile'

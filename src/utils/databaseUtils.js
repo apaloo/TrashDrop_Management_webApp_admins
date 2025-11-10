@@ -130,135 +130,6 @@ export const archiveBagBatch = async (batchId) => {
 };
 
 /**
- * Generate mock collectors data for development
- * @param {string} status - Optional status filter
- * @returns {Array} Array of collector objects
- */
-export const generateMockCollectors = (status = null) => {
-  const mockCollectors = [
-    {
-      id: '1',
-      name: 'Kwame Asante',
-      email: 'kwame.asante@trashdrop.com',
-      phone: '+233123456789',
-      status: 'active',
-      region: 'Accra Metropolitan',
-      rating: 4.8,
-      total_collections: 245,
-      last_active: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      joined_date: '2024-01-15',
-      profilePic: 'https://ui-avatars.com/api/?name=Kwame+Asante&background=2563eb',
-      vehicle: {
-        type: 'Truck',
-        plate: 'GR-1234-20',
-        capacity: '500kg'
-      },
-      activeRequests: 3,
-      completedToday: 8,
-      currentLocation: { lat: 5.5800, lng: -0.2300 },
-      stats: {
-        completedToday: 8,
-        pendingPickups: 3,
-        totalDistance: '15.2',
-        avgResponseTime: 22
-      },
-      capacityRemaining: 75
-    },
-    {
-      id: '2',
-      name: 'Akosua Mensah',
-      email: 'akosua.mensah@trashdrop.com',
-      phone: '+233234567890',
-      status: 'active',
-      region: 'Ga North Municipal',
-      rating: 4.6,
-      total_collections: 189,
-      last_active: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      joined_date: '2024-02-20',
-      profilePic: 'https://ui-avatars.com/api/?name=Akosua+Mensah&background=059669',
-      vehicle: {
-        type: 'Van',
-        plate: 'GR-5678-20',
-        capacity: '300kg'
-      },
-      activeRequests: 2,
-      completedToday: 5,
-      currentLocation: { lat: 5.7000, lng: -0.2000 },
-      stats: {
-        completedToday: 5,
-        pendingPickups: 2,
-        totalDistance: '12.8',
-        avgResponseTime: 18
-      },
-      capacityRemaining: 60
-    },
-    {
-      id: '3',
-      name: 'Kofi Boateng',
-      email: 'kofi.boateng@trashdrop.com',
-      phone: '+233345678901',
-      status: 'inactive',
-      region: 'Ga East Municipal',
-      rating: 4.4,
-      total_collections: 156,
-      last_active: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      joined_date: '2023-12-10',
-      profilePic: 'https://ui-avatars.com/api/?name=Kofi+Boateng&background=dc2626',
-      vehicle: {
-        type: 'Pickup',
-        plate: 'GR-8765-20',
-        capacity: '250kg'
-      },
-      activeRequests: 0,
-      completedToday: 0,
-      currentLocation: { lat: 5.6500, lng: -0.1700 },
-      stats: {
-        completedToday: 0,
-        pendingPickups: 0,
-        totalDistance: '0.0',
-        avgResponseTime: 25
-      },
-      capacityRemaining: 100
-    },
-    {
-      id: '4',
-      name: 'Ama Owusu',
-      email: 'ama.owusu@trashdrop.com',
-      phone: '+233456789012',
-      status: 'active',
-      region: 'Ga West Municipal',
-      rating: 4.9,
-      total_collections: 278,
-      last_active: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      joined_date: '2023-11-05',
-      profilePic: 'https://ui-avatars.com/api/?name=Ama+Owusu&background=7c3aed',
-      vehicle: {
-        type: 'Truck',
-        plate: 'GR-4321-20',
-        capacity: '450kg'
-      },
-      activeRequests: 5,
-      completedToday: 7,
-      currentLocation: { lat: 5.6200, lng: -0.2600 },
-      stats: {
-        completedToday: 7,
-        pendingPickups: 5,
-        totalDistance: '18.5',
-        avgResponseTime: 16
-      },
-      capacityRemaining: 40
-    }
-  ];
-
-  // Filter by status if provided
-  if (status) {
-    return mockCollectors.filter(c => c.status?.toLowerCase() === status.toLowerCase());
-  }
-  
-  return mockCollectors;
-};
-
-/**
  * Generate mock collections data for charts and statistics
  * @returns {Array} Mock collections data
  */
@@ -941,41 +812,37 @@ const generateMockBatchCreation = (batchData) => {
  */
 export const createCollector = async (collectorData) => {
   try {
-    // Check if collectors table exists
-    const tableExists = await safeDatabaseService.checkTableExists('collectors');
-    if (!tableExists) {
-      console.warn('Table collectors does not exist. Returning mock collector creation.');
-      return generateMockCollectorCreation(collectorData);
-    }
+    const payload = {
+      first_name: collectorData.first_name || collectorData.name?.split(' ')[0] || 'Unknown',
+      last_name: collectorData.last_name || collectorData.name?.split(' ').slice(1).join(' ') || '',
+      email: collectorData.email,
+      phone: collectorData.phone,
+      status: collectorData.status || STATUS.COLLECTOR.ACTIVE.toLowerCase(),
+      region: collectorData.region,
+      assigned_region: collectorData.assigned_region ?? collectorData.region ?? null,
+      vehicle_type: collectorData.vehicle_type ?? null,
+      license_plate: collectorData.vehicle_plate ?? null,
+      vehicle_capacity: collectorData.vehicle_capacity ?? null,
+      profile_image_url: collectorData.avatar_url ?? collectorData.profile_image_url ?? null,
+      notes: collectorData.notes ?? null,
+      created_at: collectorData.created_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
     const { data, error } = await supabase
-      .from('collectors')
-      .insert([
-        {
-          name: collectorData.name || 'New Collector',
-          email: collectorData.email || 'collector@example.com',
-          phone: collectorData.phone || '+233501234567',
-          region: collectorData.region || 'Accra Metropolitan',
-          status: collectorData.status || 'active',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ])
-      .select()
+      .from('collector_profiles')
+      .insert(payload)
+      .select('*')
       .single();
-    
+
     if (error) {
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Table collectors does not exist. Returning mock collector creation.');
-        return generateMockCollectorCreation(collectorData);
-      }
       throw error;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error creating collector:', error);
-    return generateMockCollectorCreation(collectorData);
+    throw error;
   }
 };
 
@@ -987,68 +854,31 @@ export const createCollector = async (collectorData) => {
  */
 export const updateCollector = async (collectorId, updateData) => {
   try {
-    // Check if collectors table exists
-    const tableExists = await safeDatabaseService.checkTableExists('collectors');
-    if (!tableExists) {
-      console.warn('Table collectors does not exist. Returning mock collector update.');
-      return generateMockCollectorUpdate(collectorId, updateData);
+    if (!collectorId) {
+      throw new Error('collectorId is required to update collector');
     }
 
+    const payload = {
+      ...updateData,
+      updated_at: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
-      .from('collectors')
-      .update({
-        ...updateData,
-        updated_at: new Date().toISOString()
-      })
+      .from('collector_profiles')
+      .update(payload)
       .eq('id', collectorId)
-      .select()
+      .select('*')
       .single();
-    
+
     if (error) {
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        console.warn('Table collectors does not exist. Returning mock collector update.');
-        return generateMockCollectorUpdate(collectorId, updateData);
-      }
       throw error;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error updating collector:', error);
-    return generateMockCollectorUpdate(collectorId, updateData);
+    throw error;
   }
-};
-
-/**
- * Generate mock collector creation response
- * @param {Object} collectorData - Original collector data
- * @returns {Object} Mock collector record
- */
-const generateMockCollectorCreation = (collectorData) => {
-  return {
-    id: `collector-${Date.now()}`,
-    name: collectorData.name || 'New Collector',
-    email: collectorData.email || 'collector@example.com',
-    phone: collectorData.phone || '+233501234567',
-    region: collectorData.region || 'Accra Metropolitan',
-    status: collectorData.status || 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-};
-
-/**
- * Generate mock collector update response
- * @param {string} collectorId - Collector ID
- * @param {Object} updateData - Update data
- * @returns {Object} Mock updated collector record
- */
-const generateMockCollectorUpdate = (collectorId, updateData) => {
-  return {
-    id: collectorId,
-    ...updateData,
-    updated_at: new Date().toISOString()
-  };
 };
 
 /**
@@ -1523,11 +1353,31 @@ export const fetchPerformanceStatsReal = async () => {
 };
 
 /**
- * Fetch collectors from real data
- * Wrapper for realDataUtils.fetchCollectors
+ * Fetch collectors from Supabase collector_profiles
  */
-export const fetchCollectorsReal = async (status = null) => {
-  return await realDataUtils.fetchCollectors(status);
+export const fetchCollectors = async ({ status = null, region = null, limit = 100 } = {}) => {
+  return await safeDatabaseService.safeQuery({
+    tableName: 'collector_profiles',
+    throwOnMissing: true,
+    enableMock: false,
+    queryFn: async () => {
+      let query = supabase
+        .from('collector_profiles')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(limit);
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      if (region) {
+        query = query.eq('region', region);
+      }
+
+      return query;
+    }
+  });
 };
 
 /**

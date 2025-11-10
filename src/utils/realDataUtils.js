@@ -61,12 +61,17 @@ export const fetchBagRequestStats = async () => {
 export const fetchCollectorStats = async () => {
   try {
     const { data, error } = await supabase
-      .from('collectors')
-      .select('id, name, status, rating, created_at, total_collections');
+      .from('collector_profiles')
+      .select('id, first_name, last_name, status, rating, created_at, total_collections, assigned_region');
 
     if (error) throw error;
 
-    const collectors = data || [];
+    const collectors = (data || []).map((collector) => ({
+      ...collector,
+      status: (collector.status || '').toLowerCase(),
+      fullName: `${collector.first_name ?? ''} ${collector.last_name ?? ''}`.trim()
+    }));
+
     const total = collectors.length;
     const active = collectors.filter(c => c.status === 'active').length;
     const inactive = collectors.filter(c => c.status === 'inactive').length;
@@ -75,21 +80,22 @@ export const fetchCollectorStats = async () => {
     const thisMonth = new Date();
     thisMonth.setDate(1);
     const newThisMonth = collectors.filter(c => 
-      new Date(c.created_at) >= thisMonth
+      c.created_at && new Date(c.created_at) >= thisMonth
     ).length;
     
     // Calculate average rating
-    const ratingsSum = collectors
-      .filter(c => c.rating)
-      .reduce((sum, c) => sum + c.rating, 0);
-    const avgRating = collectors.length > 0 ? ratingsSum / collectors.length : 0;
+    const ratedCollectors = collectors.filter(c => typeof c.rating === 'number');
+    const ratingsSum = ratedCollectors.reduce((sum, c) => sum + c.rating, 0);
+    const avgRating = ratedCollectors.length > 0 ? ratingsSum / ratedCollectors.length : 0;
     
     // Find top collector
     const topCollector = collectors.reduce((top, current) => {
-      return (current.total_collections > (top.total_collections || 0)) ? current : top;
-    }, {});
+      const currentTotal = current.total_collections ?? 0;
+      const topTotal = top.total_collections ?? 0;
+      return currentTotal > topTotal ? current : top;
+    }, collectors[0] || {});
 
-    // Get unique regions count
+    // Get unique regions count (fallback to 4 if query fails)
     const { data: regionData, error: regionError } = await supabase
       .from('service_areas')
       .select('id, name');
@@ -104,7 +110,7 @@ export const fetchCollectorStats = async () => {
       average_rating: Math.round(avgRating * 10) / 10,
       regions,
       top_collector: {
-        name: topCollector.name || 'No collectors',
+        name: (topCollector.fullName || topCollector.email || 'No collectors').trim(),
         collections: topCollector.total_collections || 0,
         rating: topCollector.rating || 0
       }
@@ -130,7 +136,7 @@ export const fetchPerformanceStats = async () => {
 
     // Get collector statistics
     const { data: collectorsData, error: collectorsError } = await supabase
-      .from('collectors')
+      .from('collector_profiles')
       .select('id, rating');
 
     if (collectorsError) throw collectorsError;
@@ -274,23 +280,27 @@ export const fetchPickupRequests = async (status = null) => {
 export const fetchCollectors = async (status = null) => {
   try {
     let query = supabase
-      .from('collectors')
+      .from('collector_profiles')
       .select(`
         id,
-        name,
+        first_name,
+        last_name,
         email,
         phone,
         status,
         rating,
         total_collections,
-        last_active,
+        last_active_at,
         created_at,
         vehicle_type,
         vehicle_plate,
         vehicle_capacity,
-        current_location,
-        region,
-        profile_image_url
+        current_latitude,
+        current_longitude,
+        assigned_region,
+        profile_image_url,
+        completed_today,
+        active_requests
       `);
 
     if (status) {
@@ -301,24 +311,29 @@ export const fetchCollectors = async (status = null) => {
 
     if (error) throw error;
 
-    // Transform the data
     const transformedData = (data || []).map(collector => {
-      // Get today's completed requests count
-      const completedToday = Math.floor(Math.random() * 10); // This would come from pickup_requests join
-      const activeRequests = Math.floor(Math.random() * 5); // This would come from pickup_requests join
+      const fullName = `${collector.first_name ?? ''} ${collector.last_name ?? ''}`.trim() || collector.email || 'Unknown Collector';
+      const completedToday = collector.completed_today ?? Math.floor(Math.random() * 10);
+      const activeRequests = collector.active_requests ?? Math.floor(Math.random() * 5);
+      const profilePic = collector.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2563eb`;
+
+      const currentLocation = {
+        lat: collector.current_latitude ?? 5.5800,
+        lng: collector.current_longitude ?? -0.2300
+      };
 
       return {
         id: collector.id,
-        name: collector.name,
+        name: fullName,
         email: collector.email,
         phone: collector.phone,
-        status: collector.status,
-        rating: collector.rating || 0,
-        total_collections: collector.total_collections || 0,
-        last_active: collector.last_active,
+        status: (collector.status || '').toLowerCase(),
+        rating: collector.rating ?? 0,
+        total_collections: collector.total_collections ?? 0,
+        last_active: collector.last_active_at,
         joined_date: collector.created_at,
-        region: collector.region || 'Accra Metropolitan',
-        profilePic: collector.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(collector.name)}&background=2563eb`,
+        region: collector.assigned_region || 'Accra Metropolitan',
+        profilePic,
         vehicle: {
           type: collector.vehicle_type || 'Truck',
           plate: collector.vehicle_plate || 'N/A',
@@ -326,7 +341,7 @@ export const fetchCollectors = async (status = null) => {
         },
         activeRequests,
         completedToday,
-        currentLocation: collector.current_location || { lat: 5.5800, lng: -0.2300 },
+        currentLocation,
         stats: {
           completedToday,
           pendingPickups: activeRequests,

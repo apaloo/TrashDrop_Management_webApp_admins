@@ -52,4 +52,6 @@ export const validateEnvConfig = () => {
   }
 };
 
-export default { getEnvConfig, validateEnvConfig };
+const envConfig = { getEnvConfig, validateEnvConfig };
+
+export default envConfig;

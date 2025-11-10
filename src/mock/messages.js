@@ -225,10 +225,12 @@ export const getUnreadMessageCount = () => {
   return contacts.reduce((total, contact) => total + contact.unreadCount, 0);
 };
 
-export default {
+const messageData = {
   contacts,
   conversations,
   notifications,
   getUnreadCount,
   getUnreadMessageCount
 };
+
+export default messageData;

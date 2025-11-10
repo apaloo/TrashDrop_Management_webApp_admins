@@ -89,11 +89,11 @@ export const fetchDashboardMetrics = async () => {
     
     // Fetch active collector percentage
     const { count: totalCollectors, error: totalCollectorsError } = await supabase
-      .from('collectors')
+      .from('collector_profiles')
       .select('*', { count: 'exact', head: true });
       
     if (totalCollectorsError) {
-      throw new Error('Error fetching total collectors count');
+      throw totalCollectorsError;
     }
     
     const activeCollectorPercent = totalCollectors > 0 ? 
@@ -234,14 +234,14 @@ export const fetchCollectorActivityChartData = async () => {
     
     // Fallback to direct Supabase query
     // Check if table exists
-    const tableExists = await safeDatabaseService.checkTableExists('collectors');
+    const tableExists = await safeDatabaseService.checkTableExists('collector_profiles');
     if (!tableExists) {
-      console.warn('Table collectors does not exist. Using mock data.');
+      console.warn('Table collector_profiles does not exist. Using mock data.');
       return generateMockCollectorActivityData();
     }
     
     const { data, error } = await supabase
-      .from('collectors')
+      .from('collector_profiles')
       .select('status');
     
     if (error) {
@@ -278,7 +278,10 @@ export const fetchCollectorActivityChartData = async () => {
     };
   } catch (error) {
     console.error('Error fetching collector activity chart data:', error);
-    return generateMockCollectorActivityData();
+    return {
+      labels: [],
+      datasets: []
+    };
   }
 };
 
@@ -571,9 +574,9 @@ export const subscribeToDashboardUpdates = (callback) => {
       safeDatabaseService.safeSubscription('pickup_requests', {
         callback: handleDataChange
       }, () => console.log('Pickup requests polling fallback')),
-      safeDatabaseService.safeSubscription('collectors', {
+      safeDatabaseService.safeSubscription('collector_profiles', {
         callback: handleDataChange  
-      }, () => console.log('Collectors polling fallback')),
+      }, () => console.log('Collector profiles polling fallback')),
       safeDatabaseService.safeSubscription('alerts', {
         callback: handleDataChange
       }, () => console.log('Alerts polling fallback'))

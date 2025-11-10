@@ -114,11 +114,11 @@ const LiveMap = () => {
     const subscriptions = [];
     
     // Subscribe to collector updates
-    const collectorChannel = supabase.channel('collector_updates');
+    const collectorChannel = supabase.channel('collector_profile_updates');
     collectorChannel
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'collectors' },
+        { event: '*', schema: 'public', table: 'collector_profiles' },
         async () => {
           try {
             const updatedCollectors = await fetchCollectors();

@@ -117,24 +117,28 @@ export const fetchServiceAreas = async () => {
     }
     
     // Check if related tables exist before fetching counts
-    const collectorsTableExists = await safeDatabaseService.checkTableExists('collectors');
+    const collectorProfilesExists = await safeDatabaseService.checkTableExists('collector_profiles');
     const pickupRequestsTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
     
     let collectorCounts = [];
     let requestCounts = [];
     
     // Fetch collector counts per area (if table exists)
-    if (collectorsTableExists) {
+    if (collectorProfilesExists) {
       try {
         const { data, error } = await supabase
-          .from('collectors')
-          .select('region')
+          .from('collector_profiles')
+          .select('service_area_id, assigned_region, status')
           .eq('status', 'active');
         
         if (!error && data) {
           // Count collectors per region
           collectorCounts = data.reduce((acc, collector) => {
-            acc[collector.region] = (acc[collector.region] || 0) + 1;
+            const key = collector.service_area_id || collector.assigned_region;
+            if (!key) {
+              return acc;
+            }
+            acc[key] = (acc[key] || 0) + 1;
             return acc;
           }, {});
         }
@@ -166,7 +170,10 @@ export const fetchServiceAreas = async () => {
     // Transform the data to match the expected format
     return areas.map(area => {
       // Find collector count for this area
-      const collectorCount = collectorCounts[area.id] || 0;
+      const collectorCount = collectorCounts[area.id] 
+        || collectorCounts[area.assigned_region] 
+        || collectorCounts[area.name] 
+        || 0;
       
       // Find request count for this area
       const requestCount = requestCounts[area.id] || 0;

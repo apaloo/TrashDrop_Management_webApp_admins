@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
 import { 
   generateMockBagBatches,
-  generateMockCollectors,
   generateMockCollectionsData,
   generateMockWasteDistribution,
   generateMockCollectorPerformance,

@@ -340,7 +340,7 @@ const IllegalDumpingMap = () => {
     setLoadingCollectors(true);
     try {
       const { data, error } = await supabase
-        .from('collectors')
+        .from('collector_profiles')
         .select('id, first_name, last_name, email, phone, status, vehicle_type, vehicle_plate')
         .eq('status', 'active')
         .order('first_name', { ascending: true });
