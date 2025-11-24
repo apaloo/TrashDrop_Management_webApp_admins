@@ -791,7 +791,22 @@ const BagManagement = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2">
+            {/* Info note about QR code regeneration */}
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Tip:</strong> QR codes are always generated with the latest settings (600×700px, optimized for printing). 
+                Click "Regenerate & Download" to get fresh QR codes with the current enhanced size.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => handleDownloadQRs(selectedBatch)}
+                title="Regenerate QR codes with new larger size and download"
+              >
+                🔄 Regenerate & Download
+              </button>
               <button
                 className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                 onClick={() => handleDownloadQRs(selectedBatch)}
@@ -826,7 +841,17 @@ const BagManagement = () => {
               </div>
             </div>
             <div className="text-sm text-gray-500 text-center">
-              {downloadProgress.progress < 100 ? 'Please wait while we prepare your download...' : 'Download complete! The file should start downloading shortly.'}
+              {downloadProgress.progress < 100 ? (
+                <>
+                  <p>Generating enhanced QR codes (600×700px)...</p>
+                  <p className="mt-1">Please wait while we prepare your download.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-green-600 font-medium">✓ Download complete!</p>
+                  <p className="mt-1">The file should start downloading shortly.</p>
+                </>
+              )}
             </div>
 
             {/* Close button for dismissing the prompt */}

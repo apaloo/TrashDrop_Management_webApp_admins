@@ -1,9 +1,14 @@
 /* eslint-disable no-restricted-globals */
 // Web Worker for handling QR code generation and ZIP creation
 // This is an ES Module worker
+// VERSION: 2.2 - Large Nested SVG QR Code (450x450px on 600x700 canvas)
 
-// Import JSZip directly
+// Import JSZip and QRCode libraries directly
 import JSZip from 'jszip';
+import QRCode from 'qrcode';
+
+// Log version on worker initialization
+console.log('QR Code Worker v2.2 initialized - Large nested SVG QR (450x450px on 600x700 canvas)');
 
 // Track the current operation for cancellation
 let currentOperation = null;
@@ -166,7 +171,7 @@ async function processMessage(e, JSZip, operation) {
           batchId,
           email
         };
-        const batchSvg = generateQRCodeSVG(batchQR);
+        const batchSvg = await generateQRCodeSVG(batchQR);
         zip.file(`Batch_QR_${batchId}.svg`, batchSvg);
       } catch (err) {
         console.error('Error creating batch-level QR SVG:', err);
@@ -180,7 +185,7 @@ async function processMessage(e, JSZip, operation) {
         }
         
         try {
-          const svgContent = generateQRCodeSVG(qrData);
+          const svgContent = await generateQRCodeSVG(qrData);
           const fileName = `QR_${qrData.batchId}_${qrData.bagNumber}.svg`;
           if (bagsFolder) {
             bagsFolder.file(fileName, svgContent);
@@ -271,59 +276,106 @@ async function processMessage(e, JSZip, operation) {
 }
 
 // Generate SVG content for a QR code
-function generateQRCodeSVG(qrData) {
-  // In a real implementation, this would use a QR code library
-  // This is a simplified version that creates a basic SVG
+async function generateQRCodeSVG(qrData) {
   const { url, bagNumber, batchId } = qrData;
   
-  // Create a simple SVG with the URL as text (for demo purposes)
-  // In production, replace this with actual QR code generation
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  try {
+    // Generate actual QR code SVG using qrcode library
+    console.log(`Generating large QR code: 450x450px for ${bagNumber !== null ? `Bag #${bagNumber}` : 'Batch'}`);
+    const qrSvgString = await QRCode.toString(url, {
+      type: 'svg',
+      width: 450,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
+    });
+    
+    // Extract the inner SVG content (everything between <svg> tags)
+    const svgContentMatch = qrSvgString.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+    const qrSvgContent = svgContentMatch ? svgContentMatch[1] : '';
+    
+    // Get viewBox from the generated QR SVG to maintain aspect ratio
+    const viewBoxMatch = qrSvgString.match(/viewBox="([^"]*)"/i);
+    const qrViewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 100';
+    
+    // Create enhanced SVG with nested QR code SVG - optimized for printing
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" 
-     width="256" 
-     height="256" 
-     viewBox="0 0 256 256" 
+     width="600" 
+     height="700" 
+     viewBox="0 0 600 700" 
      style="background: white;">
+  <!-- Background -->
   <rect width="100%" height="100%" fill="white"/>
-  <rect x="20" y="20" width="216" height="216" 
-        fill="none" stroke="black" stroke-width="2"/>
-  <text x="128" y="50" 
+  
+  <!-- Header -->
+  <text x="300" y="40" 
         text-anchor="middle" 
-        font-family="Arial" 
-        font-size="10" 
-        fill="black">
-    QR Code (Generated)
+        font-family="Arial, sans-serif" 
+        font-size="24" 
+        font-weight="bold"
+        fill="#333">
+    TrashDrop QR Code
   </text>
-  <text x="128" y="70" 
+  
+  <!-- Batch Info -->
+  <text x="300" y="70" 
         text-anchor="middle" 
-        font-family="Arial" 
-        font-size="8" 
-        fill="black">
-    Batch: ${batchId}
+        font-family="Arial, sans-serif" 
+        font-size="16" 
+        fill="#666">
+    Batch: ${batchId.substring(0, 18)}...
   </text>
-  <text x="128" y="90" 
+  
+  <!-- Bag Info -->
+  <text x="300" y="95" 
         text-anchor="middle" 
-        font-family="Arial" 
-        font-size="8" 
-        fill="black">
-    Bag: ${bagNumber}
+        font-family="Arial, sans-serif" 
+        font-size="16" 
+        fill="#666">
+    ${bagNumber !== null && bagNumber !== undefined ? `Bag #${bagNumber}` : 'Batch QR'}
   </text>
-  <text x="128" y="150" 
+  
+  <!-- QR Code SVG - Centered and Large (450x450px) -->
+  <svg x="75" y="120" width="450" height="450" viewBox="${qrViewBox}">
+    ${qrSvgContent}
+  </svg>
+  
+  <!-- URL Info (truncated for display) -->
+  <text x="300" y="600" 
         text-anchor="middle" 
-        font-family="Arial" 
-        font-size="6" 
-        fill="blue"
-        style="word-spacing: 0;">
-    ${url}
+        font-family="Arial, sans-serif" 
+        font-size="14" 
+        fill="#999">
+    Scan to verify
   </text>
-  <text x="128" y="240" 
+  
+  <!-- Footer -->
+  <text x="300" y="675" 
         text-anchor="middle" 
-        font-family="Arial" 
-        font-size="6" 
-        fill="gray">
+        font-family="Arial, sans-serif" 
+        font-size="12" 
+        fill="#999">
     Generated by TrashDrop Admin
   </text>
 </svg>`;
+  } catch (error) {
+    console.error('Error generating QR code SVG:', error);
+    // Fallback to text-based SVG if QR generation fails
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="380" viewBox="0 0 300 380" style="background: white;">
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="red">
+    QR Generation Error
+  </text>
+  <text x="150" y="210" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">
+    ${url.replace(/&/g, '&amp;')}
+  </text>
+</svg>`;
+  }
 }
 
 // Add error handling for uncaught errors
