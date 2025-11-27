@@ -11,6 +11,7 @@ import CollectorDetailPanel from '../components/maps/CollectorDetailPanel';
 import { fetchCollectors, updateCollectorStatus, fetchCollectorById } from '../utils/collectorService';
 import { fetchPickupRequests, subscribeToPickupUpdates } from '../utils/pickupService';
 import { fetchServiceAreas, subscribeToServiceAreaUpdates } from '../utils/serviceAreaService';
+import { fetchDigitalBins, subscribeToDigitalBinUpdates } from '../services/digitalBinService';
 import { supabase } from '../utils/supabase';
 
 // Default coordinates for San Francisco
@@ -54,7 +55,8 @@ const getMarkerIcon = (status) => {
 
 const LiveMap = () => {
   const [loading, setLoading] = useState(true);
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState([]); // pickup_requests
+  const [digitalBins, setDigitalBins] = useState([]); // digital_bins
   const [collectors, setCollectors] = useState([]);
   const [serviceAreas, setServiceAreas] = useState([]);
   const [filters, setFilters] = useState({
@@ -67,6 +69,7 @@ const LiveMap = () => {
   const [mapMode, setMapMode] = useState('default'); // default or satellite
   const [showCollectors, setShowCollectors] = useState(true);
   const [showPickups, setShowPickups] = useState(true);
+  const [showDigitalBins, setShowDigitalBins] = useState(true);
   const [showServiceAreas, setShowServiceAreas] = useState(true);
   const [selectedCollector, setSelectedCollector] = useState(null);
   const [showToast, setShowToast] = useState(false);
@@ -84,9 +87,10 @@ const LiveMap = () => {
         setLoading(true);
         
         // Fetch all data in parallel
-        const [collectorsData, pickupRequests, serviceAreasData] = await Promise.all([
+        const [collectorsData, pickupRequests, digitalBinsData, serviceAreasData] = await Promise.all([
           fetchCollectors(),
           fetchPickupRequests({ limit: 50 }), // Limit to 50 most recent requests
+          fetchDigitalBins({ limit: 100, status: 'active' }), // Fetch active digital bins
           fetchServiceAreas()
         ]);
         
@@ -94,7 +98,15 @@ const LiveMap = () => {
         
         setCollectors(collectorsData);
         setLocations(pickupRequests);
+        setDigitalBins(digitalBinsData);
         setServiceAreas(serviceAreasData);
+        
+        console.log('📍 LiveMap data loaded:', {
+          pickupRequests: pickupRequests.length,
+          digitalBins: digitalBinsData.length,
+          collectors: collectorsData.length,
+          serviceAreas: serviceAreasData.length
+        });
         
       } catch (error) {
         console.error('Error loading map data:', error);
@@ -144,6 +156,18 @@ const LiveMap = () => {
       }
     });
     
+    // Subscribe to digital bin updates
+    const digitalBinSubscription = subscribeToDigitalBinUpdates(async () => {
+      try {
+        const updatedBins = await fetchDigitalBins({ limit: 100, status: 'active' });
+        if (isMounted) {
+          setDigitalBins(updatedBins);
+        }
+      } catch (error) {
+        console.error('Error updating digital bins:', error);
+      }
+    });
+    
     // Subscribe to service area updates
     const serviceAreaSubscription = subscribeToServiceAreaUpdates(async () => {
       try {
@@ -160,6 +184,7 @@ const LiveMap = () => {
     subscriptions.push(
       { unsubscribe: () => supabase.removeChannel(collectorChannel) },
       pickupSubscription,
+      digitalBinSubscription,
       serviceAreaSubscription
     );
     
@@ -378,7 +403,7 @@ const LiveMap = () => {
             {/* Pickup Request Markers */}
             {showPickups && filteredLocations.map(location => (
               <Marker
-                key={location.id}
+                key={`pickup-${location.id}`}
                 position={[location.location.lat, location.location.lng]}
                 icon={getMarkerIcon(location.status)}
                 eventHandlers={{
@@ -400,6 +425,35 @@ const LiveMap = () => {
                     >
                       View Details
                     </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {/* Digital Bin Markers */}
+            {showDigitalBins && digitalBins.map(bin => (
+              <Marker
+                key={`bin-${bin.id}`}
+                position={[bin.location.lat, bin.location.lng]}
+                icon={L.divIcon({
+                  className: 'custom-marker-icon',
+                  html: `<div style="background-color: #10b981; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white">
+                      <path d="M3 6h18v2H3V6m0 4h18v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10m8-6h2v2h-2V4z"/>
+                    </svg>
+                  </div>`,
+                  iconSize: [28, 28],
+                  iconAnchor: [14, 14]
+                })}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-semibold">🗑️ Digital Bin</h3>
+                    <p className="text-sm text-gray-600">ID: {bin.bin_id || bin.id}</p>
+                    <p className="text-sm">Location: {bin.location.address || 'N/A'}</p>
+                    <p className="text-sm">Status: <span className="font-medium text-green-600">{bin.status}</span></p>
+                    {bin.waste_type && <p className="text-sm">Type: {bin.waste_type}</p>}
+                    {bin.frequency && <p className="text-sm">Frequency: {bin.frequency}</p>}
                   </div>
                 </Popup>
               </Marker>
