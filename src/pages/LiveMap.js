@@ -533,9 +533,9 @@ const LiveMap = () => {
               >
                 <Popup>
                   <div className="p-2">
-                    <h3 className="font-semibold">{location.address}</h3>
+                    <h3 className="font-semibold">{location.location?.address || location.address || 'N/A'}</h3>
                     <p className="text-sm text-gray-600">Status: {location.status}</p>
-                    <p className="text-sm">Customer: {location.customer}</p>
+                    <p className="text-sm">Customer: {location.requestedBy?.name || location.customer || 'N/A'}</p>
                     <p className="text-sm">Type: {location.wasteType}</p>
                     <button
                       className="mt-2 text-sm text-blue-600 hover:text-blue-800"
@@ -741,15 +741,15 @@ const LiveMap = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Customer</p>
-                  <p className="font-medium">{selectedLocation.customer}</p>
+                  <p className="font-medium">{selectedLocation.requestedBy?.name || selectedLocation.customer || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
-                  <p className="font-medium">{selectedLocation.phone}</p>
+                  <p className="font-medium">{selectedLocation.requestedBy?.phone || selectedLocation.phone || 'N/A'}</p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-sm text-gray-500">Address</p>
-                  <p className="font-medium">{selectedLocation.address}</p>
+                  <p className="font-medium">{selectedLocation.location?.address || selectedLocation.address || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Priority</p>
@@ -769,7 +769,7 @@ const LiveMap = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Assigned Collector</p>
-                  <p className="font-medium">{selectedLocation.collector || 'Not assigned'}</p>
+                  <p className="font-medium">{selectedLocation.assignedTo?.name || selectedLocation.collectorName || selectedLocation.collector || 'Not assigned'}</p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-sm text-gray-500">Coordinates</p>
