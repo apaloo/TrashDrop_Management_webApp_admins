@@ -195,11 +195,38 @@ export const fetchPickupRequests = async ({
     let queryString = '*';
     
     if (collectorsTableExists && profilesTableExists) {
-      // Full relational query if all tables exist
-      queryString = `*`;
+      // Full relational query if all tables exist - join with profiles for customer details
+      queryString = `
+        *,
+        requester:requester_id(
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          avatar_url
+        ),
+        collector:collector_id(
+          id,
+          first_name,
+          last_name,
+          email,
+          phone
+        )
+      `;
     } else if (profilesTableExists) {
       // Only include requestor if profiles table exists  
-      queryString = `*`;
+      queryString = `
+        *,
+        requester:requester_id(
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          avatar_url
+        )
+      `;
     }
     
     let query = supabase
