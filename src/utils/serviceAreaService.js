@@ -185,14 +185,25 @@ export const fetchServiceAreas = async () => {
         if (area.boundary && area.boundary.coordinates) {
           // Convert GeoJSON coordinates to Leaflet format
           coordinates = area.boundary.coordinates[0].map(coord => [coord[1], coord[0]]);
-        } else if (area.coordinates) {
+        } else if (area.coordinates && Array.isArray(area.coordinates) && area.coordinates.length >= 3) {
           // Direct coordinates array
           coordinates = area.coordinates;
         }
       } catch (e) {
         console.error(`Error parsing coordinates for area ${area.id}:`, e);
-        // Provide default coordinates if parsing fails
-        coordinates = [[5.6037, -0.1870], [5.6100, -0.1900], [5.6050, -0.1950], [5.6000, -0.1920]];
+      }
+      
+      // If no valid coordinates, provide default based on area index
+      if (!coordinates || coordinates.length < 3) {
+        console.warn(`No valid coordinates for service area ${area.name}. Using default polygon.`);
+        // Use a default polygon - offset based on area ID to avoid overlap
+        const baseOffset = parseInt(area.id) || 0;
+        coordinates = [
+          [5.6037 + (baseOffset * 0.01), -0.1870 - (baseOffset * 0.01)],
+          [5.6100 + (baseOffset * 0.01), -0.1900 - (baseOffset * 0.01)],
+          [5.6050 + (baseOffset * 0.01), -0.1950 - (baseOffset * 0.01)],
+          [5.6000 + (baseOffset * 0.01), -0.1920 - (baseOffset * 0.01)]
+        ];
       }
       
       return {
