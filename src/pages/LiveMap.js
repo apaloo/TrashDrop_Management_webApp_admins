@@ -184,10 +184,33 @@ const LiveMap = () => {
         const processedPickupRequests = assignPointsToServiceAreas(pickupRequests, serviceAreasData);
         const processedDigitalBins = assignPointsToServiceAreas(digitalBinsData, serviceAreasData);
         
+        // Calculate real statistics for each service area
+        const serviceAreasWithStats = serviceAreasData.map(area => {
+          // Count collectors in this service area
+          const collectorsInArea = collectorsData.filter(collector => 
+            collector.service_area_id === area.id || 
+            (collector.currentLocation && isPointInPolygon(
+              [collector.currentLocation.lat, collector.currentLocation.lng],
+              area.coordinates
+            ))
+          ).length;
+          
+          // Count pickup requests in this service area
+          const requestsInArea = processedPickupRequests.filter(request => 
+            request.service_area_id === area.id
+          ).length;
+          
+          return {
+            ...area,
+            activeCollectors: collectorsInArea,
+            requestsInProgress: requestsInArea
+          };
+        });
+        
         setCollectors(collectorsData);
         setLocations(processedPickupRequests);
         setDigitalBins(processedDigitalBins);
-        setServiceAreas(serviceAreasData);
+        setServiceAreas(serviceAreasWithStats);
         
         console.log('📍 LiveMap data loaded:', {
           pickupRequests: processedPickupRequests.length,
