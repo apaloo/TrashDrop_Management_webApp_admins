@@ -96,8 +96,12 @@ const generateMockServiceAreas = () => {
 export const fetchServiceAreas = async () => {
   // DEPRECATED: Service areas table integration removed - using mock data only
   // Database service areas had missing coordinates causing rendering issues
-  console.log('📍 Service Areas: Using mock data with valid coordinates');
-  return generateMockServiceAreas();
+  const mockAreas = generateMockServiceAreas();
+  console.log('📍 Service Areas: Using mock data with valid coordinates', {
+    count: mockAreas.length,
+    areas: mockAreas.map(a => ({ id: a.id, name: a.name, coordCount: a.coordinates?.length }))
+  });
+  return mockAreas;
 };
 
 /**

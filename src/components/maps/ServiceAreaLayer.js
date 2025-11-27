@@ -3,6 +3,13 @@ import { Polygon, Tooltip } from 'react-leaflet';
 
 // Component to display service area boundaries on the map
 const ServiceAreaLayer = ({ area }) => {
+  console.log('ServiceAreaLayer rendering:', { 
+    name: area?.name, 
+    hasCoords: !!area?.coordinates,
+    coordsLength: area?.coordinates?.length,
+    coordsType: Array.isArray(area?.coordinates) ? 'array' : typeof area?.coordinates
+  });
+  
   // Check if area is a valid object first
   if (!area || typeof area !== 'object') {
     console.warn('Invalid service area object. Skipping polygon rendering.');
@@ -12,7 +19,11 @@ const ServiceAreaLayer = ({ area }) => {
   // Validate coordinates before mapping them
   // This ensures we only process valid coordinate arrays
   if (!area.coordinates || !Array.isArray(area.coordinates) || area.coordinates.length < 3) {
-    console.warn(`Invalid coordinates for service area ${area.name || 'unknown'}. Skipping polygon rendering.`);
+    console.warn(`Invalid coordinates for service area ${area.name || 'unknown'}. Skipping polygon rendering.`, {
+      coordinates: area.coordinates,
+      isArray: Array.isArray(area.coordinates),
+      length: area.coordinates?.length
+    });
     return null;
   }
   
