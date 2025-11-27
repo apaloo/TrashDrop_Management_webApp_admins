@@ -132,21 +132,23 @@ const IllegalDumpingMap = () => {
 
       // Transform data with coordinate validation and address fallback
       const transformedData = dataArray.map(item => {
-        const latNum = parseFloat(item?.latitude);
-        const lngNum = parseFloat(item?.longitude);
+        // Handle both direct coordinates and nested location object
+        const latNum = item.location?.lat ?? parseFloat(item?.latitude);
+        const lngNum = item.location?.lng ?? parseFloat(item?.longitude);
         const validLat = Number.isFinite(latNum);
         const validLng = Number.isFinite(lngNum);
+        
         return {
           id: item.id,
           reportedAt: item.reported_at,
-          reportedBy: item.reporter?.email || 'unknown',
+          reportedBy: item.reporter?.name || item.reporter?.email || 'Anonymous',
           resolvedAt: item.resolved_at,
           location: {
             lat: validLat ? latNum : null,
             lng: validLng ? lngNum : null,
-            address: item.address || item.location_address || 'Unknown'
+            address: item.location?.address || item.address || item.location_address || 'Unknown Location'
           },
-          description: item.description,
+          description: item.description || `${item.waste_type || 'Waste'} dumping`,
           images: item.images || [],
           severity: item.severity || SEVERITY.MEDIUM,
           wasteType: item.waste_type || WASTE_TYPE.MIXED,
@@ -154,12 +156,18 @@ const IllegalDumpingMap = () => {
           verifiedAt: item.verified_at,
           verifiedBy: item.verified_by,
           cleanupAssigned: !!item.assigned_to,
-          cleanupTeam: item.assignee ? `${item.assignee.first_name} ${item.assignee.last_name}` : undefined,
+          cleanupTeam: item.team_name || (item.assignee ? `${item.assignee.first_name} ${item.assignee.last_name}` : undefined),
           estimatedCleanupDate: item.estimated_cleanup_date,
           resolutionType: item.resolution_type || ''
         };
       });
 
+      console.log('📍 Illegal Dumping Map - Fetched reports:', transformedData.length);
+      console.log('📍 Sample report:', transformedData[0]);
+      console.log('📍 Reports with valid coordinates:', transformedData.filter(r => 
+        Number.isFinite(r.location?.lat) && Number.isFinite(r.location?.lng)
+      ).length);
+      
       setDumpingReportData(transformedData);
 
       // Refresh metrics
@@ -413,7 +421,7 @@ const IllegalDumpingMap = () => {
   };
   
   return (
-    <div className="p-4">
+    <div className="p-4" style={{ marginTop: '10px' }}>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Illegal Dumping Map</h1>
         <p className="text-gray-600">Monitor and manage illegal dumping reports geographically</p>
@@ -641,45 +649,62 @@ const IllegalDumpingMap = () => {
               <MapBoundsUpdater reports={filteredReports} />
               
               {/* Markers for dumping reports */}
-              {filteredReports.map(report => (
-                <Marker 
-                  key={report.id} 
-                  position={[report.location.lat, report.location.lng]} 
-                  icon={getMarkerIcon(report.severity)}
-                  eventHandlers={{
-                    click: () => setSelectedDumping(report)
-                  }}
-                >
-                  <Popup className="custom-popup">
-                    <div className="p-1">
-                      <h4 className="font-bold text-gray-800">{report.id}</h4>
-                      <div className="my-1 text-sm">
-                        <p className="mb-1"><span className="font-semibold">Status:</span> {report.status}</p>
-                        <p className="mb-1"><span className="font-semibold">Type:</span> {report.wasteType}</p>
-                        <p className="mb-1"><span className="font-semibold">Severity:</span> {report.severity}</p>
-                        <p className="mb-1"><span className="font-semibold">Address:</span> {report.location.address}</p>
-                      </div>
-                      <div className="flex justify-between mt-2">
-                        {!report.cleanupAssigned && (
+              {filteredReports && filteredReports.length > 0 ? (
+                filteredReports.map(report => (
+                  <Marker 
+                    key={report.id} 
+                    position={[report.location.lat, report.location.lng]} 
+                    icon={getMarkerIcon(report.severity)}
+                    eventHandlers={{
+                      click: () => setSelectedDumping(report)
+                    }}
+                  >
+                    <Popup className="custom-popup">
+                      <div className="p-1">
+                        <h4 className="font-bold text-gray-800">{report.id}</h4>
+                        <div className="my-1 text-sm">
+                          <p className="mb-1"><span className="font-semibold">Status:</span> {report.status}</p>
+                          <p className="mb-1"><span className="font-semibold">Type:</span> {report.wasteType}</p>
+                          <p className="mb-1"><span className="font-semibold">Severity:</span> {report.severity}</p>
+                          <p className="mb-1"><span className="font-semibold">Address:</span> {report.location.address}</p>
+                        </div>
+                        <div className="flex justify-between mt-2">
+                          {!report.cleanupAssigned && (
+                            <button 
+                              className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600"
+                              onClick={() => openCollectorModal(report)}
+                            >
+                              Assign Cleanup
+                            </button>
+                          )}
                           <button 
-                            className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600"
-                            onClick={() => openCollectorModal(report)}
+                            className="bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 ml-2"
+                            onClick={() => window.location.href = `/illegal-dumping/reports?id=${report.id}`}
                           >
-                            Assign Cleanup
+                            View Details
                           </button>
-                        )}
-                        <button 
-                          className="bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 ml-2"
-                          onClick={() => window.location.href = `/illegal-dumping/reports?id=${report.id}`}
-                        >
-                          View Details
-                        </button>
+                        </div>
                       </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
+                    </Popup>
+                  </Marker>
+                ))
+              ) : null}
             </MapContainer>
+          )}
+          
+          {/* No reports overlay */}
+          {!loading && (!filteredReports || filteredReports.length === 0) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-90 z-[500] pointer-events-none">
+              <div className="text-center p-8">
+                <i className="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Reports Found</h3>
+                <p className="text-gray-500">
+                  {dumpingReportData.length === 0 
+                    ? 'No illegal dumping reports in the database yet.' 
+                    : 'No reports match the current filters. Try adjusting your filters.'}
+                </p>
+              </div>
+            </div>
           )}
           
           {/* Map mode controls */}

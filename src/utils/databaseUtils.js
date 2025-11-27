@@ -1031,39 +1031,17 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
 
 /**
  * Update illegal dumping report status
+ * @deprecated RPC function 'update_illegal_dumping_status' no longer exists - using direct table updates
  * @param {string} reportId - Report ID
  * @param {string} status - New status
  * @param {string} notes - Optional notes
  * @returns {Promise<Object>} Updated report
  */
 export const updateIllegalDumpingStatus = async (reportId, status, notes = '') => {
-  // Try RPC via safeDatabaseService first
-  try {
-    console.log('Attempting update_illegal_dumping_status via safeRPC');
-    // Get current user for p_updated_by
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
-    if (!userId) throw new Error('Authenticated user ID not available for p_updated_by');
-
-    const rpcData = await safeDatabaseService.safeRPC({
-      functionName: 'update_illegal_dumping_status',
-      params: {
-        p_dumping_id: reportId,
-        p_status: status,
-        p_updated_by: userId
-      },
-      throwOnMissing: false
-    });
-    if (rpcData !== null && rpcData !== undefined) {
-      return { data: rpcData, error: null };
-    }
-    console.warn('update_illegal_dumping_status RPC unavailable or returned null; using direct table update');
-  } catch (error) {
-    console.warn('Error calling update_illegal_dumping_status via safeRPC:', error.message);
-    // Fall through to the table-based implementation
-  }
+  // DEPRECATED: RPC function removed, using direct table update only
+  console.log('Using direct table update for illegal dumping status (RPC deprecated)');
   
-  // Fall back to direct table update
+  // Direct table update
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',
     queryFn: async () => {
@@ -1085,41 +1063,17 @@ export const updateIllegalDumpingStatus = async (reportId, status, notes = '') =
 
 /**
  * Assign cleanup team to illegal dumping report
+ * @deprecated RPC function 'assign_cleanup_team' no longer exists - using direct table updates
  * @param {string} reportId - Report ID
  * @param {string} teamId - Team ID
  * @param {Date} scheduledDate - Scheduled cleanup date
  * @returns {Promise<Object>} Assignment result
  */
 export const assignCleanupTeam = async (reportId, teamId, scheduledDate) => {
-  // Try RPC via safeDatabaseService first
-  try {
-    console.log('Attempting assign_cleanup_team via safeRPC');
-    // Get current user for p_updated_by
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
-    if (!userId) throw new Error('Authenticated user ID not available for p_updated_by');
-
-    const isoDate = scheduledDate ? (scheduledDate instanceof Date ? scheduledDate.toISOString() : new Date(scheduledDate).toISOString()) : null;
-    const rpcData = await safeDatabaseService.safeRPC({
-      functionName: 'assign_cleanup_team',
-      params: {
-        p_dumping_id: reportId,
-        p_team_id: teamId,
-        p_updated_by: userId,
-        p_scheduled_date: isoDate
-      },
-      throwOnMissing: false
-    });
-    if (rpcData !== null && rpcData !== undefined) {
-      return { data: rpcData, error: null };
-    }
-    console.warn('assign_cleanup_team RPC unavailable or returned null; using direct table update');
-  } catch (error) {
-    console.warn('Error calling assign_cleanup_team via safeRPC:', error.message);
-    // Fall through to the table-based implementation
-  }
+  // DEPRECATED: RPC function removed, using direct table update only
+  console.log('Using direct table update for cleanup team assignment (RPC deprecated)');
   
-  // Fall back to direct table update
+  // Direct table update
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',
     queryFn: async () => {

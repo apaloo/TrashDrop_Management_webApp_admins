@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { safeDatabaseService } from './safeDatabaseService';
 
 /**
  * Fetch real bag statistics from Supabase
@@ -360,8 +359,9 @@ export const fetchCollectors = async (status = null) => {
 };
 
 /**
- * Fetch real illegal dumping reports
- * @param {Object} options - Pagination and filtering options
+ * Fetch illegal dumping reports from Supabase with pagination
+ * @deprecated RPC function 'fetch_illegal_dumping_reports' no longer exists - using direct table queries
+ * @param {Object} options - Query options (page, limit, status)
  * @returns {Promise<Object>} Paginated illegal dumping reports
  */
 export const fetchIllegalDumpingReports = async (options = {}) => {
@@ -369,34 +369,8 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
   const safeOptions = options || {};
   const { page = 1, limit = 10, status = null } = safeOptions;
 
-  // First check if fetch_illegal_dumping_reports RPC function exists
-  const funcExists = await safeDatabaseService.checkFunctionExists('fetch_illegal_dumping_reports');
-  
-  // If the RPC function exists, try to use it first
-  if (funcExists) {
-    try {
-      console.log('Using fetch_illegal_dumping_reports RPC function');
-      const offset = (page - 1) * limit;
-      const { data, error, count } = await supabase.rpc('fetch_illegal_dumping_reports', { 
-        limit_count: limit,
-        offset_count: offset,
-        status_filter: status
-      });
-      if (error) throw error;
-      
-      return {
-        data: data,
-        count: count || (data ? data.length : 0),
-        page,
-        limit
-      };
-    } catch (error) {
-      console.warn('Error calling fetch_illegal_dumping_reports RPC function:', error.message);
-      // Fall through to the table-based implementation
-    }
-  } else {
-    console.warn('fetch_illegal_dumping_reports RPC function not found, using direct table queries instead');
-  }
+  // DEPRECATED: RPC function removed, using direct table queries only
+  console.log('Using direct table query for illegal dumping reports (RPC deprecated)');
   
   try {
     const offset = (page - 1) * limit;

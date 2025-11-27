@@ -14,8 +14,9 @@ import { supabase } from './supabase';
 
 class SafeDatabaseService {
   constructor() {
-    this.tableExists = new Map(); // Cache for table existence checks
-    this.functionExists = new Map(); // Cache for function existence checks
+    // DEPRECATED: Caching disabled to prevent stale cache issues
+    // this.tableExists = new Map(); // Cache for table existence checks
+    // this.functionExists = new Map(); // Cache for function existence checks
     this.activeSubscriptions = new Map(); // Track active subscription channels
     
     // Read configuration from environment variables
@@ -39,19 +40,22 @@ class SafeDatabaseService {
 
   /**
    * Check if a table exists in the database
+   * @param {string} tableName - Name of the table to check
+   * @param {boolean} forceRefresh - DEPRECATED: Caching disabled, always does fresh check
    */
-  async checkTableExists(tableName) {
-    // Check cache first
-    if (this.tableExists.has(tableName)) {
-      return this.tableExists.get(tableName);
-    }
+  async checkTableExists(tableName, forceRefresh = false) {
+    // DEPRECATED: Caching disabled - always do fresh check
+    // if (!forceRefresh && this.tableExists.has(tableName)) {
+    //   return this.tableExists.get(tableName);
+    // }
 
     try {
       // Special handling for RPC functions: delegate to checkFunctionExists
       if (tableName.startsWith('rpc/')) {
         const functionName = tableName.replace('rpc/', '');
         const exists = await this.checkFunctionExists(functionName);
-        this.tableExists.set(tableName, exists);
+        // DEPRECATED: No caching
+        // this.tableExists.set(tableName, exists);
         if (!exists) {
           console.warn(`[SafeDB] Function ${functionName} not found in database`);
         }
@@ -65,6 +69,12 @@ class SafeDatabaseService {
 
       // Evaluate response error to determine existence
       if (error) {
+        console.log(`[SafeDB] Checking table ${tableName} - Error:`, {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         // Errors that mean the table DOES NOT exist
         const isMissing = error.code === 'PGRST116' || // Schema cache lookup failed
                          error.code === 'PGRST204'  || // Table not found
@@ -75,21 +85,27 @@ class SafeDatabaseService {
         // Errors that mean the table EXISTS but there's a query problem
         const tableExistsButQueryError = 
           error.code === 'PGRST200' ||  // Foreign key relationship error (table exists)
+          error.code === 'PGRST301' ||  // RLS policy violation (table exists but no access)
+          error.code === '42501'    ||  // PostgreSQL: insufficient privilege (table exists)
           error.code === '42703'    ||  // Column does not exist (table exists)
           error.code === '42804'    ||  // Type mismatch (table exists)
           error.code === '42883'    ||  // Function signature mismatch (function exists)
           error.message?.includes('column') ||
           error.message?.includes('relationship') ||
-          error.message?.includes('type');
+          error.message?.includes('type') ||
+          error.message?.includes('policy') ||
+          error.message?.includes('permission');
 
         // If it's a query error, the table definitely exists
         if (tableExistsButQueryError) {
-          this.tableExists.set(tableName, true);
+          // DEPRECATED: No caching
+          // this.tableExists.set(tableName, true);
           console.log(`[SafeDB] Table ${tableName} exists (query error: ${error.code})`);
           return true;
         }
 
-        this.tableExists.set(tableName, !isMissing);
+        // DEPRECATED: No caching
+        // this.tableExists.set(tableName, !isMissing);
 
         if (isMissing) {
           console.warn(`[SafeDB] Table/Function ${tableName} not found in database`);
@@ -101,7 +117,8 @@ class SafeDatabaseService {
       }
 
       // If we get here without an error, the table exists
-      this.tableExists.set(tableName, true);
+      // DEPRECATED: No caching
+      // this.tableExists.set(tableName, true);
       return true;
 
     } catch (error) {
@@ -110,7 +127,8 @@ class SafeDatabaseService {
           error.message?.includes('ERR_INTERNET_DISCONNECTED') ||
           error.message?.includes('TypeError: Failed to fetch')) {
         console.warn(`[SafeDB] Network error checking ${tableName}, assuming table doesn't exist`);
-        this.tableExists.set(tableName, false);
+        // DEPRECATED: No caching
+        // this.tableExists.set(tableName, false);
         return false;
       }
       
@@ -146,11 +164,13 @@ class SafeDatabaseService {
 
   /**
    * Check if a stored function exists
+   * DEPRECATED: Caching disabled to prevent stale cache issues
    */
   async checkFunctionExists(functionName) {
-    if (this.functionExists.has(functionName)) {
-      return this.functionExists.get(functionName);
-    }
+    // DEPRECATED: Caching disabled - always do fresh check
+    // if (this.functionExists.has(functionName)) {
+    //   return this.functionExists.get(functionName);
+    // }
 
     try {
       const { error } = await supabase.rpc(functionName, {});
@@ -158,14 +178,16 @@ class SafeDatabaseService {
       const missing = !!error && (
         error.code === '42883' ||
         error.code === 'PGRST116' ||
-        error.message?.toLowerCase().includes('function') && error.message?.toLowerCase().includes('does not exist')
+        (error.message?.toLowerCase().includes('function') && error.message?.toLowerCase().includes('does not exist'))
       );
       const exists = !missing;
-      this.functionExists.set(functionName, exists);
+      // DEPRECATED: No caching
+      // this.functionExists.set(functionName, exists);
       return exists;
     } catch (error) {
       console.warn(`Function ${functionName} does not exist:`, error.message);
-      this.functionExists.set(functionName, false);
+      // DEPRECATED: No caching
+      // this.functionExists.set(functionName, false);
       return false;
     }
   }
@@ -192,16 +214,20 @@ class SafeDatabaseService {
     const mockMode = this.mockDataMode;
 
     // Check if table or function exists (no mock fallbacks in strict mode)
+    console.log(`[SafeDB] Checking ${isRpc ? 'function' : 'table'}: ${tableName}`);
     const tableExists = isRpc
       ? await this.checkFunctionExists(tableName)
       : await this.checkTableExists(tableName);
+    console.log(`[SafeDB] ${isRpc ? 'Function' : 'Table'} ${tableName} exists: ${tableExists}`);
       
     // If table doesn't exist and we're in strict mode, throw an error
     // Otherwise, we'll try to use mock data if available
     if (!tableExists) {
       if (useStrict) {
-        console.error(`Table or function '${tableName}' not found in database. No mock data fallback allowed.`);
-        throw new Error(`Required table or function '${tableName}' not found in Supabase database.`);
+        console.error(`❌ STRICT MODE ERROR: ${isRpc ? 'Function' : 'Table'} '${tableName}' not found in database.`);
+        console.error(`❌ useStrict=${useStrict}, throwOnMissingTables=${this.throwOnMissingTables}`);
+        console.error(`❌ To disable strict mode, set REACT_APP_REQUIRE_DATABASE=false in .env`);
+        throw new Error(`Required ${isRpc ? 'function' : 'table'} '${tableName}' not found in Supabase database.`);
       } else if (useMockFallback && typeof mockDataFn === 'function') {
         console.warn(`Table or function '${tableName}' not found in database. Using mock data fallback.`);
         const mockData = mockDataFn(mockDataParams);
@@ -585,14 +611,6 @@ class SafeDatabaseService {
 
 
   /**
-   * Clear caches
-   */
-  clearCache() {
-    this.tableExists.clear();
-    this.functionExists.clear();
-  }
-
-  /**
    * Initialize schema check on app start - STRICT MODE
    */
   async initializeSchemaCheck() {
@@ -698,20 +716,34 @@ class SafeDatabaseService {
 
   /**
    * Clear the table existence cache
-   * Useful when you know the database schema has changed
+   * @deprecated Caching has been disabled - this method does nothing
    */
   clearCache() {
-    console.log('[SafeDB] Clearing table and function existence cache');
-    this.tableExists.clear();
-    this.functionExists.clear();
+    console.log('[SafeDB] DEPRECATED: Caching disabled - clearCache() does nothing');
+    // DEPRECATED: No caching
+    // this.tableExists.clear();
+    // this.functionExists.clear();
   }
 
   /**
    * Clear cache for a specific table
+   * @deprecated Caching has been disabled - this method does nothing
    */
   clearTableCache(tableName) {
-    console.log(`[SafeDB] Clearing cache for table: ${tableName}`);
-    this.tableExists.delete(tableName);
+    console.log(`[SafeDB] DEPRECATED: Caching disabled - clearTableCache() does nothing for ${tableName}`);
+    // DEPRECATED: No caching
+    // this.tableExists.delete(tableName);
+  }
+
+  /**
+   * Force refresh a table's existence check
+   * @deprecated Caching disabled - all checks are now fresh, this just calls checkTableExists
+   */
+  async refreshTableCheck(tableName) {
+    console.log(`[SafeDB] Checking table existence for: ${tableName} (caching disabled, always fresh)`);
+    const exists = await this.checkTableExists(tableName);
+    console.log(`[SafeDB] Table ${tableName} exists: ${exists}`);
+    return exists;
   }
 }
 
@@ -721,7 +753,9 @@ const safeDatabaseService = new SafeDatabaseService();
 // Make it available globally for debugging
 if (typeof window !== 'undefined') {
   window.safeDatabaseService = safeDatabaseService;
-  console.log('🔧 DEBUG: Use window.safeDatabaseService.clearCache() to clear table cache');
+  console.log('🔧 DEBUG: Caching DEPRECATED - all table checks are now fresh');
+  console.log('🔧 DEBUG: Use window.safeDatabaseService.checkTableExists("table_name") to check table');
+  console.log('🔧 DEBUG: Use window.safeDatabaseService.checkFunctionExists("function_name") to check function');
 }
 
 export { safeDatabaseService };

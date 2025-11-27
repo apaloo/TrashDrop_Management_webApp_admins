@@ -101,7 +101,7 @@ const MobileReportsVerification = ({ onReportVerified }) => {
       setLoading(true);
       const { data, error } = await illegalDumpingService.getReports({ 
         status: 'reported',
-        source: 'mobile_app' 
+        // source: 'mobile_app' 
       });
       
       if (error) throw error;

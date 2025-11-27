@@ -10,7 +10,7 @@ import { supabase, supabaseAdmin } from '../utils/supabase';
 import { safeDatabaseService } from '../utils/safeDatabaseService';
 import { realtimeManager } from './realtimeManager';
 import { performanceMonitor } from './performanceMonitor';
-import { assignCleanupTeam } from '../utils/databaseUtils';
+import { assignCleanupTeam, updateIllegalDumpingStatus } from '../utils/databaseUtils';
 
 class IllegalDumpingService {
   constructor() {
@@ -102,7 +102,7 @@ class IllegalDumpingService {
         estimated_resolution_time: new Date(Date.now() + priority.estimatedHours * 3600000).toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        source: reportData.source || 'mobile_app',
+        // source: reportData.source || 'mobile_app',
         verification_required: true
       };
 
@@ -185,30 +185,23 @@ class IllegalDumpingService {
         updates.resolution_time_hours = this.calculateResolutionTime(currentReport.data);
       }
 
-      // Get authenticated user for audit trail
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id || null;
-
-      // If assigning, first call assign_cleanup_team RPC to persist team assignment and schedule
+      // DEPRECATED: RPC functions removed, using direct table update
+      // If assigning, update status and handle team assignment via direct update
       if (newStatus === 'assigned') {
         const teamId = updateData.assigned_to;
         const scheduledDate = updateData.scheduled_cleanup_date || updateData.scheduledDate;
+        // Direct table update for assignment
         const { error: assignError } = await assignCleanupTeam(reportId, teamId, scheduledDate);
         if (assignError) {
           throw new Error(assignError.message || 'Failed to assign cleanup team');
         }
+      } else {
+        // Direct table update for status change
+        const { error: updateError } = await updateIllegalDumpingStatus(reportId, newStatus);
+        if (updateError) {
+          throw new Error(updateError.message || 'Failed to update status');
+        }
       }
-
-      // Use atomic update function via Safe DB Service - aligned with SQL signature
-      const rpcResult = await safeDatabaseService.safeRPC({
-        functionName: 'update_illegal_dumping_status',
-        params: {
-          p_dumping_id: reportId,
-          p_status: newStatus,
-          p_updated_by: userId
-        },
-        throwOnMissing: true
-      });
 
       // Fetch the updated report since RPC returns only an ID
       const refreshed = await this.getReportById(reportId);

@@ -29,10 +29,10 @@ export const REQUIRED_TABLES = [
 
 // Required RPC functions that must exist
 export const REQUIRED_FUNCTIONS = [
-  'fetch_dashboard_stats',
-  'fetch_illegal_dumping_reports',
-  'update_illegal_dumping_status',
-  'assign_cleanup_team'
+  'fetch_dashboard_stats'
+  // DEPRECATED: 'fetch_illegal_dumping_reports' - Use direct table queries instead
+  // DEPRECATED: 'update_illegal_dumping_status' - Use direct table updates instead
+  // DEPRECATED: 'assign_cleanup_team' - Use direct table updates instead
 ];
 
 /**
