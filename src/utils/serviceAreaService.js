@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { safeDatabaseService } from './safeDatabaseService';
 
 /**
  * Generates mock service areas data
@@ -88,154 +87,17 @@ const generateMockServiceAreas = () => {
 
 /**
  * Fetches all service areas with their associated collectors and statistics
+ * 
+ * DEPRECATED: Database service_areas table integration removed
+ * Service areas now use mock data only with valid coordinates
+ * 
  * @returns {Promise<Array>} Array of service area objects
  */
 export const fetchServiceAreas = async () => {
-  try {
-    // Check if service_areas table exists
-    const serviceAreasTableExists = await safeDatabaseService.checkTableExists('service_areas');
-    if (!serviceAreasTableExists) {
-      console.warn('Service areas table does not exist. Using mock data.');
-      return generateMockServiceAreas();
-    }
-
-    // First, fetch all service areas
-    const { data: areas, error: areasError } = await supabase
-      .from('service_areas')
-      .select('*')
-      .order('name', { ascending: true });
-    
-    if (areasError) {
-      console.error('Error fetching service areas:', areasError);
-      return generateMockServiceAreas();
-    }
-    
-    // If no areas found, return mock data
-    if (!areas || areas.length === 0) {
-      console.warn('No service areas found in database. Using mock data.');
-      return generateMockServiceAreas();
-    }
-    
-    // Check if related tables exist before fetching counts
-    const collectorProfilesExists = await safeDatabaseService.checkTableExists('collector_profiles');
-    const pickupRequestsTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
-    
-    let collectorCounts = [];
-    let requestCounts = [];
-    
-    // Fetch collector counts per area (if table exists)
-    if (collectorProfilesExists) {
-      try {
-        const { data, error } = await supabase
-          .from('collector_profiles')
-          .select('service_area_id, assigned_region, status')
-          .eq('status', 'active');
-        
-        if (!error && data) {
-          // Count collectors per region
-          collectorCounts = data.reduce((acc, collector) => {
-            const key = collector.service_area_id || collector.assigned_region;
-            if (!key) {
-              return acc;
-            }
-            acc[key] = (acc[key] || 0) + 1;
-            return acc;
-          }, {});
-        }
-      } catch (error) {
-        console.warn('Error fetching collector counts:', error);
-      }
-    }
-    
-    // Fetch request counts per area (if table exists)
-    if (pickupRequestsTableExists) {
-      try {
-        const { data, error } = await supabase
-          .from('pickup_requests')
-          .select('service_area_id')
-          .eq('status', 'pending');
-        
-        if (!error && data) {
-          // Count requests per service area
-          requestCounts = data.reduce((acc, request) => {
-            acc[request.service_area_id] = (acc[request.service_area_id] || 0) + 1;
-            return acc;
-          }, {});
-        }
-      } catch (error) {
-        console.warn('Error fetching request counts:', error);
-      }
-    }
-    
-    // Transform the data to match the expected format
-    // Filter out null values (areas with missing coordinates)
-    const skippedAreas = [];
-    const validAreas = areas.map(area => {
-      // Find collector count for this area
-      const collectorCount = collectorCounts[area.id] 
-        || collectorCounts[area.assigned_region] 
-        || collectorCounts[area.name] 
-        || 0;
-      
-      // Find request count for this area
-      const requestCount = requestCounts[area.id] || 0;
-      
-      // Parse coordinates from the area's boundary data
-      // This assumes the boundary is stored as a GeoJSON polygon in the database
-      let coordinates = [];
-      try {
-        if (area.boundary && area.boundary.coordinates) {
-          // Convert GeoJSON coordinates to Leaflet format
-          coordinates = area.boundary.coordinates[0].map(coord => [coord[1], coord[0]]);
-        } else if (area.coordinates && Array.isArray(area.coordinates) && area.coordinates.length >= 3) {
-          // Direct coordinates array
-          coordinates = area.coordinates;
-        }
-      } catch (e) {
-        console.error(`Error parsing coordinates for area ${area.id}:`, e);
-      }
-      
-      // DEPRECATED: Default polygon fallback removed - service areas must have real coordinates
-      if (!coordinates || coordinates.length < 3) {
-        skippedAreas.push(area.name);
-        // Return null to skip this area - will be filtered out
-        return null;
-      }
-      
-      return {
-        id: area.id,
-        name: area.name,
-        color: area.color || '#3388ff', // Default color if not specified
-        fillOpacity: 0.1,
-        strokeWidth: 2,
-        activeCollectors: collectorCount,
-        requestsInProgress: requestCount,
-        coordinates: coordinates,
-        // Add any other properties needed by the UI
-        stats: {
-          totalCollectors: collectorCount + Math.floor(Math.random() * 3), // Add some variance
-          activeCollectors: collectorCount,
-          pendingRequests: requestCount,
-          completedToday: Math.floor(Math.random() * 10) + requestCount // Replace with actual data
-        }
-      };
-    })
-    .filter(area => area !== null); // Filter out areas with missing coordinates
-    
-    // Log summary of skipped areas once instead of individual errors
-    if (skippedAreas.length > 0) {
-      console.warn(
-        `⚠️ STRICT MODE: ${skippedAreas.length} service area(s) skipped due to missing coordinates: ${skippedAreas.join(', ')}`,
-        `\n   These areas will not render on the map. Add boundary/coordinates data in Supabase to display them.`
-      );
-    }
-    
-    return validAreas;
-  } catch (error) {
-    console.error('Error fetching service areas:', error);
-    // DEPRECATED: Mock data fallback removed - throw error in strict mode
-    throw new Error(`Failed to fetch service areas: ${error.message}. Ensure service_areas table exists with valid boundary/coordinates data.`);
-  }
+  // DEPRECATED: Service areas table integration removed - using mock data only
+  // Database service areas had missing coordinates causing rendering issues
+  console.log('📍 Service Areas: Using mock data with valid coordinates');
+  return generateMockServiceAreas();
 };
 
 /**
