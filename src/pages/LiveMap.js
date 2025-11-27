@@ -11,7 +11,7 @@ import CollectorDetailPanel from '../components/maps/CollectorDetailPanel';
 import { fetchCollectors, updateCollectorStatus, fetchCollectorById } from '../utils/collectorService';
 import { fetchPickupRequests, subscribeToPickupUpdates } from '../utils/pickupService';
 import { fetchServiceAreas, subscribeToServiceAreaUpdates } from '../utils/serviceAreaService';
-import { fetchDigitalBins, subscribeToDigitalBinUpdates } from '../services/digitalBinService';
+import { digitalBinService } from '../services/digitalBinService';
 import { supabase } from '../utils/supabase';
 
 // Default coordinates for San Francisco
@@ -90,7 +90,7 @@ const LiveMap = () => {
         const [collectorsData, pickupRequests, digitalBinsData, serviceAreasData] = await Promise.all([
           fetchCollectors(),
           fetchPickupRequests({ limit: 50 }), // Limit to 50 most recent requests
-          fetchDigitalBins({ limit: 100, status: 'active' }), // Fetch active digital bins
+          digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' }), // Fetch active digital bins
           fetchServiceAreas()
         ]);
         
@@ -157,9 +157,9 @@ const LiveMap = () => {
     });
     
     // Subscribe to digital bin updates
-    const digitalBinSubscription = subscribeToDigitalBinUpdates(async () => {
+    const digitalBinSubscription = digitalBinService.subscribe('bin_updated', async () => {
       try {
-        const updatedBins = await fetchDigitalBins({ limit: 100, status: 'active' });
+        const updatedBins = await digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' });
         if (isMounted) {
           setDigitalBins(updatedBins);
         }
