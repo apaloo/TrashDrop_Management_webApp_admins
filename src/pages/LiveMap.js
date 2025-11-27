@@ -87,14 +87,20 @@ const LiveMap = () => {
         setLoading(true);
         
         // Fetch all data in parallel
-        const [collectorsData, pickupRequests, digitalBinsData, serviceAreasData] = await Promise.all([
+        const [collectorsData, pickupRequests, digitalBinsResponse, serviceAreasData] = await Promise.all([
           fetchCollectors(),
           fetchPickupRequests({ limit: 50 }), // Limit to 50 most recent requests
-          digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' }), // Fetch active digital bins
+          digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' }).catch(err => {
+            console.warn('Digital bins fetch failed, using empty array:', err.message);
+            return { data: [], totalCount: 0 };
+          }),
           fetchServiceAreas()
         ]);
         
         if (!isMounted) return;
+        
+        // Extract data array from paginated response
+        const digitalBinsData = digitalBinsResponse?.data || [];
         
         setCollectors(collectorsData);
         setLocations(pickupRequests);
@@ -159,9 +165,9 @@ const LiveMap = () => {
     // Subscribe to digital bin updates
     const digitalBinSubscription = digitalBinService.subscribe('bin_updated', async () => {
       try {
-        const updatedBins = await digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' });
+        const response = await digitalBinService.fetchDigitalBins({ limit: 100, status: 'active' });
         if (isMounted) {
-          setDigitalBins(updatedBins);
+          setDigitalBins(response?.data || []);
         }
       } catch (error) {
         console.error('Error updating digital bins:', error);

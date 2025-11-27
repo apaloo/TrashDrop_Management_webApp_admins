@@ -112,26 +112,11 @@ class DigitalBinService {
         const from = (page - 1) * limit;
         const to = from + limit - 1;
 
-        // Build query with relationships
+        // Build query - simplified without relationships for now
+        // TODO: Add relationships when foreign keys are properly configured
         let query = supabase
           .from('digital_bins')
-          .select(`
-            *,
-            user:user_id(
-              id,
-              email,
-              first_name,
-              last_name,
-              phone
-            ),
-            location:location_id(
-              id,
-              address,
-              coordinates,
-              location_name,
-              is_default
-            )
-          `, { count: 'exact' })
+          .select('*', { count: 'exact' })
           .range(from, to);
 
         // Apply filters
