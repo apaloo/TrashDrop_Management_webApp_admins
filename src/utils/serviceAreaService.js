@@ -168,6 +168,7 @@ export const fetchServiceAreas = async () => {
     }
     
     // Transform the data to match the expected format
+    // Filter out null values (areas with missing coordinates)
     return areas.map(area => {
       // Find collector count for this area
       const collectorCount = collectorCounts[area.id] 
@@ -193,17 +194,15 @@ export const fetchServiceAreas = async () => {
         console.error(`Error parsing coordinates for area ${area.id}:`, e);
       }
       
-      // If no valid coordinates, provide default based on area index
+      // DEPRECATED: Default polygon fallback removed - service areas must have real coordinates
       if (!coordinates || coordinates.length < 3) {
-        console.warn(`No valid coordinates for service area ${area.name}. Using default polygon.`);
-        // Use a default polygon - offset based on area ID to avoid overlap
-        const baseOffset = parseInt(area.id) || 0;
-        coordinates = [
-          [5.6037 + (baseOffset * 0.01), -0.1870 - (baseOffset * 0.01)],
-          [5.6100 + (baseOffset * 0.01), -0.1900 - (baseOffset * 0.01)],
-          [5.6050 + (baseOffset * 0.01), -0.1950 - (baseOffset * 0.01)],
-          [5.6000 + (baseOffset * 0.01), -0.1920 - (baseOffset * 0.01)]
-        ];
+        console.error(
+          `❌ STRICT MODE ERROR: Service area '${area.name}' has no valid coordinates in database.`,
+          `\n   Service areas must have proper boundary/coordinates data in Supabase.`,
+          `\n   Skipping this service area from map rendering.`
+        );
+        // Return null to skip this area - will be filtered out
+        return null;
       }
       
       return {
@@ -223,11 +222,12 @@ export const fetchServiceAreas = async () => {
           completedToday: Math.floor(Math.random() * 10) + requestCount // Replace with actual data
         }
       };
-    });
+    })
+    .filter(area => area !== null); // Filter out areas with missing coordinates
   } catch (error) {
     console.error('Error fetching service areas:', error);
-    // Return mock data instead of throwing
-    return generateMockServiceAreas();
+    // DEPRECATED: Mock data fallback removed - throw error in strict mode
+    throw new Error(`Failed to fetch service areas: ${error.message}. Ensure service_areas table exists with valid boundary/coordinates data.`);
   }
 };
 
