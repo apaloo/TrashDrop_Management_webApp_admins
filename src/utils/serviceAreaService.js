@@ -134,74 +134,14 @@ export const subscribeToServiceAreaUpdates = (callback) => {
 
 /**
  * Gets a service area by ID
+ * 
+ * DEPRECATED: Database integration removed - using mock data only
+ * 
  * @param {string} areaId - The ID of the service area to fetch
  * @returns {Promise<Object>} The service area object
  */
 export const getServiceAreaById = async (areaId) => {
-  try {
-    // Check if service_areas table exists
-    const serviceAreasTableExists = await safeDatabaseService.checkTableExists('service_areas');
-    if (!serviceAreasTableExists) {
-      console.warn('Service areas table does not exist. Using mock data.');
-      const mockAreas = generateMockServiceAreas();
-      return mockAreas.find(area => area.id === areaId) || null;
-    }
-
-    const { data, error } = await supabase
-      .from('service_areas')
-      .select('*')
-      .eq('id', areaId)
-      .single();
-    
-    if (error) {
-      console.error(`Error fetching service area ${areaId}:`, error);
-      // Return mock data as fallback
-      const mockAreas = generateMockServiceAreas();
-      return mockAreas.find(area => area.id === areaId) || null;
-    }
-    
-    if (!data) return null;
-    
-    // Parse coordinates if boundary data exists
-    let coordinates = [];
-    try {
-      if (data.boundary?.coordinates?.[0] && Array.isArray(data.boundary.coordinates[0])) {
-        coordinates = data.boundary.coordinates[0]
-          .filter(coord => Array.isArray(coord) && coord.length >= 2)
-          .map(coord => [coord[1], coord[0]]);
-      } else if (data.coordinates && Array.isArray(data.coordinates)) {
-        coordinates = data.coordinates;
-      }
-      
-      // If coordinates are still invalid, use default
-      if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 3) {
-        // Provide default coordinates - a simple polygon
-        coordinates = [[5.6037, -0.1870], [5.6100, -0.1900], [5.6050, -0.1950], [5.6000, -0.1920]];
-      }
-    } catch (e) {
-      console.error(`Error parsing coordinates for area ${areaId}:`, e);
-      coordinates = [[5.6037, -0.1870], [5.6100, -0.1900], [5.6050, -0.1950], [5.6000, -0.1920]];
-    }
-    
-    return {
-      id: data.id,
-      name: data.name,
-      color: data.color || '#3388ff',
-      fillOpacity: 0.1,
-      strokeWidth: 2,
-      coordinates: coordinates,
-      // Add any other properties needed by the UI
-      stats: {
-        totalCollectors: Math.floor(Math.random() * 10) + 3, // These would be populated with actual data
-        activeCollectors: Math.floor(Math.random() * 7) + 2,
-        pendingRequests: Math.floor(Math.random() * 15) + 1,
-        completedToday: Math.floor(Math.random() * 8)
-      }
-    };
-  } catch (error) {
-    console.error(`Error fetching service area ${areaId}:`, error);
-    // Return mock data as fallback
-    const mockAreas = generateMockServiceAreas();
-    return mockAreas.find(area => area.id === areaId) || null;
-  }
+  // DEPRECATED: Database integration removed - using mock data only
+  const mockAreas = generateMockServiceAreas();
+  return mockAreas.find(area => area.id === areaId) || null;
 };
