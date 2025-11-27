@@ -1312,8 +1312,8 @@ export const fetchPerformanceStatsReal = async () => {
 export const fetchCollectors = async ({ status = null, region = null, limit = 100 } = {}) => {
   return await safeDatabaseService.safeQuery({
     tableName: 'collector_profiles',
-    throwOnMissing: false,
-    enableMock: true,
+    throwOnMissing: true, // MOCK DATA DEPRECATED - Strict mode only
+    enableMock: false, // DEPRECATED: Mock data system removed
     queryFn: async () => {
       let query = supabase
         .from('collector_profiles')

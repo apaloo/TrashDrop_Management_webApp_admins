@@ -1,13 +1,15 @@
 /**
  * Strict Database Service (previously SafeDatabaseService)
  * 
- * This service has been modified to enforce strict real data access:
- * - NO graceful fallbacks
+ * MOCK DATA DEPRECATED - This service now enforces strict real data access:
+ * - NO graceful fallbacks to mock data
  * - NO mock data generation
  * - Explicit errors for missing tables/functions
- * - Application will fail to run if database elements are missing
+ * - Application requires complete database setup
  * 
- * STRICT MODE: Real data only, no fallbacks, explicit errors only
+ * PRODUCTION MODE: Real data only, no fallbacks, explicit errors only
+ * 
+ * @deprecated Mock data system - Use real Supabase database only
  */
 
 import { supabase } from './supabase';
@@ -32,9 +34,9 @@ class SafeDatabaseService {
     this.throwOnMissingTables = requireDatabase;
     
     console.log(
-      `📊 DATABASE SERVICE: ${this.preferRealData ? 'Preferring real data' : 'Using mixed data'}, ` +
-      `${this.enableMockFallback ? 'Mock fallbacks enabled' : 'Mock fallbacks disabled'}, ` +
-      `${this.throwOnMissingTables ? 'Strict table validation' : 'Progressive enhancement mode'}`
+      `📊 DATABASE SERVICE (MOCK DATA DEPRECATED): ${this.preferRealData ? 'Real data only' : 'Using mixed data'}, ` +
+      `${this.enableMockFallback ? '⚠️ Mock fallbacks DEPRECATED but still enabled' : '✅ Mock fallbacks disabled'}, ` +
+      `${this.throwOnMissingTables ? '✅ Strict production mode' : '⚠️ Progressive mode (deprecated)'}`
     );
   }
 

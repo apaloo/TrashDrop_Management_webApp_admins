@@ -63,9 +63,9 @@ export const fetchMessages = async ({ userId, limit = 50 } = {}) => {
       .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
       .order('created_at', { ascending: false })
       .limit(limit),
-    mockDataFn: () => [], // Return empty array if messages table doesn't exist
+    mockDataFn: () => [], // DEPRECATED: Mock data system removed
     mockParams: { userId, limit },
-    enableMock: true
+    enableMock: false // DEPRECATED: Mock data system removed
   });
 };
 
@@ -86,9 +86,9 @@ export const fetchNotifications = async ({ userId, limit = 50 } = {}) => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit),
-    mockDataFn: () => generateMockNotifications(limit),
+    mockDataFn: () => generateMockNotifications(limit), // DEPRECATED: Mock data system removed
     mockParams: { limit },
-    enableMock: true
+    enableMock: false // DEPRECATED: Mock data system removed
   });
 };
 

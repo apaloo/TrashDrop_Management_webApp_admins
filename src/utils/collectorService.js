@@ -65,8 +65,8 @@ const transformCollectorData = (profile) => {
 export const fetchCollectors = async ({ status = null, region = null, limit = 100 } = {}) => {
   const { data } = await safeDatabaseService.safeQuery({
     tableName: 'collector_profiles',
-    throwOnMissing: false,
-    enableMock: true,
+    throwOnMissing: true, // MOCK DATA DEPRECATED - Strict mode only
+    enableMock: false, // DEPRECATED: Mock data system removed
     queryFn: async () => {
       let query = supabase
         .from('collector_profiles')
@@ -126,8 +126,8 @@ export const fetchCollectorById = async (collectorId) => {
 
   const { data } = await safeDatabaseService.safeQuery({
     tableName: 'collector_profiles',
-    throwOnMissing: false,
-    enableMock: true,
+    throwOnMissing: true, // MOCK DATA DEPRECATED - Strict mode only
+    enableMock: false, // DEPRECATED: Mock data system removed
     queryFn: async () =>
       supabase
         .from('collector_profiles')
@@ -182,8 +182,8 @@ export const updateCollectorStatus = async (collectorId, status, additionalData 
 
   const { data } = await safeDatabaseService.safeQuery({
     tableName: 'collector_profiles',
-    throwOnMissing: false,
-    enableMock: true,
+    throwOnMissing: true, // MOCK DATA DEPRECATED - Strict mode only
+    enableMock: false, // DEPRECATED: Mock data system removed
     queryFn: async () =>
       supabase
         .from('collector_profiles')
