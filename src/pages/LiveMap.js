@@ -21,6 +21,84 @@ const DEFAULT_COORDINATES = {
   zoom: 12
 };
 
+// Helper function to generate a random point inside a polygon
+const getRandomPointInPolygon = (polygonCoords) => {
+  if (!polygonCoords || polygonCoords.length < 3) return null;
+  
+  // Calculate bounding box
+  const lats = polygonCoords.map(coord => coord[0]);
+  const lngs = polygonCoords.map(coord => coord[1]);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  
+  // Generate random points until one falls inside the polygon
+  let attempts = 0;
+  while (attempts < 100) {
+    const randomLat = minLat + Math.random() * (maxLat - minLat);
+    const randomLng = minLng + Math.random() * (maxLng - minLng);
+    
+    // Simple point-in-polygon check using ray casting
+    if (isPointInPolygon([randomLat, randomLng], polygonCoords)) {
+      return [randomLat, randomLng];
+    }
+    attempts++;
+  }
+  
+  // Fallback to polygon center
+  const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+  const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+  return [centerLat, centerLng];
+};
+
+// Point-in-polygon test using ray casting algorithm
+const isPointInPolygon = (point, polygon) => {
+  const [x, y] = point;
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    
+    const intersect = ((yi > y) !== (yj > y)) &&
+      (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    
+    if (intersect) inside = !inside;
+  }
+  
+  return inside;
+};
+
+// Assign points to service areas and generate coordinates within polygons
+const assignPointsToServiceAreas = (points, serviceAreas) => {
+  if (!serviceAreas || serviceAreas.length === 0) return points;
+  
+  return points.map((point, index) => {
+    // Distribute points evenly across service areas
+    const serviceAreaIndex = index % serviceAreas.length;
+    const serviceArea = serviceAreas[serviceAreaIndex];
+    
+    // Generate a random point within the service area polygon
+    const newCoords = getRandomPointInPolygon(serviceArea.coordinates);
+    
+    if (newCoords) {
+      return {
+        ...point,
+        location: {
+          ...point.location,
+          lat: newCoords[0],
+          lng: newCoords[1]
+        },
+        service_area_id: serviceArea.id,
+        service_area_name: serviceArea.name
+      };
+    }
+    
+    return point;
+  });
+};
+
 // Helper component to fix map invalidation issues
 function MapInvalidator() {
   const map = useMap();
@@ -102,14 +180,18 @@ const LiveMap = () => {
         // Extract data array from paginated response
         const digitalBinsData = digitalBinsResponse?.data || [];
         
+        // Assign points to service areas and generate coordinates within polygons
+        const processedPickupRequests = assignPointsToServiceAreas(pickupRequests, serviceAreasData);
+        const processedDigitalBins = assignPointsToServiceAreas(digitalBinsData, serviceAreasData);
+        
         setCollectors(collectorsData);
-        setLocations(pickupRequests);
-        setDigitalBins(digitalBinsData);
+        setLocations(processedPickupRequests);
+        setDigitalBins(processedDigitalBins);
         setServiceAreas(serviceAreasData);
         
         console.log('📍 LiveMap data loaded:', {
-          pickupRequests: pickupRequests.length,
-          digitalBins: digitalBinsData.length,
+          pickupRequests: processedPickupRequests.length,
+          digitalBins: processedDigitalBins.length,
           collectors: collectorsData.length,
           serviceAreas: serviceAreasData.length
         });
