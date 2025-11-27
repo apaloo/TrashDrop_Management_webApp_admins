@@ -260,6 +260,17 @@ const LiveMap = () => {
   
   const mapRef = useRef();
   
+  // Auto-center map when data loads or changes
+  useEffect(() => {
+    if (!loading && (locations.length > 0 || digitalBins.length > 0)) {
+      // Small delay to ensure map is fully rendered
+      const timer = setTimeout(() => {
+        centerMap();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, locations, digitalBins, centerMap]);
+  
   // Handle collector selection
   const openCollectorDetailPanel = async (collector) => {
     try {
