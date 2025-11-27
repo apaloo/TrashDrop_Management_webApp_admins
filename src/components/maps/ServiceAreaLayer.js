@@ -20,23 +20,33 @@ const ServiceAreaLayer = ({ area }) => {
     // Safely map coordinates with enhanced validation
     const positions = area.coordinates
       .filter((coord, index) => {
-        // Check if coordinate is array with two numeric values
-        const isValid = Array.isArray(coord) && 
-                        coord.length >= 2 && 
-                        typeof coord[0] === 'number' && 
-                        typeof coord[1] === 'number' &&
-                        !isNaN(coord[0]) && !isNaN(coord[1]) &&
-                        isFinite(coord[0]) && isFinite(coord[1]);
+        // Check if coordinate is valid - can be array [lat, lng] or object {lat, lng}
+        let isValid = false;
         
-        // Log specific issues for debugging
-        if (!isValid && coord !== undefined) {
-          console.warn(`Invalid coordinate at index ${index} in service area ${area.name || 'unknown'}:`, 
-                       coord ? JSON.stringify(coord) : 'undefined/null');
+        if (Array.isArray(coord) && coord.length >= 2) {
+          // Array format: [lat, lng]
+          isValid = typeof coord[0] === 'number' && 
+                    typeof coord[1] === 'number' &&
+                    !isNaN(coord[0]) && !isNaN(coord[1]) &&
+                    isFinite(coord[0]) && isFinite(coord[1]);
+        } else if (coord && typeof coord === 'object' && 'lat' in coord && 'lng' in coord) {
+          // Object format: {lat, lng}
+          isValid = typeof coord.lat === 'number' && 
+                    typeof coord.lng === 'number' &&
+                    !isNaN(coord.lat) && !isNaN(coord.lng) &&
+                    isFinite(coord.lat) && isFinite(coord.lng);
         }
         
         return isValid;
       })
-      .map(coord => [coord[0], coord[1]]);
+      .map(coord => {
+        // Normalize to array format [lat, lng]
+        if (Array.isArray(coord)) {
+          return [coord[0], coord[1]];
+        } else {
+          return [coord.lat, coord.lng];
+        }
+      });
     
     // Only render if we have at least 3 valid points (minimum for a polygon)
     if (positions.length < 3) {
