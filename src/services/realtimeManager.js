@@ -256,7 +256,7 @@ class RealtimeManager {
       'pickup_requests',
       'digital_bins', 
       'bags',
-      'illegal_dumping',
+      'illegal_dumping_mobile',
       'collector_sessions'
     ];
     return criticalTables.includes(tableName);
@@ -308,7 +308,7 @@ class RealtimeManager {
   subscribeToIllegalDumping(callback) {
     return this.subscribe(
       'illegal-dumping',
-      ['illegal_dumping', 'illegal_dumping_mobile', 'dumping_reports'],
+      ['illegal_dumping_mobile'],
       callback
     );
   }

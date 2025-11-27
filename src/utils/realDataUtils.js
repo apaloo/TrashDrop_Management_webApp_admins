@@ -404,19 +404,7 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
     let query = supabase
       .from('illegal_dumping_mobile')
       .select(`
-        id,
-        address,
-        location,
-        waste_type,
-        severity,
-        status,
-        description,
-        images,
-        created_at,
-        updated_at,
-        users:reported_by(first_name, last_name, phone),
-        assigned_team:assigned_to(first_name, last_name),
-        estimated_volume
+        *
       `, { count: 'exact' });
 
     if (status) {
@@ -432,30 +420,46 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
     if (error) throw error;
 
     // Transform the data
-    const transformedData = (data || []).map(report => ({
-      id: report.id,
-      location: {
-        address: report.address || 'Location not specified',
-        coordinates: report.location || { lat: 5.5800, lng: -0.2300 }
-      },
-      reporter: {
-        name: report.users ? `${report.users.first_name || ''} ${report.users.last_name || ''}`.trim() : 'Anonymous',
-        phone: report.users?.phone || 'N/A',
-        anonymous: !report.users || (!report.users.first_name && !report.users.last_name)
-      },
-      status: report.status,
-      severity: report.severity || 'medium',
-      waste_type: report.waste_type || 'mixed',
-      estimated_volume: report.estimated_volume || 0,
-      description: report.description || 'No description provided',
-      images: report.images || [],
-      reported_at: report.created_at,
-      resolved_at: report.status === 'resolved' ? report.updated_at : null,
-      assigned_to: report.assigned_team?.id || null,
-      team_name: report.assigned_team ? 
-        `${report.assigned_team.first_name || ''} ${report.assigned_team.last_name || ''}`.trim() || 'Unknown' : null,
-      resolution_notes: report.status === 'resolved' ? 'Site has been cleaned up.' : null
-    }));
+    const transformedData = (data || []).map(report => {
+      // Extract coordinates - they're stored as strings in the table
+      let lat = report.latitude ? parseFloat(report.latitude) : null;
+      let lng = report.longitude ? parseFloat(report.longitude) : null;
+      
+      // Default to Accra if no valid coordinates
+      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+        lat = 5.5800;
+        lng = -0.2300;
+      }
+      
+      // Get location string (it's a text field with address and coordinates)
+      const locationStr = report.location || 'Location not specified';
+      
+      return {
+        id: report.id,
+        location: {
+          address: locationStr,
+          lat: lat,
+          lng: lng
+        },
+        reporter: {
+          name: 'Anonymous',
+          phone: 'N/A',
+          anonymous: true
+        },
+        status: report.status || 'pending',
+        severity: report.severity || 'medium',
+        waste_type: report.waste_type || 'household',
+        size: report.size || 'medium',
+        estimated_volume: 0,
+        description: `${report.waste_type || 'Waste'} dumping - ${report.severity || 'medium'} severity`,
+        images: Array.isArray(report.photos) ? report.photos : [],
+        reported_at: report.created_at,
+        resolved_at: report.status === 'cleaned_up' ? report.updated_at : null,
+        assigned_to: report.assigned_to || null,
+        team_name: report.assigned_to ? 'Cleanup Team' : null,
+        resolution_notes: report.status === 'cleaned_up' ? 'Site has been cleaned up.' : null
+      };
+    });
 
     return {
       data: transformedData,

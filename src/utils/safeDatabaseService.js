@@ -58,20 +58,36 @@ class SafeDatabaseService {
         return exists;
       }
 
-      // Regular table check
+      // Regular table check - use count(*) which works regardless of columns
       const { error } = await supabase
         .from(tableName)
-        .select('*')
-        .limit(0);
+        .select('*', { count: 'exact', head: true });
 
       // Evaluate response error to determine existence
       if (error) {
+        // Errors that mean the table DOES NOT exist
         const isMissing = error.code === 'PGRST116' || // Schema cache lookup failed
                          error.code === 'PGRST204'  || // Table not found
                          error.code === '42P01'     || // PostgreSQL: relation does not exist
-                         error.code === '42883'     || // Function does not exist
-                         error.message?.includes('does not exist') ||
-                         error.message?.includes('not found');
+                         (error.message?.includes('does not exist') && !error.message?.includes('column')) ||
+                         (error.message?.includes('not found') && error.message?.includes('schema cache'));
+        
+        // Errors that mean the table EXISTS but there's a query problem
+        const tableExistsButQueryError = 
+          error.code === 'PGRST200' ||  // Foreign key relationship error (table exists)
+          error.code === '42703'    ||  // Column does not exist (table exists)
+          error.code === '42804'    ||  // Type mismatch (table exists)
+          error.code === '42883'    ||  // Function signature mismatch (function exists)
+          error.message?.includes('column') ||
+          error.message?.includes('relationship') ||
+          error.message?.includes('type');
+
+        // If it's a query error, the table definitely exists
+        if (tableExistsButQueryError) {
+          this.tableExists.set(tableName, true);
+          console.log(`[SafeDB] Table ${tableName} exists (query error: ${error.code})`);
+          return true;
+        }
 
         this.tableExists.set(tableName, !isMissing);
 
@@ -99,13 +115,24 @@ class SafeDatabaseService {
       }
       
       // Check for table/function doesn't exist errors
+      const tableExistsButQueryError = 
+        error.code === 'PGRST200' ||  // Foreign key relationship error (table exists)
+        error.code === '42703'    ||  // Column does not exist (table exists)
+        error.code === '42804'    ||  // Type mismatch (table exists)
+        error.message?.includes('column') ||
+        error.message?.includes('relationship');
+      
+      if (tableExistsButQueryError) {
+        this.tableExists.set(tableName, true);
+        console.log(`[SafeDB] Table ${tableName} exists (caught error: ${error.code})`);
+        return true;
+      }
+      
       const isMissing = error.code === 'PGRST116' || // Schema cache lookup failed
                        error.code === 'PGRST204' ||  // Table not found
                        error.code === '42P01' ||     // PostgreSQL: relation does not exist
-                       error.code === '42883' ||     // Function does not exist
-                       error.message?.includes('does not exist') ||
-                       error.message?.includes('not found') ||
-                       error.message?.includes('function not found');
+                       (error.message?.includes('does not exist') && !error.message?.includes('column')) ||
+                       (error.message?.includes('not found') && error.message?.includes('schema cache'));
       
       this.tableExists.set(tableName, !isMissing);
       
@@ -668,8 +695,33 @@ class SafeDatabaseService {
       partialSuccess: true // Always return partial success to allow app to continue
     };
   }
+
+  /**
+   * Clear the table existence cache
+   * Useful when you know the database schema has changed
+   */
+  clearCache() {
+    console.log('[SafeDB] Clearing table and function existence cache');
+    this.tableExists.clear();
+    this.functionExists.clear();
+  }
+
+  /**
+   * Clear cache for a specific table
+   */
+  clearTableCache(tableName) {
+    console.log(`[SafeDB] Clearing cache for table: ${tableName}`);
+    this.tableExists.delete(tableName);
+  }
 }
 
 // Export singleton instance
 const safeDatabaseService = new SafeDatabaseService();
+
+// Make it available globally for debugging
+if (typeof window !== 'undefined') {
+  window.safeDatabaseService = safeDatabaseService;
+  console.log('🔧 DEBUG: Use window.safeDatabaseService.clearCache() to clear table cache');
+}
+
 export { safeDatabaseService };

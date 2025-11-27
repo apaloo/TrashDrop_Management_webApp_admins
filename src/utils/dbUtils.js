@@ -149,9 +149,9 @@ export const fetchPickups = async (params = {}) => {
 
 export const fetchIllegalDumpingReports = async (params = {}) => {
   return dbQuery({
-    tableName: 'illegal_dumping_reports',
+    tableName: 'illegal_dumping_mobile',
     queryFn: async () => supabase
-      .from('illegal_dumping_reports')
+      .from('illegal_dumping_mobile')
       .select('*')
       .order('reported_at', { ascending: false })
       .limit(params.limit || 100),
@@ -186,7 +186,7 @@ export const getUserContacts = async (userId) => {
     // Use safeRPC for calling the function with graceful fallback
     const data = await safeDatabaseService.safeRPC({
       functionName: 'get_user_contacts',
-      params: { user_id: userId },
+      params: { p_user_id: userId },
       throwOnMissing: false,
       mockFallback: mockContacts
     });
