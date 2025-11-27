@@ -205,16 +205,38 @@ const LiveMap = () => {
     };
   }, []);
   
-  // Reset map view to show all points
+  // Reset map view to show all points (pickup requests + digital bins)
   const centerMap = useCallback(() => {
     if (mapRef.current) {
       const map = mapRef.current;
-      // Use default coordinates or calculate bounds from data
+      
+      // Collect all points from both pickup requests and digital bins
+      const allPoints = [];
+      
+      // Add pickup request locations
       if (locations && locations.length > 0) {
-        const bounds = L.latLngBounds(
-          locations.map(loc => [loc.location?.lat || 0, loc.location?.lng || 0])
-            .filter(([lat, lng]) => lat !== 0 && lng !== 0)
-        );
+        locations.forEach(loc => {
+          if (loc.location?.lat && loc.location?.lng) {
+            allPoints.push([loc.location.lat, loc.location.lng]);
+          }
+        });
+      }
+      
+      // Add digital bin locations
+      if (digitalBins && digitalBins.length > 0) {
+        digitalBins.forEach(bin => {
+          if (bin.location?.lat && bin.location?.lng) {
+            allPoints.push([bin.location.lat, bin.location.lng]);
+          } else if (bin.latitude && bin.longitude) {
+            // Alternative field names
+            allPoints.push([bin.latitude, bin.longitude]);
+          }
+        });
+      }
+      
+      // Calculate bounds from all points
+      if (allPoints.length > 0) {
+        const bounds = L.latLngBounds(allPoints);
         
         if (!bounds.isValid()) {
           // Fallback to default coordinates if bounds are invalid
@@ -230,11 +252,11 @@ const LiveMap = () => {
           });
         }
       } else {
-        // Fallback to default coordinates
+        // Fallback to default coordinates if no points
         map.setView([DEFAULT_COORDINATES.lat, DEFAULT_COORDINATES.lng], DEFAULT_COORDINATES.zoom);
       }
     }
-  }, [locations]);
+  }, [locations, digitalBins]);
   
   const mapRef = useRef();
   
