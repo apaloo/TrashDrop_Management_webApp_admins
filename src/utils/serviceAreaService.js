@@ -169,7 +169,8 @@ export const fetchServiceAreas = async () => {
     
     // Transform the data to match the expected format
     // Filter out null values (areas with missing coordinates)
-    return areas.map(area => {
+    const skippedAreas = [];
+    const validAreas = areas.map(area => {
       // Find collector count for this area
       const collectorCount = collectorCounts[area.id] 
         || collectorCounts[area.assigned_region] 
@@ -196,11 +197,7 @@ export const fetchServiceAreas = async () => {
       
       // DEPRECATED: Default polygon fallback removed - service areas must have real coordinates
       if (!coordinates || coordinates.length < 3) {
-        console.error(
-          `❌ STRICT MODE ERROR: Service area '${area.name}' has no valid coordinates in database.`,
-          `\n   Service areas must have proper boundary/coordinates data in Supabase.`,
-          `\n   Skipping this service area from map rendering.`
-        );
+        skippedAreas.push(area.name);
         // Return null to skip this area - will be filtered out
         return null;
       }
@@ -224,6 +221,16 @@ export const fetchServiceAreas = async () => {
       };
     })
     .filter(area => area !== null); // Filter out areas with missing coordinates
+    
+    // Log summary of skipped areas once instead of individual errors
+    if (skippedAreas.length > 0) {
+      console.warn(
+        `⚠️ STRICT MODE: ${skippedAreas.length} service area(s) skipped due to missing coordinates: ${skippedAreas.join(', ')}`,
+        `\n   These areas will not render on the map. Add boundary/coordinates data in Supabase to display them.`
+      );
+    }
+    
+    return validAreas;
   } catch (error) {
     console.error('Error fetching service areas:', error);
     // DEPRECATED: Mock data fallback removed - throw error in strict mode
