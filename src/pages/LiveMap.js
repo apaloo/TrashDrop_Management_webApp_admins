@@ -14,10 +14,10 @@ import { fetchServiceAreas, subscribeToServiceAreaUpdates } from '../utils/servi
 import { digitalBinService } from '../services/digitalBinService';
 import { supabase } from '../utils/supabase';
 
-// Default coordinates for San Francisco
+// Default coordinates for Accra, Ghana
 const DEFAULT_COORDINATES = {
-  lat: 37.7749,
-  lng: -122.4194,
+  lat: 5.6037,
+  lng: -0.1870,
   zoom: 12
 };
 
