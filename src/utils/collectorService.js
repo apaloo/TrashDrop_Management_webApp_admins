@@ -103,7 +103,7 @@ export const fetchCollectors = async ({ status = null, region = null, limit = 10
       }
 
       if (region) {
-        query = query.eq('region', region);
+        query = query.eq('assigned_region', region);
       }
 
       return query;
