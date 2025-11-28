@@ -246,29 +246,50 @@ export const fetchPickupRequests = async ({
     if (result.data && result.data.length > 0 && profilesTableExists) {
       try {
         const requesterIds = [...new Set(result.data.map(r => r.requester_id).filter(Boolean))];
+        console.log('📋 Fetching profiles for requester IDs:', requesterIds);
+        
         if (requesterIds.length > 0) {
-          const { data: profiles } = await supabase
+          const { data: profiles, error: profileError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, email, phone, avatar_url')
             .in('id', requesterIds);
+          
+          if (profileError) {
+            console.warn('❌ Error fetching profiles:', profileError);
+          } else {
+            console.log('✅ Fetched profiles:', profiles?.length || 0);
+          }
           
           // Create a map for quick lookup
           const profileMap = {};
           if (profiles) {
             profiles.forEach(profile => {
               profileMap[profile.id] = profile;
+              console.log('👤 Profile mapped:', profile.id, `${profile.first_name} ${profile.last_name}`);
             });
           }
           
           // Attach profile data to each request
-          result.data = result.data.map(request => ({
-            ...request,
-            requester: profileMap[request.requester_id] || null
-          }));
+          result.data = result.data.map(request => {
+            const profile = profileMap[request.requester_id];
+            console.log(`📍 Request ${request.id}: requester_id=${request.requester_id}, profile=${profile ? 'found' : 'NOT FOUND'}`);
+            return {
+              ...request,
+              requester: profile || null
+            };
+          });
+        } else {
+          console.warn('⚠️ No requester IDs found in pickup requests');
         }
       } catch (profileError) {
-        console.warn('Failed to fetch user profiles, continuing without:', profileError);
+        console.warn('❌ Failed to fetch user profiles, continuing without:', profileError);
       }
+    } else {
+      console.log('ℹ️ Skipping profile fetch:', {
+        hasData: !!result.data,
+        dataLength: result.data?.length || 0,
+        profilesTableExists
+      });
     }
 
     if (result.error) {
