@@ -118,10 +118,12 @@ function MapInvalidator() {
 const getMarkerIcon = (status) => {
   // Color coding based on status
   const iconColor = 
-    status === 'New' ? '#2196F3' :
-    status === 'En Route' ? '#FF9800' :
-    status === 'Completed' ? '#4CAF50' :
-    status === 'Flagged' ? '#dc3545' : '#9E9E9E';
+    status === 'available' ? '#4CAF50' :  // Green for available
+    status === 'New' ? '#2196F3' :        // Blue for new
+    status === 'En Route' ? '#FF9800' :   // Orange for en route
+    status === 'Completed' ? '#4CAF50' :  // Green for completed
+    status === 'Flagged' ? '#dc3545' :    // Red for flagged
+    '#9E9E9E';                            // Gray for unknown
   
   return L.divIcon({
     className: 'custom-marker-icon',
