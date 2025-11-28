@@ -88,7 +88,7 @@ class DigitalBinService {
     useCache = true,
     includeExpired = false
   } = {}) {
-    return trackDatabaseOperation('fetchDigitalBins', async () => {
+    const operation = trackDatabaseOperation('fetchDigitalBins', async () => {
       try {
         // Create cache key
         const cacheKey = this.createCacheKey({
@@ -203,6 +203,9 @@ class DigitalBinService {
         throw handleDatabaseError(error, 'fetchDigitalBins');
       }
     });
+    
+    // Call the wrapped operation function
+    return await operation();
   }
 
   /**
