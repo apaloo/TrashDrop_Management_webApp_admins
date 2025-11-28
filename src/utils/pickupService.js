@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
-import { STATUS } from '../config/constants';
 
 /**
  * Generate mock pickup requests data for development
@@ -147,14 +146,14 @@ export const fetchPickupRequests = async ({
   try {
     console.log('fetchPickupRequests called with:', { status, collectorId, limit });
     
-    // Check if both pickup_requests and users tables exist before making query
+    // Check if both pickup_requests and profiles tables exist before making query
     const pickupTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
-    const usersTableExists = await safeDatabaseService.checkTableExists('users');
+    const profilesTableExists = await safeDatabaseService.checkTableExists('profiles');
     const collectorsTableExists = await safeDatabaseService.checkTableExists('collectors');
     
     console.log('Table existence check:', { 
       pickupTableExists, 
-      usersTableExists, 
+      profilesTableExists, 
       collectorsTableExists 
     });
     
@@ -242,53 +241,53 @@ export const fetchPickupRequests = async ({
       return mockData.slice(0, limit);
     }
     
-    // If we have real data, manually fetch user data for requester details
-    if (result.data && result.data.length > 0 && usersTableExists) {
+    // If we have real data, manually fetch user profiles for requester details
+    if (result.data && result.data.length > 0 && profilesTableExists) {
       try {
         const requesterIds = [...new Set(result.data.map(r => r.requester_id).filter(Boolean))];
-        console.log('📋 Fetching users for requester IDs:', requesterIds);
+        console.log('📋 Fetching profiles for requester IDs:', requesterIds);
         
         if (requesterIds.length > 0) {
-          const { data: users, error: userError } = await supabase
-            .from('users')
+          const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
             .select('id, first_name, last_name, email, phone, avatar_url')
             .in('id', requesterIds);
           
-          if (userError) {
-            console.warn('❌ Error fetching users:', userError);
+          if (profileError) {
+            console.warn('❌ Error fetching profiles:', profileError);
           } else {
-            console.log('✅ Fetched users:', users?.length || 0);
+            console.log('✅ Fetched profiles:', profiles?.length || 0);
           }
           
           // Create a map for quick lookup
-          const userMap = {};
-          if (users) {
-            users.forEach(user => {
-              userMap[user.id] = user;
-              console.log('👤 User mapped:', user.id, `${user.first_name} ${user.last_name}`);
+          const profileMap = {};
+          if (profiles) {
+            profiles.forEach(profile => {
+              profileMap[profile.id] = profile;
+              console.log('👤 Profile mapped:', profile.id, `${profile.first_name} ${profile.last_name}`);
             });
           }
           
-          // Attach user data to each request
+          // Attach profile data to each request
           result.data = result.data.map(request => {
-            const user = userMap[request.requester_id];
-            console.log(`📍 Request ${request.id}: requester_id=${request.requester_id}, user=${user ? 'found' : 'NOT FOUND'}`);
+            const profile = profileMap[request.requester_id];
+            console.log(`📍 Request ${request.id}: requester_id=${request.requester_id}, profile=${profile ? 'found' : 'NOT FOUND'}`);
             return {
               ...request,
-              requester: user || null
+              requester: profile || null
             };
           });
         } else {
           console.warn('⚠️ No requester IDs found in pickup requests');
         }
-      } catch (userError) {
-        console.warn('❌ Failed to fetch users, continuing without:', userError);
+      } catch (profileError) {
+        console.warn('❌ Failed to fetch user profiles, continuing without:', profileError);
       }
     } else {
-      console.log('ℹ️ Skipping user fetch:', {
+      console.log('ℹ️ Skipping profile fetch:', {
         hasData: !!result.data,
         dataLength: result.data?.length || 0,
-        usersTableExists
+        profilesTableExists
       });
     }
 
@@ -459,19 +458,6 @@ export const fetchPickupRequests = async ({
   }
 };
 
-/**
- * Formats the status for display
- * @private
- */
-const formatStatus = (status) => {
-  const statusMap = {
-    'available': 'New',
-    'accepted': 'In Progress',
-    'picked_up': 'Collected',
-    'disposed': 'Completed'
-  };
-  return statusMap[status] || status;
-};
 
 /**
  * Determines priority based on status and priority
@@ -511,7 +497,6 @@ export const updatePickupStatus = async (requestId, updateData = {}) => {
   try {
     // Extract common parameters
     const status = updateData.status;
-    const collectorId = updateData.collector_id;
     
     // Check if pickup_requests table exists
     const tableExists = await safeDatabaseService.checkTableExists('pickup_requests');
