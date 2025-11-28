@@ -112,7 +112,8 @@ class DigitalBinService {
         const from = (page - 1) * limit;
         const to = from + limit - 1;
 
-        // Build query with bin_locations join to get coordinates
+        // Build query with bin_locations join
+        // Use PostGIS functions to extract lat/lng from geometry
         let query = supabase
           .from('digital_bins')
           .select(`
@@ -121,8 +122,6 @@ class DigitalBinService {
               id,
               location_name,
               address,
-              latitude,
-              longitude,
               coordinates
             )
           `, { count: 'exact' })
@@ -564,6 +563,58 @@ class DigitalBinService {
     }
   }
 
+  /**
+   * Parse PostGIS WKB (Well-Known Binary) Point geometry to extract lat/lng
+   * WKB format: hex string like "0101000020E6100000..."
+   */
+  parseWKBPoint(wkbHex) {
+    if (!wkbHex || typeof wkbHex !== 'string') return null;
+    
+    try {
+      // WKB Point structure (Little Endian):
+      // Byte 0: Byte order (01 = little endian)
+      // Bytes 1-4: Geometry type (01000000 = Point, 20 = with SRID)
+      // Bytes 5-8: SRID (E6100000 = 4326 for WGS84)
+      // Bytes 9-16: X coordinate (longitude) as double
+      // Bytes 17-24: Y coordinate (latitude) as double
+      
+      // Skip the first 18 characters (9 bytes): byte order + type + SRID
+      const dataStart = 18;
+      
+      // Extract X (longitude) - 16 hex chars = 8 bytes
+      const xHex = wkbHex.substr(dataStart, 16);
+      // Extract Y (latitude) - next 16 hex chars = 8 bytes  
+      const yHex = wkbHex.substr(dataStart + 16, 16);
+      
+      // Convert hex to double (IEEE 754)
+      const lng = this.hexToDouble(xHex);
+      const lat = this.hexToDouble(yHex);
+      
+      return { lat, lng };
+    } catch (error) {
+      console.error('WKB parsing error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert hex string to IEEE 754 double precision float
+   */
+  hexToDouble(hex) {
+    // Reverse bytes for little endian
+    const bytes = [];
+    for (let i = hex.length - 2; i >= 0; i -= 2) {
+      bytes.push(parseInt(hex.substr(i, 2), 16));
+    }
+    
+    // Create a DataView to read as double
+    const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
+    bytes.forEach((byte, i) => view.setUint8(i, byte));
+    
+    return view.getFloat64(0, true); // true = little endian
+  }
+
   enhanceDigitalBinsData(bins) {
     if (!bins || !Array.isArray(bins)) return bins;
     return bins.map(bin => this.enhanceDigitalBinData(bin));
@@ -576,12 +627,33 @@ class DigitalBinService {
     const expiresAt = new Date(bin.expires_at);
     
     // Normalize location structure for map rendering
-    const location = bin.location ? {
-      ...bin.location,
-      lat: bin.location.latitude,
-      lng: bin.location.longitude,
-      address: bin.location.address || bin.location.location_name
-    } : null;
+    // Parse PostGIS WKB (Well-Known Binary) geometry to extract lat/lng
+    let location = null;
+    if (bin.location) {
+      let lat = null;
+      let lng = null;
+      
+      if (bin.location.coordinates) {
+        try {
+          // PostGIS WKB format: hex string starting with "0101000020E6100000"
+          // Parse the WKB to extract coordinates
+          const coords = this.parseWKBPoint(bin.location.coordinates);
+          if (coords) {
+            lng = coords.lng;
+            lat = coords.lat;
+          }
+        } catch (error) {
+          console.error('Error parsing WKB coordinates:', error, bin.location.coordinates);
+        }
+      }
+      
+      location = {
+        ...bin.location,
+        lat: lat,
+        lng: lng,
+        address: bin.location.address || bin.location.location_name
+      };
+    }
     
     return {
       ...bin,
