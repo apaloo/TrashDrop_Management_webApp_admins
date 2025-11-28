@@ -191,47 +191,11 @@ export const fetchPickupRequests = async ({
       return mockData.slice(0, limit);
     }
 
-    // Build the query based on which tables exist
-    let queryString = '*';
-    
-    if (collectorsTableExists && profilesTableExists) {
-      // Full relational query if all tables exist - join with profiles for customer details
-      queryString = `
-        *,
-        requester:requester_id(
-          id,
-          first_name,
-          last_name,
-          email,
-          phone,
-          avatar_url
-        ),
-        collector:collector_id(
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        )
-      `;
-    } else if (profilesTableExists) {
-      // Only include requestor if profiles table exists  
-      queryString = `
-        *,
-        requester:requester_id(
-          id,
-          first_name,
-          last_name,
-          email,
-          phone,
-          avatar_url
-        )
-      `;
-    }
-    
+    // Build the query - just select all fields without joins
+    // Foreign key relationships not configured in database yet
     let query = supabase
       .from('pickup_requests')
-      .select(queryString)
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -276,6 +240,35 @@ export const fetchPickupRequests = async ({
       }
       
       return mockData.slice(0, limit);
+    }
+    
+    // If we have real data, manually fetch user profiles for requester details
+    if (result.data && result.data.length > 0 && profilesTableExists) {
+      try {
+        const requesterIds = [...new Set(result.data.map(r => r.requester_id).filter(Boolean))];
+        if (requesterIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, phone, avatar_url')
+            .in('id', requesterIds);
+          
+          // Create a map for quick lookup
+          const profileMap = {};
+          if (profiles) {
+            profiles.forEach(profile => {
+              profileMap[profile.id] = profile;
+            });
+          }
+          
+          // Attach profile data to each request
+          result.data = result.data.map(request => ({
+            ...request,
+            requester: profileMap[request.requester_id] || null
+          }));
+        }
+      } catch (profileError) {
+        console.warn('Failed to fetch user profiles, continuing without:', profileError);
+      }
     }
 
     if (result.error) {
