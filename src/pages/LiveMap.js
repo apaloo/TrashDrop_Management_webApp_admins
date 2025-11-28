@@ -181,10 +181,14 @@ const LiveMap = () => {
         
         // Extract data array from paginated response
         const digitalBinsData = digitalBinsResponse?.data || [];
+        console.log('🗑️ Raw digital bins data:', digitalBinsData.length, 'bins');
+        console.log('🗑️ Sample digital bin:', digitalBinsData[0]);
         
         // Assign points to service areas and generate coordinates within polygons
         const processedPickupRequests = assignPointsToServiceAreas(pickupRequests, serviceAreasData);
         const processedDigitalBins = assignPointsToServiceAreas(digitalBinsData, serviceAreasData);
+        console.log('🗑️ Processed digital bins:', processedDigitalBins.length, 'bins');
+        console.log('🗑️ Sample processed bin:', processedDigitalBins[0]);
         
         // Calculate real statistics for each service area
         const serviceAreasWithStats = serviceAreasData.map(area => {
@@ -577,7 +581,7 @@ const LiveMap = () => {
             ))}
             
             {/* Digital Bin Markers */}
-            {showDigitalBins && digitalBins.map(bin => (
+            {showDigitalBins && digitalBins.filter(bin => bin.location?.lat && bin.location?.lng).map(bin => (
               <Marker
                 key={`bin-${bin.id}`}
                 position={[bin.location.lat, bin.location.lng]}
