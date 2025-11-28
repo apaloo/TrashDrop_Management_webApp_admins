@@ -244,18 +244,15 @@ export const fetchPickupRequests = async ({
     // If we have real data, manually fetch user profiles for requester details
     if (result.data && result.data.length > 0 && profilesTableExists) {
       try {
-        // Log the actual data structure to see what fields exist
-        console.log('🔍 Sample pickup request data:', result.data[0]);
-        console.log('🔍 All requester_id values:', result.data.map(r => ({ id: r.id, requester_id: r.requester_id })));
+        // Use user_id field (not requester_id) to fetch profiles
+        const userIds = [...new Set(result.data.map(r => r.user_id).filter(Boolean))];
+        console.log('📋 Fetching profiles for user IDs:', userIds);
         
-        const requesterIds = [...new Set(result.data.map(r => r.requester_id).filter(Boolean))];
-        console.log('📋 Fetching profiles for requester IDs:', requesterIds);
-        
-        if (requesterIds.length > 0) {
+        if (userIds.length > 0) {
           const { data: profiles, error: profileError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, email, phone, avatar_url')
-            .in('id', requesterIds);
+            .in('id', userIds);
           
           if (profileError) {
             console.warn('❌ Error fetching profiles:', profileError);
@@ -274,15 +271,16 @@ export const fetchPickupRequests = async ({
           
           // Attach profile data to each request
           result.data = result.data.map(request => {
-            const profile = profileMap[request.requester_id];
-            console.log(`📍 Request ${request.id}: requester_id=${request.requester_id}, profile=${profile ? 'found' : 'NOT FOUND'}`);
+            const profile = profileMap[request.user_id];
+            console.log(`📍 Request ${request.id}: user_id=${request.user_id}, profile=${profile ? 'found' : 'NOT FOUND'}`);
             return {
               ...request,
-              requester: profile || null
+              requester: profile || null,
+              requester_id: request.user_id // Map user_id to requester_id for compatibility
             };
           });
         } else {
-          console.warn('⚠️ No requester IDs found in pickup requests');
+          console.warn('⚠️ No user IDs found in pickup requests');
         }
       } catch (profileError) {
         console.warn('❌ Failed to fetch user profiles, continuing without:', profileError);
@@ -344,9 +342,11 @@ export const fetchPickupRequests = async ({
         }
         
         // Handle requestor/requester with null safety
+        // Note: request.requester is populated by the profile fetch above
         const requestor = request.requestor || request.requester || null;
         const requestedBy = {
-          id: request.requester_id || 
+          id: request.user_id || 
+              request.requester_id || 
               request.requested_by || 
               (requestor ? requestor.id : null) || 
               'customer-unknown',
@@ -359,8 +359,8 @@ export const fetchPickupRequests = async ({
                  'unknown@example.com',
           phone: (requestor ? requestor.phone : null) || 
                  (request.requester ? request.requester.phone : null) || 
-                 request.phone || 
-                 'N/A'
+                request.phone || 
+                'N/A'
         };
         
         // Handle collector data with fallbacks for all schema variations
