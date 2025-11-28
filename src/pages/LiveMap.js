@@ -186,15 +186,15 @@ const LiveMap = () => {
         console.log('🗑️ Raw digital bins data:', digitalBinsData.length, 'bins');
         console.log('🗑️ Sample digital bin:', digitalBinsData[0]);
         
-        // Assign points to service areas and generate coordinates within polygons
-        const processedPickupRequests = assignPointsToServiceAreas(pickupRequests, serviceAreasData);
-        const processedDigitalBins = assignPointsToServiceAreas(digitalBinsData, serviceAreasData);
-        console.log('🗑️ Processed digital bins:', processedDigitalBins.length, 'bins');
-        console.log('🗑️ Sample processed bin:', processedDigitalBins[0]);
+        // Use actual coordinates from database - no artificial clustering
+        const processedPickupRequests = pickupRequests;
+        const processedDigitalBins = digitalBinsData;
+        console.log('🗑️ Using real coordinates:', processedDigitalBins.length, 'bins');
+        console.log('🗑️ Sample bin with coords:', processedDigitalBins[0]);
         
         // Calculate real statistics for each service area
         const serviceAreasWithStats = serviceAreasData.map(area => {
-          // Count collectors in this service area
+          // Count collectors in this service area by checking if their location is inside the polygon
           const collectorsInArea = collectorsData.filter(collector => 
             collector.service_area_id === area.id || 
             (collector.currentLocation && isPointInPolygon(
@@ -203,9 +203,12 @@ const LiveMap = () => {
             ))
           ).length;
           
-          // Count pickup requests in this service area
+          // Count pickup requests in this service area by checking if their location is inside the polygon
           const requestsInArea = processedPickupRequests.filter(request => 
-            request.service_area_id === area.id
+            request.location?.lat && request.location?.lng && isPointInPolygon(
+              [request.location.lat, request.location.lng],
+              area.coordinates
+            )
           ).length;
           
           return {
