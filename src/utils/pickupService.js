@@ -391,7 +391,8 @@ export const fetchPickupRequests = async ({
         const location = {
           address: locationData.address || 
                    request.address || 
-                   (request.location ? request.location.address : null) || 
+                   (request.location ? request.location.address : null) ||
+                   (requestor ? requestor.address : null) || // Use profile address as fallback
                    'Unknown Location',
           lat: locationData.latitude || 
                locationData.lat || 
