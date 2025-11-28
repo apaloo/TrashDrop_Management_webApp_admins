@@ -112,11 +112,20 @@ class DigitalBinService {
         const from = (page - 1) * limit;
         const to = from + limit - 1;
 
-        // Build query - simplified without relationships for now
-        // TODO: Add relationships when foreign keys are properly configured
+        // Build query with bin_locations join to get coordinates
         let query = supabase
           .from('digital_bins')
-          .select('*', { count: 'exact' })
+          .select(`
+            *,
+            location:bin_locations!location_id (
+              id,
+              location_name,
+              address,
+              latitude,
+              longitude,
+              coordinates
+            )
+          `, { count: 'exact' })
           .range(from, to);
 
         // Apply filters
@@ -566,8 +575,17 @@ class DigitalBinService {
     const now = new Date();
     const expiresAt = new Date(bin.expires_at);
     
+    // Normalize location structure for map rendering
+    const location = bin.location ? {
+      ...bin.location,
+      lat: bin.location.latitude,
+      lng: bin.location.longitude,
+      address: bin.location.address || bin.location.location_name
+    } : null;
+    
     return {
       ...bin,
+      location,
       _computed: {
         isExpired: expiresAt < now,
         isActive: bin.is_active && expiresAt >= now,
