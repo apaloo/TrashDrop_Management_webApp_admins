@@ -244,6 +244,10 @@ export const fetchPickupRequests = async ({
     // If we have real data, manually fetch user profiles for requester details
     if (result.data && result.data.length > 0 && profilesTableExists) {
       try {
+        // Log the actual data structure to see what fields exist
+        console.log('🔍 Sample pickup request data:', result.data[0]);
+        console.log('🔍 All requester_id values:', result.data.map(r => ({ id: r.id, requester_id: r.requester_id })));
+        
         const requesterIds = [...new Set(result.data.map(r => r.requester_id).filter(Boolean))];
         console.log('📋 Fetching profiles for requester IDs:', requesterIds);
         
