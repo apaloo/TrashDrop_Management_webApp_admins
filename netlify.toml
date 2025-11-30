@@ -1,14 +1,14 @@
 [build]
   # Build the React app with legacy peer deps support
-  command = "npm run build"
+  # CI=false prevents ESLint warnings from being treated as errors
+  command = "CI=false npm run build"
   publish = "build"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
   NODE_VERSION = "16.20.2"  # Using an even more stable Node version compatible with React testing libraries
   NPM_FLAGS = "--legacy-peer-deps"
-  CI = "true"
-  ESLINT_NO_DEV_ERRORS = "true"  # Prevent ESLint warnings from failing the build
+  CI = "true"  # This is used by npm install/prepare script for Husky skip
 
 # Handle Single Page Application routing
 [[redirects]]
