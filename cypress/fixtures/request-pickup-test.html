@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Request Pickup Management - TrashDrop Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card { background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .filters { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 250px; }
+    .status-filter { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; border: none; }
+    .btn-primary { background-color: #4CAF50; color: white; }
+    .btn-secondary { background-color: #f0f0f0; color: #333; }
+    .requests-table { width: 100%; border-collapse: collapse; }
+    .requests-table th, .requests-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .requests-table th { background-color: #f9f9f9; }
+    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; display: inline-block; }
+    .status-pending { background-color: #fff3cd; color: #856404; }
+    .status-assigned { background-color: #d1ecf1; color: #0c5460; }
+    .status-progress { background-color: #e0f7e6; color: #1e7e34; }
+    .status-completed { background-color: #d4edda; color: #155724; }
+    .action-btn { background: none; border: none; color: #2196F3; cursor: pointer; margin-right: 8px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
+    .modal.visible { display: flex; justify-content: center; align-items: center; }
+    .modal-content { background-color: #fff; border-radius: 8px; padding: 20px; max-width: 500px; width: 90%; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 data-test="page-title">Request Pickup Management</h1>
+      <button class="btn btn-primary">New Request</button>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters">
+      <input type="text" data-test="search-input" placeholder="Search by location..." class="search-input">
+      <select data-test="status-filter" class="status-filter">
+        <option value="All">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Assigned">Assigned</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+    
+    <!-- Requests Table -->
+    <div class="card">
+      <table data-test="requests-table" class="requests-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Requester</th>
+            <th>Location</th>
+            <th>Bags</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Request Item 1 -->
+          <tr data-test="request-item" data-id="req-001">
+            <td data-test="request-id">req-001</td>
+            <td data-test="requester-name">Jane Citizen</td>
+            <td data-test="request-location">123 Pine Street, Downtown</td>
+            <td data-test="bag-count">2</td>
+            <td data-test="request-status"><span class="status-badge status-pending">Pending</span></td>
+            <td>2025-06-22</td>
+            <td>
+              <button data-test="view-details-button" class="action-btn">View</button>
+              <button data-test="assign-button" class="action-btn">Assign</button>
+            </td>
+          </tr>
+          
+          <!-- Request Item 2 -->
+          <tr data-test="request-item" data-id="req-002">
+            <td data-test="request-id">req-002</td>
+            <td data-test="requester-name">Robert Johnson</td>
+            <td data-test="request-location">456 Oak Avenue, Westside</td>
+            <td data-test="bag-count">1</td>
+            <td data-test="request-status"><span class="status-badge status-assigned">Assigned</span></td>
+            <td>2025-06-21</td>
+            <td>
+              <button data-test="view-details-button" class="action-btn">View</button>
+              <button data-test="assign-button" class="action-btn">Reassign</button>
+            </td>
+          </tr>
+          
+          <!-- Request Item 3 -->
+          <tr data-test="request-item" data-id="req-003">
+            <td data-test="request-id">req-003</td>
+            <td data-test="requester-name">Maria Garcia</td>
+            <td data-test="request-location">789 Elm Boulevard, Eastside</td>
+            <td data-test="bag-count">3</td>
+            <td data-test="request-status"><span class="status-badge status-progress">In Progress</span></td>
+            <td>2025-06-20</td>
+            <td>
+              <button data-test="view-details-button" class="action-btn">View</button>
+              <button data-test="complete-button" class="action-btn">Complete</button>
+            </td>
+          </tr>
+          
+          <!-- Request Item 4 -->
+          <tr data-test="request-item" data-id="req-004">
+            <td data-test="request-id">req-004</td>
+            <td data-test="requester-name">David Smith</td>
+            <td data-test="request-location">101 Maple Drive, Northside</td>
+            <td data-test="bag-count">2</td>
+            <td data-test="request-status"><span class="status-badge status-completed">Completed</span></td>
+            <td>2025-06-19</td>
+            <td>
+              <button data-test="view-details-button" class="action-btn">View</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Request Details Modal -->
+    <div id="details-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-test="modal-title">Request Details</h2>
+          <button data-test="close-button" class="close-btn">&times;</button>
+        </div>
+        <div data-test="request-details">
+          <p><strong>ID:</strong> req-001</p>
+          <p><strong>Requester:</strong> Jane Citizen</p>
+          <p><strong>Contact:</strong> jane.citizen@email.com, 555-111-2222</p>
+          <p><strong>Location:</strong> 123 Pine Street, Downtown</p>
+          <p><strong>Description:</strong> Blue house with white fence</p>
+          <p><strong>Bag Count:</strong> 2</p>
+          <p><strong>Preferred Date:</strong> 2025-06-23</p>
+          <p><strong>Preferred Time:</strong> Morning (8AM-12PM)</p>
+          <p><strong>Notes:</strong> Bags are by the side door</p>
+          <p><strong>Urgency:</strong> Normal</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Assign Modal -->
+    <div id="assign-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Assign Collector</h2>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label for="collector-select">Select Collector:</label>
+          <select data-test="collector-select" class="status-filter" style="width: 100%; margin: 10px 0;">
+            <option value="">Select a collector</option>
+            <option value="collector-001">John Doe</option>
+            <option value="collector-002">Jane Smith</option>
+            <option value="collector-003">Michael Brown</option>
+          </select>
+          
+          <div style="margin-top: 20px; text-align: right;">
+            <button data-test="assign-cancel" class="btn btn-secondary">Cancel</button>
+            <button data-test="assign-confirm" class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Simple script to handle basic interactions for testing
+    document.addEventListener('DOMContentLoaded', function() {
+      // View details buttons
+      const viewDetailsButtons = document.querySelectorAll('[data-test="view-details-button"]');
+      const detailsModal = document.getElementById('details-modal');
+      const closeButtons = document.querySelectorAll('.close-btn');
+      
+      // Row click to view details
+      const requestItems = document.querySelectorAll('[data-test="request-item"]');
+      requestItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+          if (!e.target.closest('button')) {
+            detailsModal.classList.add('visible');
+            
+            // Update modal title with request ID
+            const requestId = this.getAttribute('data-id');
+            document.querySelector('[data-test="modal-title"]').textContent = `Request Details: ${requestId}`;
+          }
+        });
+      });
+      
+      viewDetailsButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent row click handler from being triggered
+          const requestId = this.closest('[data-test="request-item"]').getAttribute('data-id');
+          detailsModal.classList.add('visible');
+          document.querySelector('[data-test="modal-title"]').textContent = `Request Details: ${requestId}`;
+        });
+      });
+      
+      // Assign buttons
+      const assignButtons = document.querySelectorAll('[data-test="assign-button"]');
+      const assignModal = document.getElementById('assign-modal');
+      
+      assignButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent row click handler from being triggered
+          assignModal.classList.add('visible');
+        });
+      });
+      
+      // Close buttons
+      closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          detailsModal.classList.remove('visible');
+          assignModal.classList.remove('visible');
+        });
+      });
+      
+      // Cancel assign button
+      document.querySelector('[data-test="assign-cancel"]').addEventListener('click', function() {
+        assignModal.classList.remove('visible');
+      });
+      
+      // Confirm assign button
+      document.querySelector('[data-test="assign-confirm"]').addEventListener('click', function() {
+        const selectedCollector = document.querySelector('[data-test="collector-select"]').value;
+        if (selectedCollector) {
+          assignModal.classList.remove('visible');
+          // In a real app, this would update the UI to show the assigned collector
+        }
+      });
+      
+      // Status filter
+      const statusFilter = document.querySelector('[data-test="status-filter"]');
+      statusFilter.addEventListener('change', function() {
+        const selectedStatus = this.value;
+        
+        requestItems.forEach(item => {
+          const status = item.querySelector('[data-test="request-status"]').textContent;
+          
+          if (selectedStatus === 'All' || status.includes(selectedStatus)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+      
+      // Search by location
+      const searchInput = document.querySelector('[data-test="search-input"]');
+      searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        requestItems.forEach(item => {
+          const location = item.querySelector('[data-test="request-location"]').textContent.toLowerCase();
+          
+          if (location.includes(searchTerm)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

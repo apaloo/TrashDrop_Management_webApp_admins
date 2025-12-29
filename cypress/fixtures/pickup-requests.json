@@ -1,0 +1,118 @@
+[
+  {
+    "id": "req-001",
+    "requesterId": "user-101",
+    "requesterName": "Jane Citizen",
+    "requesterEmail": "jane.citizen@email.com",
+    "requesterPhone": "555-111-2222",
+    "status": "Pending",
+    "location": {
+      "address": "123 Pine Street, Downtown",
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "description": "Blue house with white fence"
+    },
+    "requestDate": "2025-06-22T09:00:00Z",
+    "preferredPickupDate": "2025-06-23",
+    "preferredTimeSlot": "Morning (8AM-12PM)",
+    "bagCount": 2,
+    "notes": "Bags are by the side door",
+    "assignedCollectorId": null,
+    "urgency": "Normal"
+  },
+  {
+    "id": "req-002",
+    "requesterId": "user-102",
+    "requesterName": "Robert Johnson",
+    "requesterEmail": "robert.johnson@email.com",
+    "requesterPhone": "555-222-3333",
+    "status": "Assigned",
+    "location": {
+      "address": "456 Oak Avenue, Westside",
+      "latitude": 37.7833,
+      "longitude": -122.4167,
+      "description": "Apartment building, unit 3B"
+    },
+    "requestDate": "2025-06-21T14:30:00Z",
+    "preferredPickupDate": "2025-06-22",
+    "preferredTimeSlot": "Afternoon (12PM-5PM)",
+    "bagCount": 1,
+    "notes": "Please call before arriving",
+    "assignedCollectorId": "collector-001",
+    "assignedCollectorName": "John Doe",
+    "assignedTime": "2025-06-21T16:45:00Z",
+    "urgency": "High"
+  },
+  {
+    "id": "req-003",
+    "requesterId": "user-103",
+    "requesterName": "Maria Garcia",
+    "requesterEmail": "maria.garcia@email.com",
+    "requesterPhone": "555-333-4444",
+    "status": "Completed",
+    "location": {
+      "address": "789 Maple Road, Northside",
+      "latitude": 37.7900,
+      "longitude": -122.4100,
+      "description": "Corner house with green door"
+    },
+    "requestDate": "2025-06-20T10:15:00Z",
+    "preferredPickupDate": "2025-06-21",
+    "preferredTimeSlot": "Evening (5PM-8PM)",
+    "bagCount": 3,
+    "notes": "Bags are in the garage",
+    "assignedCollectorId": "collector-002",
+    "assignedCollectorName": "Sarah Smith",
+    "assignedTime": "2025-06-20T11:30:00Z",
+    "completedTime": "2025-06-21T18:20:00Z",
+    "completionNotes": "All bags collected without issues",
+    "urgency": "Normal"
+  },
+  {
+    "id": "req-004",
+    "requesterId": "user-104",
+    "requesterName": "David Lee",
+    "requesterEmail": "david.lee@email.com",
+    "requesterPhone": "555-444-5555",
+    "status": "Cancelled",
+    "location": {
+      "address": "321 Cedar Lane, Eastside",
+      "latitude": 37.7850,
+      "longitude": -122.4050,
+      "description": "Two-story building with red door"
+    },
+    "requestDate": "2025-06-19T16:00:00Z",
+    "preferredPickupDate": "2025-06-22",
+    "preferredTimeSlot": "Morning (8AM-12PM)",
+    "bagCount": 1,
+    "notes": "Need to dispose of old electronics",
+    "cancellationReason": "Requester found alternative disposal method",
+    "cancelledTime": "2025-06-20T09:10:00Z",
+    "urgency": "Low"
+  },
+  {
+    "id": "req-005",
+    "requesterId": "user-105",
+    "requesterName": "Susan Wilson",
+    "requesterEmail": "susan.wilson@email.com",
+    "requesterPhone": "555-555-6666",
+    "status": "In Progress",
+    "location": {
+      "address": "567 Birch Street, Southside",
+      "latitude": 37.7800,
+      "longitude": -122.4150,
+      "description": "Yellow house on the corner"
+    },
+    "requestDate": "2025-06-21T09:45:00Z",
+    "preferredPickupDate": "2025-06-22",
+    "preferredTimeSlot": "Afternoon (12PM-5PM)",
+    "bagCount": 2,
+    "notes": "One bag is quite heavy",
+    "assignedCollectorId": "collector-001",
+    "assignedCollectorName": "John Doe",
+    "assignedTime": "2025-06-21T10:30:00Z",
+    "startedTime": "2025-06-22T13:15:00Z",
+    "estimatedCompletionTime": "2025-06-22T14:00:00Z",
+    "urgency": "Normal"
+  }
+]

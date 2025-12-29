@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Settings Test</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 250px;
+      background-color: #15803d;
+      color: white;
+      overflow-y: auto;
+      z-index: 50;
+    }
+    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 250px;
+      right: 0;
+      height: 56px;
+      background-color: white;
+      z-index: 40;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      margin-top: 56px;
+      padding: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .navbar {
+        left: 0;
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Sidebar Component (simplified) -->
+  <div class="sidebar" data-test="sidebar">
+    <!-- Logo and brand -->
+    <div class="px-6 pt-8 pb-6">
+      <a href="#" class="flex items-center">
+        <span class="text-xl font-bold text-white">TrashDrop</span>
+      </a>
+    </div>
+    
+    <!-- Navigation menu -->
+    <nav class="flex-1 px-3" data-test="sidebar-nav">
+      <div class="space-y-1">
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+          <span>Request Pickup</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+          <span>Bin Management</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-green-100 hover:bg-green-600 hover:text-white">
+          <span>Illegal Dumping</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2.5 rounded-md text-sm font-medium bg-green-600 text-white">
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+  
+  <!-- Navbar Component (simplified) -->
+  <div class="navbar" data-test="navbar">
+    <div class="flex h-full items-center justify-between px-4">
+      <div class="lg:hidden">
+        <button data-test="mobile-menu-button">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+      <div class="flex items-center ml-auto">
+        <span>Test User</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content - Settings Page -->
+  <div class="main-content" data-test="main-content">
+    <h1 class="text-3xl font-bold text-gray-900" data-test="page-title">Settings</h1>
+    
+    <!-- Tabs Navigation -->
+    <div class="mt-6 bg-white rounded-lg shadow">
+      <div class="flex border-b border-gray-200" data-test="settings-tabs">
+        <button class="px-4 py-4 text-sm font-medium border-b-2 border-green-500 text-green-600" data-tab="profile" id="profile-tab-button">
+          <i class="fas fa-user mr-2"></i>
+          Profile
+        </button>
+        <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="notifications" id="notifications-tab-button">
+          <i class="fas fa-bell mr-2"></i>
+          Notifications
+        </button>
+        <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="dashboard" id="dashboard-tab-button">
+          <i class="fas fa-chart-line mr-2"></i>
+          Dashboard
+        </button>
+        <button class="px-4 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="regional" id="regional-tab-button">
+          <i class="fas fa-globe mr-2"></i>
+          Regional
+        </button>
+      </div>
+      
+      <!-- Profile Tab Content -->
+      <div class="p-6" id="profile-tab" data-test="profile-tab">
+        <div class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900" data-test="tab-title">Profile Information</h3>
+          <p class="mt-1 text-sm text-gray-500">Update your account information and contact details.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+              <input type="text" name="firstName" id="firstName" value="Test" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+              <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+              <input type="text" name="lastName" id="lastName" value="User" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" name="email" id="email" value="test@example.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled>
+            </div>
+            <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+              <input type="tel" name="phone" id="phone" value="555-123-4567" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Notifications Tab Content (Hidden by default) -->
+      <div class="p-6 hidden" id="notifications-tab" data-test="notifications-tab">
+        <div class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900" data-test="tab-title">Notification Preferences</h3>
+          <p class="mt-1 text-sm text-gray-500">Manage how you receive notifications and alerts.</p>
+          
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="email-notifications" name="email-notifications" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-green-600">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="email-notifications" class="font-medium text-gray-700">Email Notifications</label>
+                <p class="text-gray-500">Receive notifications via email.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="push-notifications" name="push-notifications" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-green-600">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="push-notifications" class="font-medium text-gray-700">Push Notifications</label>
+                <p class="text-gray-500">Receive push notifications in the browser.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="sms-notifications" name="sms-notifications" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-green-600">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="sms-notifications" class="font-medium text-gray-700">SMS Notifications</label>
+                <p class="text-gray-500">Receive text messages for critical alerts.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dashboard Tab Content (Hidden by default) -->
+      <div class="p-6 hidden" id="dashboard-tab" data-test="dashboard-tab">
+        <div class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900" data-test="tab-title">Dashboard Preferences</h3>
+          <p class="mt-1 text-sm text-gray-500">Customize your dashboard view and display options.</p>
+          
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="show-kpis" name="show-kpis" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-green-600">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="show-kpis" class="font-medium text-gray-700">Show KPIs</label>
+                <p class="text-gray-500">Display key performance indicators on dashboard.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input id="show-recent-activity" name="show-recent-activity" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-green-600">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="show-recent-activity" class="font-medium text-gray-700">Show Recent Activity</label>
+                <p class="text-gray-500">Display recent activity feed on dashboard.</p>
+              </div>
+            </div>
+            
+            <div>
+              <label for="default-view" class="block text-sm font-medium text-gray-700">Default View</label>
+              <select id="default-view" name="default-view" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="map" selected>Map</option>
+                <option value="list">List</option>
+                <option value="stats">Statistics</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Regional Tab Content (Hidden by default) -->
+      <div class="p-6 hidden" id="regional-tab" data-test="regional-tab">
+        <div class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900" data-test="tab-title">Regional Settings</h3>
+          <p class="mt-1 text-sm text-gray-500">Customize location-based settings and preferences.</p>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="timezone" class="block text-sm font-medium text-gray-700">Timezone</label>
+              <select id="timezone" name="timezone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="America/New_York" selected>Eastern Time (US & Canada)</option>
+                <option value="America/Chicago">Central Time (US & Canada)</option>
+                <option value="America/Denver">Mountain Time (US & Canada)</option>
+                <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="dateFormat" class="block text-sm font-medium text-gray-700">Date Format</label>
+              <select id="dateFormat" name="dateFormat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="measurementUnit" class="block text-sm font-medium text-gray-700">Measurement Unit</label>
+              <select id="measurementUnit" name="measurementUnit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="imperial" selected>Imperial (miles, lbs)</option>
+                <option value="metric">Metric (km, kg)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Save Button (Present in all tabs) -->
+      <div class="px-6 py-4 bg-gray-50 rounded-b-lg flex items-center justify-end">
+        <button type="button" class="px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700" data-test="save-settings-button">
+          Save Settings
+        </button>
+      </div>
+    </div>
+    
+    <!-- Success Message (Hidden by default) -->
+    <div class="mt-4 p-4 bg-green-100 text-green-700 rounded-md hidden" data-test="success-message">
+      Your settings have been saved successfully.
+    </div>
+  </div>
+
+  <script>
+    // Tab switching functionality
+    document.querySelectorAll('[data-tab]').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Hide all tab contents
+        document.querySelectorAll('[id$="-tab"]').forEach(content => {
+          content.classList.add('hidden');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('[data-tab]').forEach(t => {
+          t.classList.remove('border-green-500', 'text-green-600');
+          t.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        });
+        
+        // Show selected tab content
+        const tabId = this.getAttribute('data-tab');
+        document.getElementById(tabId + '-tab').classList.remove('hidden');
+        
+        // Set this tab as active
+        this.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        this.classList.add('border-b-2', 'border-green-500', 'text-green-600');
+      });
+    });
+    
+    // Save settings functionality
+    document.querySelector('[data-test="save-settings-button"]').addEventListener('click', function() {
+      // Show success message
+      document.querySelector('[data-test="success-message"]').classList.remove('hidden');
+      
+      // Hide after 3 seconds
+      setTimeout(() => {
+        document.querySelector('[data-test="success-message"]').classList.add('hidden');
+      }, 3000);
+    });
+  </script>
+</body>
+</html>

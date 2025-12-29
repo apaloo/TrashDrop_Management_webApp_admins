@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "555-123-4567",
+    "region": "North",
+    "status": "Active",
+    "vehicleType": "Van",
+    "vehicleId": "TD-VAN-001",
+    "joinDate": "2023-08-15",
+    "collectionsCount": 245,
+    "rating": 4.9,
+    "onTimeRate": 98,
+    "avatar": null
+  },
+  {
+    "id": 2,
+    "name": "Sarah Smith",
+    "email": "sarah.smith@example.com",
+    "phone": "555-234-5678",
+    "region": "South",
+    "status": "Active",
+    "vehicleType": "Truck",
+    "vehicleId": "TD-TRK-002",
+    "joinDate": "2023-07-10",
+    "collectionsCount": 189,
+    "rating": 4.7,
+    "onTimeRate": 95,
+    "avatar": null
+  },
+  {
+    "id": 3,
+    "name": "Michael Brown",
+    "email": "michael.brown@example.com",
+    "phone": "555-345-6789",
+    "region": "East",
+    "status": "Inactive",
+    "vehicleType": "Bike",
+    "vehicleId": "TD-BIK-003",
+    "joinDate": "2023-09-05",
+    "collectionsCount": 78,
+    "rating": 4.2,
+    "onTimeRate": 88,
+    "avatar": null
+  }
+]

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Live Map Test</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6" data-test="page-title">Live Map</h1>
+    
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm font-medium text-gray-600">Filter by:</span>
+          <select class="rounded-md border-gray-300" data-test="collector-filter">
+            <option value="all">All Collectors</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+          <select class="rounded-md border-gray-300" data-test="region-filter">
+            <option value="all">All Regions</option>
+            <option value="north">Northern Region</option>
+            <option value="south">Southern Region</option>
+            <option value="east">Eastern Region</option>
+            <option value="west">Western Region</option>
+          </select>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="bg-green-500 text-white rounded-md px-4 py-2 text-sm z-30" data-test="refresh-map">
+            <i class="fas fa-sync-alt mr-2"></i>Refresh Map
+          </button>
+          <button class="bg-gray-200 text-gray-800 rounded-md px-4 py-2 text-sm z-30" data-test="toggle-heatmap">
+            <i class="fas fa-fire mr-2"></i>Toggle Heatmap
+          </button>
+        </div>
+      </div>
+      
+      <!-- Map Container -->
+      <div class="w-full h-[500px] bg-gray-200 rounded-lg border border-gray-300 relative" data-test="map-container">
+        <!-- Map will be rendered here by Leaflet -->
+        <div id="map" class="w-full h-[500px]"></div>
+        
+        <!-- Map Legend -->
+        <div class="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-md z-10" data-test="map-legend">
+          <h3 class="text-sm font-semibold mb-2">Legend</h3>
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <div class="h-4 w-4 rounded-full bg-green-500 mr-2"></div>
+              <span class="text-xs">Active Collector</span>
+            </div>
+            <div class="flex items-center">
+              <div class="h-4 w-4 rounded-full bg-red-500 mr-2"></div>
+              <span class="text-xs">Inactive Collector</span>
+            </div>
+            <div class="flex items-center">
+              <div class="h-4 w-4 rounded-full bg-blue-500 mr-2"></div>
+              <span class="text-xs">Pickup Location</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Collectors List -->
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <h2 class="text-xl font-semibold mb-4">Collectors on Map</h2>
+      <div class="space-y-3" data-test="collectors-list">
+        <!-- Collector Items -->
+        <div class="border-b pb-3" data-test="collector-item" data-collector-id="col001">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-medium">John Smith</h3>
+              <p class="text-sm text-gray-500">Northern Region - <span class="text-green-500 font-medium">Active</span></p>
+            </div>
+            <button class="text-blue-500 hover:text-blue-700" data-test="center-on-collector" data-collector-id="col001">
+              <i class="fas fa-crosshairs mr-1"></i> Center on Map
+            </button>
+          </div>
+        </div>
+        
+        <div class="border-b pb-3" data-test="collector-item" data-collector-id="col002">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-medium">Sarah Johnson</h3>
+              <p class="text-sm text-gray-500">Eastern Region - <span class="text-green-500 font-medium">Active</span></p>
+            </div>
+            <button class="text-blue-500 hover:text-blue-700" data-test="center-on-collector" data-collector-id="col002">
+              <i class="fas fa-crosshairs mr-1"></i> Center on Map
+            </button>
+          </div>
+        </div>
+        
+        <div class="border-b pb-3" data-test="collector-item" data-collector-id="col003">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-medium">Robert Brown</h3>
+              <p class="text-sm text-gray-500">Southern Region - <span class="text-red-500 font-medium">Inactive</span></p>
+            </div>
+            <button class="text-blue-500 hover:text-blue-700" data-test="center-on-collector" data-collector-id="col003">
+              <i class="fas fa-crosshairs mr-1"></i> Center on Map
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    const map = L.map('map').setView([40.7128, -74.0060], 13);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Add markers
+    const markers = {
+      col001: L.marker([40.7228, -74.0060]).addTo(map)
+        .bindPopup('John Smith<br>Northern Region<br>Active'),
+      col002: L.marker([40.7028, -73.9860]).addTo(map)
+        .bindPopup('Sarah Johnson<br>Eastern Region<br>Active'),
+      col003: L.marker([40.7328, -74.0160]).addTo(map)
+        .bindPopup('Robert Brown<br>Southern Region<br>Inactive')
+    };
+    
+    // Handle center on collector
+    document.querySelectorAll('[data-test="center-on-collector"]').forEach(button => {
+      button.addEventListener('click', function() {
+        const collectorId = this.getAttribute('data-collector-id');
+        const marker = markers[collectorId];
+        if (marker) {
+          map.setView(marker.getLatLng(), 15);
+          marker.openPopup();
+        }
+      });
+    });
+    
+    // Handle filters
+    document.querySelector('[data-test="collector-filter"]').addEventListener('change', function() {
+      // Filter logic would go here in a real implementation
+      console.log('Collector filter changed to:', this.value);
+    });
+    
+    document.querySelector('[data-test="region-filter"]').addEventListener('change', function() {
+      // Region filter logic would go here in a real implementation
+      console.log('Region filter changed to:', this.value);
+    });
+    
+    // Handle toggle heatmap
+    document.querySelector('[data-test="toggle-heatmap"]').addEventListener('click', function() {
+      // Toggle heatmap logic would go here
+      console.log('Toggling heatmap');
+      this.classList.toggle('bg-green-500');
+      this.classList.toggle('text-white');
+      this.classList.toggle('bg-gray-200');
+      this.classList.toggle('text-gray-800');
+    });
+  </script>
+</body>
+</html>

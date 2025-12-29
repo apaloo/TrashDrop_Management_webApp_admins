@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Bag - TrashDrop Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+    .page-container { max-width: 800px; margin: 0 auto; }
+    .form-container { background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    .form-input, .form-select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn-primary { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-secondary { background-color: #2196F3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .error-message { color: red; font-size: 14px; margin-top: 5px; }
+    .success-message { color: green; font-weight: bold; margin: 15px 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="app-container">
+      <div class="page-container">
+        <h1 data-test="page-title">Generate Bag</h1>
+        <div class="form-container">
+          <form data-test="bag-generation-form">
+            <div class="form-group">
+              <label for="bagQuantity">Quantity</label>
+              <input type="number" data-test="bag-quantity-input" id="bagQuantity" class="form-input" />
+              <div data-test="quantity-error" class="error-message hidden">Please enter a valid quantity</div>
+            </div>
+            <div class="form-group">
+              <label for="region">Region</label>
+              <select data-test="region-select" id="region" class="form-select">
+                <option value="">Select a region</option>
+                <option value="north">North Region</option>
+                <option value="south">South Region</option>
+                <option value="east">East Region</option>
+                <option value="west">West Region</option>
+                <option value="central">Central Region</option>
+              </select>
+              <div data-test="region-error" class="error-message hidden">Please select a region</div>
+            </div>
+            <button type="button" data-test="generate-button" class="btn-primary" id="generateButton">Generate Bags</button>
+          </form>
+        </div>
+        <div data-test="success-message" class="success-message hidden">
+          Bags generated successfully!
+        </div>
+        <div data-test="download-section" class="hidden">
+          <button data-test="download-qr-codes" class="btn-secondary">Download QR Codes</button>
+          <div data-test="qr-codes-container" class="qr-container">
+            <div data-test="qr-code-item" class="qr-item">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAY..." alt="QR Code" />
+              <div>Bag ID: BAG-001</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Simple form validation and success handling for testing purposes
+    document.getElementById('generateButton').addEventListener('click', function() {
+      const quantityInput = document.getElementById('bagQuantity');
+      const regionSelect = document.getElementById('region');
+      const quantityError = document.querySelector('[data-test="quantity-error"]');
+      const regionError = document.querySelector('[data-test="region-error"]');
+      const successMessage = document.querySelector('[data-test="success-message"]');
+      const downloadSection = document.querySelector('[data-test="download-section"]');
+      
+      let isValid = true;
+      
+      // Reset errors
+      quantityError.classList.add('hidden');
+      regionError.classList.add('hidden');
+      
+      // Validate quantity
+      if (!quantityInput.value || parseInt(quantityInput.value) <= 0) {
+        quantityError.classList.remove('hidden');
+        isValid = false;
+      }
+      
+      // Validate region
+      if (!regionSelect.value) {
+        regionError.classList.remove('hidden');
+        isValid = false;
+      }
+      
+      // If valid, show success
+      if (isValid) {
+        successMessage.classList.remove('hidden');
+        downloadSection.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

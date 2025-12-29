@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Bag History Test</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6" data-test="page-title">Bag History</h1>
+    
+    <!-- Filters -->
+    <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="w-full md:w-auto">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Batch ID</label>
+          <input type="text" placeholder="Search by ID" class="rounded-md border-gray-300 w-full" data-test="batch-id-filter">
+        </div>
+        
+        <div class="w-full md:w-auto">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select class="rounded-md border-gray-300 w-full" data-test="status-filter">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="distributed">Distributed</option>
+            <option value="collected">Collected</option>
+            <option value="disposed">Disposed</option>
+          </select>
+        </div>
+        
+        <div class="w-full md:w-auto">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+          <div class="flex space-x-2">
+            <input type="date" class="rounded-md border-gray-300" data-test="date-from">
+            <input type="date" class="rounded-md border-gray-300" data-test="date-to">
+          </div>
+        </div>
+        
+        <div class="w-full md:w-auto mt-4 md:mt-6">
+          <button class="bg-green-500 text-white rounded-md px-4 py-2 text-sm" data-test="filter-button">
+            <i class="fas fa-filter mr-2"></i>Filter
+          </button>
+          <button class="bg-gray-200 text-gray-800 rounded-md px-4 py-2 text-sm ml-2" data-test="reset-filter-button">
+            <i class="fas fa-times mr-2"></i>Reset
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- History Table -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200" data-test="history-table">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Bag ID
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Batch ID
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Action
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                User
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Timestamp
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Location
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Table Row -->
+            <tr data-test="history-item">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" data-test="bag-id">
+                BAG001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="batch-id">
+                BATCH001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm" data-test="status">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Active
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="action">
+                Created
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="user">
+                Admin User
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="timestamp">
+                2023-06-10 09:15
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="location">
+                Warehouse A
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                <button class="text-blue-600 hover:text-blue-900" data-test="view-details-button">
+                  <i class="fas fa-info-circle"></i> Details
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Table Row -->
+            <tr data-test="history-item">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" data-test="bag-id">
+                BAG001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="batch-id">
+                BATCH001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm" data-test="status">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                  Distributed
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="action">
+                Distributed
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="user">
+                John Doe
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="timestamp">
+                2023-06-15 14:30
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="location">
+                Distribution Center
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                <button class="text-blue-600 hover:text-blue-900" data-test="view-details-button">
+                  <i class="fas fa-info-circle"></i> Details
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Table Row -->
+            <tr data-test="history-item">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" data-test="bag-id">
+                BAG001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="batch-id">
+                BATCH001
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm" data-test="status">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  Collected
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="action">
+                Collected
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="user">
+                Jane Smith
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="timestamp">
+                2023-06-20 10:45
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test="location">
+                123 Main St
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                <button class="text-blue-600 hover:text-blue-900" data-test="view-details-button">
+                  <i class="fas fa-info-circle"></i> Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Previous
+          </a>
+          <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Next
+          </a>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">15</span> results
+            </p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                1
+              </a>
+              <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                2
+              </a>
+              <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                3
+              </a>
+              <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div id="details-modal" class="fixed inset-0 z-10 hidden bg-black bg-opacity-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+          <h3 class="text-lg font-medium text-gray-900" data-test="modal-title">Bag Activity Details</h3>
+          <button id="close-modal-button" class="text-gray-400 hover:text-gray-500" data-test="close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="px-6 py-4" data-test="bag-details">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Bag ID</p>
+              <p class="text-base font-medium" data-test="detail-bag-id">BAG001</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Batch ID</p>
+              <p class="text-base font-medium" data-test="detail-batch-id">BATCH001</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Status</p>
+              <p class="text-base font-medium" data-test="detail-status">Collected</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Action</p>
+              <p class="text-base font-medium" data-test="detail-action">Collected</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">User</p>
+              <p class="text-base font-medium" data-test="detail-user">Jane Smith</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Timestamp</p>
+              <p class="text-base font-medium" data-test="detail-timestamp">2023-06-20 10:45</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="text-sm font-medium text-gray-500">Location</p>
+              <p class="text-base font-medium" data-test="detail-location">123 Main St, Cityville, USA</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="text-sm font-medium text-gray-500">Notes</p>
+              <p class="text-base font-medium" data-test="detail-notes">Bag collected by resident during community cleanup event.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Open details modal
+    document.querySelectorAll('[data-test="view-details-button"]').forEach(button => {
+      button.addEventListener('click', function() {
+        document.getElementById('details-modal').classList.remove('hidden');
+      });
+    });
+    
+    // Close details modal
+    document.getElementById('close-modal-button').addEventListener('click', function() {
+      document.getElementById('details-modal').classList.add('hidden');
+    });
+    
+    // Status filter
+    document.querySelector('[data-test="status-filter"]').addEventListener('change', function() {
+      console.log('Filter by status:', this.value);
+      // In a real app, this would filter the table rows
+    });
+    
+    // Filter button
+    document.querySelector('[data-test="filter-button"]').addEventListener('click', function() {
+      const batchId = document.querySelector('[data-test="batch-id-filter"]').value;
+      const status = document.querySelector('[data-test="status-filter"]').value;
+      const dateFrom = document.querySelector('[data-test="date-from"]').value;
+      const dateTo = document.querySelector('[data-test="date-to"]').value;
+      
+      console.log('Applying filters:', { batchId, status, dateFrom, dateTo });
+      // In a real app, this would filter the table rows
+    });
+    
+    // Reset filter button
+    document.querySelector('[data-test="reset-filter-button"]').addEventListener('click', function() {
+      document.querySelector('[data-test="batch-id-filter"]').value = '';
+      document.querySelector('[data-test="status-filter"]').value = 'all';
+      document.querySelector('[data-test="date-from"]').value = '';
+      document.querySelector('[data-test="date-to"]').value = '';
+      
+      console.log('Filters reset');
+      // In a real app, this would reset the table view
+    });
+  </script>
+</body>
+</html>

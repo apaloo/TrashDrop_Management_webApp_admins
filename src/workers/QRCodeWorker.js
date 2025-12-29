@@ -1,0 +1,412 @@
+/* eslint-disable no-restricted-globals */
+// Web Worker for handling QR code generation and ZIP creation
+// This is an ES Module worker
+// VERSION: 2.2 - Large Nested SVG QR Code (450x450px on 600x700 canvas)
+
+// Import JSZip and QRCode libraries directly
+import JSZip from 'jszip';
+import QRCode from 'qrcode';
+
+// Log version on worker initialization
+console.log('QR Code Worker v2.2 initialized - Large nested SVG QR (450x450px on 600x700 canvas)');
+
+// Track the current operation for cancellation
+let currentOperation = null;
+
+// Simple function to ensure JSZip is loaded
+const ensureJSZip = async () => {
+  if (typeof JSZip === 'undefined') {
+    throw new Error('JSZip failed to load');
+  }
+  return JSZip;
+};
+
+// Define message handler
+self.onmessage = async function(e) {
+  try {
+    // Handle initialization
+    if (e.data.type === 'WORKER_READY') {
+      // Ensure JSZip is available
+      await ensureJSZip();
+      self.postMessage({ type: 'WORKER_READY' });
+      return;
+    }
+    
+    // Handle cancellation if requested
+    if (e.data.type === 'CANCEL') {
+      if (currentOperation) {
+        currentOperation.cancel = true;
+      }
+      return;
+    }
+    
+    // Get JSZip instance
+    const JSZipInstance = await ensureJSZip();
+    
+    // Create a new operation ID
+    const operationId = Date.now();
+    currentOperation = { id: operationId, cancel: false };
+    
+    // Process the message with the current operation context
+    await processMessage(e, JSZipInstance, currentOperation);
+    
+  } catch (error) {
+    console.error('Error in worker:', error);
+    self.postMessage({
+      type: 'ERROR',
+      error: error.message || 'An error occurred in the QR code generator',
+      isFatal: true
+    });
+  } finally {
+    currentOperation = null;
+  }
+};
+
+// Main worker processing function
+async function processMessage(e, JSZip, operation) {
+  const { type, payload } = e.data;
+  
+  if (type === 'GENERATE_QR_CODES') {
+    const { batch, email, baseUrl, chunkSize = 20, attempt = 1 } = payload;
+    const chunks = [];
+    const total = batch.bag_count || batch.quantity;
+    
+    try {
+      // Process in chunks to prevent UI blocking
+      for (let i = 0; i < total; i += chunkSize) {
+        // Check if operation was cancelled
+        if (operation.cancel) {
+          self.postMessage({ type: 'CANCELLED' });
+          return;
+        }
+        
+        const chunk = [];
+        const end = Math.min(i + chunkSize, total);
+        
+        // Generate QR codes for this chunk
+        for (let j = 0; j < end - i; j++) {
+          const currentIndex = i + j;
+          if (operation.cancel) {
+            self.postMessage({ type: 'CANCELLED' });
+            return;
+          }
+          
+          try {
+            const bagNumber = batch.startNumber + currentIndex;
+            const qrData = {
+              id: `${batch.id}-${bagNumber}`,
+              url: `${baseUrl}?batch=${encodeURIComponent(batch.id)}&bag=${bagNumber}&email=${encodeURIComponent(email)}`,
+              bagNumber,
+              batchId: batch.id,
+              email
+            };
+            
+            chunk.push(qrData);
+          } catch (error) {
+            console.error(`Error generating QR code for bag ${currentIndex}:`, error);
+            // Continue with next bag even if one fails
+          }
+        }
+        
+        if (chunk.length > 0) {
+          chunks.push(chunk);
+          const progress = Math.min(Math.ceil((i + chunk.length) / total * 100), 100);
+          self.postMessage({ 
+            type: 'PROGRESS', 
+            progress, 
+            stage: `Generating QR Codes (${i + chunk.length}/${total})`,
+            attempt
+          });
+          
+          // Small delay to prevent UI blocking
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+      
+      if (chunks.length === 0) {
+        throw new Error('Failed to generate any QR codes');
+      }
+      
+      self.postMessage({ 
+        type: 'CHUNKS_READY', 
+        chunks,
+        totalChunks: chunks.length,
+        attempt
+      });
+      
+    } catch (error) {
+      console.error('Error in QR code generation:', error);
+      throw new Error(`QR code generation failed: ${error.message}`);
+    }
+  }
+  
+  if (type === 'CREATE_ZIP') {
+    const { chunks, batch, baseUrl = 'https://trashdrops.com/scan', email = 'admin@trashdrop.com', attempt = 1 } = payload;
+    
+    // Initialize JSZip
+    const JSZipInstance = await ensureJSZip();
+    const zip = new JSZipInstance();
+    
+    let processed = 0;
+    const flatChunks = chunks.flat();
+    const total = flatChunks.length;
+    
+    if (total === 0) {
+      throw new Error('No QR codes to include in ZIP');
+    }
+    
+    try {
+      // Ensure we have a valid batch ID (batch can be string or object)
+      const batchId = (typeof batch === 'string') ? batch : (batch?.id || new Date().getTime().toString());
+
+      // Prepare folders
+      const bagsFolder = zip.folder('bags');
+
+      // Add batch-level QR at the root of the ZIP
+      try {
+        const batchQR = {
+          id: `batch-${batchId}`,
+          url: `${baseUrl}?batch=${encodeURIComponent(batchId)}`,
+          bagNumber: null,
+          batchId,
+          email
+        };
+        const batchSvg = await generateQRCodeSVG(batchQR);
+        zip.file(`Batch_QR_${batchId}.svg`, batchSvg);
+      } catch (err) {
+        console.error('Error creating batch-level QR SVG:', err);
+      }
+
+      // Add each bag QR code SVG to the 'bags/' folder
+      for (const qrData of flatChunks) {
+        if (operation.cancel) {
+          self.postMessage({ type: 'CANCELLED' });
+          return;
+        }
+        
+        try {
+          const svgContent = await generateQRCodeSVG(qrData);
+          const fileName = `QR_${qrData.batchId}_${qrData.bagNumber}.svg`;
+          if (bagsFolder) {
+            bagsFolder.file(fileName, svgContent);
+          } else {
+            zip.file(`bags/${fileName}`, svgContent);
+          }
+          processed++;
+          
+          // Update progress every 5 files or when reaching the end
+          if (processed % 5 === 0 || processed === total) {
+            const progress = Math.min(Math.ceil((processed / total) * 100), 100);
+            self.postMessage({ 
+              type: 'PROGRESS', 
+              progress,
+              stage: `Creating ZIP (${processed}/${total} files)`,
+              attempt
+            });
+          }
+          
+          // Small delay to prevent UI blocking
+          if (processed % 20 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+          }
+          
+        } catch (error) {
+          console.error(`Error adding QR code ${qrData.id} to ZIP:`, error);
+          // Continue with next file even if one fails
+        }
+      }
+      
+      if (processed === 0) {
+        throw new Error('Failed to add any files to ZIP');
+      }
+      
+      // Generate the ZIP file with minimal options
+      self.postMessage({ 
+        type: 'PROGRESS', 
+        progress: 95, 
+        stage: 'Creating ZIP file...',
+        attempt
+      });
+      
+      try {
+        // Use the computed batchId from above
+        const filename = `QR_Codes_${batchId}.zip`;
+        
+        console.log('Starting ZIP generation for batch:', batchId);
+        const startTime = performance.now();
+        
+        // Generate ZIP as a Blob for maximum compatibility with unzip tools
+        const content = await zip.generateAsync({
+          type: 'blob',
+          compression: 'DEFLATE',
+          compressionOptions: {
+            level: 6
+          },
+          platform: 'DOS',
+          encodeFileName: (string) => string
+        });
+        
+        const endTime = performance.now();
+        console.log(`ZIP generation completed in ${(endTime - startTime).toFixed(2)}ms`);
+        console.log(`ZIP size: ${content.size} bytes`);
+        
+        // Send the final message with the ZIP content
+        self.postMessage({ 
+          type: 'ZIP_READY', 
+          content,
+          filename,
+          fileCount: processed,
+          attempt
+        });
+        
+      } catch (error) {
+        console.error('Error generating ZIP:', error);
+        self.postMessage({
+          type: 'ERROR',
+          error: `Failed to generate ZIP: ${error.message}`,
+          stack: error.stack
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error creating ZIP:', error);
+      throw new Error(`ZIP creation failed: ${error.message}`);
+    }
+  }
+}
+
+// Generate SVG content for a QR code
+async function generateQRCodeSVG(qrData) {
+  const { url, bagNumber, batchId } = qrData;
+  
+  try {
+    // Generate actual QR code SVG using qrcode library
+    console.log(`Generating large QR code: 450x450px for ${bagNumber !== null ? `Bag #${bagNumber}` : 'Batch'}`);
+    const qrSvgString = await QRCode.toString(url, {
+      type: 'svg',
+      width: 450,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
+    });
+    
+    // Extract the inner SVG content (everything between <svg> tags)
+    const svgContentMatch = qrSvgString.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+    const qrSvgContent = svgContentMatch ? svgContentMatch[1] : '';
+    
+    // Get viewBox from the generated QR SVG to maintain aspect ratio
+    const viewBoxMatch = qrSvgString.match(/viewBox="([^"]*)"/i);
+    const qrViewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 100';
+    
+    // Create enhanced SVG with nested QR code SVG - optimized for printing
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" 
+     width="600" 
+     height="700" 
+     viewBox="0 0 600 700" 
+     style="background: white;">
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="white"/>
+  
+  <!-- Header -->
+  <text x="300" y="40" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="24" 
+        font-weight="bold"
+        fill="#333">
+    TrashDrop QR Code
+  </text>
+  
+  <!-- Batch Info -->
+  <text x="300" y="70" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="16" 
+        fill="#666">
+    Batch: ${batchId.substring(0, 18)}...
+  </text>
+  
+  <!-- Bag Info -->
+  <text x="300" y="95" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="16" 
+        fill="#666">
+    ${bagNumber !== null && bagNumber !== undefined ? `Bag #${bagNumber}` : 'Batch QR'}
+  </text>
+  
+  <!-- QR Code SVG - Centered and Large (450x450px) -->
+  <svg x="75" y="120" width="450" height="450" viewBox="${qrViewBox}">
+    ${qrSvgContent}
+  </svg>
+  
+  <!-- URL Info (truncated for display) -->
+  <text x="300" y="600" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="14" 
+        fill="#999">
+    Scan to verify
+  </text>
+  
+  <!-- Footer -->
+  <text x="300" y="675" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="12" 
+        fill="#999">
+    Generated by TrashDrop Admin
+  </text>
+</svg>`;
+  } catch (error) {
+    console.error('Error generating QR code SVG:', error);
+    // Fallback to text-based SVG if QR generation fails
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="380" viewBox="0 0 300 380" style="background: white;">
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="red">
+    QR Generation Error
+  </text>
+  <text x="150" y="210" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">
+    ${url.replace(/&/g, '&amp;')}
+  </text>
+</svg>`;
+  }
+}
+
+// Add error handling for uncaught errors
+if (typeof self.addEventListener === 'function') {
+  self.addEventListener('error', (error) => {
+    console.error('Uncaught error in worker:', error);
+    if (self.postMessage) {
+      self.postMessage({
+        type: 'ERROR',
+        error: error.message || 'Unknown error in worker',
+        isFatal: true
+      });
+    }
+  });
+
+  // Handle unhandled promise rejections
+  self.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled rejection in worker:', event.reason);
+    if (self.postMessage) {
+      self.postMessage({
+        type: 'ERROR',
+        error: (event.reason && event.reason.message) || 'Unhandled promise rejection in worker',
+        isFatal: true
+      });
+    }
+  });
+
+  // Handle termination
+  self.addEventListener('message', (e) => {
+    if (e.data === 'TERMINATE') {
+      self.close();
+    }
+  });
+}

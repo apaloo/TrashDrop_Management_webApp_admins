@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Mobile Reports Verification</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+  <div class="p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0">
+        Illegal Dumping History
+      </h1>
+    </div>
+
+    <!-- Mobile App Reports Verification -->
+    <div class="bg-white shadow rounded-lg p-4 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Mobile App Reports Pending Verification</h2>
+        <button 
+          id="refresh-button"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waste Type</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reported On</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Images</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr class="hover:bg-gray-50" data-test="mobile-report" data-report-id="report-001">
+              <td class="px-4 py-2 whitespace-nowrap" data-test="reporter-name">
+                John Doe
+                <span class="ml-1 text-xs bg-gray-200 px-1 rounded">Anonymous</span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-location">
+                123 Main St, San Francisco
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800" data-test="waste-type">
+                  Household
+                </span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-size">Medium</td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-date">
+                07/01/2025
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <button 
+                  data-test="view-images-button"
+                  class="text-blue-500 hover:text-blue-700"
+                >
+                  View 2 images
+                </button>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                <button 
+                  data-test="verify-button"
+                  class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center"
+                >
+                  Verify
+                </button>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50" data-test="mobile-report" data-report-id="report-002">
+              <td class="px-4 py-2 whitespace-nowrap" data-test="reporter-name">
+                Anonymous
+                <span class="ml-1 text-xs bg-gray-200 px-1 rounded">Anonymous</span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-location">
+                37.7833, -122.4167
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800" data-test="waste-type">
+                  Construction
+                </span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-size">Large</td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-date">
+                07/02/2025
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <button 
+                  data-test="view-images-button"
+                  class="text-blue-500 hover:text-blue-700"
+                >
+                  View 3 images
+                </button>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                <button 
+                  data-test="verify-button"
+                  class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center"
+                >
+                  Verify
+                </button>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50" data-test="mobile-report-verified" data-report-id="report-003">
+              <td class="px-4 py-2 whitespace-nowrap" data-test="reporter-name">
+                Jane Smith
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-location">
+                456 Ocean Ave, San Francisco
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800" data-test="waste-type">
+                  Electronics
+                </span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-size">Small</td>
+              <td class="px-4 py-2 whitespace-nowrap" data-test="report-date">
+                07/03/2025
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <span class="text-gray-400">No images</span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                <button 
+                  data-test="assign-button"
+                  class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded flex items-center"
+                >
+                  Assign Cleaner
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Image Gallery Modal (hidden by default) -->
+    <div id="image-gallery-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+          <div class="bg-gray-800 px-4 py-3 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-white" data-test="gallery-title">
+              Image 1 of 2
+            </h3>
+            <button 
+              data-test="close-gallery-button"
+              class="text-white hover:text-gray-200"
+            >
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="bg-black flex justify-center items-center relative" style="height: 500px;">
+            <img 
+              src="https://example.com/images/dump1.jpg" 
+              alt="Image 1"
+              class="max-h-full max-w-full object-contain"
+              data-test="gallery-image"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Assignment Modal (hidden by default) -->
+    <div id="assignment-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Assign Cleaner</h3>
+                <div class="mt-4">
+                  <form>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="collector">
+                        Select Collector
+                      </label>
+                      <select
+                        id="collector"
+                        data-test="collector-select"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      >
+                        <option value="">-- Select a collector --</option>
+                        <option value="1">John Doe - North</option>
+                        <option value="2">Sarah Smith - South</option>
+                        <option value="3">Michael Brown - East</option>
+                      </select>
+                    </div>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="date">
+                        Scheduled Cleanup Date
+                      </label>
+                      <input
+                        id="date"
+                        type="date"
+                        data-test="cleanup-date"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      />
+                    </div>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="notes">
+                        Notes (Optional)
+                      </label>
+                      <textarea
+                        id="notes"
+                        data-test="assignment-notes"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        rows="3"
+                        placeholder="Add any special instructions or notes for the cleaner"
+                      ></textarea>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              data-test="submit-assignment-button"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 hover:bg-purple-700 text-base font-medium text-white focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Assign Cleaner
+            </button>
+            <button
+              type="button"
+              data-test="cancel-assignment-button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Basic interactions for the test HTML fixture
+    document.addEventListener('DOMContentLoaded', function() {
+      // Gallery modal functionality
+      const galleryModal = document.getElementById('image-gallery-modal');
+      const viewImagesButtons = document.querySelectorAll('[data-test="view-images-button"]');
+      const closeGalleryButton = document.querySelector('[data-test="close-gallery-button"]');
+      
+      viewImagesButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          galleryModal.classList.remove('hidden');
+        });
+      });
+      
+      closeGalleryButton.addEventListener('click', function() {
+        galleryModal.classList.add('hidden');
+      });
+      
+      // Verify button functionality
+      const verifyButtons = document.querySelectorAll('[data-test="verify-button"]');
+      verifyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const row = button.closest('[data-test="mobile-report"]');
+          const reportId = row.getAttribute('data-report-id');
+          
+          // Show verified state (in a real app this would be via an API call)
+          button.textContent = 'Verified';
+          button.classList.remove('bg-green-500', 'hover:bg-green-600');
+          button.classList.add('bg-gray-500');
+          button.disabled = true;
+          
+          // Show the verified report row (for testing)
+          document.querySelector('[data-test="mobile-report-verified"]').classList.remove('hidden');
+        });
+      });
+      
+      // Assignment modal functionality
+      const assignmentModal = document.getElementById('assignment-modal');
+      const assignButtons = document.querySelectorAll('[data-test="assign-button"]');
+      const cancelAssignmentButton = document.querySelector('[data-test="cancel-assignment-button"]');
+      const submitAssignmentButton = document.querySelector('[data-test="submit-assignment-button"]');
+      
+      assignButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          assignmentModal.classList.remove('hidden');
+        });
+      });
+      
+      cancelAssignmentButton.addEventListener('click', function() {
+        assignmentModal.classList.add('hidden');
+      });
+      
+      submitAssignmentButton.addEventListener('click', function() {
+        // Validate inputs
+        const collectorSelect = document.querySelector('[data-test="collector-select"]');
+        const cleanupDate = document.querySelector('[data-test="cleanup-date"]');
+        
+        if (!collectorSelect.value) {
+          alert('Please select a collector');
+          return;
+        }
+        
+        if (!cleanupDate.value) {
+          alert('Please select a cleanup date');
+          return;
+        }
+        
+        // Success state
+        submitAssignmentButton.textContent = 'Assigned!';
+        submitAssignmentButton.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+        submitAssignmentButton.classList.add('bg-green-600');
+        
+        // Close modal after delay
+        setTimeout(() => {
+          assignmentModal.classList.add('hidden');
+          
+          // Reset button
+          submitAssignmentButton.textContent = 'Assign Cleaner';
+          submitAssignmentButton.classList.remove('bg-green-600');
+          submitAssignmentButton.classList.add('bg-purple-600', 'hover:bg-purple-700');
+          
+          // Update assign button in table
+          document.querySelector('[data-test="assign-button"]').textContent = 'Assigned';
+          document.querySelector('[data-test="assign-button"]').classList.remove('bg-purple-500', 'hover:bg-purple-600');
+          document.querySelector('[data-test="assign-button"]').classList.add('bg-gray-500');
+          document.querySelector('[data-test="assign-button"]').disabled = true;
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Modal Test</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-green-800 text-white">
+      <div class="p-4">
+        <h1 class="text-xl font-bold">TrashDrop Admin</h1>
+      </div>
+      <nav class="mt-6">
+        <a href="#" class="block py-2 px-4 bg-green-900">Dashboard</a>
+        <a href="#" class="block py-2 px-4">Bag Management</a>
+        <a href="#" class="block py-2 px-4">Request Pickup</a>
+        <a href="#" class="block py-2 px-4">Collectors</a>
+        <a href="#" class="block py-2 px-4">Settings</a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+      <!-- Top Navigation -->
+      <header class="bg-white shadow">
+        <div class="px-4 py-2 flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Dashboard</h2>
+          <div class="flex items-center">
+            <div class="mr-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+            </div>
+            <div class="flex items-center">
+              <img class="w-8 h-8 rounded-full" src="https://via.placeholder.com/40" alt="User Avatar">
+              <span class="ml-2">Admin User</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="p-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+          <h3 class="font-medium text-lg mb-4">Modal Testing</h3>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <button id="openCollectorModal" class="bg-green-600 text-white px-4 py-2 rounded" data-test="open-collector-modal">
+              Open Collector Modal
+            </button>
+            
+            <button id="openQrCodeModal" class="bg-blue-600 text-white px-4 py-2 rounded" data-test="open-qrcode-modal">
+              Open QR Code Modal
+            </button>
+            
+            <button id="openConfirmationModal" class="bg-yellow-600 text-white px-4 py-2 rounded" data-test="open-confirmation-modal">
+              Open Confirmation Modal
+            </button>
+            
+            <button id="openDetailsModal" class="bg-purple-600 text-white px-4 py-2 rounded" data-test="open-details-modal">
+              Open Details Modal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collector Modal -->
+  <div id="collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="collector-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Collector Details</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <div class="mb-4">
+          <h4 class="font-bold">John Doe</h4>
+          <p class="text-sm text-gray-600">ID: COL001</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600">Email: john.doe@example.com</p>
+          <p class="text-sm text-gray-600">Phone: (555) 123-4567</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600">Region: North</p>
+          <p class="text-sm text-gray-600">Status: Active</p>
+        </div>
+      </div>
+      <div class="border-t p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="close-button">Close</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- QR Code Modal -->
+  <div id="qrcode-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="qrcode-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Bag QR Code</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 text-center">
+        <div class="mb-4">
+          <div class="bg-gray-200 w-48 h-48 mx-auto flex items-center justify-center" data-test="qrcode-image">
+            <span class="text-gray-500">QR Code Placeholder</span>
+          </div>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600">Bag ID: <span data-test="qrcode-bag-id">BAG001</span></p>
+          <p class="text-sm text-gray-600">Region: <span data-test="qrcode-region">North</span></p>
+        </div>
+      </div>
+      <div class="border-t p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="close-button">Close</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded" data-test="download-button">Download</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="confirmation-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium" data-test="confirmation-title">Confirm Action</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <p data-test="confirmation-message">Are you sure you want to proceed with this action?</p>
+      </div>
+      <div class="border-t p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="cancel-button">Cancel</button>
+        <button class="bg-red-600 text-white px-4 py-2 rounded" data-test="confirm-button">Confirm</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Details Modal -->
+  <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="details-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Bag Details</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <div class="mb-4">
+          <h4 class="font-bold">Bag ID: BAG001</h4>
+          <p class="text-sm text-gray-600">Generated: June 20, 2025</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-sm font-medium">Region</p>
+            <p class="text-sm text-gray-600">North</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium">Status</p>
+            <p class="text-sm text-gray-600">Active</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium">Collector</p>
+            <p class="text-sm text-gray-600">John Doe</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium">Last Scan</p>
+            <p class="text-sm text-gray-600">June 22, 2025</p>
+          </div>
+        </div>
+      </div>
+      <div class="border-t p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded" data-test="close-button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Function to open modals
+    function openModal(id) {
+      document.querySelectorAll('[data-test$="-modal"]').forEach(modal => {
+        modal.classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+    
+    // Function to close all modals
+    function closeAllModals() {
+      document.querySelectorAll('[data-test$="-modal"]').forEach(modal => {
+        modal.classList.add('hidden');
+      });
+    }
+    
+    // Set up button click handlers
+    document.getElementById('openCollectorModal').addEventListener('click', () => openModal('collector-modal'));
+    document.getElementById('openQrCodeModal').addEventListener('click', () => openModal('qrcode-modal'));
+    document.getElementById('openConfirmationModal').addEventListener('click', () => openModal('confirmation-modal'));
+    document.getElementById('openDetailsModal').addEventListener('click', () => openModal('details-modal'));
+    
+    // Set up close buttons
+    document.querySelectorAll('[data-test="close-modal"], [data-test="close-button"], [data-test="cancel-button"]').forEach(button => {
+      button.addEventListener('click', closeAllModals);
+    });
+    
+    // For Cypress testing - expose openModal function
+    window.openModal = function(type, data) {
+      switch(type) {
+        case 'collector':
+          openModal('collector-modal');
+          break;
+        case 'qrCode':
+          openModal('qrcode-modal');
+          document.querySelector('[data-test="qrcode-bag-id"]').textContent = data?.id || 'BAG001';
+          document.querySelector('[data-test="qrcode-region"]').textContent = data?.region || 'North';
+          break;
+        case 'confirmation':
+          openModal('confirmation-modal');
+          if (data?.title) {
+            document.querySelector('[data-test="confirmation-title"]').textContent = data.title;
+          }
+          if (data?.message) {
+            document.querySelector('[data-test="confirmation-message"]').textContent = data.message;
+          }
+          break;
+        case 'details':
+          openModal('details-modal');
+          break;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin - Collectors Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-green-800 text-white">
+      <div class="p-4">
+        <h1 class="text-xl font-bold">TrashDrop Admin</h1>
+      </div>
+      <nav class="mt-6">
+        <a href="#" class="block py-2 px-4">Dashboard</a>
+        <a href="#" class="block py-2 px-4">Bag Management</a>
+        <a href="#" class="block py-2 px-4">Request Pickup</a>
+        <a href="#" class="block py-2 px-4 bg-green-900">Collectors</a>
+        <a href="#" class="block py-2 px-4">Settings</a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+      <!-- Top Navigation -->
+      <header class="bg-white shadow">
+        <div class="px-4 py-2 flex justify-between items-center">
+          <h2 class="text-xl font-semibold" data-test="page-title">Collectors</h2>
+          <div class="flex items-center">
+            <div class="mr-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+            </div>
+            <div class="flex items-center">
+              <img class="w-8 h-8 rounded-full" src="https://via.placeholder.com/40" alt="User Avatar">
+              <span class="ml-2">Admin User</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filters and Search -->
+      <div class="p-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+          <div class="flex flex-wrap gap-4">
+            <div class="flex-grow">
+              <input type="text" placeholder="Search collectors..." class="border rounded px-4 py-2 w-full" data-test="search-input" />
+            </div>
+            <div>
+              <select class="border rounded px-4 py-2" data-test="status-filter">
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <select class="border rounded px-4 py-2" data-test="region-filter">
+                <option value="all">All Regions</option>
+                <option value="north">North</option>
+                <option value="south">South</option>
+                <option value="east">East</option>
+                <option value="west">West</option>
+              </select>
+            </div>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" data-test="add-collector-button">
+              Add Collector
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collectors Grid -->
+      <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-test="collectors-grid">
+          <!-- Collector Card 1 - Active -->
+          <div class="bg-white rounded-lg shadow-sm p-4" data-test="collector-card">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-medium" data-test="collector-name">John Doe</h3>
+              <span class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs" data-test="collector-status">Active</span>
+            </div>
+            <div class="text-gray-600 mb-1" data-test="collector-id">ID: COL-001</div>
+            <div class="text-gray-600 mb-1" data-test="collector-region">Region: North</div>
+            <div class="text-gray-600 mb-3" data-test="collector-joined">Joined: Jan 15, 2025</div>
+            <div class="border-t pt-3">
+              <div class="flex justify-between items-center">
+                <button class="text-blue-600" data-test="view-profile-button">View Details</button>
+                <button class="text-red-600" data-test="status-toggle">Deactivate</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collector Card 2 - Active -->
+          <div class="bg-white rounded-lg shadow-sm p-4" data-test="collector-card">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-medium" data-test="collector-name">Sarah Smith</h3>
+              <span class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs" data-test="collector-status">Active</span>
+            </div>
+            <div class="text-gray-600 mb-1" data-test="collector-id">ID: COL-002</div>
+            <div class="text-gray-600 mb-1" data-test="collector-region">Region: South</div>
+            <div class="text-gray-600 mb-3" data-test="collector-joined">Joined: Feb 20, 2025</div>
+            <div class="border-t pt-3">
+              <div class="flex justify-between items-center">
+                <button class="text-blue-600" data-test="view-profile-button">View Details</button>
+                <button class="text-red-600" data-test="status-toggle">Deactivate</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collector Card 3 - Inactive -->
+          <div class="bg-white rounded-lg shadow-sm p-4" data-test="collector-card">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-medium" data-test="collector-name">Michael Brown</h3>
+              <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs" data-test="collector-status">Inactive</span>
+            </div>
+            <div class="text-gray-600 mb-1" data-test="collector-id">ID: COL-003</div>
+            <div class="text-gray-600 mb-1" data-test="collector-region">Region: East</div>
+            <div class="text-gray-600 mb-3" data-test="collector-joined">Joined: Mar 5, 2025</div>
+            <div class="border-t pt-3">
+              <div class="flex justify-between items-center">
+                <button class="text-blue-600" data-test="view-profile-button">View Details</button>
+                <button class="text-green-600" data-test="status-toggle">Activate</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Collector Modal -->
+  <div id="add-collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="add-collector-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Add New Collector</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <form data-test="add-collector-form">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Full Name
+            </label>
+            <input type="text" class="border rounded w-full py-2 px-3" data-test="collector-name-input" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Email
+            </label>
+            <input type="email" class="border rounded w-full py-2 px-3" data-test="collector-email-input" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Phone
+            </label>
+            <input type="tel" class="border rounded w-full py-2 px-3" data-test="collector-phone-input" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Region
+            </label>
+            <select class="border rounded w-full py-2 px-3" data-test="collector-region-input">
+              <option value="">Select Region</option>
+              <option value="north">North</option>
+              <option value="south">South</option>
+              <option value="east">East</option>
+              <option value="west">West</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Vehicle Type
+            </label>
+            <select class="border rounded w-full py-2 px-3" data-test="collector-vehicle-input">
+              <option value="">Select Vehicle Type</option>
+              <option value="bike">Bike</option>
+              <option value="car">Car</option>
+              <option value="van">Van</option>
+              <option value="truck">Truck</option>
+            </select>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="cancel-button">
+              Cancel
+            </button>
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded" data-test="submit-collector">
+              Save Collector
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collector Details Modal -->
+  <div id="collector-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="collector-profile-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Collector Details</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-details-modal">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <p class="text-gray-500 text-sm">Name</p>
+            <p class="font-medium" data-test="collector-name">John Doe</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">ID</p>
+            <p class="font-medium" data-test="detail-id">COL-001</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Status</p>
+            <p class="font-medium" data-test="detail-status">Active</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Region</p>
+            <p class="font-medium" data-test="detail-region">North</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Email</p>
+            <p class="font-medium" data-test="detail-email">john.doe@example.com</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Phone</p>
+            <p class="font-medium" data-test="collector-phone">+1 (555) 123-4567</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Joined</p>
+            <p class="font-medium" data-test="detail-joined">Jan 15, 2025</p>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Vehicle</p>
+            <p class="font-medium" data-test="detail-vehicle">Van</p>
+          </div>
+        </div>
+        
+        <!-- Performance Stats -->
+        <h4 class="font-medium mb-2">Performance Statistics</h4>
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="bg-gray-50 p-3 rounded">
+            <p class="text-gray-500 text-sm">Pickups Completed</p>
+            <p class="font-bold text-lg" data-test="detail-pickups">127</p>
+          </div>
+          <div class="bg-gray-50 p-3 rounded">
+            <p class="text-gray-500 text-sm">Avg. Rating</p>
+            <p class="font-bold text-lg" data-test="detail-rating">4.8/5</p>
+          </div>
+          <div class="bg-gray-50 p-3 rounded">
+            <p class="text-gray-500 text-sm">On-Time %</p>
+            <p class="font-bold text-lg" data-test="detail-on-time">94%</p>
+          </div>
+        </div>
+        
+        <!-- Notes Section -->
+        <h4 class="font-medium mb-2">Notes</h4>
+        <div class="bg-gray-50 p-3 rounded mb-6" data-test="detail-notes">
+          Reliable collector. Prefers morning shifts on weekdays. Has backup vehicle available if needed.
+        </div>
+  </div>
+  <div class="text-gray-600 mb-1" data-test="collector-id">ID: COL-002</div>
+  <div class="text-gray-600 mb-1" data-test="collector-region">Region: South</div>
+  <div class="text-gray-600 mb-3" data-test="collector-joined">Joined: Feb 20, 2025</div>
+  <div class="border-t pt-3">
+    <div class="flex justify-between items-center">
+      <button class="text-blue-600" data-test="view-profile-button">View Details</button>
+      <button class="text-red-600" data-test="status-toggle">Deactivate</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+      <button class="text-blue-600" data-test="edit-button">Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Collector Card 3 - Inactive -->
+<div class="bg-white rounded-lg shadow-sm p-4" data-test="collector-card">
+  <div class="flex justify-between items-start mb-3">
+    <h3 class="text-lg font-medium" data-test="collector-name">Michael Brown</h3>
+    <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs" data-test="collector-status">Inactive</span>
+  </div>
+  <div class="text-gray-600 mb-1" data-test="collector-id">ID: COL-003</div>
+  <div class="text-gray-600 mb-1" data-test="collector-region">Region: East</div>
+  <div class="text-gray-600 mb-3" data-test="collector-joined">Joined: Mar 5, 2025</div>
+  <div class="border-t pt-3">
+    <div class="flex justify-between items-center">
+      <button class="text-blue-600" data-test="view-profile-button">View Details</button>
+      <button class="text-green-600" data-test="status-toggle">Activate</button>
+                <button class="text-blue-600" data-test="edit-button">Edit</button>
+      <button class="text-blue-600" data-test="edit-button">Edit</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Add Collector Modal -->
+<div id="add-collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="add-collector-modal">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+    <div class="border-b p-4 flex justify-between items-center">
+      <h3 class="text-lg font-medium">Add New Collector</h3>
+      <button class="text-gray-400 hover:text-gray-500" data-test="close-modal">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-4">
+      <form data-test="add-collector-form">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Full Name
+          </label>
+          <input type="text" class="border rounded w-full py-2 px-3" data-test="collector-name-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Email
+          </label>
+          <input type="email" class="border rounded w-full py-2 px-3" data-test="collector-email-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Phone
+          </label>
+          <input type="tel" class="border rounded w-full py-2 px-3" data-test="collector-phone-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Region
+          </label>
+          <select class="border rounded w-full py-2 px-3" data-test="collector-region-input">
+            <option value="">Select Region</option>
+            <option value="north">North</option>
+            <option value="south">South</option>
+            <option value="east">East</option>
+            <option value="west">West</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Vehicle Type
+          </label>
+          <select class="border rounded w-full py-2 px-3" data-test="collector-vehicle-input">
+            <option value="">Select Vehicle Type</option>
+            <option value="bike">Bike</option>
+            <option value="car">Car</option>
+            <option value="van">Van</option>
+            <option value="truck">Truck</option>
+          </select>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="cancel-button">
+            Cancel
+          </button>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded" data-test="submit-collector">
+            Save Collector
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Collector Details Modal -->
+<div id="collector-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="collector-profile-modal">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto mt-20">
+    <div class="border-b p-4 flex justify-between items-center">
+      <h3 class="text-lg font-medium">Collector Details</h3>
+      <button class="text-gray-400 hover:text-gray-500" data-test="close-details-modal">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <p class="text-gray-500 text-sm">Name</p>
+          <p class="font-medium" data-test="collector-name">Jane Doe</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">ID</p>
+          <p class="font-medium" data-test="detail-id">COL-001</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Status</p>
+          <p class="font-medium" data-test="detail-status">Active</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Region</p>
+          <p class="font-medium" data-test="detail-region">North</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Email</p>
+          <p class="font-medium" data-test="detail-email">jane.doe@example.com</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Phone</p>
+          <p class="font-medium" data-test="collector-phone">+1 (555) 123-4567</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Joined</p>
+          <p class="font-medium" data-test="detail-joined">Jan 15, 2025</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Vehicle</p>
+          <p class="font-medium" data-test="detail-vehicle">Van</p>
+        </div>
+      </div>
+      
+      <!-- Performance Stats -->
+      <h4 class="font-medium mb-2">Performance Statistics</h4>
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-gray-50 p-3 rounded">
+          <p class="text-gray-500 text-sm">Pickups Completed</p>
+          <p class="font-bold text-lg" data-test="detail-pickups">127</p>
+        </div>
+        <div class="bg-gray-50 p-3 rounded">
+          <p class="text-gray-500 text-sm">Avg. Rating</p>
+          <p class="font-bold text-lg" data-test="detail-rating">4.8/5</p>
+        </div>
+        <div class="bg-gray-50 p-3 rounded">
+          <p class="text-gray-500 text-sm">On-Time %</p>
+          <p class="font-bold text-lg" data-test="detail-on-time">94%</p>
+        </div>
+      </div>
+      
+      <!-- Notes Section -->
+      <h4 class="font-medium mb-2">Notes</h4>
+      <div class="bg-gray-50 p-3 rounded mb-6" data-test="detail-notes">
+        Reliable collector. Prefers morning shifts on weekdays. Has backup vehicle available if needed.
+      </div>
+    </div>
+    <div class="bg-gray-50 p-4 flex justify-end">
+      <button class="bg-blue-600 text-white px-4 py-2 rounded mr-2" data-test="edit-collector-button">
+        Edit
+      </button>
+      <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded" data-test="close-button">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="confirmation-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4">
+        <h3 class="text-lg font-medium" data-test="confirmation-title">Deactivate Collector</h3>
+      </div>
+      <div class="p-6">
+        <p>Are you sure you want to change the status of this collector?</p>
+      </div>
+      <div class="bg-gray-50 p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="cancel-confirmation">
+          Cancel
+        </button>
+        <button class="bg-red-600 text-white px-4 py-2 rounded" data-test="confirm-button">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Edit Collector Modal -->
+  <div id="edit-collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="edit-collector-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Edit Collector</h3>
+        <button class="text-gray-400 hover:text-gray-500">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Full Name
+            </label>
+            <input type="text" class="border rounded w-full py-2 px-3" value="John Doe" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Email
+            </label>
+            <input type="email" class="border rounded w-full py-2 px-3" value="john.doe@example.com" />
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2">
+              Cancel
+            </button>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

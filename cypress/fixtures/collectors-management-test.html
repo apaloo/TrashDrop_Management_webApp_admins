@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrashDrop Admin Portal - Collectors Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+  <div class="flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-gray-800 text-white h-screen fixed">
+      <div class="p-4">
+        <h1 class="text-2xl font-bold">TrashDrop</h1>
+        <p class="text-gray-400">Admin Portal</p>
+      </div>
+      <nav class="mt-8">
+        <a href="#" class="block px-4 py-2 text-gray-400 hover:bg-gray-700">Dashboard</a>
+        <a href="#" class="block px-4 py-2 bg-gray-700 text-white">Collectors</a>
+        <a href="#" class="block px-4 py-2 text-gray-400 hover:bg-gray-700">Bag Management</a>
+        <a href="#" class="block px-4 py-2 text-gray-400 hover:bg-gray-700">Illegal Dumping</a>
+        <a href="#" class="block px-4 py-2 text-gray-400 hover:bg-gray-700">Analytics</a>
+        <a href="#" class="block px-4 py-2 text-gray-400 hover:bg-gray-700">System Logs</a>
+      </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="ml-64 p-8 w-full">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold" data-test="page-title">Collectors Management</h1>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded" data-test="add-collector-button">
+          Add Collector
+        </button>
+      </div>
+      
+      <!-- Filters -->
+      <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex flex-wrap gap-4">
+          <div class="w-full md:w-64">
+            <label class="block text-gray-700 mb-2">Search</label>
+            <input type="text" data-test="search-input" placeholder="Search collectors..." class="border rounded p-2 w-full">
+          </div>
+          
+          <div class="w-full md:w-48">
+            <label class="block text-gray-700 mb-2">Status Filter</label>
+            <select id="status-filter" data-test="status-filter" class="border rounded p-2 w-full">
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          
+          <div class="w-full md:w-48">
+            <label class="block text-gray-700 mb-2">Region Filter</label>
+            <select id="region-filter" data-test="region-filter" class="border rounded p-2 w-full">
+              <option value="all">All Regions</option>
+              <option value="north">North</option>
+              <option value="south">South</option>
+              <option value="east">East</option>
+              <option value="west">West</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Collectors Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- John Doe Card -->
+        <div class="bg-white rounded-lg shadow-sm p-4 collector-card" data-test="collector-card" data-status="active" data-region="north">
+          <div class="flex justify-between">
+            <h3 class="font-bold text-lg" data-test="collector-name">John Doe</h3>
+            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm" data-test="collector-status">Active</span>
+          </div>
+          <div class="mt-2">
+            <p class="text-gray-600" data-test="collector-email">john.doe@example.com</p>
+            <p class="text-gray-600" data-test="collector-region">Region: North</p>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <p class="text-gray-600">ID: #12345</p>
+            <p class="text-gray-600">Joined: Jun 10, 2025</p>
+          </div>
+          <div class="mt-4 flex space-x-2">
+            <button class="text-blue-600" data-test="view-profile-button">View Profile</button>
+            <button class="text-red-600" data-test="status-toggle">Deactivate</button>
+            <button class="text-blue-600" data-test="edit-button">Edit</button>
+          </div>
+        </div>
+        
+        <!-- Sarah Smith Card -->
+        <div class="bg-white rounded-lg shadow-sm p-4 collector-card" data-test="collector-card" data-status="active" data-region="south">
+          <div class="flex justify-between">
+            <h3 class="font-bold text-lg" data-test="collector-name">Sarah Smith</h3>
+            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm" data-test="collector-status">Active</span>
+          </div>
+          <div class="mt-2">
+            <p class="text-gray-600" data-test="collector-email">sarah.smith@example.com</p>
+            <p class="text-gray-600" data-test="collector-region">Region: South</p>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <p class="text-gray-600">ID: #23456</p>
+            <p class="text-gray-600">Joined: May 15, 2025</p>
+          </div>
+          <div class="mt-4 flex space-x-2">
+            <button class="text-blue-600" data-test="other-profile-button">View Profile</button>
+            <button class="text-red-600" data-test="status-toggle">Deactivate</button>
+            <button class="text-blue-600" data-test="edit-button">Edit</button>
+          </div>
+        </div>
+        
+        <!-- Michael Brown Card -->
+        <div class="bg-white rounded-lg shadow-sm p-4 collector-card" data-test="collector-card" data-status="inactive" data-region="east">
+          <div class="flex justify-between">
+            <h3 class="font-bold text-lg" data-test="collector-name">Michael Brown</h3>
+            <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm" data-test="collector-status">Inactive</span>
+          </div>
+          <div class="mt-2">
+            <p class="text-gray-600" data-test="collector-email">michael.brown@example.com</p>
+            <p class="text-gray-600" data-test="collector-region">Region: East</p>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <p class="text-gray-600">ID: #34567</p>
+            <p class="text-gray-600">Joined: Apr 20, 2025</p>
+          </div>
+          <div class="mt-4 flex space-x-2">
+            <button class="text-blue-600" data-test="regular-profile-button">View Profile</button>
+            <button class="text-green-600" data-test="status-toggle">Activate</button>
+            <button class="text-blue-600" data-test="edit-button">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Collector Profile Modal -->
+  <div id="collector-profile-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50" data-test="collector-profile-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium" data-test="collector-name">John Doe</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-button">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-semibold mb-2">Contact Information</h4>
+            <p class="text-gray-600 mb-2">Email: john.doe@example.com</p>
+            <p class="font-medium" data-test="collector-phone">555-123-4567</p>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-2">Collection Stats</h4>
+            <p class="text-gray-600 mb-2">Total Bags Collected: 124</p>
+            <p class="text-gray-600 mb-2">Total Weight: 248 kg</p>
+          </div>
+        </div>
+        <div class="mt-4">
+          <h4 class="font-semibold mb-2">Recent Activity</h4>
+          <ul class="text-gray-600">
+            <li class="mb-1">Jun 25, 2025: Collected 3 bags from Riverfront Park</li>
+            <li class="mb-1">Jun 22, 2025: Collected 5 bags from City Center</li>
+            <li class="mb-1">Jun 18, 2025: Collected 2 bags from Mountain View Road</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add Collector Modal -->
+  <div id="add-collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="add-collector-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Add New Collector</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-button">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Full Name
+            </label>
+            <input type="text" class="border rounded w-full py-2 px-3" placeholder="Full Name" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Email
+            </label>
+            <input type="email" class="border rounded w-full py-2 px-3" placeholder="Email Address" />
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2">
+              Cancel
+            </button>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+              Add Collector
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Edit Collector Modal -->
+  <div id="edit-collector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="edit-collector-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Edit Collector</h3>
+        <button class="text-gray-400 hover:text-gray-500" data-test="close-button">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Full Name
+            </label>
+            <input data-test="input-name" type="text" class="border rounded w-full py-2 px-3" value="John Doe" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Email
+            </label>
+            <input data-test="input-email" type="email" class="border rounded w-full py-2 px-3" value="john.doe@example.com" />
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2">
+              Cancel
+            </button>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" data-test="confirmation-modal">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto mt-20">
+      <div class="border-b p-4">
+        <h3 class="text-lg font-medium" data-test="confirmation-title">Deactivate Collector</h3>
+      </div>
+      <div class="p-6">
+        <p>Are you sure you want to change the status of this collector?</p>
+      </div>
+      <div class="bg-gray-50 p-4 flex justify-end">
+        <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2" data-test="cancel-confirmation">
+          Cancel
+        </button>
+        <button class="bg-red-600 text-white px-4 py-2 rounded" data-test="confirm-button">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  
+
+
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initial setup - hide all modals
+    const modals = document.querySelectorAll('.modal, [id$="-modal"]');
+    modals.forEach(modal => {
+      modal.style.display = 'none';
+      if (!modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+      }
+    });
+    
+    // Helper functions
+    function showModal(selector) {
+      const modal = document.querySelector(selector);
+      if (modal) {
+        modal.style.display = 'block';
+        modal.classList.remove('hidden');
+      }
+    }
+    
+    function hideModal(selector) {
+      const modal = document.querySelector(selector);
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+    
+    // Filter functionality
+    function filterCollectors() {
+      const statusFilter = document.getElementById('status-filter').value;
+      const regionFilter = document.getElementById('region-filter').value;
+      const searchText = document.querySelector('[data-test="search-input"]').value.toLowerCase();
+      
+      document.querySelectorAll('.collector-card').forEach(card => {
+        const name = card.querySelector('[data-test="collector-name"]').textContent.toLowerCase();
+        const status = card.getAttribute('data-status');
+        const region = card.getAttribute('data-region');
+        
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
+        const matchesRegion = regionFilter === 'all' || region === regionFilter;
+        const matchesSearch = name.includes(searchText);
+        
+        if (matchesStatus && matchesRegion && matchesSearch) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+    
+    // Event listeners
+    document.getElementById('status-filter').addEventListener('change', filterCollectors);
+    document.getElementById('region-filter').addEventListener('change', filterCollectors);
+    document.querySelector('[data-test="search-input"]').addEventListener('input', filterCollectors);
+    
+    // View Profile button - the test looks specifically for this
+    const profileBtn = document.querySelector('[data-test="view-profile-button"]');
+    if (profileBtn) {
+      profileBtn.addEventListener('click', function() {
+        showModal('[data-test="collector-profile-modal"]');
+      });
+    }
+    
+    // Regular profile buttons
+    document.querySelectorAll('[data-test="regular-profile-button"]').forEach(button => {
+      button.addEventListener('click', function() {
+        showModal('[data-test="collector-profile-modal"]');
+      });
+    });
+    
+    // Status toggles
+    document.querySelectorAll('[data-test="status-toggle"]').forEach(button => {
+      button.addEventListener('click', function() {
+        showModal('[data-test="confirmation-modal"]');
+        
+        const card = button.closest('.collector-card');
+        const isActive = card.getAttribute('data-status') === 'active';
+        const title = document.querySelector('[data-test="confirmation-title"]');
+        
+        if (title) {
+          title.textContent = isActive ? 'Deactivate Collector' : 'Activate Collector';
+        }
+      });
+    });
+    
+    // Confirm button
+    document.querySelector('[data-test="confirm-button"]').addEventListener('click', function() {
+      hideModal('[data-test="confirmation-modal"]');
+      
+      const firstCard = document.querySelector('.collector-card');
+      if (firstCard) {
+        const statusElement = firstCard.querySelector('[data-test="collector-status"]');
+        const statusToggle = firstCard.querySelector('[data-test="status-toggle"]');
+        
+        if (firstCard.getAttribute('data-status') === 'active') {
+          firstCard.setAttribute('data-status', 'inactive');
+          statusElement.textContent = 'Inactive';
+          statusToggle.textContent = 'Activate';
+          statusToggle.classList.replace('text-red-600', 'text-green-600');
+        } else {
+          firstCard.setAttribute('data-status', 'active');
+          statusElement.textContent = 'Active';
+          statusToggle.textContent = 'Deactivate';
+          statusToggle.classList.replace('text-green-600', 'text-red-600');
+        }
+      }
+    });
+    
+    // Cancel confirmation
+    document.querySelector('[data-test="cancel-confirmation"]').addEventListener('click', function() {
+      hideModal('[data-test="confirmation-modal"]');
+    });
+    
+    // Add collector button
+    document.querySelector('[data-test="add-collector-button"]').addEventListener('click', function() {
+      showModal('[data-test="add-collector-modal"]');
+    });
+    
+    // Edit buttons
+    document.querySelectorAll('[data-test="edit-button"]').forEach(button => {
+      button.addEventListener('click', function() {
+        showModal('[data-test="edit-collector-modal"]');
+      });
+    });
+    
+    // Close buttons
+    document.querySelectorAll('[data-test="close-button"]').forEach(button => {
+      button.addEventListener('click', function() {
+        hideModal('[data-test="collector-profile-modal"]');
+        hideModal('[data-test="add-collector-modal"]');
+        hideModal('[data-test="edit-collector-modal"]');
+      });
+    });
+    
+    // Cancel buttons
+    const cancelButtons = document.querySelectorAll('button');
+    cancelButtons.forEach(button => {
+      if (button.textContent.trim() === 'Cancel') {
+        button.addEventListener('click', function() {
+          hideModal('[data-test="add-collector-modal"]');
+          hideModal('[data-test="edit-collector-modal"]');
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
