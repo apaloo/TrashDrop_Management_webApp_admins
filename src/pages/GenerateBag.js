@@ -11,10 +11,45 @@ import {
   faTimes,
   faEye
 } from '@fortawesome/free-solid-svg-icons';
-import { generateNewBatch } from '../mock/bags';
 import { createBagBatch } from '../utils/databaseUtils';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
+
+// Generate batch data for database insertion (replaces mock data)
+const generateNewBatch = (type, size, quantity, createdBy) => {
+  const typeMap = {
+    'Recyclable': 'REC',
+    'Organic': 'ORG',
+    'Hazardous': 'HAZ',
+    'Electronic': 'ELE',
+    'Other': 'OTH'
+  };
+  
+  const sizeMap = {
+    'Small': 'S',
+    'Medium': 'M',
+    'Large': 'L'
+  };
+  
+  const prefix = `TD-${typeMap[type] || 'OTH'}-${sizeMap[size] || 'M'}`;
+  const batchId = `batch-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  
+  const batch = {
+    id: batchId,
+    createdAt: new Date().toISOString(),
+    createdBy,
+    quantity,
+    bag_count: quantity,
+    type,
+    size,
+    status: 'Active',
+    distributed: 0,
+    scanned: 0,
+    qrPrefix: prefix
+  };
+  
+  return { batch };
+};
 
 const GenerateBag = () => {
   const { user } = useAuth();

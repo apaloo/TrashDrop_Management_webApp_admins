@@ -1063,32 +1063,36 @@ export const updateIllegalDumpingStatus = async (reportId, status, notes = '') =
 
 /**
  * Assign cleanup team to illegal dumping report
- * @deprecated RPC function 'assign_cleanup_team' no longer exists - using direct table updates
  * @param {string} reportId - Report ID
- * @param {string} teamId - Team ID
- * @param {Date} scheduledDate - Scheduled cleanup date
+ * @param {string} collectorId - Collector UUID from collector_profiles table
+ * @param {Date} scheduledDate - Scheduled cleanup date (optional, not persisted)
  * @returns {Promise<Object>} Assignment result
  */
-export const assignCleanupTeam = async (reportId, teamId, scheduledDate) => {
-  // DEPRECATED: RPC function removed, using direct table update only
-  console.log('Using direct table update for cleanup team assignment (RPC deprecated)');
+export const assignCleanupTeam = async (reportId, collectorId, scheduledDate) => {
+  console.log('Assigning collector to illegal dumping report:', { reportId, collectorId, scheduledDate });
   
-  // Direct table update
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',
     queryFn: async () => {
-      const newStatus = scheduledDate ? 'cleanup_scheduled' : 'verified';
-      // Note: 'assigned_to' column doesn't exist in illegal_dumping_mobile table
-      // Only update status and timestamp
+      // Database constraint only allows: 'pending', 'verified', 'in_progress', 'completed'
+      const newStatus = 'in_progress';
+      
       const { data, error } = await supabase
         .from('illegal_dumping_mobile')
         .update({ 
           status: newStatus,
+          assigned_to: collectorId,
           updated_at: new Date().toISOString()
         })
         .eq('id', reportId)
         .select()
         .single();
+      
+      if (error) {
+        console.error('Error assigning cleanup team:', error);
+      } else {
+        console.log('Successfully assigned collector:', collectorId, 'to report:', reportId);
+      }
       
       return { data, error };
     }

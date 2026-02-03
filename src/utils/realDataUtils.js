@@ -378,7 +378,8 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
     let query = supabase
       .from('illegal_dumping_mobile')
       .select(`
-        *
+        *,
+        assignee:collector_profiles!assigned_to(id, first_name, last_name)
       `, { count: 'exact' });
 
     if (status) {
@@ -430,7 +431,8 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         reported_at: report.created_at,
         resolved_at: report.status === 'cleaned_up' ? report.updated_at : null,
         assigned_to: report.assigned_to || null,
-        team_name: report.assigned_to ? 'Cleanup Team' : null,
+        assignee: report.assignee || null,
+        team_name: report.assignee ? `${report.assignee.first_name} ${report.assignee.last_name}` : null,
         resolution_notes: report.status === 'cleaned_up' ? 'Site has been cleaned up.' : null
       };
     });

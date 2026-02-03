@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [notificationPreferences, setNotificationPreferences] = useState(
@@ -16,16 +16,6 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
       defaultView: 'map'
     }
   );
-
-  // Update parent form data when component unmounts
-  useEffect(() => {
-    return () => {
-      updateFormData({
-        notificationPreferences,
-        dashboardPreferences
-      });
-    };
-  }, [notificationPreferences, dashboardPreferences, updateFormData]);
 
   const handleNotificationChange = (e) => {
     const { name, checked } = e.target;

@@ -1,21 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
   const [companyName, setCompanyName] = useState(formData.companyName || '');
   const [companyType, setCompanyType] = useState(formData.companyType || '');
   const [operatingArea, setOperatingArea] = useState(formData.operatingArea || '');
   const [validationErrors, setValidationErrors] = useState({});
-
-  // Update parent form data when component unmounts
-  useEffect(() => {
-    return () => {
-      updateFormData({
-        companyName,
-        companyType,
-        operatingArea
-      });
-    };
-  }, [companyName, companyType, operatingArea, updateFormData]);
 
   const validateForm = () => {
     const errors = {};

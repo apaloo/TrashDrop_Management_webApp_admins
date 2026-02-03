@@ -8,7 +8,11 @@ const REQUIRE_DATABASE = process.env.REACT_APP_REQUIRE_DATABASE === 'true';
 // Required environment variables
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.REACT_APP_SUPABASE_SERVICE_KEY;
+
+// SECURITY: Service key should NEVER be used in frontend code
+// It bypasses RLS and has full database access
+// Use Edge Functions or a backend API for admin operations
+// const supabaseServiceKey - REMOVED FOR SECURITY
 
 // Environment variable validation
 if (REQUIRE_DATABASE) {
@@ -75,40 +79,15 @@ const getSupabaseClient = () => {
   return client;
 };
 
-// Get or create admin client - persists across hot reloads
+// SECURITY: Admin client with service key REMOVED
+// Service keys should never be used in frontend code as they bypass RLS
+// For admin operations, use:
+// 1. Supabase Edge Functions with service key on server side
+// 2. A separate backend API with proper authentication
+// 3. Supabase RLS policies that grant admin access to specific roles
 const getSupabaseAdminClient = () => {
-  if (!supabaseServiceKey) {
-    return null;
-  }
-  
-  // Check if admin client already exists in global scope
-  if (typeof window !== 'undefined' && window[SUPABASE_ADMIN_KEY]) {
-    console.log('♻️ Reusing existing Supabase admin client from global cache');
-    return window[SUPABASE_ADMIN_KEY];
-  }
-  
-  // Create new admin client with separate storage to avoid conflicts
-  console.log('🔧 Creating Supabase admin client singleton...');
-  const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-      // Use a different storage key to avoid conflicts with main client
-      storageKey: 'trashdrop-admin-auth',
-    },
-    db: {
-      schema: 'public',
-    },
-  });
-  
-  // Store in global scope to persist across hot reloads
-  if (typeof window !== 'undefined') {
-    window[SUPABASE_ADMIN_KEY] = adminClient;
-  }
-  
-  console.log('✅ Supabase admin client initialized and cached globally');
-  return adminClient;
+  console.warn('⚠️ Admin client is disabled for security. Use Edge Functions for admin operations.');
+  return null;
 };
 
 // Export singleton instances

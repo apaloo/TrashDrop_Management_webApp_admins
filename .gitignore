@@ -24,4 +24,18 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# Environment files with credentials
 .env
+.env.development
+env.development
+
+# Backup files
+*.bak
+*.new
+*.orig
+
+# SQL fix files (use migrations/ folder instead)
+*.sql
+!database_schema.sql
+!supabase/**/*.sql

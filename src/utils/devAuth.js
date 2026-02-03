@@ -44,7 +44,11 @@ export const devModeSignIn = () => {
 
 // Function to check if development mode is enabled
 export const isDevMode = () => {
-  // Just check for the environment variable, regardless of whether we're in development or production
+  // SECURITY: Never allow dev auth in production builds
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+  // Only allow dev auth in development environment with explicit flag
   return process.env.REACT_APP_USE_DEV_AUTH === 'true';
 };
 
