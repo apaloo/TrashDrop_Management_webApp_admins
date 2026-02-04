@@ -1075,7 +1075,9 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate) =>
     tableName: 'illegal_dumping_mobile',
     queryFn: async () => {
       // Database constraint only allows: 'pending', 'verified', 'in_progress', 'completed'
-      const newStatus = 'in_progress';
+      // Use 'verified' so assignment appears in collector's "Available" tab
+      // Collector will change to 'in_progress' when they accept the assignment
+      const newStatus = 'verified';
       
       const { data, error } = await supabase
         .from('illegal_dumping_mobile')
