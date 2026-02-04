@@ -127,12 +127,20 @@ function App() {
     <AuthProvider>
       <ModalProvider>
         <Router>
-          <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-green-50">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-            </div>
-          }>
-            <Layout>
+          <Layout>
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-4 w-4 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <p className="text-green-700 font-medium text-sm">Loading...</p>
+                </div>
+              </div>
+            }>
               <Routes>
               {/* Public routes */}
               <Route path="/login" element={
@@ -245,10 +253,10 @@ function App() {
               {/* Default redirect */}
               <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
-              {/* Modal Manager to handle all modals across the application */}
-              <ModalManager />
-            </Layout>
-          </Suspense>
+            </Suspense>
+            {/* Modal Manager to handle all modals across the application */}
+            <ModalManager />
+          </Layout>
         </Router>
       </ModalProvider>
     </AuthProvider>
