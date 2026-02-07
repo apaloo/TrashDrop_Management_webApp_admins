@@ -99,6 +99,58 @@ export const fetchContacts = async () => {
 };
 
 /**
+ * Fetch conversation with a specific contact
+ * @param {string} contactId ID of the contact to fetch conversation with
+ * @returns {Promise<Array>} Array of message objects
+ */
+export const fetchConversation = async (contactId) => {
+  try {
+    const { user } = await getCurrentSession();
+    if (!user) {
+      throw new Error('No active session - user must be authenticated');
+    }
+    
+    const userId = user.id;
+    
+    // Check if table exists
+    const tableExists = await safeDatabaseService.checkTableExists('messages');
+    if (!tableExists) {
+      console.warn('Messages table does not exist');
+      return [];
+    }
+    
+    // Fetch messages between current user and contact (both directions)
+    const { data: messages, error } = await supabase
+      .from('messages')
+      .select(`
+        id,
+        content,
+        created_at,
+        read,
+        sender_id,
+        recipient_id
+      `)
+      .or(`and(sender_id.eq.${userId},recipient_id.eq.${contactId}),and(sender_id.eq.${contactId},recipient_id.eq.${userId})`)
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Transform to UI format
+    return (messages || []).map(msg => ({
+      id: msg.id,
+      text: msg.content,
+      timestamp: msg.created_at,
+      read: msg.read,
+      senderId: msg.sender_id === userId ? 'me' : msg.sender_id,
+      receiverId: msg.recipient_id
+    }));
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    return [];
+  }
+};
+
+/**
  * Mark a message as read
  * @param {string} messageId ID of the message to mark as read
  * @returns {Promise} Result of the operation

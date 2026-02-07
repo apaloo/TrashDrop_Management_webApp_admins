@@ -11,10 +11,46 @@ import {
   faTimes,
   faEye
 } from '@fortawesome/free-solid-svg-icons';
-import { generateNewBatch } from '../mock/bags';
 import { createBagBatch } from '../utils/databaseUtils';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
+
+// Generate batch data for database insertion (replaces mock data)
+const generateNewBatch = (type, size, quantity, createdBy) => {
+  const typeMap = {
+    'Recyclable': 'REC',
+    'Organic': 'ORG',
+    'Hazardous': 'HAZ',
+    'General': 'GEN',
+    'Electronic': 'ELE',
+    'Other': 'OTH'
+  };
+  
+  const sizeMap = {
+    'Small': 'S',
+    'Medium': 'M',
+    'Large': 'L'
+  };
+  
+  const prefix = `TD-${typeMap[type] || 'OTH'}-${sizeMap[size] || 'M'}`;
+  const batchId = `batch-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  
+  const batch = {
+    id: batchId,
+    createdAt: new Date().toISOString(),
+    createdBy,
+    quantity,
+    bag_count: quantity,
+    type,
+    size,
+    status: 'Active',
+    distributed: 0,
+    scanned: 0,
+    qrPrefix: prefix
+  };
+  
+  return { batch };
+};
 
 const GenerateBag = () => {
   const { user } = useAuth();
@@ -56,7 +92,7 @@ const GenerateBag = () => {
     } else if (name === 'numberOfBatches') {
       const numValue = parseInt(value, 10);
       if (isNaN(numValue) || numValue < 1) return;
-      if (numValue > 10) return;
+      if (numValue > 1000) return;
       setFormData({ ...formData, [name]: numValue });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -308,7 +344,8 @@ const handlePreview = () => {
 
   // Generate sample QR code for preview
   const trashTypePrefix = formData.trashType === 'Organic' ? 'ORG' :
-                         formData.trashType === 'Recyclable' ? 'REC' : 'HAZ';
+                         formData.trashType === 'Recyclable' ? 'REC' :
+                         formData.trashType === 'General' ? 'GEN' : 'HAZ';
   const bagSizePrefix = formData.bagSize === 'Small' ? 'S' :
                        formData.bagSize === 'Medium' ? 'M' : 'L';
 
@@ -337,8 +374,8 @@ const handleGenerate = async () => {
     return;
   }
 
-  if (formData.numberOfBatches < 1 || formData.numberOfBatches > 10) {
-    setError('Number of batches must be between 1 and 10');
+  if (formData.numberOfBatches < 1 || formData.numberOfBatches > 1000) {
+    setError('Number of batches must be between 1 and 1000');
     setIsLoading(false);
     return;
   }
@@ -439,6 +476,7 @@ const handleGenerate = async () => {
                   <option value="Organic">Green/Organic</option>
                   <option value="Recyclable">Blue/Recyclable</option>
                   <option value="Hazardous">Red/Hazardous</option>
+                  <option value="General">Black/General Waste</option>
                 </select>
                 <p className="mt-2 text-sm text-gray-500">Select the type of trash for this batch.</p>
               </div>
@@ -452,9 +490,9 @@ const handleGenerate = async () => {
                   value={formData.bagSize}
                   onChange={handleInputChange}
                 >
-                  <option value="Small">Small/5 gallons</option>
-                  <option value="Medium">Medium/13 gallons</option>
-                  <option value="Large">Large/30 gallons</option>
+                  <option value="Small">90 L</option>
+                  <option value="Medium">120 L</option>
+                  <option value="Large">240 L</option>
                 </select>
                 <p className="mt-2 text-sm text-gray-500">Select the size of the bags in this batch.</p>
               </div>
@@ -484,11 +522,11 @@ const handleGenerate = async () => {
                   id="numberOfBatches" 
                   name="numberOfBatches" 
                   min="1" 
-                  max="10" 
+                  max="1000" 
                   value={formData.numberOfBatches}
                   onChange={handleInputChange}
                 />
-                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 10.</p>
+                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 1000.</p>
               </div>
             </div>
             
@@ -692,6 +730,7 @@ const handleGenerate = async () => {
                         case 'Organic': return 'bg-green-100 text-green-800';
                         case 'Recyclable': return 'bg-blue-100 text-blue-800';
                         case 'Hazardous': return 'bg-red-100 text-red-800';
+                        case 'General': return 'bg-gray-800 text-white';
                         default: return 'bg-gray-100 text-gray-800';
                       }
                     };

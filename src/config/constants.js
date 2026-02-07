@@ -15,11 +15,14 @@ export const STATUS = {
     ASSIGNED: 'Assigned',
   },
   ILLEGAL_DUMPING: {
-    REPORTED: 'Reported',
-    VERIFIED: 'Verified',
-    CLEANUP_SCHEDULED: 'Cleanup Scheduled',
-    CLEANED_UP: 'Cleaned Up',
-    CANCELLED: 'Cancelled',
+    // Database constraint: status IN ('pending', 'verified', 'in_progress', 'completed')
+    REPORTED: 'pending',
+    VERIFIED: 'verified',
+    CLEANUP_SCHEDULED: 'in_progress',
+    CLEANED_UP: 'completed',
+    // Note: No 'cancelled' in DB constraint - use 'completed' when updating DB
+    // but keep unique display value for UI keys
+    CANCELLED: 'cancelled',
   },
   ALERT: {
     OPEN: 'Open',

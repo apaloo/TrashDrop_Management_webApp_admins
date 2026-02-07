@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
+import PageTransitionLoader from './PageTransitionLoader';
 
 const Layout = ({ children }) => {
   const { user, role, isAuthenticated, loading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLayout, setShowLayout] = useState(false);
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
+  const previousPathRef = useRef('');
   const location = useLocation();
   
   // Check if current path is auth-related (login, signup, etc.)
@@ -19,6 +22,19 @@ const Layout = ({ children }) => {
   // Check localStorage as a fallback for authentication state
   const localAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
   const effectiveAuthState = isAuthenticated || localAuthState;
+  
+  // Handle page transitions - show loader when navigating between pages
+  useEffect(() => {
+    if (previousPathRef.current && previousPathRef.current !== location.pathname && !isAuthPage) {
+      setIsPageTransitioning(true);
+      // Hide loader after a short delay to allow lazy component to load
+      const timer = setTimeout(() => {
+        setIsPageTransitioning(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    previousPathRef.current = location.pathname;
+  }, [location.pathname, isAuthPage]);
   
   useEffect(() => {
     // Only show layout if not on auth page and either authenticated or loading is complete
@@ -75,7 +91,10 @@ const Layout = ({ children }) => {
         )}
         
         {/* Main content area - with correct top margin and padding */}
-        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen`}>
+        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen relative`}>
+          {/* Page transition loader overlay */}
+          {isPageTransitioning && <PageTransitionLoader />}
+          
           {loading ? (
             <div className="min-h-screen flex items-center justify-center bg-green-50">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>

@@ -195,82 +195,36 @@ class SafeDatabaseService {
   }
 
   /**
-   * Safely execute a database query with fallback to mock data
+   * Execute a database query - STRICT MODE: No mock data fallbacks
+   * All queries must use real Supabase data. Missing tables will throw errors.
    */
   async safeQuery(options) {
     const { 
       tableName, 
       queryFn, 
-      mockDataFn, 
-      mockDataParams = {},
-      enableMock = undefined, // per-call override (boolean) if provided
-      isRpc = false,
-      throwOnMissing = undefined, // per-call override
-      forceRealData = undefined   // per-call override
+      isRpc = false
     } = options;
 
-    // Resolve effective flags using per-call overrides when provided
-    const useMockFallback = typeof enableMock === 'boolean' ? enableMock : this.enableMockFallback;
-    const useStrict = typeof throwOnMissing === 'boolean' ? throwOnMissing : this.throwOnMissingTables;
-    const preferReal = typeof forceRealData === 'boolean' ? forceRealData : this.preferRealData;
-    const mockMode = this.mockDataMode;
-
-    // Check if table or function exists (no mock fallbacks in strict mode)
-    console.log(`[SafeDB] Checking ${isRpc ? 'function' : 'table'}: ${tableName}`);
+    // STRICT MODE: Always require real database
+    // Check if table or function exists
     const tableExists = isRpc
       ? await this.checkFunctionExists(tableName)
       : await this.checkTableExists(tableName);
-    console.log(`[SafeDB] ${isRpc ? 'Function' : 'Table'} ${tableName} exists: ${tableExists}`);
       
-    // If table doesn't exist and we're in strict mode, throw an error
-    // Otherwise, we'll try to use mock data if available
+    // If table doesn't exist, throw an error (no mock fallbacks)
     if (!tableExists) {
-      if (useStrict) {
-        console.error(`❌ STRICT MODE ERROR: ${isRpc ? 'Function' : 'Table'} '${tableName}' not found in database.`);
-        console.error(`❌ useStrict=${useStrict}, throwOnMissingTables=${this.throwOnMissingTables}`);
-        console.error(`❌ To disable strict mode, set REACT_APP_REQUIRE_DATABASE=false in .env`);
-        throw new Error(`Required ${isRpc ? 'function' : 'table'} '${tableName}' not found in Supabase database.`);
-      } else if (useMockFallback && typeof mockDataFn === 'function') {
-        console.warn(`Table or function '${tableName}' not found in database. Using mock data fallback.`);
-        const mockData = mockDataFn(mockDataParams);
-        return {
-          data: mockData,
-          count: mockData?.length || 0,
-          error: null,
-          isMock: true
-        };
-      } else {
-        // No mock fallback available, return empty data
-        console.warn(`Table or function '${tableName}' not found in database. No mock data available.`);
-        return {
-          data: [],
-          count: 0,
-          error: null,
-          isMock: true
-        };
-      }
-    }
-    
-    // Use mock data if configured and allowed per-call
-    if (mockMode && !preferReal && useMockFallback && typeof mockDataFn === 'function') {
-      console.log(`Using mock data for ${tableName} as configured in environment/per-call override.`);
-      const mockData = mockDataFn(mockDataParams);
-      return {
-        data: mockData,
-        count: mockData?.length || 0,
-        error: null,
-        isMock: true
-      };
+      const errorMsg = `Required ${isRpc ? 'function' : 'table'} '${tableName}' not found in Supabase database.`;
+      console.error(`❌ DATABASE ERROR: ${errorMsg}`);
+      throw new Error(errorMsg);
     }
 
     try {
       // Validate queryFn before calling
       if (typeof queryFn !== 'function') {
-        console.error(`[SafeDB] Error executing query for ${tableName}: queryFn is not a function`, { tableName, queryFn });
         throw new Error(`queryFn is not a function for table ${tableName}`);
       }
       
-      // Try to execute the real query
+      // Execute the real query
       const result = await queryFn();
       
       // If we got data, return it
@@ -281,125 +235,32 @@ class SafeDatabaseService {
         };
       }
       
-      // Check if we're in dev mode
-      const isDevMode = process.env.REACT_APP_USE_DEV_AUTH === 'true';
-      
-      // If we got an error, check if it's a missing table/function or dev mode UUID error
-      const isMissingError = result.error && (
-        result.error.code === 'PGRST116' ||
-        result.error.code === '42P01' ||  // relation does not exist
-        result.error.code === '42883' ||  // function does not exist
-        result.error.message?.includes('does not exist')
-      );
-      
-      // Check if it's a UUID validation error in dev mode (dev user doesn't exist in DB)
-      const isDevModeUuidError = isDevMode && result.error && (
-        result.error.code === '22P02' ||  // invalid input syntax for type uuid
-        (result.error.message && result.error.message.includes('uuid'))
-      );
-      
-      // Handle dev mode UUID errors (dev user doesn't exist in database)
-      if (isDevModeUuidError) {
-        console.warn(`⚠️ Dev mode: User not found in database. Using mock data fallback for ${tableName}.`);
-        if (typeof mockDataFn === 'function') {
-          const mockData = mockDataFn(mockDataParams);
-          return {
-            data: mockData,
-            count: mockData?.length || 0,
-            error: null,
-            isMock: true
-          };
-        } else {
-          // Return empty data if no mock function available
-          return {
-            data: [],
-            count: 0,
-            error: null,
-            isMock: true
-          };
-        }
-      }
-      
-      if (isMissingError) {
-        if (useStrict) {
-          console.error(`Table or function '${tableName}' not found in database. No mock data fallback allowed.`);
-          throw new Error(`Required ${isRpc ? 'function' : 'table'} '${tableName}' not found in Supabase database.`);
-        } else if (useMockFallback && typeof mockDataFn === 'function') {
-          console.warn(`Table/function ${tableName} not found. Using mock data fallback.`);
-          const mockData = mockDataFn(mockDataParams);
-          return {
-            data: mockData,
-            count: mockData?.length || 0,
-            error: null,
-            isMock: true
-          };
-        } else {
-          // No mock fallback available
-          console.warn(`Table/function ${tableName} not found. No mock data available.`);
-          return {
-            data: [],
-            count: 0,
-            error: null,
-            isMock: true
-          };
-        }
-      }
-      
-      // For all other errors, throw them directly
+      // All errors are thrown - no mock data fallbacks
       if (result.error) {
         console.error(`Database error with ${tableName}:`, result.error);
         throw new Error(`Database error with ${tableName}: ${result.error.message || 'Unknown error'}`);
       }
       
-      // Return empty data if no data was returned but also no error
       return { data: result.data || [], isMock: false };
     } catch (error) {
-      // Always throw errors in strict mode - no mock data fallback
       console.error(`❌ ERROR accessing ${tableName}:`, error);
       throw error;
     }
   }
 
   /**
-   * RPC call with improved error handling
-   * Allows for customizable behavior when functions don't exist
+   * RPC call - STRICT MODE: No mock data fallbacks
+   * All RPC calls must use real Supabase functions. Missing functions will throw errors.
    */
   async safeRPC(options) {
-    const { 
-      functionName, 
-      params = {}, 
-      throwOnMissing = true, // Whether to throw error when function is missing
-      mockFallback = null    // Optional mock data to return if function missing
-    } = options;
-    
-    // Default behavior is still strict mode unless overridden
-    options.enableMock = options.enableMock || false;
-    options.useMockFallback = options.useMockFallback || false;
-    options.forceRealData = options.forceRealData !== false; // Default true
+    const { functionName, params = {} } = options;
     
     try {
-      // Log the RPC attempt
-      console.log(`🔍 Executing RPC call: ${functionName}`);
-      
       // Check if function exists
       const functionExists = await this.checkFunctionExists(functionName);
       
       if (!functionExists) {
-        const warningMsg = `Function '${functionName}' not found in Supabase database.`;
-        console.warn(`⚠️ ${warningMsg}`);
-        
-        if (throwOnMissing) {
-          throw new Error(`Required function '${functionName}' not found in Supabase database.`);
-        }
-        
-        // If mockFallback is provided and we're not throwing, return it
-        if (mockFallback !== null) {
-          console.log(`ℹ️ Using mock fallback data for function '${functionName}'`);
-          return mockFallback;
-        }
-        
-        // Return empty result if no fallback and not throwing
-        return null;
+        throw new Error(`Required function '${functionName}' not found in Supabase database.`);
       }
       
       // Execute RPC call
@@ -407,31 +268,12 @@ class SafeDatabaseService {
       
       if (error) {
         console.error(`❌ Error calling RPC function ${functionName}:`, error);
-        if (throwOnMissing) {
-          throw new Error(`Error calling RPC function ${functionName}: ${error.message || 'Unknown error'}`);
-        }
-        
-        // If mockFallback is provided and we're not throwing, return it
-        if (mockFallback !== null) {
-          console.log(`ℹ️ Using mock fallback data for function '${functionName}' due to error`);
-          return mockFallback;
-        }
-        
-        return null;
+        throw new Error(`Error calling RPC function ${functionName}: ${error.message || 'Unknown error'}`);
       }
       
-      console.log(`✅ Successfully called RPC function ${functionName}`);
       return data;
     } catch (error) {
       console.error(`❌ ERROR calling RPC function ${functionName}:`, error);
-      
-      // If we're not in strict mode and have a fallback, use it
-      if (!throwOnMissing && mockFallback !== null) {
-        console.log(`ℹ️ Using mock fallback data for function '${functionName}' after error`);
-        return mockFallback;
-      }
-      
-      // Otherwise rethrow the error
       throw error;
     }
   }

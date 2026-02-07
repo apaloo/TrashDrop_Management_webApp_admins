@@ -1,25 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { contacts, conversations } from '../../mock/messages';
+import { fetchContacts, fetchConversation, sendMessage as sendMessageToDb } from '../../utils/messageService';
 
 const MessagesModal = ({ isOpen, onClose }) => {
   const [activeContact, setActiveContact] = useState(null);
   const [message, setMessage] = useState('');
   const [activeConversation, setActiveConversation] = useState([]);
-  const [localContacts, setLocalContacts] = useState(contacts);
+  const [localContacts, setLocalContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Load contacts from Supabase on mount
   useEffect(() => {
-    if (activeContact) {
-      setActiveConversation(conversations[activeContact.id] || []);
-      
-      // Mark messages as read when viewing conversation
-      const updatedContacts = localContacts.map(contact => 
-        contact.id === activeContact.id ? { ...contact, unreadCount: 0 } : contact
-      );
-      setLocalContacts(updatedContacts);
+    const loadContacts = async () => {
+      try {
+        setLoading(true);
+        const contactsData = await fetchContacts();
+        setLocalContacts(contactsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading contacts:', err);
+        setError('Failed to load contacts');
+        setLocalContacts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (isOpen) {
+      loadContacts();
     }
+  }, [isOpen]);
+
+  // Load conversation when contact is selected
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (activeContact) {
+        try {
+          const conversationData = await fetchConversation(activeContact.id);
+          setActiveConversation(conversationData || []);
+          
+          // Mark messages as read when viewing conversation
+          const updatedContacts = localContacts.map(contact => 
+            contact.id === activeContact.id ? { ...contact, unreadCount: 0 } : contact
+          );
+          setLocalContacts(updatedContacts);
+        } catch (err) {
+          console.error('Error loading conversation:', err);
+          setActiveConversation([]);
+        }
+      }
+    };
+    
+    loadConversation();
   }, [activeContact]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     
     if (message.trim() === '' || !activeContact) return;
@@ -33,8 +68,17 @@ const MessagesModal = ({ isOpen, onClose }) => {
       read: true
     };
     
+    // Optimistically add to UI
     setActiveConversation([...activeConversation, newMessage]);
     setMessage('');
+    
+    // Send to database
+    try {
+      await sendMessageToDb(activeContact.id, message);
+    } catch (err) {
+      console.error('Error sending message:', err);
+      // Could show error toast here
+    }
   };
 
   const formatTime = (timestamp) => {

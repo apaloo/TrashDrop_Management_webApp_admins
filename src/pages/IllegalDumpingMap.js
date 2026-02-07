@@ -374,22 +374,24 @@ const IllegalDumpingMap = () => {
   };
 
   // Assign cleanup team
-  const assignCleanupTeam = async (collectorId, collectorName) => {
+  const assignCleanupTeamHandler = async (collectorId, collectorName) => {
     if (!selectedReportForAssignment) return;
     
     try {
-      // Update in Supabase
+      // Update in Supabase - save collector UUID to assigned_to column
+      // Database constraint only allows: 'pending', 'verified', 'in_progress', 'completed'
       const { error } = await supabase
         .from('illegal_dumping_mobile')
         .update({ 
-          status: 'cleanup_scheduled',
+          status: 'in_progress',
+          assigned_to: collectorId,
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedReportForAssignment.id);
       
       if (error) throw error;
       
-      // Update local state
+      // Update local state with collector info (not persisted to DB until column is added)
       setDumpingReportData(prev => 
         prev.map(report => {
           if (report.id === selectedReportForAssignment.id) {
@@ -397,7 +399,8 @@ const IllegalDumpingMap = () => {
               ...report, 
               cleanupAssigned: true,
               cleanupTeam: collectorName,
-              status: 'cleanup_scheduled',
+              collectorId: collectorId,
+              status: 'in_progress',
               estimatedCleanupDate: new Date(Date.now() + 2*24*60*60*1000).toISOString()
             };
           }
@@ -858,7 +861,7 @@ const IllegalDumpingMap = () => {
                     <div 
                       key={collector.id}
                       className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all"
-                      onClick={() => assignCleanupTeam(collector.id, `${collector.first_name} ${collector.last_name}`)}
+                      onClick={() => assignCleanupTeamHandler(collector.id, `${collector.first_name} ${collector.last_name}`)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

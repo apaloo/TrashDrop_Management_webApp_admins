@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchIllegalDumpingReports, updateIllegalDumpingStatus, fetchIllegalDumpingHistory, assignCleanupTeam } from '../utils/databaseUtils';
 import { STATUS, SEVERITY } from '../config/constants';
 import { reverseGeocodeWithCache } from '../utils/geocoding';
+import { supabase } from '../utils/supabase';
 
 const IllegalDumpingManagement = () => {
   const [reports, setReports] = useState([]);
@@ -20,6 +21,42 @@ const IllegalDumpingManagement = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [geocodedAddress, setGeocodedAddress] = useState(null);
   const [loadingAddress, setLoadingAddress] = useState(false);
+  
+  // Collector selection state
+  const [showCollectorModal, setShowCollectorModal] = useState(false);
+  const [collectors, setCollectors] = useState([]);
+  const [loadingCollectors, setLoadingCollectors] = useState(false);
+  const [selectedReportForAssignment, setSelectedReportForAssignment] = useState(null);
+  
+  // Fetch collectors from Supabase
+  const fetchCollectors = async () => {
+    setLoadingCollectors(true);
+    try {
+      const { data, error } = await supabase
+        .from('collector_profiles')
+        .select('id, first_name, last_name, email, phone, status, vehicle_type, vehicle_plate')
+        .eq('status', 'active')
+        .order('first_name', { ascending: true });
+      
+      if (error) throw error;
+      setCollectors(data || []);
+    } catch (error) {
+      console.error('Error fetching collectors:', error);
+      setToastMessage('Failed to load collectors');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      setCollectors([]);
+    } finally {
+      setLoadingCollectors(false);
+    }
+  };
+
+  // Open collector selection modal
+  const openCollectorModal = (report) => {
+    setSelectedReportForAssignment(report);
+    setShowCollectorModal(true);
+    fetchCollectors();
+  };
 
   // Unified refresh function
   const refreshReports = async (silent = false) => {
@@ -174,15 +211,15 @@ const IllegalDumpingManagement = () => {
     }
   };
 
-  const assignCleanup = async (reportId, teamName) => {
+  const assignCleanup = async (reportId, collectorId, collectorName) => {
     try {
-      console.log('Assigning cleanup:', reportId, teamName);
+      console.log('Assigning cleanup:', reportId, collectorId, collectorName);
       
       // Calculate date 2 days in the future for estimated cleanup
       const estimatedCleanupDate = new Date(Date.now() + 2*24*60*60*1000).toISOString();
       
-      // Update in Supabase
-      const result = await assignCleanupTeam(reportId, teamName, estimatedCleanupDate);
+      // Update in Supabase - pass collector UUID to be saved in assigned_to column
+      const result = await assignCleanupTeam(reportId, collectorId, estimatedCleanupDate);
       console.log('Assign cleanup result:', result);
       
       // Check for error in response
@@ -193,11 +230,11 @@ const IllegalDumpingManagement = () => {
       // Extract the data from result
       const updatedReport = result?.data || result;
       
-      // Update local state
+      // Update local state (collector info stored in app state only, not DB)
       setReports(prevReports => 
         prevReports.map(report => {
           if (report.id === reportId) {
-            return { ...report, ...updatedReport, cleanup_team: teamName, estimated_cleanup_date: estimatedCleanupDate };
+            return { ...report, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate };
           }
           return report;
         })
@@ -205,7 +242,7 @@ const IllegalDumpingManagement = () => {
     
       // Update selected report if it's the one being modified
       if (selectedReport && selectedReport.id === reportId) {
-        setSelectedReport(prev => ({ ...prev, ...updatedReport, cleanup_team: teamName, estimated_cleanup_date: estimatedCleanupDate }));
+        setSelectedReport(prev => ({ ...prev, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate }));
         
         // Refresh history
         const history = await fetchIllegalDumpingHistory(reportId);
@@ -213,7 +250,7 @@ const IllegalDumpingManagement = () => {
       }
       
       // Show success message
-      setToastMessage(`Cleanup assigned to ${teamName}`);
+      setToastMessage(`Cleanup assigned to ${collectorName}`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       
@@ -605,13 +642,18 @@ const IllegalDumpingManagement = () => {
             {/* Action Buttons */}
             {selectedReport.status !== STATUS.ILLEGAL_DUMPING.CLEANED_UP && selectedReport.status !== STATUS.ILLEGAL_DUMPING.CANCELLED && (
               <div className="border-t pt-4 flex flex-wrap justify-end gap-2">
-                {!(selectedReport.cleanup_assigned || selectedReport.cleanupAssigned) && (
+                {!(selectedReport.cleanup_assigned || selectedReport.cleanupAssigned || selectedReport.assigned_to) && (
                   <button
-                    onClick={() => assignCleanup(selectedReport.id, 'Team Alpha')}
+                    onClick={() => openCollectorModal(selectedReport)}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
                     Assign Cleanup
                   </button>
+                )}
+                {selectedReport.assigned_to && (selectedReport.cleanup_team || selectedReport.team_name) && (
+                  <div className="px-4 py-2 bg-green-100 text-green-800 rounded text-sm">
+                    Assigned to: <strong>{selectedReport.cleanup_team || selectedReport.team_name}</strong>
+                  </div>
                 )}
                 
                 <button
@@ -636,6 +678,91 @@ const IllegalDumpingManagement = () => {
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Collector Selection Modal */}
+      {showCollectorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Select Collector for Cleanup</h3>
+              <button 
+                onClick={() => {
+                  setShowCollectorModal(false);
+                  setSelectedReportForAssignment(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {selectedReportForAssignment && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm">
+                <p className="font-medium">Report ID: {selectedReportForAssignment.id?.slice(0, 8)}...</p>
+                <p className="text-gray-600">{selectedReportForAssignment.location_address || selectedReportForAssignment.address || 'Unknown location'}</p>
+              </div>
+            )}
+            
+            {loadingCollectors ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : collectors.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No active collectors available</p>
+                <p className="text-sm mt-2">Please add collectors in Collectors Management</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {collectors.map(collector => (
+                  <div 
+                    key={collector.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all"
+                    onClick={async () => {
+                      const collectorName = `${collector.first_name} ${collector.last_name}`;
+                      await assignCleanup(selectedReportForAssignment.id, collector.id, collectorName);
+                      setShowCollectorModal(false);
+                      setSelectedReportForAssignment(null);
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">
+                          {collector.first_name} {collector.last_name}
+                        </h4>
+                        <p className="text-sm text-gray-500">{collector.email}</p>
+                        {collector.phone && (
+                          <p className="text-sm text-gray-500">Phone: {collector.phone}</p>
+                        )}
+                        {collector.vehicle_type && (
+                          <p className="text-sm text-gray-500">
+                            Vehicle: {collector.vehicle_type} {collector.vehicle_plate && `(${collector.vehicle_plate})`}
+                          </p>
+                        )}
+                      </div>
+                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                        {collector.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowCollectorModal(false);
+                  setSelectedReportForAssignment(null);
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+              >
+                Cancel
               </button>
             </div>
           </div>
