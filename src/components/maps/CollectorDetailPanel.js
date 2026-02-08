@@ -1,10 +1,21 @@
 import React from 'react';
 
 const CollectorDetailPanel = ({ collector, onClose }) => {
-  const lastUpdateTime = new Date(collector.lastUpdated).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const formatDateTime = (value) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const ii = pad(d.getMinutes());
+    const ss = pad(d.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${hh}:${ii}:${ss}`;
+  };
+
+  const lastUpdateTime = formatDateTime(collector.lastUpdated);
 
   return (
     <div className="bg-white rounded-lg shadow-lg border-0">
@@ -22,7 +33,12 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
           </div>
           <div>
             <h3 className="font-semibold">{collector.name}</h3>
-            <p className="text-xs text-gray-500">Vehicle {collector.vehicle}</p>
+            <p className="text-xs text-gray-500">
+              Vehicle{' '}
+              {typeof collector.vehicle === 'string'
+                ? collector.vehicle
+                : `${collector.vehicle?.type || 'Vehicle'}${collector.vehicle?.plate ? ` • ${collector.vehicle.plate}` : ''}${collector.vehicle?.capacity ? ` • ${collector.vehicle.capacity}` : ''}`}
+            </p>
           </div>
         </div>
         <button 
@@ -33,7 +49,7 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
         </button>
       </div>
 
-      <div className="p-4">
+      <div className="p-4" style={{ paddingBottom: '100px' }}>
         {/* Status Banner */}
         <div className={`flex items-center p-2 rounded mb-4 ${
           collector.status === 'active' ? 'bg-green-100' : 'bg-gray-100'

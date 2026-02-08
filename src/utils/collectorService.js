@@ -24,16 +24,18 @@ const transformCollectorData = (profile) => {
     name: fullName || profile.email || 'Unknown Collector',
     email: profile.email ?? 'No email provided',
     phone: profile.phone ?? 'No phone provided',
+    contactNumber: profile.phone ?? null,
     status,
     region: profile.region ?? profile.assigned_region ?? 'Unassigned',
     rating: safeNumber(profile.rating, 0),
     total_collections: safeNumber(profile.total_collections, 0),
     last_active: profile.updated_at,
+    lastUpdated: profile.updated_at ?? profile.last_active_at ?? profile.last_active ?? null,
     joined_date: profile.created_at,
     profilePic: profile.profile_image_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'Collector')}&background=random`,
     vehicle: {
       type: profile.vehicle_type ?? 'Truck',
-      plate: profile.license_plate ?? 'N/A',
+      plate: profile.vehicle_plate ?? profile.license_plate ?? 'N/A',
       capacity: profile.vehicle_capacity ?? 'N/A'
     },
     activeRequests: safeNumber(profile.active_requests, 0),
@@ -50,7 +52,7 @@ const transformCollectorData = (profile) => {
     },
     capacityRemaining: safeNumber(profile.capacity_remaining, 0),
     notes: profile.notes ?? '',
-    assignedRegion: profile.assigned_region ?? null
+    assignedRegion: profile.assigned_region ?? profile.region ?? 'Unassigned'
   };
 };
 

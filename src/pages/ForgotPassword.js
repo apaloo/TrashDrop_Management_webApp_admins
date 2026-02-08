@@ -56,18 +56,28 @@ const ForgotPassword = () => {
         )}
         
         {success ? (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <i className="fas fa-check-circle text-green-500"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">
-                  Password reset email sent! Check your inbox for instructions.
-                </p>
+          <>
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <i className="fas fa-check-circle text-green-500"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">
+                    Password reset email sent! Check your inbox for instructions.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
+                  Back to login
+                </Link>
+              </p>
+            </div>
+          </>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div>

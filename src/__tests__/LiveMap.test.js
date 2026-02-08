@@ -6,7 +6,6 @@ import '@testing-library/jest-dom';
 // Mock the required modules
 jest.mock('../utils/collectorService');
 jest.mock('../utils/pickupService');
-jest.mock('../utils/serviceAreaService');
 
 describe('LiveMap Component', () => {
   beforeEach(() => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -18,8 +19,11 @@ import {
   fetchDashboardMetrics,
   fetchPickupStatusChartData,
   fetchCollectorActivityChartData,
+  fetchPickupVsBinsPieData,
+  fetchDigitalBinsBreakdownBarData,
   fetchWasteDistributionChartData,
   fetchBagUtilizationTrendData,
+  fetchDumpingReportsChartData,
   fetchDashboardAlerts,
   subscribeToDashboardUpdates
 } from '../utils/dashboardService';
@@ -138,8 +142,10 @@ const createGaugeChart = (ctx, percentage) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dataWarnings, setDataWarnings] = useState([]);
   const [stats, setStats] = useState({
     totalRequests: 0,
     pendingRequests: 0,
@@ -167,6 +173,31 @@ const Dashboard = () => {
       },
     ],
   });
+
+  const [pickupVsBinsPieData, setPickupVsBinsPieData] = useState({
+    labels: ['Pickup Requests', 'Digital Bins'],
+    datasets: [
+      {
+        data: [0, 0],
+        backgroundColor: ['#2196F3', '#10b981'],
+        borderWidth: 1,
+      },
+    ],
+  });
+
+  const [binsBreakdownData, setBinsBreakdownData] = useState({
+    labels: ['Active', 'Inactive', 'Expired'],
+    datasets: [
+      {
+        label: 'Digital Bins',
+        data: [0, 0, 0],
+        backgroundColor: ['#10b981', '#9E9E9E', '#FF5722'],
+        borderWidth: 1,
+      },
+    ],
+  });
+
+  const [barOfPieSelection, setBarOfPieSelection] = useState('pickup');
   
   const [collectorActivityData, setCollectorActivityData] = useState({
     labels: ['Active', 'Idle', 'On Break', 'Off Duty'],
@@ -278,45 +309,69 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+      setDataWarnings([]);
       try {
         // Fetch all dashboard data in parallel
         const [
           metricsData,
           pickupData,
+          pieTotals,
+          binsBreakdown,
           collectorData,
           wasteData,
           bagData,
+          dumpingData,
           alerts
         ] = await Promise.all([
           fetchDashboardMetrics(),
           fetchPickupStatusChartData(),
+          fetchPickupVsBinsPieData(),
+          fetchDigitalBinsBreakdownBarData(),
           fetchCollectorActivityChartData(),
           fetchWasteDistributionChartData(),
           fetchBagUtilizationTrendData(),
+          fetchDumpingReportsChartData(),
           fetchDashboardAlerts()
         ]);
+
+        const warningMessages = [];
+
+        const sumDataset = (chartData) => {
+          const values = chartData?.datasets?.[0]?.data;
+          if (!Array.isArray(values)) return 0;
+          return values.reduce((acc, v) => acc + (Number(v) || 0), 0);
+        };
+
+        const kpiAllZero =
+          (metricsData?.totalRequests || 0) === 0 &&
+          (metricsData?.pendingRequests || 0) === 0 &&
+          (metricsData?.activeCollectors || 0) === 0;
+
+        const chartsAllZero =
+          sumDataset(pickupData) === 0 &&
+          sumDataset(collectorData) === 0 &&
+          sumDataset(wasteData) === 0;
+
+        if (kpiAllZero && chartsAllZero) {
+          warningMessages.push(
+            'Dashboard data is empty. This usually means your user has no SELECT access due to Row Level Security (RLS) policies, or you are connected to a different Supabase project/environment.'
+          );
+        }
+
+        if (warningMessages.length > 0) {
+          setDataWarnings(warningMessages);
+        }
         
         // Update all state with real data
         setStats(metricsData);
         setPickupStatusData(pickupData);
+        setPickupVsBinsPieData(pieTotals);
+        setBinsBreakdownData(binsBreakdown);
         setCollectorActivityData(collectorData);
         setWasteDistributionData(wasteData);
         setBagUtilizationData(bagData);
+        setDumpingReportsData(dumpingData);
         setAlertsData(alerts);
-        
-        // Set dumping reports data (we could add a fetchDumpingReportsData function in dashboardService.js)
-        setDumpingReportsData({
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [
-            {
-              label: 'Reports',
-              data: [0, 0, 0, 0, 0, 0, 0], // Replace with real data when available
-              backgroundColor: '#FF5722',
-              borderColor: '#E64A19',
-              borderWidth: 1,
-            },
-          ],
-        });
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -448,12 +503,29 @@ const Dashboard = () => {
     },
   };
 
+  const chartHasData = (chartData) => {
+    const datasets = chartData?.datasets;
+    if (!Array.isArray(datasets) || datasets.length === 0) return false;
+    return datasets.some(ds => Array.isArray(ds?.data) && ds.data.some(v => (Number(v) || 0) > 0));
+  };
+
   return (
     <div className="p-4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-gray-600">Welcome to TrashDrop Management Portal</p>
       </div>
+
+      {!loading && dataWarnings.length > 0 && (
+        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+          <p className="text-sm font-medium text-yellow-800">Dashboard Notice</p>
+          <ul className="mt-2 space-y-1">
+            {dataWarnings.map((w, idx) => (
+              <li key={idx} className="text-sm text-yellow-800">{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       {/* KPI Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -469,7 +541,17 @@ const Dashboard = () => {
             ) : (
               <div className="flex items-baseline">
                 <h3 className="text-2xl font-bold text-gray-800">{stats.totalRequests}</h3>
-                <span className="ml-2 text-sm" style={{ color: '#4CAF50' }}>{stats.totalTrend}</span>
+                <span className="ml-2 text-sm" style={{ color: '#4CAF50' }}>
+                  {stats.totalTrend}
+                  {stats.totalTrend === 'N/A' && (
+                    <span className="relative ml-1 inline-flex items-center text-gray-400 cursor-pointer group">
+                      <i className="fas fa-info-circle" aria-hidden="true"></i>
+                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-64 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block">
+                        N/A means the previous 7-day comparison period had 0 items, so a percentage change cannot be computed.
+                      </span>
+                    </span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -487,7 +569,17 @@ const Dashboard = () => {
             ) : (
               <div className="flex items-baseline">
                 <h3 className="text-2xl font-bold text-gray-800">{stats.pendingRequests}</h3>
-                <span className="ml-2 text-sm" style={{ color: '#dc3545' }}>{stats.pendingTrend}</span>
+                <span className="ml-2 text-sm" style={{ color: '#dc3545' }}>
+                  {stats.pendingTrend}
+                  {stats.pendingTrend === 'N/A' && (
+                    <span className="relative ml-1 inline-flex items-center text-gray-400 cursor-pointer group">
+                      <i className="fas fa-info-circle" aria-hidden="true"></i>
+                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-64 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block">
+                        N/A means the previous 7-day comparison period had 0 items, so a percentage change cannot be computed.
+                      </span>
+                    </span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -523,7 +615,17 @@ const Dashboard = () => {
             ) : (
               <div className="flex items-baseline">
                 <h3 className="text-2xl font-bold text-gray-800">{stats.slaCompliance}%</h3>
-                <span className="ml-2 text-sm" style={{ color: '#4CAF50' }}>{stats.slaComplianceTrend}</span>
+                <span className="ml-2 text-sm" style={{ color: '#4CAF50' }}>
+                  {stats.slaComplianceTrend}
+                  {stats.slaComplianceTrend === 'N/A' && (
+                    <span className="relative ml-1 inline-flex items-center text-gray-400 cursor-pointer group">
+                      <i className="fas fa-info-circle" aria-hidden="true"></i>
+                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-64 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block">
+                        N/A means the previous 7-day comparison period had 0 items, so a percentage change cannot be computed.
+                      </span>
+                    </span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -532,14 +634,86 @@ const Dashboard = () => {
       
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Pickup Requests Status (Doughnut Chart) */}
+        {/* Pickup Requests / Digital Bins (Bar-of-Pie) */}
         <div className="bg-white rounded-lg shadow-sm border-0 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Pickup Requests Status</h3>
-          <div className="h-80 flex items-center justify-center">
+          <div className="h-80">
             {loading ? (
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
+              </div>
             ) : (
-              <Doughnut options={chartOptions} data={pickupStatusData} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                <div className="h-full flex flex-col">
+                  <div className="text-xs text-gray-500 mb-2">Click a slice to change the breakdown</div>
+                  <div className="flex-1 min-h-0">
+                    <Pie
+                      data={pickupVsBinsPieData}
+                      options={{
+                        ...chartOptions,
+                        plugins: {
+                          ...chartOptions.plugins,
+                          legend: { position: 'bottom' },
+                        },
+                        onClick: (_event, elements) => {
+                          const idx = elements?.[0]?.index;
+                          if (idx === 0) setBarOfPieSelection('pickup');
+                          if (idx === 1) setBarOfPieSelection('bins');
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="h-full flex flex-col">
+                  <div className="text-xs text-gray-500 mb-2">
+                    Breakdown: {barOfPieSelection === 'pickup' ? 'Pickup Requests' : 'Digital Bins'}
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    {barOfPieSelection === 'pickup' ? (
+                      chartHasData(pickupStatusData) ? (
+                        <Bar
+                          data={pickupStatusData}
+                          options={{
+                            ...chartOptions,
+                            indexAxis: 'y',
+                            plugins: {
+                              ...chartOptions.plugins,
+                              legend: { display: false },
+                            },
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500">No pickup status data available.</p>
+                            <p className="mt-1 text-xs text-gray-400">This is usually RLS blocking `pickup_requests`.</p>
+                          </div>
+                        </div>
+                      )
+                    ) : chartHasData(binsBreakdownData) ? (
+                      <Bar
+                        data={binsBreakdownData}
+                        options={{
+                          ...chartOptions,
+                          indexAxis: 'y',
+                          plugins: {
+                            ...chartOptions.plugins,
+                            legend: { display: false },
+                          },
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <p className="text-sm text-gray-500">No digital bins data available.</p>
+                          <p className="mt-1 text-xs text-gray-400">This is usually RLS blocking `digital_bins`.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -550,8 +724,13 @@ const Dashboard = () => {
           <div className="h-80 flex items-center justify-center">
             {loading ? (
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
-            ) : (
+            ) : chartHasData(collectorActivityData) ? (
               <Pie options={chartOptions} data={collectorActivityData} />
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-gray-500">No chart data available.</p>
+                <p className="mt-1 text-xs text-gray-400">If you expect data, check dashboard views and RLS policies.</p>
+              </div>
             )}
           </div>
         </div>
@@ -574,8 +753,13 @@ const Dashboard = () => {
           <div className="h-80 flex items-center justify-center">
             {loading ? (
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
-            ) : (
+            ) : chartHasData(wasteDistributionData) ? (
               <Doughnut options={wasteChartOptions} data={wasteDistributionData} />
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-gray-500">No chart data available.</p>
+                <p className="mt-1 text-xs text-gray-400">If you expect data, check dashboard views and RLS policies.</p>
+              </div>
             )}
           </div>
         </div>
@@ -589,7 +773,30 @@ const Dashboard = () => {
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
               </div>
             ) : (
-              <Bar options={chartOptions} data={dumpingReportsData} />
+              <div className="h-full flex flex-col">
+                <div className="flex-1 min-h-0">
+                  <Bar
+                    options={{
+                      ...chartOptions,
+                      scales: {
+                        x: {
+                          ticks: {
+                            display: true,
+                            autoSkip: true,
+                            maxTicksLimit: 12,
+                            minRotation: 45,
+                            maxRotation: 45,
+                          },
+                        },
+                      },
+                    }}
+                    data={dumpingReportsData}
+                  />
+                </div>
+                {!chartHasData(dumpingReportsData) && (
+                  <div className="mt-2 text-xs text-gray-400">No dumping reports in the current 7-day window.</div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -602,8 +809,15 @@ const Dashboard = () => {
               <div className="w-full h-full flex items-center justify-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
               </div>
-            ) : (
+            ) : chartHasData(bagUtilizationData) ? (
               <Line options={chartOptions} data={bagUtilizationData} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">No chart data available.</p>
+                  <p className="mt-1 text-xs text-gray-400">If you expect data, check dashboard views and RLS policies.</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -613,7 +827,12 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-sm border-0 p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-800">Alerts & Activity</h3>
-          <button className="text-sm text-primary hover:underline">View All</button>
+          <button
+            className="text-sm text-primary hover:underline"
+            onClick={() => navigate('/request-pickup/alerts')}
+          >
+            View All
+          </button>
         </div>
         {loading ? (
           <div className="space-y-3">

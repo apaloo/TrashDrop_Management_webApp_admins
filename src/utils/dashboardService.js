@@ -3,6 +3,195 @@ import { fetchDashboardStats, fetchChartData, fetchBagRequestStatsReal, fetchCol
 import { fetchDashboardChartData } from './realDataUtils';
 import { safeDatabaseService } from './safeDatabaseService';
 
+const normalizeKey = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).trim().toLowerCase();
+};
+
+const formatPctChange = (current, previous) => {
+  const cur = Number(current) || 0;
+  const prev = Number(previous) || 0;
+  if (prev === 0) {
+    if (cur === 0) return '0%';
+    return 'N/A';
+  }
+  const pct = ((cur - prev) / prev) * 100;
+  const rounded = Math.round(pct);
+  const sign = rounded > 0 ? '+' : '';
+  return `${sign}${rounded}%`;
+};
+
+const safeLatestTimestamp = async (tableName) => {
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.warn(`Trend calc: failed to read latest created_at from ${tableName} (possible RLS):`, error);
+      return null;
+    }
+    return data?.created_at ? new Date(data.created_at) : null;
+  } catch (e) {
+    console.warn(`Trend calc: error reading latest created_at from ${tableName}:`, e);
+    return null;
+  }
+};
+
+const safeSlaRateInWindow = async ({ startIso, endIso } = {}) => {
+  try {
+    let completedQuery = supabase
+      .from('pickup_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'Completed');
+
+    let onTimeQuery = supabase
+      .from('pickup_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'Completed')
+      .lt('completed_at', 'scheduled_pickup_time');
+
+    if (startIso) {
+      completedQuery = completedQuery.gte('created_at', startIso);
+      onTimeQuery = onTimeQuery.gte('created_at', startIso);
+    }
+    if (endIso) {
+      completedQuery = completedQuery.lt('created_at', endIso);
+      onTimeQuery = onTimeQuery.lt('created_at', endIso);
+    }
+
+    const [completedRes, onTimeRes] = await Promise.all([completedQuery, onTimeQuery]);
+    if (completedRes.error) {
+      console.warn('SLA trend: failed to count completed pickup_requests (possible RLS):', completedRes.error);
+      return 0;
+    }
+    if (onTimeRes.error) {
+      console.warn('SLA trend: failed to count on-time pickup_requests (possible RLS):', onTimeRes.error);
+      return 0;
+    }
+
+    const totalCompleted = completedRes.count || 0;
+    const onTimeCompleted = onTimeRes.count || 0;
+    if (totalCompleted === 0) return 0;
+    return Math.round((onTimeCompleted / totalCompleted) * 100);
+  } catch (e) {
+    console.warn('SLA trend: error computing SLA rate:', e);
+    return 0;
+  }
+};
+
+const safeCountPendingPickups = async ({ startIso = null, endIso = null } = {}) => {
+  try {
+    const pendingStatuses = ['pending', 'new', 'requested', 'unassigned'];
+
+    let query = supabase
+      .from('pickup_requests')
+      .select('id', { count: 'exact', head: true })
+      .in('status', pendingStatuses);
+
+    if (startIso) query = query.gte('created_at', startIso);
+    if (endIso) query = query.lt('created_at', endIso);
+
+    const { count, error } = await query;
+    if (error) {
+      console.warn('Pending Requests KPI: failed to count pending pickup_requests (possible RLS):', error);
+      return 0;
+    }
+    return count || 0;
+  } catch (e) {
+    console.warn('Pending Requests KPI: error counting pending pickup_requests:', e);
+    return 0;
+  }
+};
+
+const safeCountActiveBins = async ({ startIso = null, endIso = null, nowIso } = {}) => {
+  try {
+    let query = supabase
+      .from('digital_bins')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    if (nowIso) query = query.gt('expires_at', nowIso);
+    if (startIso) query = query.gte('created_at', startIso);
+    if (endIso) query = query.lt('created_at', endIso);
+
+    const { count, error } = await query;
+    if (error) {
+      console.warn('Pending Requests KPI: failed to count active digital_bins (possible RLS):', error);
+      return 0;
+    }
+    return count || 0;
+  } catch (e) {
+    console.warn('Pending Requests KPI: error counting active digital_bins:', e);
+    return 0;
+  }
+};
+
+const safeCountInWindow = async (tableName, startIso, endIso) => {
+  try {
+    const { count, error } = await supabase
+      .from(tableName)
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', startIso)
+      .lt('created_at', endIso);
+
+    if (error) {
+      console.warn(`Trend calc: failed to count ${tableName} in window (possible RLS):`, error);
+      return 0;
+    }
+    return count || 0;
+  } catch (e) {
+    console.warn(`Trend calc: error counting ${tableName} in window:`, e);
+    return 0;
+  }
+};
+
+const mapPickupStatusToBucket = (rawStatus) => {
+  const s = normalizeKey(rawStatus);
+  if (!s) return null;
+
+  // Completed
+  if (s === 'completed' || s === 'complete' || s === 'done') return 'Completed';
+
+  // Cancelled
+  if (s === 'cancelled' || s === 'canceled' || s === 'cancel' || s === 'rejected') return 'Cancelled';
+
+  // In progress
+  if (
+    s === 'in progress' ||
+    s === 'in_progress' ||
+    s === 'inprogress' ||
+    s === 'en route' ||
+    s === 'en_route' ||
+    s === 'assigned' ||
+    s === 'accepted'
+  ) {
+    return 'In Progress';
+  }
+
+  // Pending
+  if (s === 'pending' || s === 'new' || s === 'requested' || s === 'unassigned') return 'Pending';
+
+  // Default bucket: treat unknown statuses as Pending so they still show up in the chart.
+  // (This avoids the chart appearing empty due to unexpected status strings.)
+  return 'Pending';
+};
+
+const mapCollectorStatusToBucket = (rawStatus) => {
+  const s = normalizeKey(rawStatus);
+  if (!s) return null;
+
+  if (s === 'active' || s === 'online' || s === 'working') return 'Active';
+  if (s === 'idle' || s === 'available') return 'Idle';
+  if (s === 'on break' || s === 'on_break' || s === 'break') return 'On Break';
+  if (s === 'off duty' || s === 'off_duty' || s === 'offline' || s === 'inactive') return 'Off Duty';
+
+  return null;
+};
+
 /**
  * Fetch all dashboard metrics and stats from Supabase
  * @returns {Promise<Object>} Object containing all dashboard metrics
@@ -11,13 +200,90 @@ export const fetchDashboardMetrics = async () => {
   try {
     // First try to get real data from the new real data functions
     try {
-      const bagStats = await fetchBagRequestStatsReal();
+      let pickupCount = 0;
+      let binCount = 0;
+      let totalTrend = '0%';
+      let pendingTrend = '0%';
+      let slaComplianceTrend = '0%';
+
+      try {
+        const [pickupRes, binsRes] = await Promise.all([
+          supabase.from('pickup_requests').select('id', { count: 'exact', head: true }),
+          supabase.from('digital_bins').select('id', { count: 'exact', head: true })
+        ]);
+
+        if (pickupRes.error) {
+          console.warn('Total Requests KPI: failed to count pickup_requests (possible RLS):', pickupRes.error);
+        } else {
+          pickupCount = pickupRes.count || 0;
+        }
+
+        if (binsRes.error) {
+          console.warn('Total Requests KPI: failed to count digital_bins (possible RLS):', binsRes.error);
+        } else {
+          binCount = binsRes.count || 0;
+        }
+      } catch (countError) {
+        console.warn('Total Requests KPI: error counting pickup_requests/digital_bins:', countError);
+      }
+
+      // Compute week-over-week trend based on latest available data timestamp
+      try {
+        const [latestPickup, latestBins] = await Promise.all([
+          safeLatestTimestamp('pickup_requests'),
+          safeLatestTimestamp('digital_bins')
+        ]);
+
+        const latest = [latestPickup, latestBins].filter(Boolean).sort((a, b) => b - a)[0] || new Date();
+        const end = new Date(latest);
+        const start = new Date(end);
+        start.setDate(end.getDate() - 7);
+        const prevStart = new Date(end);
+        prevStart.setDate(end.getDate() - 14);
+
+        const [curPickups, curBins, prevPickups, prevBins] = await Promise.all([
+          safeCountInWindow('pickup_requests', start.toISOString(), end.toISOString()),
+          safeCountInWindow('digital_bins', start.toISOString(), end.toISOString()),
+          safeCountInWindow('pickup_requests', prevStart.toISOString(), start.toISOString()),
+          safeCountInWindow('digital_bins', prevStart.toISOString(), start.toISOString()),
+        ]);
+
+        const curTotal = curPickups + curBins;
+        const prevTotal = prevPickups + prevBins;
+        totalTrend = formatPctChange(curTotal, prevTotal);
+
+        const nowIso = new Date(end).toISOString();
+        const [curPendingPickups, curActiveBins, prevPendingPickups, prevActiveBins] = await Promise.all([
+          safeCountPendingPickups({ startIso: start.toISOString(), endIso: end.toISOString() }),
+          safeCountActiveBins({ startIso: start.toISOString(), endIso: end.toISOString(), nowIso }),
+          safeCountPendingPickups({ startIso: prevStart.toISOString(), endIso: start.toISOString() }),
+          safeCountActiveBins({ startIso: prevStart.toISOString(), endIso: start.toISOString(), nowIso }),
+        ]);
+
+        const curPendingTotal = curPendingPickups + curActiveBins;
+        const prevPendingTotal = prevPendingPickups + prevActiveBins;
+        pendingTrend = formatPctChange(curPendingTotal, prevPendingTotal);
+
+        const [curSlaRate, prevSlaRate] = await Promise.all([
+          safeSlaRateInWindow({ startIso: start.toISOString(), endIso: end.toISOString() }),
+          safeSlaRateInWindow({ startIso: prevStart.toISOString(), endIso: start.toISOString() })
+        ]);
+        slaComplianceTrend = formatPctChange(curSlaRate, prevSlaRate);
+      } catch (trendError) {
+        console.warn('Total Requests KPI: trend calculation failed:', trendError);
+      }
+
       const collectorStats = await fetchCollectorStatsReal();
       const performanceStats = await fetchPerformanceStatsReal();
       
       // Calculate metrics from real data
-      const totalRequests = bagStats.total_bags || 0;
-      const pendingRequests = bagStats.total_bags - bagStats.distributed || 0;
+      const totalRequests = pickupCount + binCount;
+      const nowIso = new Date().toISOString();
+      const [pendingPickups, activeBins] = await Promise.all([
+        safeCountPendingPickups(),
+        safeCountActiveBins({ nowIso })
+      ]);
+      const pendingRequests = pendingPickups + activeBins;
       const activeCollectors = collectorStats.active || 0;
       const slaCompliance = performanceStats.on_time_rate || 85;
       
@@ -30,9 +296,9 @@ export const fetchDashboardMetrics = async () => {
         pendingRequests,
         activeCollectors,
         slaCompliance,
-        totalTrend: '+5%', // This would need historical data comparison
-        pendingTrend: '-2%',
-        slaComplianceTrend: '+3%',
+        totalTrend,
+        pendingTrend,
+        slaComplianceTrend,
         activeCollectorPercent
       };
     } catch (realDataError) {
@@ -44,6 +310,24 @@ export const fetchDashboardMetrics = async () => {
     
     if (fromFallback) {
       console.warn('Using fallback data for dashboard metrics');
+      let slaComplianceTrend = '0%';
+      try {
+        const latestPickup = await safeLatestTimestamp('pickup_requests');
+        const latest = latestPickup || new Date();
+        const end = new Date(latest);
+        const start = new Date(end);
+        start.setDate(end.getDate() - 7);
+        const prevStart = new Date(end);
+        prevStart.setDate(end.getDate() - 14);
+
+        const [curSlaRate, prevSlaRate] = await Promise.all([
+          safeSlaRateInWindow({ startIso: start.toISOString(), endIso: end.toISOString() }),
+          safeSlaRateInWindow({ startIso: prevStart.toISOString(), endIso: start.toISOString() })
+        ]);
+        slaComplianceTrend = formatPctChange(curSlaRate, prevSlaRate);
+      } catch (e) {
+        console.warn('SLA trend: fallback trend calculation failed:', e);
+      }
       return {
         totalRequests: (basicStats && basicStats.totalPickups) || 0,
         pendingRequests: (basicStats && basicStats.pendingRequests) || 0,
@@ -51,7 +335,7 @@ export const fetchDashboardMetrics = async () => {
         slaCompliance: 85,
         totalTrend: '+5%',
         pendingTrend: '-2%',
-        slaComplianceTrend: '+3%',
+        slaComplianceTrend,
         activeCollectorPercent: 75
       };
     }
@@ -85,7 +369,24 @@ export const fetchDashboardMetrics = async () => {
     // Calculate trends (comparing to previous period)
     const totalTrend = await calculateTrend('pickup_requests', 'created_at');
     const pendingTrend = await calculateTrend('pickup_requests', 'created_at', 'status', 'Pending');
-    const slaComplianceTrend = '+3%'; // This would require more complex calculations
+    let slaComplianceTrend = '0%';
+    try {
+      const latestPickup = await safeLatestTimestamp('pickup_requests');
+      const latest = latestPickup || new Date();
+      const end = new Date(latest);
+      const start = new Date(end);
+      start.setDate(end.getDate() - 7);
+      const prevStart = new Date(end);
+      prevStart.setDate(end.getDate() - 14);
+
+      const [curSlaRate, prevSlaRate] = await Promise.all([
+        safeSlaRateInWindow({ startIso: start.toISOString(), endIso: end.toISOString() }),
+        safeSlaRateInWindow({ startIso: prevStart.toISOString(), endIso: start.toISOString() })
+      ]);
+      slaComplianceTrend = formatPctChange(curSlaRate, prevSlaRate);
+    } catch (e) {
+      console.warn('SLA trend: calculation failed:', e);
+    }
     
     // Fetch active collector percentage
     const { count: totalCollectors, error: totalCollectorsError } = await supabase
@@ -115,44 +416,225 @@ export const fetchDashboardMetrics = async () => {
   }
 };
 
+export const fetchPickupVsBinsPieData = async () => {
+  try {
+    const [pickupRes, binsRes] = await Promise.all([
+      supabase.from('pickup_requests').select('id', { count: 'exact', head: true }),
+      supabase.from('digital_bins').select('id', { count: 'exact', head: true })
+    ]);
+
+    if (pickupRes.error) throw pickupRes.error;
+    if (binsRes.error) throw binsRes.error;
+
+    const pickupCount = pickupRes.count || 0;
+    const binsCount = binsRes.count || 0;
+
+    return {
+      labels: ['Pickup Requests', 'Digital Bins'],
+      datasets: [{
+        data: [pickupCount, binsCount],
+        backgroundColor: ['#2196F3', '#10b981'],
+        borderWidth: 1,
+      }]
+    };
+  } catch (error) {
+    console.warn('Error fetching pickup vs bins pie data:', error);
+    return {
+      labels: ['Pickup Requests', 'Digital Bins'],
+      datasets: [{
+        data: [0, 0],
+        backgroundColor: ['#2196F3', '#10b981'],
+        borderWidth: 1,
+      }]
+    };
+  }
+};
+
+export const fetchDigitalBinsBreakdownBarData = async () => {
+  try {
+    const nowIso = new Date().toISOString();
+
+    const [activeRes, inactiveRes, expiredRes] = await Promise.all([
+      supabase
+        .from('digital_bins')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .gt('expires_at', nowIso),
+      supabase
+        .from('digital_bins')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', false)
+        .gt('expires_at', nowIso),
+      supabase
+        .from('digital_bins')
+        .select('id', { count: 'exact', head: true })
+        .lte('expires_at', nowIso)
+    ]);
+
+    if (activeRes.error) throw activeRes.error;
+    if (inactiveRes.error) throw inactiveRes.error;
+    if (expiredRes.error) throw expiredRes.error;
+
+    return {
+      labels: ['Active', 'Inactive', 'Expired'],
+      datasets: [{
+        label: 'Digital Bins',
+        data: [activeRes.count || 0, inactiveRes.count || 0, expiredRes.count || 0],
+        backgroundColor: ['#10b981', '#9E9E9E', '#FF5722'],
+        borderWidth: 1,
+      }]
+    };
+  } catch (error) {
+    console.warn('Error fetching digital bins breakdown data:', error);
+    return {
+      labels: ['Active', 'Inactive', 'Expired'],
+      datasets: [{
+        label: 'Digital Bins',
+        data: [0, 0, 0],
+        backgroundColor: ['#10b981', '#9E9E9E', '#FF5722'],
+        borderWidth: 1,
+      }]
+    };
+  }
+};
+
+export const fetchDumpingReportsChartData = async () => {
+  try {
+    const tableExists = await safeDatabaseService.checkTableExists('illegal_dumping_mobile');
+    if (!tableExists) {
+      console.warn('Table illegal_dumping_mobile does not exist. Dumping Reports will be empty.');
+      return {
+        labels: Array.from({ length: 30 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (29 - i));
+          return d.toISOString().slice(0, 10);
+        }),
+        datasets: [{
+          label: 'Reports',
+          data: Array(30).fill(0),
+          backgroundColor: '#FF5722',
+          borderColor: '#E64A19',
+          borderWidth: 1,
+        }]
+      };
+    }
+
+    // Support different timestamp column names.
+    // Prefer reported_at if present, else fall back to created_at.
+    let timeColumn = 'reported_at';
+    let latest = null;
+
+    try {
+      const { data, error } = await supabase
+        .from('illegal_dumping_mobile')
+        .select(timeColumn)
+        .order(timeColumn, { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      latest = data?.[timeColumn] ? new Date(data[timeColumn]) : null;
+    } catch (e) {
+      timeColumn = 'created_at';
+      try {
+        const { data, error } = await supabase
+          .from('illegal_dumping_mobile')
+          .select(timeColumn)
+          .order(timeColumn, { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+        latest = data?.[timeColumn] ? new Date(data[timeColumn]) : null;
+      } catch (fallbackError) {
+        console.warn('Dumping Reports: unable to determine timestamp column (possible RLS):', fallbackError);
+        latest = null;
+      }
+    }
+
+    const end = latest || new Date();
+    const start = new Date(end);
+    start.setDate(end.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+      .from('illegal_dumping_mobile')
+      .select(timeColumn)
+      .gte(timeColumn, start.toISOString())
+      .lte(timeColumn, end.toISOString());
+
+    if (error) {
+      console.warn('Error fetching dumping reports data:', error);
+      return {
+        labels: Array.from({ length: 30 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (29 - i));
+          return d.toISOString().slice(0, 10);
+        }),
+        datasets: [{
+          label: 'Reports',
+          data: Array(30).fill(0),
+          backgroundColor: '#FF5722',
+          borderColor: '#E64A19',
+          borderWidth: 1,
+        }]
+      };
+    }
+
+    // Build labels for the last 30 days (oldest -> newest)
+    const days = [];
+    const counts = Array(30).fill(0);
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      days.push({
+        key: d.toDateString(),
+        label: d.toISOString().slice(0, 10),
+      });
+    }
+
+    (data || []).forEach(row => {
+      const d = new Date(row[timeColumn]);
+      const key = d.toDateString();
+      const idx = days.findIndex(x => x.key === key);
+      if (idx >= 0) counts[idx] += 1;
+    });
+
+    return {
+      labels: days.map(d => d.label),
+      datasets: [{
+        label: 'Reports',
+        data: counts,
+        backgroundColor: '#FF5722',
+        borderColor: '#E64A19',
+        borderWidth: 1,
+      }]
+    };
+  } catch (error) {
+    console.error('Error fetching dumping reports chart data:', error);
+    return {
+      labels: Array.from({ length: 30 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (29 - i));
+        return d.toISOString().slice(0, 10);
+      }),
+      datasets: [{
+        label: 'Reports',
+        data: Array(30).fill(0),
+        backgroundColor: '#FF5722',
+        borderColor: '#E64A19',
+        borderWidth: 1,
+      }]
+    };
+  }
+};
+
 /**
  * Fetch data for pickup status chart (Completed, In Progress, Pending, Cancelled)
  * @returns {Promise<Object>} Chart data object
  */
 export const fetchPickupStatusChartData = async () => {
   try {
-    // First try to use real data functions
-    try {
-      const chartData = await fetchDashboardChartData('pickupStatus');
-      
-      // Transform data to chart format
-      return {
-        labels: ['Completed', 'In Progress', 'Pending', 'Cancelled'],
-        datasets: [{
-          data: [
-            chartData.completed || 0,
-            chartData.in_progress || 0, 
-            chartData.pending || 0,
-            chartData.cancelled || 0
-          ],
-          backgroundColor: [
-            '#4CAF50', '#2196F3', '#FFC107', '#dc3545'
-          ],
-          borderWidth: 1,
-        }]
-      };
-    } catch (realDataError) {
-      console.log('Real data fetch failed for pickup status chart:', realDataError);
-    }
-    
-    // Fallback to direct Supabase query
-    // Check if table exists
-    const tableExists = await safeDatabaseService.checkTableExists('pickup_requests');
-    if (!tableExists) {
-      console.warn('Table pickup_requests does not exist. Using mock data.');
-      return generateMockPickupStatusData();
-    }
-    
     const { data, error } = await supabase
       .from('pickup_requests')
       .select('status')
@@ -162,30 +644,47 @@ export const fetchPickupStatusChartData = async () => {
       console.warn('Error fetching pickup status data:', error);
       return generateMockPickupStatusData();
     }
+
+    if ((data || []).length === 0) {
+      console.warn(
+        'Pickup status chart: pickup_requests returned 0 rows. ' +
+          'If you expect data, this is usually Row Level Security (RLS) blocking SELECT for the current user/session, ' +
+          'or you are connected to a different Supabase project/environment.'
+      );
+    }
     
-    // Count requests by status
+    // Count requests by normalized status bucket
     const statusCounts = {
       Completed: 0,
       'In Progress': 0,
       Pending: 0,
       Cancelled: 0
     };
-    
-    data.forEach(request => {
-      if (statusCounts.hasOwnProperty(request.status)) {
-        statusCounts[request.status]++;
+
+    let unmatched = 0;
+    (data || []).forEach(request => {
+      const bucket = mapPickupStatusToBucket(request?.status);
+      if (bucket && statusCounts.hasOwnProperty(bucket)) {
+        statusCounts[bucket]++;
+      } else {
+        unmatched++;
       }
     });
-    
+
+    if ((data || []).length > 0 && Object.values(statusCounts).every(v => v === 0)) {
+      console.warn(
+        'Pickup status chart: received rows but none matched known status buckets. ' +
+          'This is usually a status mapping mismatch or unexpected status values.',
+        { sampleStatuses: (data || []).slice(0, 10).map(r => r?.status) }
+      );
+    }
+
     return {
       labels: Object.keys(statusCounts),
       datasets: [{
         data: Object.values(statusCounts),
         backgroundColor: [
-          '#4CAF50', // green for completed
-          '#2196F3', // blue for in progress
-          '#FFC107', // yellow for pending
-          '#dc3545', // red for cancelled
+          '#4CAF50', '#2196F3', '#FFC107', '#dc3545'
         ],
         borderWidth: 1,
       }]
@@ -202,44 +701,7 @@ export const fetchPickupStatusChartData = async () => {
  */
 export const fetchCollectorActivityChartData = async () => {
   try {
-    // First try to use real data functions
-    try {
-      const chartData = await fetchDashboardChartData('collectorActivity');
-      
-      // Transform data to chart format if it's an array (daily activity)
-      if (Array.isArray(chartData)) {
-        // Get the latest day's data
-        const latestDay = chartData[chartData.length - 1];
-        return {
-          labels: ['Active', 'Idle', 'On Break', 'Off Duty'],
-          datasets: [{
-            data: [
-              latestDay?.active_collectors || 0,
-              Math.floor((latestDay?.active_collectors || 0) * 0.3), // Estimate idle
-              Math.floor((latestDay?.active_collectors || 0) * 0.1), // Estimate on break
-              Math.floor((latestDay?.active_collectors || 0) * 0.2), // Estimate off duty
-            ],
-            backgroundColor: [
-              '#4CAF50', '#FFC107', '#2196F3', '#9E9E9E'
-            ],
-            borderWidth: 1,
-          }]
-        };
-      }
-      
-      return chartData;
-    } catch (realDataError) {
-      console.log('Real data fetch failed for collector activity chart:', realDataError);
-    }
-    
-    // Fallback to direct Supabase query
-    // Check if table exists
-    const tableExists = await safeDatabaseService.checkTableExists('collector_profiles');
-    if (!tableExists) {
-      console.warn('Table collector_profiles does not exist. Using mock data.');
-      return generateMockCollectorActivityData();
-    }
-    
+    // Fetch collectors
     const { data, error } = await supabase
       .from('collector_profiles')
       .select('status');
@@ -248,30 +710,46 @@ export const fetchCollectorActivityChartData = async () => {
       console.warn('Error fetching collector activity data:', error);
       return generateMockCollectorActivityData();
     }
+
+    if ((data || []).length === 0) {
+      console.warn(
+        'Collector activity chart: collector_profiles returned 0 rows. ' +
+          'If you expect data, this is usually Row Level Security (RLS) blocking SELECT for the current user/session.'
+      );
+    }
     
-    // Count collectors by status
+    // Count collectors by normalized status bucket
     const statusCounts = {
       Active: 0,
       Idle: 0,
       'On Break': 0,
       'Off Duty': 0
     };
-    
-    data.forEach(collector => {
-      if (statusCounts.hasOwnProperty(collector.status)) {
-        statusCounts[collector.status]++;
+
+    (data || []).forEach(collector => {
+      const bucket = mapCollectorStatusToBucket(collector?.status);
+      if (bucket && statusCounts.hasOwnProperty(bucket)) {
+        statusCounts[bucket]++;
       }
     });
-    
+
+    if ((data || []).length > 0 && Object.values(statusCounts).every(v => v === 0)) {
+      console.warn(
+        'Collector activity chart: received rows but none matched known status buckets. ' +
+          'This is usually a status mapping mismatch or unexpected status values.',
+        { sampleStatuses: (data || []).slice(0, 10).map(r => r?.status) }
+      );
+    }
+
     return {
       labels: Object.keys(statusCounts),
       datasets: [{
         data: Object.values(statusCounts),
         backgroundColor: [
-          '#4CAF50', // green for active
-          '#FFC107', // yellow for idle
-          '#2196F3', // blue for on break
-          '#9E9E9E', // grey for off duty
+          '#4CAF50',
+          '#FFC107',
+          '#2196F3',
+          '#9E9E9E'
         ],
         borderWidth: 1,
       }]
@@ -291,29 +769,12 @@ export const fetchCollectorActivityChartData = async () => {
  */
 export const fetchWasteDistributionChartData = async () => {
   try {
-    // First try to use real data functions
+    // Try to get real data from real data utils
     try {
       const chartData = await fetchDashboardChartData('wasteDistribution');
-      
-      // Transform data to chart format
-      return {
-        labels: chartData.categories?.map(cat => cat.name) || ['Plastic', 'Paper', 'Glass', 'Metal', 'Other'],
-        datasets: [{
-          label: 'Waste Distribution',
-          data: chartData.categories?.map(cat => cat.percentage) || [42, 28, 15, 10, 5],
-          backgroundColor: [
-            'rgba(76, 175, 80, 0.7)', // green for recyclable/plastic
-            'rgba(255, 193, 7, 0.7)', // yellow for organic/paper
-            'rgba(220, 53, 69, 0.7)', // red for hazardous/glass
-            'rgba(33, 150, 243, 0.7)', // blue for electronic/metal
-            'rgba(158, 158, 158, 0.7)', // grey for other
-          ],
-          borderColor: [
-            '#4CAF50', '#FFC107', '#dc3545', '#2196F3', '#9E9E9E'
-          ],
-          borderWidth: 1,
-        }]
-      };
+      if (chartData && chartData.labels && chartData.datasets) {
+        return chartData;
+      }
     } catch (realDataError) {
       console.log('Real data fetch failed for waste distribution chart:', realDataError);
     }
@@ -400,32 +861,12 @@ export const fetchWasteDistributionChartData = async () => {
  */
 export const fetchBagUtilizationTrendData = async () => {
   try {
-    // First try to use real data functions
+    // Try to get real data from real data utils
     try {
       const chartData = await fetchDashboardChartData('bagUtilization');
-      
-      // Transform data to chart format
-      return {
-        labels: chartData.map(week => week.week) || ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
-        datasets: [
-          {
-            label: 'Bags Distributed',
-            data: chartData.map(week => week.distributed) || [150, 180, 220, 200, 160, 190],
-            borderColor: '#2196F3',
-            backgroundColor: 'rgba(33, 150, 243, 0.2)',
-            tension: 0.3,
-            fill: true,
-          },
-          {
-            label: 'Bags Collected',
-            data: chartData.map(week => week.collected) || [120, 140, 180, 170, 130, 150],
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-            tension: 0.3,
-            fill: true,
-          }
-        ]
-      };
+      if (chartData && chartData.labels && chartData.datasets) {
+        return chartData;
+      }
     } catch (realDataError) {
       console.log('Real data fetch failed for bag utilization chart:', realDataError);
     }
@@ -532,12 +973,25 @@ export const fetchDashboardAlerts = async (limit = 5) => {
     return (data || []).map(alert => {
       const creator = alert.creator ? 
         `${alert.creator.first_name} ${alert.creator.last_name}` : 'System';
+
+      const severityKey = normalizeKey(alert.severity);
+      const typeKey = normalizeKey(alert.type);
+      const title = alert.title || 'System Alert';
+      const description = alert.message || alert.description || '';
+
+      // Map DB severity/type into the dashboard UI buckets used for icon/colors.
+      let feedType = 'info';
+      if (severityKey === 'critical' || severityKey === 'high' || typeKey === 'critical') feedType = 'critical';
+      else if (severityKey === 'warning' || severityKey === 'medium' || typeKey === 'warning') feedType = 'warning';
+      else if (severityKey === 'success' || typeKey === 'success') feedType = 'success';
+      else if (typeKey === 'new') feedType = 'new';
+      else if (typeKey === 'report') feedType = 'report';
       
       return {
         id: alert.id,
-        title: alert.title,
-        description: alert.description,
-        type: alert.type || 'info', // Default to info
+        title,
+        description,
+        type: feedType,
         created_at: formatAlertTime(alert.created_at),
         creator,
         read: alert.read || false,
@@ -547,16 +1001,7 @@ export const fetchDashboardAlerts = async (limit = 5) => {
     });
   } catch (error) {
     console.error('Error fetching dashboard alerts:', error);
-    // Return mock alerts as fallback
-    return [
-      {
-        id: '1',
-        message: 'Database setup in progress',
-        type: 'info',
-        time: 'Just now',
-        details: 'Please run database_functions.sql to complete setup'
-      }
-    ];
+    return [];
   }
 };
 

@@ -7,8 +7,6 @@ const MapControls = ({
   setShowCollectors,
   showPickups,
   setShowPickups,
-  showServiceAreas,
-  setShowServiceAreas,
   centerMap
 }) => {
   return (
@@ -60,14 +58,6 @@ const MapControls = ({
               onClick={() => setShowPickups(!showPickups)}
             >
               <i className={`fas fa-${showPickups ? 'check-circle mr-1.5' : 'circle mr-1.5'}`}></i> Pickup Requests
-            </button>
-            <button
-              className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                showServiceAreas ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-gray-500 border-gray-300'
-              }`}
-              onClick={() => setShowServiceAreas(!showServiceAreas)}
-            >
-              <i className={`fas fa-${showServiceAreas ? 'check-circle mr-1.5' : 'circle mr-1.5'}`}></i> Service Areas
             </button>
           </div>
         </div>

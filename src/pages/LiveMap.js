@@ -5,12 +5,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import CollectorMapMarker from '../components/maps/CollectorMapMarker';
-import ServiceAreaLayer from '../components/maps/ServiceAreaLayer';
-import MapControls from '../components/maps/MapControls';
 import CollectorDetailPanel from '../components/maps/CollectorDetailPanel';
 import { fetchCollectors, updateCollectorStatus, fetchCollectorById } from '../utils/collectorService';
 import { fetchPickupRequests, subscribeToPickupUpdates } from '../utils/pickupService';
-import { fetchServiceAreas, subscribeToServiceAreaUpdates } from '../utils/serviceAreaService';
 import { digitalBinService } from '../services/digitalBinService';
 import { supabase } from '../utils/supabase';
 
@@ -19,84 +16,6 @@ const DEFAULT_COORDINATES = {
   lat: 5.6037,
   lng: -0.1870,
   zoom: 12
-};
-
-// Helper function to generate a random point inside a polygon
-const getRandomPointInPolygon = (polygonCoords) => {
-  if (!polygonCoords || polygonCoords.length < 3) return null;
-  
-  // Calculate bounding box
-  const lats = polygonCoords.map(coord => coord[0]);
-  const lngs = polygonCoords.map(coord => coord[1]);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-  
-  // Generate random points until one falls inside the polygon
-  let attempts = 0;
-  while (attempts < 100) {
-    const randomLat = minLat + Math.random() * (maxLat - minLat);
-    const randomLng = minLng + Math.random() * (maxLng - minLng);
-    
-    // Simple point-in-polygon check using ray casting
-    if (isPointInPolygon([randomLat, randomLng], polygonCoords)) {
-      return [randomLat, randomLng];
-    }
-    attempts++;
-  }
-  
-  // Fallback to polygon center
-  const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
-  const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
-  return [centerLat, centerLng];
-};
-
-// Point-in-polygon test using ray casting algorithm
-const isPointInPolygon = (point, polygon) => {
-  const [x, y] = point;
-  let inside = false;
-  
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i];
-    const [xj, yj] = polygon[j];
-    
-    const intersect = ((yi > y) !== (yj > y)) &&
-      (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-    
-    if (intersect) inside = !inside;
-  }
-  
-  return inside;
-};
-
-// Assign points to service areas and generate coordinates within polygons
-const assignPointsToServiceAreas = (points, serviceAreas) => {
-  if (!serviceAreas || serviceAreas.length === 0) return points;
-  
-  return points.map((point, index) => {
-    // Distribute points evenly across service areas
-    const serviceAreaIndex = index % serviceAreas.length;
-    const serviceArea = serviceAreas[serviceAreaIndex];
-    
-    // Generate a random point within the service area polygon
-    const newCoords = getRandomPointInPolygon(serviceArea.coordinates);
-    
-    if (newCoords) {
-      return {
-        ...point,
-        location: {
-          ...point.location,
-          lat: newCoords[0],
-          lng: newCoords[1]
-        },
-        service_area_id: serviceArea.id,
-        service_area_name: serviceArea.name
-      };
-    }
-    
-    return point;
-  });
 };
 
 // Helper component to fix map invalidation issues
@@ -138,7 +57,6 @@ const LiveMap = () => {
   const [locations, setLocations] = useState([]); // pickup_requests
   const [digitalBins, setDigitalBins] = useState([]); // digital_bins
   const [collectors, setCollectors] = useState([]);
-  const [serviceAreas, setServiceAreas] = useState([]);
   const [filters, setFilters] = useState({
     status: [],
     collector: [],
@@ -150,7 +68,6 @@ const LiveMap = () => {
   const [showCollectors, setShowCollectors] = useState(true);
   const [showPickups, setShowPickups] = useState(true);
   const [showDigitalBins, setShowDigitalBins] = useState(true);
-  const [showServiceAreas, setShowServiceAreas] = useState(true);
   const [selectedCollector, setSelectedCollector] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -167,15 +84,14 @@ const LiveMap = () => {
         setLoading(true);
         
         // Fetch all data in parallel
-        const [collectorsData, pickupRequests, digitalBinsResponse, serviceAreasData] = await Promise.all([
+        const [collectorsData, pickupRequests, digitalBinsResponse] = await Promise.all([
           fetchCollectors(),
           fetchPickupRequests({ limit: 50 }), // Limit to 50 most recent requests
           digitalBinService.fetchDigitalBins({ limit: 100, status: 'all' }).catch(err => {
             console.error('❌ Digital bins fetch failed:', err);
             console.error('Error details:', err.message, err.stack);
             return { data: [], totalCount: 0 };
-          }),
-          fetchServiceAreas()
+          })
         ]);
         
         if (!isMounted) return;
@@ -186,45 +102,17 @@ const LiveMap = () => {
         console.log('🗑️ Raw digital bins data:', digitalBinsData.length, 'bins');
         console.log('🗑️ Sample digital bin:', digitalBinsData[0]);
         
-        // Assign points to service areas and generate coordinates within polygons
-        const processedPickupRequests = assignPointsToServiceAreas(pickupRequests, serviceAreasData);
-        const processedDigitalBins = assignPointsToServiceAreas(digitalBinsData, serviceAreasData);
-        console.log('🗑️ Processed digital bins:', processedDigitalBins.length, 'bins');
-        console.log('🗑️ Sample processed bin:', processedDigitalBins[0]);
-        
-        // Calculate real statistics for each service area
-        const serviceAreasWithStats = serviceAreasData.map(area => {
-          // Count collectors in this service area
-          const collectorsInArea = collectorsData.filter(collector => 
-            collector.service_area_id === area.id || 
-            (collector.currentLocation && isPointInPolygon(
-              [collector.currentLocation.lat, collector.currentLocation.lng],
-              area.coordinates
-            ))
-          ).length;
-          
-          // Count pickup requests in this service area
-          const requestsInArea = processedPickupRequests.filter(request => 
-            request.service_area_id === area.id
-          ).length;
-          
-          return {
-            ...area,
-            activeCollectors: collectorsInArea,
-            requestsInProgress: requestsInArea
-          };
-        });
+        const processedPickupRequests = pickupRequests;
+        const processedDigitalBins = digitalBinsData;
         
         setCollectors(collectorsData);
         setLocations(processedPickupRequests);
         setDigitalBins(processedDigitalBins);
-        setServiceAreas(serviceAreasWithStats);
         
         console.log('📍 LiveMap data loaded:', {
           pickupRequests: processedPickupRequests.length,
           digitalBins: processedDigitalBins.length,
-          collectors: collectorsData.length,
-          serviceAreas: serviceAreasData.length
+          collectors: collectorsData.length
         });
         
       } catch (error) {
@@ -287,24 +175,11 @@ const LiveMap = () => {
       }
     });
     
-    // Subscribe to service area updates
-    const serviceAreaSubscription = subscribeToServiceAreaUpdates(async () => {
-      try {
-        const updatedAreas = await fetchServiceAreas();
-        if (isMounted) {
-          setServiceAreas(updatedAreas);
-        }
-      } catch (error) {
-        console.error('Error updating service areas:', error);
-      }
-    });
-    
     // Store subscriptions for cleanup
     subscriptions.push(
       { unsubscribe: () => supabase.removeChannel(collectorChannel) },
       pickupSubscription,
-      digitalBinSubscription,
-      serviceAreaSubscription
+      digitalBinSubscription
     );
     
     // Clean up on unmount
@@ -417,6 +292,10 @@ const LiveMap = () => {
 
   // Filter locations based on current filters
   const filteredLocations = locations.filter(location => {
+    if (!location?.location?.lat || !location?.location?.lng) {
+      return false;
+    }
+
     // Status filter
     if (filters.status.length > 0 && !filters.status.includes(location.status)) {
       return false;
@@ -509,12 +388,26 @@ const LiveMap = () => {
     setSelectedLocation(location);
     setShowDetailModal(true);
   };
+
+  const formatDateTime = (value) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const ii = pad(d.getMinutes());
+    const ss = pad(d.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${hh}:${ii}:${ss}`;
+  };
   
   return (
     <>
       <div className="h-full flex flex-col">
         {/* Map container */}
-        <div className="flex-1 relative">
+        <div className="flex-[2] relative min-h-0">
           {loading ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
@@ -547,11 +440,6 @@ const LiveMap = () => {
               />
             )}
             
-            {/* Service Area Boundaries */}
-            {showServiceAreas && serviceAreas.map(area => (
-              <ServiceAreaLayer key={area.id} area={area} />
-            ))}
-            
             {/* Pickup Request Markers */}
             {showPickups && filteredLocations.map(location => (
               <Marker
@@ -583,10 +471,10 @@ const LiveMap = () => {
             ))}
             
             {/* Digital Bin Markers */}
-            {showDigitalBins && digitalBins.filter(bin => bin.location?.lat && bin.location?.lng).map(bin => (
+            {showDigitalBins && digitalBins.filter(bin => (bin.location?.lat && bin.location?.lng) || (bin.latitude && bin.longitude)).map(bin => (
               <Marker
                 key={`bin-${bin.id}`}
-                position={[bin.location.lat, bin.location.lng]}
+                position={bin.location?.lat && bin.location?.lng ? [bin.location.lat, bin.location.lng] : [bin.latitude, bin.longitude]}
                 icon={L.divIcon({
                   className: 'custom-marker-icon',
                   html: `<div style="background-color: #10b981; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
@@ -602,7 +490,7 @@ const LiveMap = () => {
                   <div className="p-2">
                     <h3 className="font-semibold">🗑️ Digital Bin</h3>
                     <p className="text-sm text-gray-600">ID: {bin.bin_id || bin.id}</p>
-                    <p className="text-sm">Location: {bin.location.address || 'N/A'}</p>
+                    <p className="text-sm">Location: {bin.location?.address || bin.address || 'N/A'}</p>
                     <p className="text-sm">Status: <span className="font-medium text-green-600">{bin.status}</span></p>
                     {bin.waste_type && <p className="text-sm">Type: {bin.waste_type}</p>}
                     {bin.frequency && <p className="text-sm">Frequency: {bin.frequency}</p>}
@@ -634,7 +522,7 @@ const LiveMap = () => {
         </div>
         
         {/* Collector side panel - 1/3 width on md+ screens */}
-        <div className="md:col-span-1">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {selectedCollector ? (
             <CollectorDetailPanel 
               collector={selectedCollector} 
@@ -642,101 +530,105 @@ const LiveMap = () => {
               onStatusChange={handleStatusChange}
             />
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border-0 p-4 h-full">
+            <div className="bg-white rounded-lg shadow-sm border-0 p-4 h-full flex flex-col">
               <div className="flex items-center mb-4">
                 <i className="fas fa-truck-moving text-blue-500 text-xl mr-3"></i>
                 <h3 className="font-semibold">Collector Status</h3>
               </div>
               
-              <div className="space-y-3">
-                {(collectors || [])
-                  .filter(c => c?.status === 'active')
-                  .map(collector => (
-                    <div 
-                      key={collector.id}
-                      className="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => openCollectorDetailPanel(collector)}
-                    >
-                      <div className="flex items-center mb-2">
-                        <div className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden mr-2">
-                          <img 
-                            src={collector.profilePic} 
-                            alt={collector.name}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = 'https://via.placeholder.com/40';
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{collector.name}</h4>
-                          <p className="text-xs text-gray-500">{collector.assignedRegion}</p>
-                        </div>
-                        <div>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            (collector.capacityRemaining || 0) < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                          }`}>
-                            {collector.capacityRemaining || 0}% Cap
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-between text-xs">
-                        <div>
-                          <span className="text-gray-500">Completed: </span>
-                          <span className="font-medium">{collector.stats?.completedToday || 0}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Pending: </span>
-                          <span className="font-medium">{collector.stats?.pendingPickups || 0}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Last update: </span>
-                          <span className="font-medium">{new Date(collector.lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                {(collectors || []).filter(c => c?.status === 'active').length === 0 && (
-                  <div className="text-center py-6">
-                    <div className="inline-flex rounded-full bg-gray-100 p-3 mb-3">
-                      <i className="fas fa-user-clock text-gray-500 text-xl"></i>
-                    </div>
-                    <p className="text-gray-500">No active collectors</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Inactive collectors section */}
-              {(collectors || []).filter(c => c?.status === 'inactive').length > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-medium text-sm text-gray-500 mb-2">Inactive Collectors</h4>
-                  <div className="space-y-2">
-                    {(collectors || [])
-                      .filter(c => c?.status === 'inactive')
-                      .map(collector => (
-                        <div 
-                          key={collector.id}
-                          className="border border-gray-100 bg-gray-50 rounded p-2 flex items-center"
-                          onClick={() => openCollectorDetailPanel(collector)}
-                        >
-                          <div className="h-6 w-6 rounded-full bg-gray-200 overflow-hidden mr-2">
+              <div className="flex-1 min-h-0 overflow-y-auto" style={{ paddingBottom: '100px' }}>
+                <div className="space-y-3">
+                  {(collectors || [])
+                    .filter(c => c?.status === 'active')
+                    .map(collector => (
+                      <div 
+                        key={collector.id}
+                        className="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => openCollectorDetailPanel(collector)}
+                      >
+                        <div className="flex items-center mb-2">
+                          <div className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden mr-2">
                             <img 
                               src={collector.profilePic} 
                               alt={collector.name}
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/30';
+                                e.target.src = 'https://via.placeholder.com/40';
                               }}
                             />
                           </div>
-                          <p className="text-xs">{collector.name}</p>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{collector.name}</h4>
+                            <p className="text-xs text-gray-500">{collector.assignedRegion}</p>
+                          </div>
+                          <div>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              (collector.capacityRemaining || 0) < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            }`}>
+                              {collector.capacityRemaining || 0}% Cap
+                            </span>
+                          </div>
                         </div>
-                      ))}
-                  </div>
+                        
+                        <div className="flex justify-between text-xs">
+                          <div>
+                            <span className="text-gray-500">Completed: </span>
+                            <span className="font-medium">{collector.stats?.completedToday || 0}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Pending: </span>
+                            <span className="font-medium">{collector.stats?.pendingPickups || 0}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Last update: </span>
+                            <span className="font-medium">
+                              {formatDateTime(collector.lastUpdated)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                  {(collectors || []).filter(c => c?.status === 'active').length === 0 && (
+                    <div className="text-center py-6">
+                      <div className="inline-flex rounded-full bg-gray-100 p-3 mb-3">
+                        <i className="fas fa-user-clock text-gray-500 text-xl"></i>
+                      </div>
+                      <p className="text-gray-500">No active collectors</p>
+                    </div>
+                  )}
+
+                  {/* Inactive collectors section */}
+                  {(collectors || []).filter(c => c?.status === 'inactive').length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-medium text-sm text-gray-500 mb-2">Inactive Collectors</h4>
+                      <div className="space-y-2">
+                        {(collectors || [])
+                          .filter(c => c?.status === 'inactive')
+                          .map(collector => (
+                            <div 
+                              key={collector.id}
+                              className="border border-gray-100 bg-gray-50 rounded p-2 flex items-center"
+                              onClick={() => openCollectorDetailPanel(collector)}
+                            >
+                              <div className="h-6 w-6 rounded-full bg-gray-200 overflow-hidden mr-2">
+                                <img 
+                                  src={collector.profilePic} 
+                                  alt={collector.name}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://via.placeholder.com/30';
+                                  }}
+                                />
+                              </div>
+                              <p className="text-xs">{collector.name}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
