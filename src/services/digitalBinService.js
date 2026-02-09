@@ -618,6 +618,28 @@ class DigitalBinService {
     return view.getFloat64(0, true); // true = little endian
   }
 
+  parsePointString(value) {
+    if (!value || typeof value !== 'string') return null;
+    const match = value.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
+    if (!match) return null;
+    const a = Number(match[1]);
+    const b = Number(match[2]);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+    const asLngLat = { lng: a, lat: b };
+    const asLatLng = { lat: a, lng: b };
+
+    const isValid = (p) =>
+      Number.isFinite(p.lat) &&
+      Number.isFinite(p.lng) &&
+      Math.abs(p.lat) <= 90 &&
+      Math.abs(p.lng) <= 180;
+
+    if (isValid(asLatLng)) return asLatLng;
+    if (isValid(asLngLat)) return asLngLat;
+    return null;
+  }
+
   enhanceDigitalBinsData(bins) {
     if (!bins || !Array.isArray(bins)) return bins;
     return bins.map(bin => this.enhanceDigitalBinData(bin));
@@ -638,15 +660,49 @@ class DigitalBinService {
       
       if (bin.location.coordinates) {
         try {
-          // PostGIS WKB format: hex string starting with "0101000020E6100000"
-          // Parse the WKB to extract coordinates
-          const coords = this.parseWKBPoint(bin.location.coordinates);
-          if (coords) {
-            lng = coords.lng;
-            lat = coords.lat;
+          const raw = bin.location.coordinates;
+
+          if (typeof raw === 'string') {
+            const pointCoords = this.parsePointString(raw);
+            if (pointCoords) {
+              lng = pointCoords.lng;
+              lat = pointCoords.lat;
+            } else {
+              const coords = this.parseWKBPoint(raw);
+              if (coords) {
+                lng = coords.lng;
+                lat = coords.lat;
+              }
+            }
+          } else if (raw && typeof raw === 'object') {
+            if (
+              raw.type === 'Point' &&
+              Array.isArray(raw.coordinates) &&
+              raw.coordinates.length >= 2
+            ) {
+              const a = Number(raw.coordinates[0]);
+              const b = Number(raw.coordinates[1]);
+              if (Number.isFinite(a) && Number.isFinite(b)) {
+                lng = a;
+                lat = b;
+              }
+            } else if (
+              typeof raw.lat === 'number' &&
+              typeof raw.lng === 'number'
+            ) {
+              lat = raw.lat;
+              lng = raw.lng;
+            }
           }
         } catch (error) {
           console.error('Error parsing WKB coordinates:', error, bin.location.coordinates);
+        }
+      }
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        if (Number.isFinite(bin.latitude) && Number.isFinite(bin.longitude)) {
+          lat = bin.latitude;
+          lng = bin.longitude;
         }
       }
       
