@@ -145,6 +145,34 @@ export const fetchPickupRequests = async ({
 } = {}) => {
   try {
     console.log('fetchPickupRequests called with:', { status, collectorId, limit });
+
+    const parsePointString = (value) => {
+      if (!value || typeof value !== 'string') return null;
+      const match = value.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
+      if (!match) return null;
+      const a = Number(match[1]);
+      const b = Number(match[2]);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+      // In PostGIS, POINT(x y) is typically (lng lat).
+      // However, some schemas store it reversed. For the admin portal/live map,
+      // we prefer values that look like a valid (lat,lng) pair for Ghana.
+      // Heuristic: pick the interpretation whose latitude is within [-90,90]
+      // and longitude within [-180,180]; if both are valid, prefer lat=a, lng=b
+      // since the DB screenshot shows POINT(5.67 -0.28) which matches (lat,lng).
+      const asLngLat = { lng: a, lat: b };
+      const asLatLng = { lat: a, lng: b };
+
+      const isValid = (p) =>
+        Number.isFinite(p.lat) &&
+        Number.isFinite(p.lng) &&
+        Math.abs(p.lat) <= 90 &&
+        Math.abs(p.lng) <= 180;
+
+      if (isValid(asLatLng)) return asLatLng;
+      if (isValid(asLngLat)) return asLngLat;
+      return null;
+    };
     
     // Check if both pickup_requests and profiles tables exist before making query
     const pickupTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
@@ -388,22 +416,20 @@ export const fetchPickupRequests = async ({
         
         // Handle location data with fallbacks
         const locationData = request.location || {};
+
+        const point =
+          parsePointString(request.location) ||
+          parsePointString(request.coordinates) ||
+          (typeof locationData === 'object' ? (parsePointString(locationData.coordinates) || parsePointString(locationData.location)) : null);
+
         const location = {
           address: locationData.address || 
                    request.address || 
                    (request.location ? request.location.address : null) ||
                    (requestor ? requestor.address : null) || // Use profile address as fallback
                    'Unknown Location',
-          lat: locationData.latitude || 
-               locationData.lat || 
-               request.latitude || 
-               (request.location ? request.location.lat : null) || 
-               5.6037, // Default to Accra, Ghana
-          lng: locationData.longitude || 
-               locationData.lng || 
-               request.longitude || 
-               (request.location ? request.location.lng : null) || 
-               -0.1870 // Default to Accra, Ghana
+          lat: (point?.lat ?? locationData.latitude ?? locationData.lat ?? request.latitude ?? (request.location ? request.location.lat : null) ?? 5.6037),
+          lng: (point?.lng ?? locationData.longitude ?? locationData.lng ?? request.longitude ?? (request.location ? request.location.lng : null) ?? -0.1870)
         };
         
         // Transform the request to match the expected format with safe property access

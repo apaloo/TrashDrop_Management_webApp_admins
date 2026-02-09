@@ -20,6 +20,15 @@ const RequestPickupManagement = () => {
   const getRequestsByStatus = (status) => {
     return requests.filter(request => request.status === status);
   };
+
+  const getStatusBadgeClasses = (status) => {
+    const s = String(status || '').trim().toUpperCase();
+    if (s === String(STATUS.PICKUP_REQUEST.COMPLETED).toUpperCase()) return 'bg-green-100 text-green-800';
+    if (s === String(STATUS.PICKUP_REQUEST.IN_PROGRESS).toUpperCase()) return 'bg-blue-100 text-blue-800';
+    if (s === String(STATUS.PICKUP_REQUEST.PENDING).toUpperCase()) return 'bg-yellow-100 text-yellow-800';
+    if (s === String(STATUS.PICKUP_REQUEST.CANCELLED).toUpperCase()) return 'bg-gray-100 text-gray-800';
+    return 'bg-gray-100 text-gray-800';
+  };
   const [filterPriority, setFilterPriority] = useState('All');
   const [systemAlerts, setSystemAlerts] = useState([]);
 
@@ -444,12 +453,7 @@ const RequestPickupManagement = () => {
                     {request.wasteType}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      request.status === STATUS.PICKUP_REQUEST.COMPLETED ? 'bg-green-100 text-green-800' :
-                      request.status === STATUS.PICKUP_REQUEST.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
-                      request.status === STATUS.PICKUP_REQUEST.PENDING ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClasses(request.status)}`}>
                       {request.status}
                     </span>
                   </td>

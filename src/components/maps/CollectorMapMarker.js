@@ -9,6 +9,10 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
     return null; // Don't render if location data is missing
   }
 
+  const vehicleLabel = typeof collector.vehicle === 'string'
+    ? collector.vehicle
+    : `${collector.vehicle?.type || 'Vehicle'}${collector.vehicle?.plate ? ` • ${collector.vehicle.plate}` : ''}${collector.vehicle?.capacity ? ` • ${collector.vehicle.capacity}` : ''}`;
+
   // Create custom collector icon
   const collectorIcon = L.divIcon({
     className: 'custom-collector-icon',
@@ -70,7 +74,7 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
             </div>
             <div>
               <h3 className="font-semibold">{collector.name || 'Unknown Collector'}</h3>
-              <p className="text-xs text-gray-500">Vehicle {collector.vehicle || 'N/A'}</p>
+              <p className="text-xs text-gray-500">Vehicle {vehicleLabel || 'N/A'}</p>
             </div>
           </div>
           
