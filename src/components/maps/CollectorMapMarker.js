@@ -3,7 +3,7 @@ import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
 // Custom collector marker component
-const CollectorMapMarker = ({ collector, openDetailModal }) => {
+const CollectorMapMarker = ({ collector, onClick, openDetailModal }) => {
   // Add safety checks for collector and location
   if (!collector || !collector.currentLocation || !collector.currentLocation.lat || !collector.currentLocation.lng) {
     return null; // Don't render if location data is missing
@@ -108,7 +108,10 @@ const CollectorMapMarker = ({ collector, openDetailModal }) => {
           
           <button 
             className="w-full text-center mt-1 text-blue-600 text-sm hover:underline"
-            onClick={() => openDetailModal(collector)}
+            onClick={() => {
+              if (typeof onClick === 'function') return onClick(collector);
+              if (typeof openDetailModal === 'function') return openDetailModal(collector);
+            }}
           >
             View Details
           </button>
