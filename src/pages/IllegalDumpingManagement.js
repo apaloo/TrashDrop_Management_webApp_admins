@@ -13,6 +13,11 @@ const IllegalDumpingManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterSeverity, setFilterSeverity] = useState('All');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
   const [metrics, setMetrics] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -292,6 +297,19 @@ const IllegalDumpingManagement = () => {
       return true;
     });
 
+  // Pagination calculations
+  const totalCount = filteredReports.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
+  const paginatedReports = filteredReports.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterSeverity, itemsPerPage]);
+
   return (
     <div className="p-4">
       <div className="mb-6">
@@ -438,7 +456,13 @@ const IllegalDumpingManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredReports.map((report) => (
+              {paginatedReports.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                    {filteredReports.length === 0 ? 'No reports match your filters' : 'No entries on this page'}
+                  </td>
+                </tr>
+              ) : paginatedReports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {report.id}
@@ -497,6 +521,109 @@ const IllegalDumpingManagement = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Left: rows per page + entry info */}
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="idmRowsPerPage" className="whitespace-nowrap">Rows per page:</label>
+                  <select
+                    id="idmRowsPerPage"
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                    className="border border-gray-300 rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-white"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <span className="hidden sm:inline text-gray-400">|</span>
+                <span>
+                  {totalCount === 0
+                    ? 'No entries'
+                    : `Showing ${(currentPage - 1) * itemsPerPage + 1}\u2013${Math.min(currentPage * itemsPerPage, totalCount)} of ${totalCount}`}
+                </span>
+              </div>
+
+              {/* Right: page navigation */}
+              <nav className="inline-flex items-center gap-1" aria-label="Pagination">
+                {/* First */}
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  title="First page"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                </button>
+                {/* Previous */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  title="Previous page"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+
+                {/* Page numbers */}
+                {(() => {
+                  const pages = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (currentPage > 3) pages.push('...');
+                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                      pages.push(i);
+                    }
+                    if (currentPage < totalPages - 2) pages.push('...');
+                    pages.push(totalPages);
+                  }
+                  return pages.map((page, idx) =>
+                    page === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm select-none">&hellip;</span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`min-w-[36px] h-9 rounded-md text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-green-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  );
+                })()}
+
+                {/* Next */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  title="Next page"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                {/* Last */}
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage >= totalPages}
+                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  title="Last page"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
       )}
 

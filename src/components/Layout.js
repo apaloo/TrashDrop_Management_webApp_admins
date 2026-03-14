@@ -15,6 +15,7 @@ const Layout = ({ children }) => {
   
   // Check if current path is auth-related (login, signup, etc.)
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname);
+  const isHomePage = location.pathname === '/';
   
   // Get user's first name from metadata for header greeting
   const firstName = user?.user_metadata?.firstName || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
@@ -25,7 +26,7 @@ const Layout = ({ children }) => {
   
   // Handle page transitions - show loader when navigating between pages
   useEffect(() => {
-    if (previousPathRef.current && previousPathRef.current !== location.pathname && !isAuthPage) {
+    if (previousPathRef.current && previousPathRef.current !== location.pathname && !isAuthPage && !isHomePage) {
       setIsPageTransitioning(true);
       // Hide loader after a short delay to allow lazy component to load
       const timer = setTimeout(() => {
@@ -34,16 +35,16 @@ const Layout = ({ children }) => {
       return () => clearTimeout(timer);
     }
     previousPathRef.current = location.pathname;
-  }, [location.pathname, isAuthPage]);
+  }, [location.pathname, isAuthPage, isHomePage]);
   
   useEffect(() => {
-    // Only show layout if not on auth page and either authenticated or loading is complete
-    setShowLayout(!isAuthPage && effectiveAuthState);
-  }, [isAuthPage, effectiveAuthState, loading]);
+    // Only show layout if not on auth page, not homepage, and either authenticated or loading is complete
+    setShowLayout(!isAuthPage && !isHomePage && effectiveAuthState);
+  }, [isAuthPage, isHomePage, effectiveAuthState, loading]);
   
-  // If we're on an auth page, only render children without layout
-  if (isAuthPage) {
-    return <div className="bg-gray-50">{children}</div>;
+  // If we're on an auth page or homepage, only render children without layout
+  if (isAuthPage || isHomePage) {
+    return <>{children}</>;
   }
   
   // For authenticated pages, render the full layout with sidebar and navbar

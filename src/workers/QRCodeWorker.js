@@ -7,8 +7,22 @@
 import JSZip from 'jszip';
 import QRCode from 'qrcode';
 
+const QR_GRAPHIC_WIDTH = 474;
+const QR_GRAPHIC_HEIGHT = 561;
+const OUTER_CANVAS_WIDTH = 600;
+const OUTER_CANVAS_HEIGHT = 700;
+const FLYER_TEMPLATE_PATH = '/Batch_QR_frame_base.png';
+const FLYER_CANVAS_WIDTH = 3081;
+const FLYER_CANVAS_HEIGHT = 1456;
+const FLYER_PLACEHOLDER_X = 1055;
+const FLYER_PLACEHOLDER_Y = 110;
+const FLYER_PLACEHOLDER_W = 622;
+const FLYER_PLACEHOLDER_H = 782;
+const FLYER_QR_RENDER_WIDTH = 540;
+const FLYER_PLACEHOLDER_RADIUS = 44;
+
 // Log version on worker initialization
-console.log('QR Code Worker v2.2 initialized - Large nested SVG QR (450x450px on 600x700 canvas)');
+console.log('QR Code Worker v2.2 initialized - Nested QR graphic (474x561px) embedded on 600x700 canvas');
 
 // Track the current operation for cancellation
 let currentOperation = null;
@@ -20,6 +34,151 @@ const ensureJSZip = async () => {
   }
   return JSZip;
 };
+
+function buildQRGraphicSVG({ qrViewBox, qrSvgContent, batchId, bagNumber }) {
+  const safeBatchId = String(batchId || '');
+  const batchLabel = safeBatchId.length > 18 ? `${safeBatchId.substring(0, 18)}...` : safeBatchId;
+  const bagLabel = bagNumber !== null && bagNumber !== undefined ? `Bag #${bagNumber}` : 'Batch QR';
+  const qrY = 87;
+  const textCenterX = Math.round(QR_GRAPHIC_WIDTH / 2);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${QR_GRAPHIC_WIDTH}" height="${QR_GRAPHIC_HEIGHT}" viewBox="0 0 ${QR_GRAPHIC_WIDTH} ${QR_GRAPHIC_HEIGHT}" style="background: white;">
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="${textCenterX}" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#333">TrashDrop QR Code</text>
+  <text x="${textCenterX}" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#666">Batch: ${escapeXml(batchLabel)}</text>
+  <text x="${textCenterX}" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#666">${escapeXml(bagLabel)}</text>
+  <svg x="0" y="${qrY}" width="${QR_GRAPHIC_WIDTH}" height="${QR_GRAPHIC_WIDTH}" viewBox="${qrViewBox}">${qrSvgContent}</svg>
+</svg>`;
+}
+
+function extractInnerSvg(svgString) {
+  const match = String(svgString || '').match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+  return match ? match[1] : '';
+}
+
+function escapeXml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+async function tryGenerateFlyerPosterPNG(qrData) {
+  try {
+    if (typeof fetch !== 'function') return null;
+
+    const res = await fetch(FLYER_TEMPLATE_PATH, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const templateBlob = await res.blob();
+    const templateBitmap = await createImageBitmap(templateBlob);
+
+    const qrGraphicSvg = await generateQRGraphicSVG(qrData);
+    const qrGraphicBlob = new Blob([qrGraphicSvg], { type: 'image/svg+xml;charset=utf-8' });
+    const qrBitmap = await createImageBitmap(qrGraphicBlob);
+
+    const canvas = new OffscreenCanvas(FLYER_CANVAS_WIDTH, FLYER_CANVAS_HEIGHT);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, FLYER_CANVAS_WIDTH, FLYER_CANVAS_HEIGHT);
+    ctx.drawImage(templateBitmap, 0, 0);
+
+    const scale = FLYER_QR_RENDER_WIDTH / QR_GRAPHIC_WIDTH;
+    const renderW = FLYER_QR_RENDER_WIDTH;
+    const renderH = Math.round(QR_GRAPHIC_HEIGHT * scale);
+
+    const x = Math.round(FLYER_PLACEHOLDER_X + (FLYER_PLACEHOLDER_W - renderW) / 2);
+    const y = Math.round(FLYER_PLACEHOLDER_Y + (FLYER_PLACEHOLDER_H - renderH) / 2);
+
+    ctx.save();
+    clipRoundedRect(ctx, FLYER_PLACEHOLDER_X, FLYER_PLACEHOLDER_Y, FLYER_PLACEHOLDER_W, FLYER_PLACEHOLDER_H, FLYER_PLACEHOLDER_RADIUS);
+    ctx.drawImage(qrBitmap, x, y, renderW, renderH);
+    ctx.restore();
+
+    const posterBlob = await canvas.convertToBlob({ type: 'image/png' });
+    return posterBlob;
+  } catch (error) {
+    console.error('Error generating flyer poster PNG:', error);
+    return null;
+  }
+}
+
+async function generateQRGraphicSVG(qrData) {
+  const { url, bagNumber, batchId } = qrData;
+  const qrSvgString = await QRCode.toString(url, {
+    type: 'svg',
+    width: QR_GRAPHIC_WIDTH,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#FFFFFF'
+    },
+    errorCorrectionLevel: 'M'
+  });
+
+  const svgContentMatch = qrSvgString.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+  const qrSvgContent = svgContentMatch ? svgContentMatch[1] : '';
+  const viewBoxMatch = qrSvgString.match(/viewBox="([^"]*)"/i);
+  const qrViewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 100';
+
+  return buildQRGraphicSVG({ qrViewBox, qrSvgContent, batchId, bagNumber });
+}
+
+function clipRoundedRect(ctx, x, y, w, h, r) {
+  const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.clip();
+}
+
+function isLarge240LBatch(batch) {
+  if (!batch || typeof batch !== 'object') return false;
+  const sizeCandidates = [
+    batch.size,
+    batch.bag_size,
+    batch.capacity_label,
+    batch.bagSize,
+    batch.bin_size,
+    batch.bin_capacity_label
+  ];
+  const numericCandidates = [
+    batch.capacity_l,
+    batch.capacityL,
+    batch.bag_capacity,
+    batch.bin_capacity
+  ];
+
+  for (const candidate of sizeCandidates) {
+    if (!candidate) continue;
+    const normalized = String(candidate).trim().toLowerCase();
+    if (!normalized) continue;
+    if (normalized.includes('240')) return true;
+    if (normalized === 'large' || normalized === 'l') return true;
+  }
+
+  for (const num of numericCandidates) {
+    if (typeof num === 'number' && num >= 240) {
+      return true;
+    }
+    if (typeof num === 'string' && Number(num) >= 240) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // Define message handler
 self.onmessage = async function(e) {
@@ -65,6 +224,56 @@ self.onmessage = async function(e) {
 // Main worker processing function
 async function processMessage(e, JSZip, operation) {
   const { type, payload } = e.data;
+
+  if (type === 'GENERATE_POSTER_PNG') {
+    const { batch, baseUrl = 'https://trashdrops.com/scan', email = 'admin@trashdrop.com', requestId } = payload || {};
+    try {
+      const batchId = (typeof batch === 'string') ? batch : (batch?.id || new Date().getTime().toString());
+
+      if (!isLarge240LBatch(batch)) {
+        self.postMessage({
+          type: 'POSTER_READY',
+          requestId,
+          content: null,
+          filename: null
+        });
+        return;
+      }
+
+      const batchQR = {
+        id: `batch-${batchId}`,
+        url: `${baseUrl}?batch=${encodeURIComponent(batchId)}`,
+        bagNumber: null,
+        batchId,
+        email
+      };
+
+      const posterPng = await tryGenerateFlyerPosterPNG(batchQR);
+      if (!posterPng) {
+        self.postMessage({
+          type: 'POSTER_READY',
+          requestId,
+          content: null,
+          filename: null
+        });
+        return;
+      }
+
+      self.postMessage({
+        type: 'POSTER_READY',
+        requestId,
+        content: posterPng,
+        filename: `Poster_Batch_${batchId}.png`
+      });
+    } catch (error) {
+      self.postMessage({
+        type: 'POSTER_ERROR',
+        requestId,
+        error: error?.message || 'Error generating poster PNG'
+      });
+    }
+    return;
+  }
   
   if (type === 'GENERATE_QR_CODES') {
     const { batch, email, baseUrl, chunkSize = 20, attempt = 1 } = payload;
@@ -215,6 +424,24 @@ async function processMessage(e, JSZip, operation) {
           // Continue with next file even if one fails
         }
       }
+
+      if (isLarge240LBatch(batch)) {
+        try {
+          const batchQR = {
+            id: `batch-${batchId}`,
+            url: `${baseUrl}?batch=${encodeURIComponent(batchId)}`,
+            bagNumber: null,
+            batchId,
+            email
+          };
+          const posterPng = await tryGenerateFlyerPosterPNG(batchQR);
+          if (posterPng) {
+            zip.file(`Poster_Batch_${batchId}.png`, posterPng);
+          }
+        } catch (err) {
+          console.error('Error creating batch poster PNG:', err);
+        }
+      }
       
       if (processed === 0) {
         throw new Error('Failed to add any files to ZIP');
@@ -284,7 +511,7 @@ async function generateQRCodeSVG(qrData) {
     console.log(`Generating large QR code: 450x450px for ${bagNumber !== null ? `Bag #${bagNumber}` : 'Batch'}`);
     const qrSvgString = await QRCode.toString(url, {
       type: 'svg',
-      width: 450,
+      width: QR_GRAPHIC_WIDTH,
       margin: 2,
       color: {
         dark: '#000000',
@@ -301,12 +528,23 @@ async function generateQRCodeSVG(qrData) {
     const viewBoxMatch = qrSvgString.match(/viewBox="([^"]*)"/i);
     const qrViewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 100';
     
+    const qrGraphicSvg = buildQRGraphicSVG({
+      qrViewBox,
+      qrSvgContent,
+      batchId,
+      bagNumber
+    });
+
+    const qrGraphicViewBox = `0 0 ${QR_GRAPHIC_WIDTH} ${QR_GRAPHIC_HEIGHT}`;
+    const embeddedX = Math.round((OUTER_CANVAS_WIDTH - QR_GRAPHIC_WIDTH) / 2);
+    const embeddedY = 120;
+
     // Create enhanced SVG with nested QR code SVG - optimized for printing
     return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" 
-     width="600" 
-     height="700" 
-     viewBox="0 0 600 700" 
+     width="${OUTER_CANVAS_WIDTH}" 
+     height="${OUTER_CANVAS_HEIGHT}" 
+     viewBox="0 0 ${OUTER_CANVAS_WIDTH} ${OUTER_CANVAS_HEIGHT}" 
      style="background: white;">
   <!-- Background -->
   <rect width="100%" height="100%" fill="white"/>
@@ -327,7 +565,7 @@ async function generateQRCodeSVG(qrData) {
         font-family="Arial, sans-serif" 
         font-size="16" 
         fill="#666">
-    Batch: ${batchId.substring(0, 18)}...
+    Batch: ${(String(batchId || '')).substring(0, 18)}...
   </text>
   
   <!-- Bag Info -->
@@ -339,9 +577,8 @@ async function generateQRCodeSVG(qrData) {
     ${bagNumber !== null && bagNumber !== undefined ? `Bag #${bagNumber}` : 'Batch QR'}
   </text>
   
-  <!-- QR Code SVG - Centered and Large (450x450px) -->
-  <svg x="75" y="120" width="450" height="450" viewBox="${qrViewBox}">
-    ${qrSvgContent}
+  <svg x="${embeddedX}" y="${embeddedY}" width="${QR_GRAPHIC_WIDTH}" height="${QR_GRAPHIC_HEIGHT}" viewBox="${qrGraphicViewBox}">
+    ${extractInnerSvg(qrGraphicSvg)}
   </svg>
   
   <!-- URL Info (truncated for display) -->

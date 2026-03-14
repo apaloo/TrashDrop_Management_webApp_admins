@@ -65,7 +65,7 @@ const BagHistory = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Function to load batches with pagination and sorting
   const loadBatchData = async () => {
@@ -127,7 +127,7 @@ const BagHistory = () => {
   // Trigger batch data loading when pagination or filter parameters change
   useEffect(() => {
     loadBatchData();
-  }, [currentPage, filterStatus, searchTerm, sortField, sortDirection]);
+  }, [currentPage, itemsPerPage, filterStatus, searchTerm, sortField, sortDirection]);
 
   // Function to fetch all dashboard statistics
   const refreshStats = async () => {
@@ -325,7 +325,7 @@ const BagHistory = () => {
       {/* Stats Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Live Bag Requests Card */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" style={{ height: '340px' }}>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Live Bag Requests</h3>
           
           {statsLoading ? (
@@ -358,20 +358,15 @@ const BagHistory = () => {
               
 
               
-              <div className="text-sm text-gray-500 mb-2">Collection trend over time</div>
-              
-              {/* Additional stats */}
-              <div className="flex justify-between mb-3">
-                <div className="text-sm bg-green-50 text-green-800 px-3 py-1 rounded-full">
-                  <span className="font-medium">{bagRequestStats.todayChange >= 0 ? '+' + bagRequestStats.todayChange : bagRequestStats.todayChange || 0}</span> today
-                </div>
-                <div className="text-sm bg-blue-50 text-blue-800 px-3 py-1 rounded-full">
-                  <span className="font-medium">{bagRequestStats.avgDailyRequests || 0}</span> daily avg
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-gray-500">Collection trend over time</div>
+                <div className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                  {bagRequestStats.avgDailyRequests || 0} daily avg
                 </div>
               </div>
               
               {/* Simple Chart Visualization */}
-              <div className="flex items-end space-x-2 h-24 mb-2">
+              <div className="flex items-end space-x-2 h-20 mb-2">
                 {(bagRequestStats.dailyTrend || Array(7).fill(0)).map((value, index) => {
                   // Find the max value to normalize the heights
                   const maxValue = Math.max(...(bagRequestStats.dailyTrend || [1]), 1); // Avoid division by zero
@@ -420,7 +415,7 @@ const BagHistory = () => {
         </div>
         
         {/* Collector Status Card */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" style={{ height: '340px' }}>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Collector Status</h3>
           
           {statsLoading ? (
@@ -446,7 +441,7 @@ const BagHistory = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-semibold inline-block text-blue-600">
-                      {(collectorStats.active / collectorStats.total) * 100}% Active
+                      {collectorStats.total > 0 ? Math.round((collectorStats.active / collectorStats.total) * 100) : 0}% Active
                     </span>
                   </div>
                 </div>
@@ -482,8 +477,8 @@ const BagHistory = () => {
         </div>
         
         {/* Performance Timeline Card */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" style={{ height: '340px' }}>
-          <h3 className="text-lg font-medium text-gray-700 mb-4">Performance Timeline</h3>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <h3 className="text-lg font-medium text-gray-700 mb-3">Performance Timeline</h3>
           
           {statsLoading ? (
             <div className="flex justify-center items-center h-64">
@@ -498,18 +493,18 @@ const BagHistory = () => {
                 </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm text-gray-500">Response Time</div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm text-gray-600">Response Time</div>
                     <div className="text-sm font-medium">
                       {performanceStats.responseTime || 0} min
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${Math.min(100, (performanceStats.responseTime || 0) * 100 / 60)}%` }}></div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (performanceStats.responseTime || 0) * 100 / 60)}%` }}></div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Avg. time to process bags</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Avg. time to process bags</div>
                 </div>
                 
                 <div>
@@ -519,13 +514,12 @@ const BagHistory = () => {
                       {performanceStats.collectionTime || 0} min
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                  <div className="h-1.5 bg-gray-200 rounded overflow-hidden">
                     <div 
-                      className="h-2 bg-blue-500 rounded" 
+                      className="h-1.5 bg-blue-500 rounded" 
                       style={{ width: `${Math.max(0, 100 - Math.min((performanceStats.collectionTime || 0) * 2.5, 80))}%` }}
                     ></div>
                   </div>
-                  <div className="text-sm text-gray-500 mb-2">Avg. collection time: {performanceStats.collectionTime || 0} min</div>
                 </div>
                 
                 <div>
@@ -533,13 +527,13 @@ const BagHistory = () => {
                     <span className="text-gray-600">Completion Rate</span>
                     <span className="font-medium">{Math.round(performanceStats.completionRate || 0)}%</span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                  <div className="h-1.5 bg-gray-200 rounded overflow-hidden">
                     <div 
-                      className="h-2 bg-indigo-500 rounded" 
+                      className="h-1.5 bg-indigo-500 rounded" 
                       style={{ width: `${performanceStats.completionRate || 0}%` }}
                     ></div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Requests fully completed</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Requests fully completed</div>
                 </div>
                 
                 <div>
@@ -547,74 +541,76 @@ const BagHistory = () => {
                     <span className="text-gray-600">Scan Accuracy</span>
                     <span className="font-medium">{performanceStats.scanAccuracy || 0}%</span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                  <div className="h-1.5 bg-gray-200 rounded overflow-hidden">
                     <div 
-                      className="h-2 bg-indigo-500 rounded" 
+                      className="h-1.5 bg-indigo-500 rounded" 
                       style={{ width: `${performanceStats.scanAccuracy || 0}%` }}
                     ></div>
                   </div>
                 </div>
                 
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Daily Average: {bagRequestStats.avgDailyRequests || 0}</span>
-                    <span className="text-gray-600">Weekly Goal: {Math.round(performanceStats.overall * 1.1) || 0}%</span>
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Daily Average: {bagRequestStats.avgDailyRequests || 0}</span>
+                    <span>Weekly Goal: {Math.round(performanceStats.overall * 1.1) || 0}%</span>
                   </div>
                 </div>
               </div>
             </>
           )}
         </div>
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          {/* Search Input */}
-          <div className="flex-grow">
-            <label htmlFor="searchTerm" className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-            <div className="relative">
-              <input
-                type="text"
-                id="searchTerm"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Search by ID, type or QR prefix..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-              </div>
+      </div>
+      
+      {/* Search and Filter Row — outside the stats grid */}
+      <div className="flex flex-col md:flex-row gap-4 items-end mb-6">
+        {/* Search Input */}
+        <div className="flex-grow">
+          <label htmlFor="searchTerm" className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <div className="relative">
+            <input
+              type="text"
+              id="searchTerm"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Search by ID, type or QR prefix..."
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
             </div>
           </div>
-          
-          {/* Status Filter */}
-          <div className="w-full md:w-1/4">
-            <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              id="filterStatus"
-              className="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              value={filterStatus}
-              onChange={handleStatusChange}
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          
-          {/* Bags Scanned Slider */}
-          <div className="w-full md:w-1/4">
-            <label htmlFor="scanFilter" className="block text-sm font-medium text-gray-700 mb-1">
-              Bags Scanned: {scanFilter}% or more
-            </label>
-            <input
-              type="range"
-              id="scanFilter"
-              className="block w-full"
-              min="0"
-              max="100"
-              value={scanFilter}
-              onChange={(e) => setScanFilter(parseInt(e.target.value))}
-            />
-          </div>
+        </div>
+        
+        {/* Status Filter */}
+        <div className="w-full md:w-1/4">
+          <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            id="filterStatus"
+            className="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            value={filterStatus}
+            onChange={handleStatusChange}
+          >
+            <option value="All">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        
+        {/* Bags Scanned Slider */}
+        <div className="w-full md:w-1/4">
+          <label htmlFor="scanFilter" className="block text-sm font-medium text-gray-700 mb-1">
+            Bags Scanned: {scanFilter}% or more
+          </label>
+          <input
+            type="range"
+            id="scanFilter"
+            className="block w-full"
+            min="0"
+            max="100"
+            value={scanFilter}
+            onChange={(e) => setScanFilter(parseInt(e.target.value))}
+          />
         </div>
       </div>
       
@@ -850,93 +846,111 @@ const BagHistory = () => {
             </div>
             
             {/* Pagination */}
-            <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} entries
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Left: rows per page + entry info */}
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="rowsPerPage" className="whitespace-nowrap">Rows per page:</label>
+                    <select
+                      id="rowsPerPage"
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border border-gray-300 rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                  <span className="hidden sm:inline text-gray-400">|</span>
+                  <span>
+                    {totalCount === 0
+                      ? 'No entries'
+                      : `Showing ${(currentPage - 1) * itemsPerPage + 1}\u2013${Math.min(currentPage * itemsPerPage, totalCount)} of ${totalCount}`}
+                  </span>
+                </div>
+
+                {/* Right: page navigation */}
+                <nav className="inline-flex items-center gap-1" aria-label="Pagination">
+                  {/* First */}
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                    title="First page"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                  </button>
+
+                  {/* Previous */}
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                    title="Previous page"
                   >
-                    Previous
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  
-                  {/* Show limited page numbers with ellipsis for large number of pages */}
-                  {totalPages <= 7 ? (
-                    // If there are 7 or fewer pages, show all page numbers
-                    [...Array(totalPages).keys()].map(number => (
-                      <button
-                        key={number + 1}
-                        onClick={() => setCurrentPage(number + 1)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1 ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                      >
-                        {number + 1}
-                      </button>
-                    ))
-                  ) : (
-                    // If there are more than 7 pages, show with ellipsis
-                    <>
-                      {/* Always show first page */}
-                      <button
-                        onClick={() => setCurrentPage(1)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                      >
-                        1
-                      </button>
-                      
-                      {/* Show ellipsis if not near the beginning */}
-                      {currentPage > 3 && (
-                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                          ...
-                        </span>
-                      )}
-                      
-                      {/* Show pages around current page */}
-                      {[...Array(totalPages).keys()]
-                        .filter(number => {
-                          const page = number + 1;
-                          return (
-                            (page >= currentPage - 1 && page <= currentPage + 1) && // Show current page and adjacent pages
-                            page !== 1 && page !== totalPages // Exclude first and last pages as they're handled separately
-                          );
-                        })
-                        .map(number => (
-                          <button
-                            key={number + 1}
-                            onClick={() => setCurrentPage(number + 1)}
-                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1 ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                          >
-                            {number + 1}
-                          </button>
-                        ))
+
+                  {/* Page numbers */}
+                  {(() => {
+                    const pages = [];
+                    const safeTotalPages = Math.max(totalPages, 1);
+
+                    if (safeTotalPages <= 7) {
+                      for (let i = 1; i <= safeTotalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (currentPage > 3) pages.push('...');
+                      for (let i = Math.max(2, currentPage - 1); i <= Math.min(safeTotalPages - 1, currentPage + 1); i++) {
+                        pages.push(i);
                       }
-                      
-                      {/* Show ellipsis if not near the end */}
-                      {currentPage < totalPages - 2 && (
-                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                          ...
-                        </span>
-                      )}
-                      
-                      {/* Always show last page */}
-                      <button
-                        onClick={() => setCurrentPage(totalPages)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                      >
-                        {totalPages}
-                      </button>
-                    </>
-                  )}
-                  
+                      if (currentPage < safeTotalPages - 2) pages.push('...');
+                      pages.push(safeTotalPages);
+                    }
+
+                    return pages.map((page, idx) =>
+                      page === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm select-none">&hellip;</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`min-w-[36px] h-9 rounded-md text-sm font-medium transition-colors ${
+                            currentPage === page
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    );
+                  })()}
+
+                  {/* Next */}
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    disabled={currentPage >= totalPages}
+                    className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                    title="Next page"
                   >
-                    Next
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </button>
+
+                  {/* Last */}
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage >= totalPages}
+                    className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                    title="Last page"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
                   </button>
                 </nav>
               </div>

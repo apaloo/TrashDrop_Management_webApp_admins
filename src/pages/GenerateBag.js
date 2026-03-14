@@ -78,6 +78,7 @@ const GenerateBag = () => {
   const MAX_RETRIES = 3;
   const qrCodeRefs = useRef({});
   const workerRef = useRef(null);
+  const pendingPosterRequestRef = useRef(null);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -125,11 +126,25 @@ const GenerateBag = () => {
       worker.postMessage({ type: 'WORKER_READY' });
       
       worker.onmessage = (e) => {
-        const { type, progress, stage, chunks, content, filename, error } = e.data;
+        const { type, progress, stage, chunks, content, filename, error, requestId } = e.data;
         
         if (type === 'WORKER_READY') {
           setIsWorkerReady(true);
           setWorkerError(null);
+        } else if (type === 'POSTER_READY') {
+          if (pendingPosterRequestRef.current && pendingPosterRequestRef.current !== requestId) return;
+          pendingPosterRequestRef.current = null;
+
+          if (content && filename) {
+            try {
+              const blob = (content instanceof Blob)
+                ? content
+                : new Blob([content], { type: 'image/png' });
+              saveAs(blob, filename);
+            } catch (err) {
+              console.error('Error saving poster PNG:', err);
+            }
+          }
         } else if (type === 'PROGRESS') {
           setDownloadProgress(prev => ({
             ...prev,
@@ -182,6 +197,10 @@ const GenerateBag = () => {
           }
         } else if (type === 'ERROR') {
           handleWorkerError(error || 'An error occurred while generating QR codes');
+          pendingPosterRequestRef.current = null;
+        } else if (type === 'POSTER_ERROR') {
+          if (pendingPosterRequestRef.current && pendingPosterRequestRef.current !== requestId) return;
+          pendingPosterRequestRef.current = null;
         }
       };
       
@@ -267,6 +286,27 @@ const GenerateBag = () => {
       // Download the file
       const fileName = `batch-${batch.batch_number || batch.id.slice(0, 8)}-qr.svg`;
       saveAs(svgBlob, fileName);
+
+      try {
+        const is240L = String(batch.size || batch.bagSize || batch.capacity_label || '').toLowerCase().includes('240');
+        const isLarge = String(batch.size || batch.bagSize || '').toLowerCase() === 'large';
+        if ((is240L || isLarge) && workerRef.current) {
+          const requestId = `${batch.id}-${Date.now()}`;
+          pendingPosterRequestRef.current = requestId;
+          workerRef.current.postMessage({
+            type: 'GENERATE_POSTER_PNG',
+            payload: {
+              requestId,
+              batch: { id: batch.id, size: batch.size || batch.bagSize || '' },
+              baseUrl: 'https://trashdrops.com/scan',
+              email: user?.email || 'admin@trashdrop.com'
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error requesting poster PNG:', err);
+        pendingPosterRequestRef.current = null;
+      }
       
       console.log(`✅ Downloaded batch QR code: ${fileName}`);
       

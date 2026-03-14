@@ -11,6 +11,7 @@ import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 
 // Lazy load components for better performance
+const HomePage = lazy(() => import('./pages/HomePage'));
 const Login = lazy(() => import('./pages/Login'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
@@ -142,6 +143,11 @@ function App() {
               </div>
             }>
               <Routes>
+              {/* Homepage - public landing page */}
+              <Route path="/" element={
+                <HomePage />
+              } />
+              
               {/* Public routes */}
               <Route path="/login" element={
                 <PublicRoute>
@@ -251,7 +257,7 @@ function App() {
               } />
               
               {/* Default redirect */}
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
             {/* Modal Manager to handle all modals across the application */}

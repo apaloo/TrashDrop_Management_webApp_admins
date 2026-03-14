@@ -424,30 +424,50 @@ const IllegalDumpingMap = () => {
   };
   
   return (
-    <div className="p-4" style={{ marginTop: '10px' }}>
-      <div className="mb-6">
+    <div className="p-4">
+      <div className="mb-4">
         <h1 className="text-2xl font-semibold text-gray-800">Illegal Dumping Map</h1>
-        <p className="text-gray-600">Monitor and manage illegal dumping reports geographically</p>
+        <p className="text-sm text-gray-500">Monitor and manage illegal dumping reports geographically</p>
       </div>
       
       {/* KPI Cards */}
       {!loading && metrics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p className="text-sm text-gray-500">Total Reports</p>
-            <p className="text-2xl font-bold">{metrics.totalReports}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-flag text-blue-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Total Reports</p>
+              <p className="text-xl font-bold text-gray-800">{metrics.totalReports}</p>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p className="text-sm text-gray-500">Verification Rate</p>
-            <p className="text-2xl font-bold">{(metrics.verificationRate || 0).toFixed(1)}%</p>
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-check-circle text-green-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Verification Rate</p>
+              <p className="text-xl font-bold text-gray-800">{(metrics.verificationRate || 0).toFixed(1)}%</p>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p className="text-sm text-gray-500">Cleaned Up</p>
-            <p className="text-2xl font-bold">{metrics.cleanedUpReports}</p>
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-broom text-emerald-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Cleaned Up</p>
+              <p className="text-xl font-bold text-gray-800">{metrics.cleanedUpReports}</p>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p className="text-sm text-gray-500">Avg Cleanup Time</p>
-            <p className="text-2xl font-bold">{(metrics.avgCleanupTimeHours || 0).toFixed(1)} hrs</p>
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-clock text-orange-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Avg Cleanup</p>
+              <p className="text-xl font-bold text-gray-800">{(metrics.avgCleanupTimeHours || 0).toFixed(1)} hrs</p>
+            </div>
           </div>
         </div>
       )}
@@ -464,15 +484,15 @@ const IllegalDumpingMap = () => {
       )}
       
       {/* Refresh toolbar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-gray-500">
-          Last updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : '—'}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs text-gray-400">
+          {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : ''}
         </div>
-        <div className="flex items-center space-x-4">
-          <label className="inline-flex items-center text-sm text-gray-700">
+        <div className="flex items-center gap-3">
+          <label className="inline-flex items-center text-xs text-gray-600 cursor-pointer select-none">
             <input
               type="checkbox"
-              className="mr-2 accent-blue-600"
+              className="mr-1.5 accent-green-600 h-3.5 w-3.5"
               checked={autoRefreshEnabled}
               onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
             />
@@ -481,40 +501,31 @@ const IllegalDumpingMap = () => {
           <button
             onClick={() => refreshData(false)}
             disabled={loading}
-            className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium border transition-colors ${loading ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+            className={`inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${loading ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-green-600 text-white border-green-600 hover:bg-green-700'}`}
             title="Refresh data"
           >
-            {loading ? (
-              <>
-                <i className="fas fa-sync-alt fa-spin mr-2"></i>
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-sync-alt mr-2"></i>
-                Refresh
-              </>
-            )}
+            <i className={`fas fa-sync-alt mr-1.5 ${loading ? 'fa-spin' : ''}`}></i>
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
       
       {/* Filters section */}
-      <div className="bg-white rounded-lg shadow-sm border-0 p-4 mb-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Filters</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
           <button 
-            className="text-blue-600 text-sm flex items-center hover:underline"
+            className="text-xs text-gray-500 flex items-center hover:text-green-600 transition-colors"
             onClick={resetFilters}
           >
-            <i className="fas fa-undo-alt mr-1"></i> Reset All
+            <i className="fas fa-undo-alt mr-1 text-[10px]"></i> Reset All
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           {/* Status filters */}
           <div>
-            <p className="text-sm font-medium mb-2">Status</p>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Status</p>
             <div className="flex flex-wrap gap-2">
               {Object.entries(STATUS.ILLEGAL_DUMPING).map(([key, value]) => {
                 const isActive = filters.status.includes(value);
@@ -543,7 +554,7 @@ const IllegalDumpingMap = () => {
           
           {/* Severity filters */}
           <div>
-            <p className="text-sm font-medium mb-2">Severity</p>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Severity</p>
             <div className="flex flex-wrap gap-2">
               {Object.entries(SEVERITY).map(([key, value]) => {
                 const isActive = filters.severity.includes(value);
@@ -571,7 +582,7 @@ const IllegalDumpingMap = () => {
           
           {/* Waste type filters */}
           <div>
-            <p className="text-sm font-medium mb-2">Waste Type</p>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Waste Type</p>
             <div className="flex flex-wrap gap-2">
               {Object.entries(WASTE_TYPE).map(([key, value]) => {
                 const isActive = filters.wasteType.includes(value);
@@ -591,24 +602,27 @@ const IllegalDumpingMap = () => {
         </div>
         
         {/* Date range filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium mb-2">From Date</p>
+        <div className="flex flex-wrap items-end gap-3 pt-3 border-t border-gray-100">
+          <div className="flex-1 min-w-[140px]">
+            <p className="text-xs font-medium text-gray-500 mb-1">From</p>
             <input
               type="date"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
               value={dateRange.start || ''}
               onChange={(e) => handleDateRangeChange('start', e.target.value)}
             />
           </div>
-          <div>
-            <p className="text-sm font-medium mb-2">To Date</p>
+          <div className="flex-1 min-w-[140px]">
+            <p className="text-xs font-medium text-gray-500 mb-1">To</p>
             <input
               type="date"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
               value={dateRange.end || ''}
               onChange={(e) => handleDateRangeChange('end', e.target.value)}
             />
+          </div>
+          <div className="text-xs text-gray-400 py-1.5">
+            {filteredReports ? filteredReports.length : 0} of {dumpingReportData.length} reports shown
           </div>
         </div>
       </div>
@@ -616,7 +630,7 @@ const IllegalDumpingMap = () => {
       {/* Map container with sidebar layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Map container - takes 2/3 of the width on medium+ screens */}
-        <div className="md:col-span-2 rounded-lg overflow-hidden" style={{ height: "600px" }}>
+        <div className="md:col-span-2 rounded-lg overflow-hidden border border-gray-200 relative" style={{ height: "560px" }}>
           {loading ? (
             <div className="bg-gray-100 h-full flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -697,7 +711,7 @@ const IllegalDumpingMap = () => {
           
           {/* No reports overlay */}
           {!loading && (!filteredReports || filteredReports.length === 0) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-90 z-[500] pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-[500] pointer-events-none">
               <div className="text-center p-8">
                 <i className="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
                 <h3 className="text-xl font-semibold text-gray-600 mb-2">No Reports Found</h3>
@@ -711,38 +725,36 @@ const IllegalDumpingMap = () => {
           )}
           
           {/* Map mode controls */}
-          <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-md p-2 z-[400]">
-            <div className="flex space-x-2">
-              <button
-                className={`p-2 rounded ${mapMode === 'default' ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700'}`}
-                onClick={() => setMapMode('default')}
-                title="Default map view"
-              >
-                <i className="fas fa-map"></i>
-              </button>
-              <button
-                className={`p-2 rounded ${mapMode === 'satellite' ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700'}`}
-                onClick={() => setMapMode('satellite')}
-                title="Satellite view"
-              >
-                <i className="fas fa-satellite"></i>
-              </button>
-              <button
-                className="p-2 rounded bg-white text-gray-700 hover:bg-gray-100"
-                onClick={centerMap}
-                title="Center map"
-              >
-                <i className="fas fa-crosshairs"></i>
-              </button>
-            </div>
+          <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-1.5 z-[400] flex gap-1">
+            <button
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'default' ? 'bg-green-100 text-green-700' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              onClick={() => setMapMode('default')}
+              title="Default map view"
+            >
+              <i className="fas fa-map"></i>
+            </button>
+            <button
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'satellite' ? 'bg-green-100 text-green-700' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              onClick={() => setMapMode('satellite')}
+              title="Satellite view"
+            >
+              <i className="fas fa-satellite"></i>
+            </button>
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-md text-sm bg-white text-gray-500 hover:bg-gray-100 transition-colors"
+              onClick={centerMap}
+              title="Center map"
+            >
+              <i className="fas fa-crosshairs"></i>
+            </button>
           </div>
         </div>
         
         {/* Sidebar for selected report details - 1/3 width */}
-        <div className="bg-white p-4 rounded-lg shadow-sm h-600 overflow-y-auto">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 overflow-y-auto" style={{ height: '560px' }}>
           {selectedDumping ? (
             <div>
-              <h3 className="font-semibold text-lg mb-4">Report Details</h3>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Report Details</h3>
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-500">Report ID</p>
@@ -812,9 +824,11 @@ const IllegalDumpingMap = () => {
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500">
-              <i className="fas fa-map-marker-alt text-5xl mb-4"></i>
-              <p>Select a dumping report on the map to view details</p>
+            <div className="h-full flex flex-col items-center justify-center text-gray-400">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <i className="fas fa-map-marker-alt text-2xl text-gray-300"></i>
+              </div>
+              <p className="text-sm text-center leading-relaxed">Select a dumping report on the map<br/>to view details</p>
             </div>
           )}
         </div>
