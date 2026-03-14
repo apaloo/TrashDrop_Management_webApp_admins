@@ -160,14 +160,63 @@ const HomeNavbar = ({ isAuthenticated }) => {
   );
 };
 
+const HERO_STATS = [
+  {
+    title: 'Active Reports',
+    value: '1,247',
+    change: '+12% this month',
+    icon: 'fa-exclamation-circle',
+    iconBg: 'bg-red-500/20',
+    iconColor: 'text-red-400',
+  },
+  {
+    title: 'Cleanups Done',
+    value: '892',
+    change: '+8% this month',
+    icon: 'fa-check-circle',
+    iconBg: 'bg-green-500/20',
+    iconColor: 'text-green-400',
+  },
+  {
+    title: 'Active Communities',
+    value: '156',
+    change: '+24% this quarter',
+    icon: 'fa-users',
+    iconBg: 'bg-blue-500/20',
+    iconColor: 'text-blue-300',
+  },
+];
+
+const StatsCard = ({ title, value, change, icon, iconBg, iconColor, className = '' }) => (
+  <div
+    className={`bg-slate-900/70 border border-white/10 backdrop-blur-[12px] rounded-2xl p-5 shadow-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-green-600/30 ${className}`}
+  >
+    <div className="flex items-center space-x-3 mb-4">
+      <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}>
+        <i className={`fas ${icon} ${iconColor}`}></i>
+      </div>
+      <span className="text-white/70 text-sm font-medium tracking-wide">{title}</span>
+    </div>
+    <p className="text-3xl font-bold text-white">{value}</p>
+    <p className="text-xs text-green-300 mt-2">{change}</p>
+  </div>
+);
+
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 const HeroSection = ({ isAuthenticated }) => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-green-900 to-gray-900"></div>
+    <section className="relative min-h-screen sm:min-h-[90vh] flex items-center overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img
+          src="/images/gradient-background.jpg"
+          alt="Emerald gradient backdrop"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-emerald-900/60 to-black/50"></div>
+      </div>
 
       {/* Animated grid pattern */}
       <div className="absolute inset-0 opacity-10" style={{
@@ -180,7 +229,17 @@ const HeroSection = ({ isAuthenticated }) => {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+      {/* Watermark text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+        <p
+          className="text-white/5 text-4xl sm:text-6xl lg:text-7xl tracking-[0.4em] text-center leading-tight px-4"
+          style={{ fontFamily: 'Montserrat, sans-serif' }}
+        >
+          COLLECTING WASTE MADE EASY
+        </p>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-12 sm:pb-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left column - text */}
           <div className="text-center lg:text-left">
@@ -189,7 +248,7 @@ const HeroSection = ({ isAuthenticated }) => {
               REAL-TIME ENVIRONMENTAL INTELLIGENCE
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-4 sm:mb-6">
               Track. Report.{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
                 Eliminate
@@ -197,17 +256,17 @@ const HeroSection = ({ isAuthenticated }) => {
               Illegal Dumping.
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-base sm:text-lg xl:text-xl text-gray-300 mb-8 sm:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               TrashDrop empowers communities, cities, and environmental agencies to detect, report, and eliminate
               illegal waste dumping using real-time mapping and data intelligence.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start flex-wrap">
               <a
                 href="#map"
-                className="group inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-xl shadow-green-600/25 hover:shadow-green-600/40 hover:-translate-y-0.5"
+                className="group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-all shadow-xl shadow-green-500/30 hover:shadow-green-500/50 hover:-translate-y-0.5"
               >
-                <i className="fas fa-map-marked-alt mr-3 text-green-300 group-hover:text-white transition-colors"></i>
+                <i className="fas fa-map-marked-alt mr-3 text-green-200 group-hover:text-white transition-colors"></i>
                 View Illegal Dump Map
               </a>
               <button
@@ -218,14 +277,14 @@ const HeroSection = ({ isAuthenticated }) => {
                     navigate('/signup');
                   }
                 }}
-                className="group inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all hover:-translate-y-0.5"
+                className="group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-yellow-400 text-emerald-900 font-semibold rounded-xl border border-yellow-300/60 hover:bg-yellow-300 transition-all hover:-translate-y-0.5 shadow-lg shadow-yellow-500/30"
               >
-                <i className="fas fa-exclamation-triangle mr-3 text-yellow-400"></i>
+                <i className="fas fa-exclamation-triangle mr-3 text-emerald-900"></i>
                 Report Illegal Dump
               </button>
               <a
                 href="#partners"
-                className="group inline-flex items-center justify-center px-8 py-4 text-green-400 font-semibold rounded-xl border border-green-500/30 hover:bg-green-500/10 transition-all hover:-translate-y-0.5"
+                className="group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-green-400 font-semibold rounded-xl border border-green-500/30 hover:bg-green-500/10 transition-all hover:-translate-y-0.5"
               >
                 <i className="fas fa-handshake mr-3"></i>
                 Partner with Us
@@ -236,49 +295,26 @@ const HeroSection = ({ isAuthenticated }) => {
           {/* Right column - floating stat cards */}
           <div className="hidden lg:block relative">
             <div className="relative h-[420px]">
-              {/* Card 1 */}
-              <div className="absolute top-0 right-0 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10 shadow-2xl w-64 transform hover:scale-105 transition-transform">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-                    <i className="fas fa-exclamation-circle text-red-400"></i>
-                  </div>
-                  <span className="text-white/70 text-sm font-medium">Active Reports</span>
-                </div>
-                <p className="text-3xl font-bold text-white">1,247</p>
-                <p className="text-xs text-green-400 mt-1"><i className="fas fa-arrow-up mr-1"></i>12% this month</p>
-              </div>
-              {/* Card 2 */}
-              <div className="absolute top-36 left-0 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10 shadow-2xl w-64 transform hover:scale-105 transition-transform">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <i className="fas fa-check-circle text-green-400"></i>
-                  </div>
-                  <span className="text-white/70 text-sm font-medium">Cleanups Done</span>
-                </div>
-                <p className="text-3xl font-bold text-white">892</p>
-                <p className="text-xs text-green-400 mt-1"><i className="fas fa-arrow-up mr-1"></i>8% this month</p>
-              </div>
-              {/* Card 3 */}
-              <div className="absolute bottom-0 right-10 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/10 shadow-2xl w-64 transform hover:scale-105 transition-transform">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <i className="fas fa-users text-blue-400"></i>
-                  </div>
-                  <span className="text-white/70 text-sm font-medium">Active Communities</span>
-                </div>
-                <p className="text-3xl font-bold text-white">156</p>
-                <p className="text-xs text-green-400 mt-1"><i className="fas fa-arrow-up mr-1"></i>24% this quarter</p>
-              </div>
+              <StatsCard {...HERO_STATS[0]} className="absolute top-0 right-0 w-64" />
+              <StatsCard {...HERO_STATS[1]} className="absolute top-36 left-0 w-64" />
+              <StatsCard {...HERO_STATS[2]} className="absolute bottom-0 right-10 w-64" />
             </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <a href="#map" className="text-white/50 hover:text-white/80 transition-colors">
-            <i className="fas fa-chevron-down text-2xl"></i>
-          </a>
+        {/* Mobile / tablet stats grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10 lg:hidden">
+          {HERO_STATS.map((stat) => (
+            <StatsCard key={stat.title} {...stat} />
+          ))}
         </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <a href="#map" className="text-white/50 hover:text-white/80 transition-colors">
+          <i className="fas fa-chevron-down text-2xl"></i>
+        </a>
       </div>
     </section>
   );
@@ -693,7 +729,7 @@ const ImpactSection = () => (
 
 // ─── How It Works Section (inspired by tracking flyer) ───────────────────────
 const HowItWorksSection = () => (
-  <section className="py-20 bg-gradient-to-b from-blue-50 via-white to-green-50 relative overflow-hidden">
+  <section className="py-12 sm:py-20 bg-gradient-to-b from-blue-50 via-white to-green-50 relative overflow-hidden">
     {/* Decorative dots */}
     <div className="absolute top-8 right-8 grid grid-cols-5 gap-2 opacity-20">
       {Array.from({ length: 15 }).map((_, i) => (
@@ -709,31 +745,31 @@ const HowItWorksSection = () => (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="text-center mb-16">
-        <div className="inline-flex items-center justify-center mb-6">
-          <img src="/logo.svg" alt="TrashDrop" className="h-12 w-12 mr-3" />
+        <div className="inline-flex items-center justify-center mb-4 sm:mb-6">
+          <img src="/logo.svg" alt="TrashDrop" className="h-10 w-10 sm:h-12 sm:w-12 mr-2.5 sm:mr-3" />
           <span className="text-2xl font-bold text-gray-900">Trash<span className="text-green-600">Drop</span></span>
         </div>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 sm:mb-4 leading-tight">
           What happens to your waste<br />after it leaves your home?
         </h2>
         <div className="inline-block mt-4">
-          <div className="bg-green-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg shadow-green-600/30">
+          <div className="bg-green-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-semibold shadow-lg shadow-green-600/30">
             With TrashDrop, you don't have to guess.
           </div>
         </div>
       </div>
 
       {/* Tracking Flow - 3 Steps */}
-      <div className="grid md:grid-cols-3 gap-8 lg:gap-12 mb-16">
+      <div className="grid md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 mb-12 sm:mb-16">
         {/* Step 1 - QR Tagged Bag */}
         <div className="relative group">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all hover:-translate-y-1 text-center h-full">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <i className="fas fa-qrcode text-3xl text-blue-600"></i>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
+              <i className="fas fa-qrcode text-2xl sm:text-3xl text-blue-600"></i>
             </div>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">QR-Tagged Bag</h3>
-            <p className="text-gray-600 leading-relaxed">Every bag is tagged with a unique QR code, creating a digital identity for your waste from the moment it leaves your doorstep.</p>
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center shadow-lg">1</div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">QR-Tagged Bag</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">Every bag is tagged with a unique QR code, creating a digital identity for your waste from the moment it leaves your doorstep.</p>
           </div>
           {/* Arrow connector (hidden on mobile) */}
           <div className="hidden md:flex absolute top-1/2 -right-6 lg:-right-8 w-10 items-center z-10">
@@ -745,12 +781,12 @@ const HowItWorksSection = () => (
         {/* Step 2 - Tracked Pickup */}
         <div className="relative group">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all hover:-translate-y-1 text-center h-full">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-green-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <i className="fas fa-truck text-3xl text-green-600"></i>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-green-100 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
+              <i className="fas fa-truck text-2xl sm:text-3xl text-green-600"></i>
             </div>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Tracked Pickup</h3>
-            <p className="text-gray-600 leading-relaxed">Our verified collectors scan and pick up your waste. Track the real-time location and status of your bag on the TrashDrop app.</p>
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center shadow-lg">2</div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">Tracked Pickup</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">Our verified collectors scan and pick up your waste. Track the real-time location and status of your bag on the TrashDrop app.</p>
           </div>
           {/* Arrow connector (hidden on mobile) */}
           <div className="hidden md:flex absolute top-1/2 -right-6 lg:-right-8 w-10 items-center z-10">
@@ -762,18 +798,18 @@ const HowItWorksSection = () => (
         {/* Step 3 - Verified Landfill */}
         <div className="relative group">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all hover:-translate-y-1 text-center h-full">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-emerald-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <i className="fas fa-map-marked-alt text-3xl text-emerald-600"></i>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-emerald-100 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
+              <i className="fas fa-map-marked-alt text-2xl sm:text-3xl text-emerald-600"></i>
             </div>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shadow-lg">3</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Verified Landfill</h3>
-            <p className="text-gray-600 leading-relaxed">Waste arrives at a legally mapped, verified disposal site. You get confirmation that your waste was properly handled.</p>
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center shadow-lg">3</div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">Verified Landfill</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">Waste arrives at a legally mapped, verified disposal site. You get confirmation that your waste was properly handled.</p>
           </div>
         </div>
       </div>
 
       {/* Key Promises */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 lg:p-10 max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto">
         <div className="space-y-5">
           <div className="flex items-start gap-4">
             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -826,16 +862,16 @@ const DigitalBinSection = () => (
     </div>
 
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         {/* Left side — visual / icon representation */}
         <div className="relative flex justify-center">
           <div className="relative">
             {/* Large bin icon container */}
-            <div className="w-64 h-72 sm:w-72 sm:h-80 bg-gradient-to-b from-blue-100 via-blue-50 to-green-50 rounded-3xl flex items-center justify-center shadow-2xl border border-blue-100 relative overflow-hidden">
+            <div className="w-48 h-56 sm:w-64 sm:h-72 lg:w-72 lg:h-80 bg-gradient-to-b from-blue-100 via-blue-50 to-green-50 rounded-3xl flex items-center justify-center shadow-2xl border border-blue-100 relative overflow-hidden">
               {/* Subtle radial glow */}
               <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-green-100/60 to-transparent"></div>
               <div className="relative text-center">
-                <i className="fas fa-dumpster text-7xl sm:text-8xl text-blue-600 mb-4 drop-shadow-lg"></i>
+                <i className="fas fa-dumpster text-5xl sm:text-6xl lg:text-7xl text-blue-600 mb-3 sm:mb-4 drop-shadow-lg"></i>
                 <div className="flex justify-center gap-2 mt-2">
                   <div className="w-6 h-8 bg-gray-700 rounded-sm opacity-70"></div>
                   <div className="w-6 h-8 bg-gray-700 rounded-sm opacity-80"></div>
@@ -845,12 +881,12 @@ const DigitalBinSection = () => (
               </div>
             </div>
             {/* Floating QR badge */}
-            <div className="absolute -top-4 -right-4 w-16 h-16 bg-white rounded-2xl shadow-xl border border-gray-100 flex items-center justify-center">
-              <i className="fas fa-qrcode text-2xl text-green-600"></i>
+            <div className="absolute -top-3 -right-3 w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white rounded-2xl shadow-xl border border-gray-100 flex items-center justify-center">
+              <i className="fas fa-qrcode text-lg sm:text-xl lg:text-2xl text-green-600"></i>
             </div>
             {/* Floating check badge */}
-            <div className="absolute -bottom-3 -left-3 w-14 h-14 bg-green-600 rounded-2xl shadow-xl flex items-center justify-center">
-              <i className="fas fa-check text-white text-xl"></i>
+            <div className="absolute -bottom-2 -left-2 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-green-600 rounded-2xl shadow-xl flex items-center justify-center">
+              <i className="fas fa-check text-white text-sm sm:text-base lg:text-xl"></i>
             </div>
           </div>
         </div>
@@ -872,10 +908,10 @@ const DigitalBinSection = () => (
           </p>
 
           {/* 3-step mini flow */}
-          <div className="space-y-4 mb-10">
+          <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
             <div className="flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                <i className="fas fa-hand-pointer text-blue-600 text-lg"></i>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <i className="fas fa-hand-pointer text-blue-600 text-base sm:text-lg"></i>
               </div>
               <div>
                 <p className="font-bold text-gray-900">Request</p>
@@ -883,8 +919,8 @@ const DigitalBinSection = () => (
               </div>
             </div>
             <div className="flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                <i className="fas fa-cogs text-green-600 text-lg"></i>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <i className="fas fa-cogs text-green-600 text-base sm:text-lg"></i>
               </div>
               <div>
                 <p className="font-bold text-gray-900">Generate</p>
@@ -892,8 +928,8 @@ const DigitalBinSection = () => (
               </div>
             </div>
             <div className="flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                <i className="fas fa-check-circle text-emerald-600 text-lg"></i>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <i className="fas fa-check-circle text-emerald-600 text-base sm:text-lg"></i>
               </div>
               <div>
                 <p className="font-bold text-gray-900">Done</p>
@@ -904,7 +940,7 @@ const DigitalBinSection = () => (
 
           {/* CTA pill */}
           <div className="inline-block">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3.5 rounded-full text-lg font-bold shadow-lg shadow-green-600/30">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full text-base sm:text-lg font-bold shadow-lg shadow-green-600/30">
               REQUEST. GENERATE. DONE.
             </div>
           </div>
@@ -922,7 +958,7 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-20 bg-gradient-to-b from-green-50 via-white to-blue-50 relative overflow-hidden">
+    <section className="py-12 sm:py-20 bg-gradient-to-b from-green-50 via-white to-blue-50 relative overflow-hidden">
       {/* Decorative dots */}
       <div className="absolute top-10 right-10 grid grid-cols-5 gap-2 opacity-15">
         {Array.from({ length: 15 }).map((_, i) => (
@@ -948,40 +984,40 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
             </h2>
 
             <div className="inline-block mb-6">
-              <div className="bg-green-600 text-white px-6 py-2.5 rounded-full text-base font-bold shadow-lg shadow-green-600/30">
+              <div className="bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm sm:text-base font-bold shadow-lg shadow-green-600/30">
                 REPORT IT IN SECONDS!
               </div>
             </div>
 
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg">
+            <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-lg">
               Join the Trash Walk &amp; keep your community clean. Spot illegal dumping anywhere? Report it instantly through the TrashDrop app.
             </p>
 
             {/* Feature checklist */}
-            <div className="space-y-4 mb-10">
+            <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <i className="fas fa-check text-green-600 text-sm"></i>
                 </div>
-                <p className="text-lg font-semibold text-gray-800">Snap a pic</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-800">Snap a pic</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <i className="fas fa-check text-green-600 text-sm"></i>
                 </div>
-                <p className="text-lg font-semibold text-gray-800">Get location auto-filled</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-800">Get location auto-filled</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <i className="fas fa-check text-green-600 text-sm"></i>
                 </div>
-                <p className="text-lg font-semibold text-gray-800">Report with one tap</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-800">Report with one tap</p>
               </div>
             </div>
 
             {/* CTA pill + tagline */}
             <div className="inline-block mb-4">
-              <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-8 py-3.5 rounded-full text-lg font-bold shadow-lg shadow-red-500/30">
+              <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full text-base sm:text-lg font-bold shadow-lg shadow-red-500/30">
                 STOP DUMPING. TAKE A TRASH WALK.
               </div>
             </div>
@@ -993,7 +1029,7 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
             <div className="mt-8">
               <button
                 onClick={() => isAuthenticated ? navigate('/illegal-dumping/reports') : navigate('/signup')}
-                className="inline-flex items-center px-8 py-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40 hover:-translate-y-0.5"
+                className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40 hover:-translate-y-0.5"
               >
                 <i className="fas fa-exclamation-triangle mr-3 text-yellow-300"></i>
                 {isAuthenticated ? 'Report Illegal Dump' : 'Sign Up to Report'}
@@ -1005,7 +1041,7 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
           <div className="order-1 lg:order-2 flex justify-center">
             <div className="relative">
               {/* Phone frame */}
-              <div className="w-64 sm:w-72 bg-white rounded-[2.5rem] shadow-2xl border-4 border-gray-800 overflow-hidden relative">
+              <div className="w-56 sm:w-64 lg:w-72 bg-white rounded-[2.5rem] shadow-2xl border-4 border-gray-800 overflow-hidden relative">
                 {/* Status bar */}
                 <div className="bg-gray-800 text-white text-[10px] flex items-center justify-between px-6 pt-3 pb-1">
                   <span>9:41</span>
@@ -1024,14 +1060,14 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
                   <i className="fas fa-bell text-sm"></i>
                 </div>
                 {/* Screen content */}
-                <div className="p-5 bg-gray-50 min-h-[320px]">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Report Illegal</h3>
-                  <h3 className="text-lg font-bold text-gray-900 mb-5">Dumping</h3>
+                <div className="p-4 sm:p-5 bg-gray-50 min-h-[280px] sm:min-h-[320px]">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Report Illegal</h3>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-5">Dumping</h3>
 
                   {/* Photo placeholder */}
-                  <div className="bg-gray-200 rounded-xl h-24 flex items-center justify-center mb-4 border-2 border-dashed border-gray-300">
+                  <div className="bg-gray-200 rounded-xl h-20 sm:h-24 flex items-center justify-center mb-3 sm:mb-4 border-2 border-dashed border-gray-300">
                     <div className="text-center">
-                      <i className="fas fa-camera text-2xl text-gray-400 mb-1"></i>
+                      <i className="fas fa-camera text-xl sm:text-2xl text-gray-400 mb-1"></i>
                       <p className="text-xs text-gray-400">Tap to add photo</p>
                     </div>
                   </div>
@@ -1049,7 +1085,7 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
                   </div>
 
                   {/* Report button */}
-                  <button className="w-full mt-5 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md text-sm">
+                  <button className="w-full mt-4 sm:mt-5 bg-green-600 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md text-sm">
                     Report It
                   </button>
                 </div>
