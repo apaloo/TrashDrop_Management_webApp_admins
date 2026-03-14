@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/auth';
+import { SECTIONS, canAccessSection } from '../constants/accessControl';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -15,13 +16,13 @@ const Sidebar = () => {
       title: 'Dashboard', 
       path: '/dashboard',
       icon: 'fas fa-tachometer-alt',
-      roles: ['user', 'admin', 'manager'] 
+      section: SECTIONS.DASHBOARD 
     },
     { 
       title: 'Request Pickup', 
       path: '/request-pickup',
       icon: 'fas fa-truck',
-      roles: ['user', 'admin', 'manager'],
+      section: SECTIONS.REQUEST_PICKUP,
       children: [
         { title: 'Live Map', path: '/request-pickup/live-map' },
         { title: 'Pickup Requests', path: '/request-pickup/requests' },
@@ -34,7 +35,7 @@ const Sidebar = () => {
       title: 'Bin Management', 
       path: '/bin-management',
       icon: 'fas fa-dumpster',
-      roles: ['user', 'admin', 'manager'],
+      section: SECTIONS.BIN_MANAGEMENT,
       children: [
         { title: 'Generate Bag', path: '/bin-management/generate' },
         { title: 'Bag Management', path: '/bin-management/manage' },
@@ -45,7 +46,7 @@ const Sidebar = () => {
       title: 'Illegal Dumping', 
       path: '/illegal-dumping',
       icon: 'fas fa-trash-alt',
-      roles: ['user', 'admin', 'manager'],
+      section: SECTIONS.ILLEGAL_DUMPING,
       children: [
         { title: 'Map', path: '/illegal-dumping/map' },
         { title: 'Reports', path: '/illegal-dumping/reports' },
@@ -56,15 +57,12 @@ const Sidebar = () => {
       title: 'Settings', 
       path: '/settings',
       icon: 'fas fa-cog',
-      roles: ['user', 'admin', 'manager'] 
+      section: SECTIONS.SETTINGS 
     }
   ];
 
   // Check if the menu item should be displayed based on user role
-  const canView = (itemRoles) => {
-    if (!itemRoles || itemRoles.length === 0) return true;
-    return itemRoles.includes(role);
-  };
+  const canView = (section) => canAccessSection(section, role, user);
 
   // Check if the current path matches or is a child of a menu item
   const isActive = (path, children) => {
@@ -119,7 +117,7 @@ const Sidebar = () => {
       <nav className="flex-1 px-3">
         <div className="space-y-1">
           {menuItems
-            .filter(item => canView(item.roles))
+            .filter(item => canView(item.section))
             .map((item, index) => {
               const isActive = location.pathname === item.path || 
                             (item.children && item.children.some(child => location.pathname === child.path));

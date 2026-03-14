@@ -9,6 +9,7 @@ import IllegalDumpingHistory from './pages/IllegalDumpingHistory';
 import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
+import { SECTIONS, canAccessSection } from './constants/accessControl';
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -31,8 +32,8 @@ const AlertsManagement = lazy(() => import('./pages/AlertsManagement'));
 const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, onboardingCompleted, authInitialized, refreshAuthState } = useAuth();
+const ProtectedRoute = ({ children, section }) => {
+  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user } = useAuth();
   const currentPath = window.location.pathname;
   
   console.log('ProtectedRoute check:', { 
@@ -40,7 +41,9 @@ const ProtectedRoute = ({ children }) => {
     isAuthenticated,
     loading,
     onboardingCompleted,
-    authInitialized
+    authInitialized,
+    role,
+    section
   });
   
   // Don't try to redirect or refresh until auth is fully initialized
@@ -68,6 +71,11 @@ const ProtectedRoute = ({ children }) => {
   if (!effectiveOnboardingStatus && currentPath !== '/onboarding') {
     console.log('ProtectedRoute: Onboarding not completed, redirecting to onboarding');
     return <Navigate to="/onboarding" replace />;
+  }
+  
+  if (section && !canAccessSection(section, role, user)) {
+    console.warn('ProtectedRoute: Access denied for section', section, { role, email: user?.email });
+    return <Navigate to="/dashboard" replace />;
   }
   
   console.log('ProtectedRoute: All checks passed, rendering children');
@@ -177,70 +185,70 @@ function App() {
               
               {/* Protected routes */}
               <Route path="/dashboard" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.DASHBOARD}>
                   <Dashboard />
                 </ProtectedRoute>
               } />
               
               {/* Request Pickup Management Routes */}
               <Route path="/request-pickup/live-map" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
                   <LiveMap />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/requests" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
                   <RequestPickupManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/collectors" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
                   <CollectorsManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/alerts" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
                   <AlertsManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/logs" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
                   <LogsManagement />
                 </ProtectedRoute>
               } />
               
               {/* Bin Management Routes */}
               <Route path="/bin-management/generate" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
                   <GenerateBag />
                 </ProtectedRoute>
               } />
               <Route path="/bin-management/manage" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
                   <BagManagement />
                 </ProtectedRoute>
               } />
               <Route path="/bin-management/history" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
                   <BagHistory />
                 </ProtectedRoute>
               } />
               
               {/* Illegal Dumping Routes */}
               <Route path="/illegal-dumping/map" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.ILLEGAL_DUMPING}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <IllegalDumpingMap />
                   </Suspense>
                 </ProtectedRoute>
               } />
               <Route path="/illegal-dumping/reports" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.ILLEGAL_DUMPING}>
                   <IllegalDumpingManagement />
                 </ProtectedRoute>
               } />
               <Route path="/illegal-dumping/history" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.ILLEGAL_DUMPING}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <IllegalDumpingHistory />
                   </Suspense>
@@ -249,7 +257,7 @@ function App() {
               
               {/* Settings route */}
               <Route path="/settings" element={
-                <ProtectedRoute>
+                <ProtectedRoute section={SECTIONS.SETTINGS}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <Settings />
                   </Suspense>

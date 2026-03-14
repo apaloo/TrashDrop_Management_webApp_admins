@@ -96,11 +96,13 @@ const Login = () => {
     } catch (err) {
       console.error('Login error details:', err);
       if (err.message && err.message.includes('Email not confirmed')) {
-        setError('Email not confirmed. Please check your inbox and click the verification link, or contact support for assistance.');
+        setError('⚠️ Email Verification Required: Please check your email inbox and click the verification link we sent you. If you cannot find it, check your spam folder or contact support.');
       } else if (err.message && err.message.includes('credentials')) {
-        setError('Invalid email or password');
+        setError('❌ Login Failed: Invalid email or password. If you just signed up, please verify your email first by clicking the link sent to your inbox.');
+      } else if (err.message && err.message.includes('Invalid login')) {
+        setError('❌ Login Failed: Invalid credentials. If you recently created an account, please verify your email address first by clicking the verification link sent to your inbox.');
       } else {
-        setError(err.message || 'Failed to sign in');
+        setError(err.message || 'Failed to sign in. Please try again.');
       }
     } finally {
       setLoading(false);

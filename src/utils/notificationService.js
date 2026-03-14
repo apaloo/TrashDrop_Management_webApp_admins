@@ -13,7 +13,9 @@ export const fetchNotifications = async () => {
   const userId = user?.id;
   
   if (!userId) {
-    throw new Error('User not authenticated');
+    // Silently return empty array for unauthenticated users instead of throwing error
+    // This prevents console spam on public pages
+    return [];
   }
   
   const { data: notifications, error } = await dbFetchNotifications({ 

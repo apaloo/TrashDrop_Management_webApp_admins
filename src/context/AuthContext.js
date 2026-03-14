@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../utils/supabase';
-import { getCurrentUser, hasCompletedOnboarding } from '../utils/auth';
+import { hasCompletedOnboarding } from '../utils/auth';
 import { getDevModeUser, isDevMode } from '../utils/devAuth';
+import { getEffectiveRole } from '../constants/accessControl';
 
 const AuthContext = createContext();
 
@@ -19,10 +20,11 @@ export const AuthProvider = ({ children }) => {
   const initialAuthState = devMode ? localStorage.getItem('trashdrop_authenticated') === 'true' : false;
   const initialOnboardingState = devMode ? localStorage.getItem('trashdrop_onboarding_completed') === 'true' : false;
   const initialUserData = devMode ? JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null') : null;
+  const initialRole = initialUserData ? getEffectiveRole(initialUserData.user_metadata?.role, initialUserData) : getEffectiveRole();
   
   // Get current authenticated user state - only use localStorage in dev mode
   const [user, setUser] = useState(initialUserData);
-  const [role, setRole] = useState(initialUserData?.user_metadata?.role || 'user');
+  const [role, setRole] = useState(initialRole);
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(initialOnboardingState);
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -34,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     if (session?.user) {
       // Set user data
       setUser(session.user);
-      setRole(session.user.user_metadata?.role || 'user');
+      setRole(getEffectiveRole(session.user.user_metadata?.role, session.user));
       const onboardingStatus = session.user.user_metadata?.onboardingCompleted || false;
       setOnboardingCompleted(onboardingStatus);
       
@@ -53,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       // Clear user data
       setUser(null);
-      setRole('user');
+      setRole(getEffectiveRole());
       setOnboardingCompleted(false);
       setIsAuthenticated(false);
       
@@ -78,7 +80,7 @@ export const AuthProvider = ({ children }) => {
       if (devModeUser) {
         console.log('AuthContext: Setting dev auth state from stored user');
         setUser(devModeUser);
-        setRole(devModeUser.user_metadata?.role || 'user');
+        setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
         setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || false);
         localStorage.setItem('trashdrop_authenticated', 'true');
         localStorage.setItem('trashdrop_session_active', 'true');
@@ -118,7 +120,7 @@ export const AuthProvider = ({ children }) => {
             
             if (signInResult?.data?.user) {
               setUser(signInResult.data.user);
-              setRole(signInResult.data.user.user_metadata?.role || 'admin');
+              setRole(getEffectiveRole(signInResult.data.user.user_metadata?.role, signInResult.data.user));
               setOnboardingCompleted(true); // Default to completed for dev mode
               setIsAuthenticated(true); // Explicitly set authenticated state
               setAuthInitialized(true);
@@ -131,7 +133,7 @@ export const AuthProvider = ({ children }) => {
           else if (isMounted) {
             console.log('AuthContext: Using existing dev user');
             setUser(devModeUser);
-            setRole(devModeUser.user_metadata?.role || 'admin');
+            setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
             setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || true);
             setIsAuthenticated(true); // Explicitly set authenticated state
             setAuthInitialized(true);
@@ -161,7 +163,7 @@ export const AuthProvider = ({ children }) => {
             // Create a pseudo-session for the local user in dev mode
             if (isMounted) {
               setUser(localUser);
-              setRole(localUser.user_metadata?.role || 'user');
+              setRole(getEffectiveRole(localUser.user_metadata?.role, localUser));
               setOnboardingCompleted(localStorage.getItem('trashdrop_onboarding_completed') === 'true');
               setIsAuthenticated(true);
               setAuthInitialized(true);
@@ -216,7 +218,7 @@ export const AuthProvider = ({ children }) => {
               const devUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
               if (devUser) {
                 setUser(devUser);
-                setRole(devUser.user_metadata?.role || 'admin');
+                setRole(getEffectiveRole(devUser.user_metadata?.role, devUser));
                 setOnboardingCompleted(devUser.user_metadata?.onboardingCompleted || true);
                 setIsAuthenticated(true);
                 setAuthInitialized(true);
@@ -253,7 +255,7 @@ export const AuthProvider = ({ children }) => {
       if (devModeUser) {
         console.log('AuthContext: Dev user found during refresh');
         setUser(devModeUser);
-        setRole(devModeUser.user_metadata?.role || 'admin');
+        setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
         setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || true);
         setIsAuthenticated(true);
         localStorage.setItem('trashdrop_authenticated', 'true');
@@ -283,7 +285,7 @@ export const AuthProvider = ({ children }) => {
           const localUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
           if (localUser) {
             setUser(localUser);
-            setRole(localUser.user_metadata?.role || 'admin');
+            setRole(getEffectiveRole(localUser.user_metadata?.role, localUser));
             setOnboardingCompleted(localStorage.getItem('trashdrop_onboarding_completed') === 'true');
             setIsAuthenticated(true);
             setAuthInitialized(true);

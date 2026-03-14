@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signUp } from '../utils/auth';
+import { getRoleForCompanyType } from '../constants/accessControl';
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -13,6 +14,7 @@ const SignUp = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0); // 0-4 scale
   const navigate = useNavigate();
@@ -88,16 +90,19 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      const derivedRole = getRoleForCompanyType(companyType);
+      
       const { data, error } = await signUp({ 
         email, 
         password,
         name: `${firstName} ${lastName}`,
-        role: 'user', // Default role
+        role: derivedRole,
         metadata: {
           firstName,
           lastName,
           companyName,
           companyType,
+          role: derivedRole,
           onboardingCompleted: false // Will be set to true after onboarding
         }
       });
@@ -113,13 +118,22 @@ const SignUp = () => {
         companyType
       }));
       
-      // Navigate to onboarding
-      navigate('/onboarding');
+      // Show success message about email verification
+      setError(null);
+      setSuccess('✅ Account created successfully! Please check your email inbox and click the verification link before logging in. Check your spam folder if you don\'t see it.');
+      
+      // Wait 5 seconds then redirect to login
+      setTimeout(() => {
+        navigate('/login');
+      }, 5000);
     } catch (err) {
+      setSuccess(null);
       if (err.message.includes('email')) {
-        setError('An account with this email already exists');
+        setError('❌ An account with this email already exists. Please try logging in or use a different email.');
+      } else if (err.message.includes('Password')) {
+        setError('❌ ' + err.message);
       } else {
-        setError(err.message || 'Failed to sign up');
+        setError('❌ Failed to sign up: ' + (err.message || 'Unknown error. Please try again.'));
       }
     } finally {
       setLoading(false);
@@ -171,6 +185,20 @@ const SignUp = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <i className="fas fa-check-circle text-green-500"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700 font-medium">{success}</p>
+                  <p className="text-xs text-green-600 mt-1">Redirecting to login page in 5 seconds...</p>
                 </div>
               </div>
             </div>

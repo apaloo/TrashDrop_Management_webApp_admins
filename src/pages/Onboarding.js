@@ -4,6 +4,7 @@ import { updateUserMetadata } from '../utils/auth';
 import CompanyInfoStep from '../components/onboarding/CompanyInfoStep';
 import UserPreferencesStep from '../components/onboarding/UserPreferencesStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
+import { getRoleForCompanyType } from '../constants/accessControl';
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -75,12 +76,15 @@ const Onboarding = () => {
     setError(null);
     
     try {
+      const derivedRole = getRoleForCompanyType(formData.companyType);
+
       // Save onboarding data to Supabase user metadata
       const { data, error: updateError } = await updateUserMetadata({
         // Company information
         companyName: formData.companyName,
         companyType: formData.companyType,
         operatingArea: formData.operatingArea,
+        role: derivedRole,
         
         // User preferences
         notificationPreferences: formData.notificationPreferences,
