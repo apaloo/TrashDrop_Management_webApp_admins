@@ -747,10 +747,6 @@ const HowItWorksSection = () => (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="text-center mb-16">
-        <div className="inline-flex items-center justify-center mb-4 sm:mb-6">
-          <img src="/logo.svg" alt="TrashDrop" className="h-10 w-10 sm:h-12 sm:w-12 mr-2.5 sm:mr-3" />
-          <span className="text-2xl font-bold text-gray-900">Trash<span className="text-green-600">Drop</span></span>
-        </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 sm:mb-4 leading-tight">
           What happens to your waste<br />after it leaves your home?
         </h2>
@@ -895,11 +891,6 @@ const DigitalBinSection = () => (
 
         {/* Right side — content */}
         <div>
-          <div className="inline-flex items-center justify-center mb-5">
-            <img src="/logo.svg" alt="TrashDrop" className="h-10 w-10 mr-2.5" />
-            <span className="text-xl font-bold text-gray-900">Trash<span className="text-green-600">Drop</span></span>
-          </div>
-
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
             On-Demand<br />
             <span className="text-blue-600">Digital Bin</span>
@@ -976,11 +967,6 @@ const ReportDumpingSection = ({ isAuthenticated }) => {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left side — content */}
           <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center justify-center mb-5">
-              <img src="/logo.svg" alt="TrashDrop" className="h-10 w-10 mr-2.5" />
-              <span className="text-xl font-bold text-gray-900">Trash<span className="text-green-600">Drop</span></span>
-            </div>
-
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
               See illegal dumping?
             </h2>
