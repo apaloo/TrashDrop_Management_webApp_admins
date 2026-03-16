@@ -4,7 +4,8 @@ import { updateUserMetadata } from '../utils/auth';
 import CompanyInfoStep from '../components/onboarding/CompanyInfoStep';
 import UserPreferencesStep from '../components/onboarding/UserPreferencesStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
-import { getRoleForCompanyType } from '../constants/accessControl';
+import { deriveRoleForUser } from '../constants/accessControl';
+import { useAuth } from '../context/AuthContext';
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -30,21 +31,21 @@ const Onboarding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const savedOnboardingUser = typeof window !== 'undefined'
+    ? localStorage.getItem('trashdrop_onboarding_user')
+    : null;
+  const savedUserData = savedOnboardingUser ? JSON.parse(savedOnboardingUser) : null;
+  const onboardingEmail = user?.email || savedUserData?.email || '';
   
   // Load any existing data from signup
   useEffect(() => {
-    const savedUser = localStorage.getItem('trashdrop_onboarding_user');
-    if (savedUser) {
-      try {
-        const userData = JSON.parse(savedUser);
-        setFormData(prevData => ({
-          ...prevData,
-          companyName: userData.companyName || prevData.companyName,
-          companyType: userData.companyType || prevData.companyType
-        }));
-      } catch (err) {
-        console.error('Error parsing saved user data:', err);
-      }
+    if (savedUserData) {
+      setFormData(prevData => ({
+        ...prevData,
+        companyName: savedUserData.companyName || prevData.companyName,
+        companyType: savedUserData.companyType || prevData.companyType
+      }));
     }
   }, []);
   
@@ -76,7 +77,10 @@ const Onboarding = () => {
     setError(null);
     
     try {
-      const derivedRole = getRoleForCompanyType(formData.companyType);
+      const derivedRole = deriveRoleForUser({
+        email: onboardingEmail,
+        companyType: formData.companyType
+      });
 
       // Save onboarding data to Supabase user metadata
       const { data, error: updateError } = await updateUserMetadata({

@@ -29,6 +29,8 @@ export const signIn = async ({ email, password }) => {
 
 export const signUp = async ({ email, password, name, role = 'user', metadata = {} }) => {
   try {
+    console.log('Starting signup process for:', email);
+    
     // Create the user in Supabase auth
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -43,7 +45,43 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
       }
     });
     
-    if (error) throw error;
+    console.log('Signup response:', { data, error: error?.message });
+    
+    // Check if this is a duplicate email scenario
+    if (data?.user && !data.user.email_confirmed_at) {
+      console.log('User created but email not confirmed - checking if this is duplicate');
+      
+      // For existing users, Supabase often returns success but doesn't send confirmation
+      // Let's check if there's any indication this is an existing user
+      if (data.user.identities?.length === 0) {
+        console.log('No identities found - likely existing user');
+        const duplicateError = { 
+          message: 'An account with this email already exists. Please try logging in or reset your password.',
+          status: 400
+        };
+        throw duplicateError;
+      }
+    }
+    
+    if (error) {
+      console.log('Signup error:', error.message);
+      
+      // Check for specific error patterns that indicate duplicate email
+      if (error.message.includes('already registered') || 
+          error.message.includes('already been registered') ||
+          error.message.includes('user_already_exists') ||
+          error.message.includes('duplicate')) {
+        const duplicateError = { 
+          message: 'An account with this email already exists. Please try logging in or reset your password.',
+          status: 400
+        };
+        throw duplicateError;
+      }
+      
+      throw error;
+    }
+    
+    console.log('Signup successful for new user');
     return { data, error: null };
   } catch (error) {
     console.error('Error signing up:', error.message);

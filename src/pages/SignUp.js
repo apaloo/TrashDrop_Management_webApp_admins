@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signUp } from '../utils/auth';
-import { getRoleForCompanyType } from '../constants/accessControl';
+import { deriveRoleForUser } from '../constants/accessControl';
+import { Fragment } from 'react';
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -15,6 +16,7 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0); // 0-4 scale
   const navigate = useNavigate();
@@ -90,7 +92,7 @@ const SignUp = () => {
     setLoading(true);
     
     try {
-      const derivedRole = getRoleForCompanyType(companyType);
+      const derivedRole = deriveRoleForUser({ email, companyType });
       
       const { data, error } = await signUp({ 
         email, 
@@ -128,12 +130,14 @@ const SignUp = () => {
       }, 5000);
     } catch (err) {
       setSuccess(null);
-      if (err.message.includes('email')) {
-        setError('❌ An account with this email already exists. Please try logging in or use a different email.');
-      } else if (err.message.includes('Password')) {
-        setError('❌ ' + err.message);
+      const message = err?.message || '';
+      if (err?.status === 400 || message.toLowerCase().includes('email') || message.includes('already registered')) {
+        setError('❌ An account with this email already exists. Please try logging in or reset your password.');
+        setShowDuplicateModal(true);
+      } else if (message.includes('Password')) {
+        setError(`❌ ${message}`);
       } else {
-        setError('❌ Failed to sign up: ' + (err.message || 'Unknown error. Please try again.'));
+        setError(`❌ Failed to sign up: ${message || 'Unknown error. Please try again.'}`);
       }
     } finally {
       setLoading(false);
@@ -142,16 +146,54 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Full-bleed background image */}
-      <div className="absolute inset-0">
-        <img src="/images/auth-bg.jpg" alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-green-900/60 to-black/70"></div>
-      </div>
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)',
-        backgroundSize: '32px 32px',
-      }}></div>
+      {/* Duplicate Email Modal Overlay */}
+      {showDuplicateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform transition-all">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+              <i className="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Account Already Exists</h3>
+            <p className="text-sm text-gray-600 text-center mb-6">
+              An account with this email already exists. Please try logging in or reset your password if you can't access your account.
+            </p>
+            <div className="flex gap-3">
+              <Link
+                to="/login"
+                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors text-center"
+                onClick={() => setShowDuplicateModal(false)}
+              >
+                Go to Login
+              </Link>
+              <Link
+                to="/forgot-password"
+                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors text-center"
+                onClick={() => setShowDuplicateModal(false)}
+              >
+                Reset Password
+              </Link>
+            </div>
+            <button
+              type="button"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={() => setShowDuplicateModal(false)}
+            >
+              <i className="fas fa-times text-lg"></i>
+            </button>
+          </div>
+        </div>
+      )}
+
+       {/* Full-bleed background image */}
+       <div className="absolute inset-0">
+         <img src="/images/auth-bg.jpg" alt="" className="w-full h-full object-cover" />
+         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-green-900/60 to-black/70"></div>
+       </div>
+       {/* Subtle pattern overlay */}
+       <div className="absolute inset-0 opacity-5" style={{
+         backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)',
+         backgroundSize: '32px 32px',
+       }}></div>
 
       {/* Top bar */}
       <div className="relative z-10 w-full px-4 sm:px-8 pt-6">

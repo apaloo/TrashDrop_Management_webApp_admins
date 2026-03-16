@@ -9,7 +9,8 @@ export const SECTIONS = {
   REQUEST_PICKUP: 'request-pickup',
   BIN_MANAGEMENT: 'bin-management',
   ILLEGAL_DUMPING: 'illegal-dumping',
-  SETTINGS: 'settings'
+  SETTINGS: 'settings',
+  REGULATORY: 'regulatory'
 };
 
 export const COMPANY_TYPE_ROLE_MAP = {
@@ -23,20 +24,39 @@ export const COMPANY_TYPE_ROLE_MAP = {
 const normalizeEmail = (email) => email?.trim().toLowerCase() || '';
 export const FULL_ACCESS_ADMIN_EMAIL = 'otisadomako50@gmail.com';
 
-export const hasFullAdminAccess = (role, user) => (
-  role === ROLES.ADMIN && normalizeEmail(user?.email) === FULL_ACCESS_ADMIN_EMAIL
-);
+const isWhitelistedAdminEmail = (email) => normalizeEmail(email) === normalizeEmail(FULL_ACCESS_ADMIN_EMAIL);
 
-export const getEffectiveRole = (role, user) => {
-  if (role === ROLES.ADMIN && !hasFullAdminAccess(role, user)) {
-    // Treat non-whitelisted admin accounts as basic users
-    return ROLES.USER;
-  }
-  return role || ROLES.USER;
-};
+export const hasFullAdminAccess = (role, user) => (
+  role === ROLES.ADMIN && isWhitelistedAdminEmail(user?.email)
+);
 
 export const getRoleForCompanyType = (companyType) => {
   return COMPANY_TYPE_ROLE_MAP[companyType] || ROLES.USER;
+};
+
+export const deriveRoleForUser = ({ email, companyType, requestedRole }) => {
+  if (isWhitelistedAdminEmail(email)) {
+    return ROLES.ADMIN;
+  }
+
+  if (requestedRole && requestedRole !== ROLES.ADMIN) {
+    return requestedRole;
+  }
+
+  return getRoleForCompanyType(companyType);
+};
+
+export const getEffectiveRole = (role, user) => {
+  if (isWhitelistedAdminEmail(user?.email)) {
+    return ROLES.ADMIN;
+  }
+
+  if (role === ROLES.ADMIN && !isWhitelistedAdminEmail(user?.email)) {
+    // Treat non-whitelisted admin accounts as basic users
+    return ROLES.USER;
+  }
+
+  return role || ROLES.USER;
 };
 
 export const SECTION_PERMISSIONS = {
@@ -44,7 +64,8 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.SETTINGS]: [ROLES.USER, ROLES.MANAGER, ROLES.ADMIN],
   [SECTIONS.ILLEGAL_DUMPING]: [ROLES.MANAGER, ROLES.ADMIN],
   [SECTIONS.BIN_MANAGEMENT]: [ROLES.ADMIN],
-  [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN]
+  [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN],
+  [SECTIONS.REGULATORY]: [ROLES.USER, ROLES.MANAGER, ROLES.ADMIN]
 };
 
 export const canAccessSection = (section, role, user) => {
