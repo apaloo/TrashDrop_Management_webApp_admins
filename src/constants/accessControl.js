@@ -22,9 +22,17 @@ export const COMPANY_TYPE_ROLE_MAP = {
 };
 
 const normalizeEmail = (email) => email?.trim().toLowerCase() || '';
-export const FULL_ACCESS_ADMIN_EMAIL = 'otisadomako50@gmail.com';
+export const FULL_ACCESS_ADMIN_EMAILS = [
+  'otisadomako50@gmail.com',
+  'xahlijah@gmail.com'
+];
 
-const isWhitelistedAdminEmail = (email) => normalizeEmail(email) === normalizeEmail(FULL_ACCESS_ADMIN_EMAIL);
+const isWhitelistedAdminEmail = (email) => {
+  const normalizedEmail = normalizeEmail(email);
+  return FULL_ACCESS_ADMIN_EMAILS.some(whitelistedEmail => 
+    normalizeEmail(whitelistedEmail) === normalizedEmail
+  );
+};
 
 export const hasFullAdminAccess = (role, user) => (
   role === ROLES.ADMIN && isWhitelistedAdminEmail(user?.email)
