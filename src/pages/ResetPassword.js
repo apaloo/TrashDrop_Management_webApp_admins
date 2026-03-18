@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { updatePassword } from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -10,6 +11,7 @@ const ResetPassword = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { clearForceResetMode } = useAuth();
 
   // Parse hash from URL to get the access token
   useEffect(() => {
@@ -18,6 +20,10 @@ const ResetPassword = () => {
     if (!location.hash && !window.location.hash) {
       setError('Invalid password reset link. Please request a new one.');
     }
+
+    return () => {
+      clearForceResetMode();
+    };
   }, [location]);
 
   const handleSubmit = async (e) => {
@@ -42,6 +48,7 @@ const ResetPassword = () => {
       const { error } = await updatePassword(password);
       if (error) throw error;
       setSuccess(true);
+      clearForceResetMode();
       
       // Redirect to login after some delay
       setTimeout(() => {

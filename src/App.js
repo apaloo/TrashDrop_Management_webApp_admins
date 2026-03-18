@@ -84,7 +84,7 @@ const ProtectedRoute = ({ children, section }) => {
 
 // Public route - redirects to dashboard if already authenticated
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading, authInitialized } = useAuth();
+  const { isAuthenticated, loading, authInitialized, forceResetMode } = useAuth();
   const currentPath = window.location.pathname;
   
   console.log('PublicRoute check:', { 
@@ -104,8 +104,8 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  if (isAuthenticated) {
-    console.log('PublicRoute: User is authenticated, redirecting to dashboard');
+  if (isAuthenticated && !forceResetMode) {
+    console.log('PublicRoute: Already authenticated, redirecting to dashboard');
     // Make sure we only redirect once after authenticated state is confirmed
     if (currentPath !== '/dashboard') {
       return <Navigate to="/dashboard" replace />;

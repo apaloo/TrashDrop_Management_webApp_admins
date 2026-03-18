@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
   const [authInitialized, setAuthInitialized] = useState(false);
   // Explicitly track authentication status in its own state variable instead of derived
   const [isAuthenticated, setIsAuthenticated] = useState(devMode && (!!initialUserData || initialAuthState));
+  const [forceResetMode, setForceResetMode] = useState(false);
 
   // Function to update user data on auth events
   const setAuthData = (session) => {
@@ -58,6 +59,7 @@ export const AuthProvider = ({ children }) => {
       setRole(getEffectiveRole());
       setOnboardingCompleted(false);
       setIsAuthenticated(false);
+      setForceResetMode(false);
       
       // Clear all auth data from localStorage (always clear to ensure clean state)
       localStorage.removeItem('trashdrop_authenticated');
@@ -207,7 +209,12 @@ export const AuthProvider = ({ children }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event, session ? "Session exists" : "No session");
-        
+
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('AuthContext: Password recovery flow detected');
+          setForceResetMode(true);
+        }
+
         if (isMounted) {
           // Special handling for development mode
           if (isDevMode() && event === 'INITIAL_SESSION' && !session) {
@@ -312,7 +319,9 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     onboardingCompleted,
     authInitialized,
-    refreshAuthState
+    refreshAuthState,
+    forceResetMode,
+    clearForceResetMode: () => setForceResetMode(false)
   };
 
 
