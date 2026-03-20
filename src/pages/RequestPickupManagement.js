@@ -32,6 +32,19 @@ const RequestPickupManagement = () => {
   const [filterPriority, setFilterPriority] = useState('All');
   const [systemAlerts, setSystemAlerts] = useState([]);
 
+  const formatCurrency = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    try {
+      return new Intl.NumberFormat('en-GH', {
+        style: 'currency',
+        currency: 'GHS'
+      }).format(n);
+    } catch (e) {
+      return `GHS ${n.toFixed(2)}`;
+    }
+  };
+
   // Load data from Supabase
   useEffect(() => {
     const loadData = async () => {
@@ -55,6 +68,18 @@ const RequestPickupManagement = () => {
           const collectorName = req?.collector ? 
             `${req.collector.first_name} ${req.collector.last_name}` : 
             req?.collectorName || null;
+
+          const feeDue =
+            req?.fee ??
+            req?.fee_due ??
+            req?.feeDue ??
+            req?.amount_due ??
+            req?.amountDue ??
+            req?.total_fee ??
+            req?.totalFee ??
+            req?.price ??
+            req?.cost ??
+            null;
           
           return {
             id: req?.id || `request-${Math.random()}`,
@@ -90,7 +115,8 @@ const RequestPickupManagement = () => {
             bagCount: req?.bag_count || req?.bags || 1,
             collectorId: req?.collector_id,
             wasteType: req?.waste_type || req?.wasteType || 'General',
-            estimatedWeight: req?.estimated_weight || 'Not specified'
+            estimatedWeight: req?.estimated_weight || 'Not specified',
+            feeDue
           };
         });
         
@@ -425,6 +451,9 @@ const RequestPickupManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Assigned To
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fee Due
+                </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -468,6 +497,9 @@ const RequestPickupManagement = () => {
                     ) : (
                       <span className="text-gray-400">Not assigned</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(request.feeDue)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
