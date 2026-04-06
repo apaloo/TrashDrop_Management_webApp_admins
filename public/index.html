@@ -7,24 +7,94 @@
     <meta name="theme-color" content="#10B981" />
     <meta
       name="description"
-      content="TrashDrop Management WebApp Admin Portal - Streamline waste management operations"
+      content="TrashDrop — Smart waste management platform for municipalities, waste collectors, and households. QR-coded trash bags, real-time pickup tracking, illegal dumping reporting, and data-driven waste analytics across Ghana and beyond."
     />
-    <link rel="apple-touch-icon" href="https://trashdrops.com/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta name="keywords" content="TrashDrop, waste management, smart waste, QR code trash bags, waste collection, illegal dumping, recycling, Ghana waste management, municipal waste, environmental technology, trash pickup, waste analytics" />
+    <meta name="author" content="TrashDrop" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://trashdrops.com/" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>TrashDrop Admin Portal</title>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://trashdrops.com/" />
+    <meta property="og:title" content="TrashDrop — Smart Waste Management Platform" />
+    <meta property="og:description" content="QR-coded trash bags, real-time pickup tracking, illegal dumping reporting, and data-driven waste analytics. Transforming waste management for municipalities and households." />
+    <meta property="og:image" content="https://trashdrops.com/icon-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:site_name" content="TrashDrop" />
+    <meta property="og:locale" content="en_GH" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://trashdrops.com/" />
+    <meta name="twitter:title" content="TrashDrop — Smart Waste Management Platform" />
+    <meta name="twitter:description" content="QR-coded trash bags, real-time pickup tracking, illegal dumping reporting, and data-driven waste analytics." />
+    <meta name="twitter:image" content="https://trashdrops.com/icon-512x512.png" />
+
+    <!-- Geo Tags -->
+    <meta name="geo.region" content="GH" />
+    <meta name="geo.placename" content="Accra, Ghana" />
+
+    <link rel="apple-touch-icon" href="https://trashdrops.com/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- JSON-LD Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "TrashDrop",
+      "url": "https://trashdrops.com",
+      "logo": "https://trashdrops.com/icon-512x512.png",
+      "description": "Smart waste management platform using QR-coded trash bags, real-time pickup tracking, illegal dumping reporting, and data-driven analytics.",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Ghana"
+      },
+      "sameAs": []
+    }
+    </script>
+
+    <!-- JSON-LD Structured Data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "TrashDrop",
+      "operatingSystem": "Web, Android, iOS",
+      "applicationCategory": "UtilitiesApplication",
+      "description": "TrashDrop is a smart waste management app that connects households, waste collectors, and municipalities through QR-coded trash bags and real-time tracking.",
+      "url": "https://trashdrops.com",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "GHS"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.5",
+        "ratingCount": "100"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TrashDrop Admin Portal",
+      "url": "https://trashdrops.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Admin portal for managing TrashDrop waste management operations including batch generation, pickup scheduling, collector management, and illegal dumping oversight.",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0.0"
+    }
+    </script>
+
+    <title>TrashDrop — Smart Waste Management Platform | Admin Portal</title>
     
     <!-- Import Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

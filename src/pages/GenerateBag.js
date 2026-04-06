@@ -59,8 +59,14 @@ const GenerateBag = () => {
     trashType: 'Organic',
     bagSize: 'Medium',
     numberOfBags: 50,
-    numberOfBatches: 1
+    numberOfBatches: 1,
+    totalBatchPrice: ''
   });
+
+  // Derived unit price
+  const unitPrice = formData.totalBatchPrice && formData.numberOfBags > 0
+    ? (parseFloat(formData.totalBatchPrice) / formData.numberOfBags).toFixed(2)
+    : '0.00';
   
   // State for generated batches
   const [generatedBatches, setGeneratedBatches] = useState([]);
@@ -95,6 +101,11 @@ const GenerateBag = () => {
       if (isNaN(numValue) || numValue < 1) return;
       if (numValue > 1000) return;
       setFormData({ ...formData, [name]: numValue });
+    } else if (name === 'totalBatchPrice') {
+      // Allow empty string or valid positive numbers
+      if (value === '' || (!isNaN(value) && parseFloat(value) >= 0)) {
+        setFormData({ ...formData, [name]: value });
+      }
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -433,6 +444,11 @@ const handleGenerate = async () => {
       );
       
       // Convert to format expected by createBagBatch
+      const totalPrice = formData.totalBatchPrice ? parseFloat(formData.totalBatchPrice) : null;
+      const perBagPrice = totalPrice && batch.quantity > 0
+        ? parseFloat((totalPrice / batch.quantity).toFixed(2))
+        : null;
+
       const batchData = {
         createdBy: batch.createdBy,
         bag_count: batch.quantity, // Use bag_count for database
@@ -440,7 +456,9 @@ const handleGenerate = async () => {
         type: batch.type,
         size: batch.size,
         qrPrefix: batch.qrPrefix,
-        batchNumber: batch.id.replace('batch-', '') // Extract the batch number
+        batchNumber: batch.id.replace('batch-', ''), // Extract the batch number
+        total_batch_price: totalPrice,
+        unit_price: perBagPrice
       };
       
       try {
@@ -459,7 +477,9 @@ const handleGenerate = async () => {
             batch_name: result.batch.batch_name,
             batchQRCode: result.batchQRCode, // This is the UUID for mobile scanning
             createdAt: result.batch.created_at,
-            bag_count: result.batch.bag_count
+            bag_count: result.batch.bag_count,
+            total_batch_price: result.batch.total_batch_price ?? totalPrice,
+            unit_price: result.batch.unit_price ?? perBagPrice
           };
           newBatches.push(displayBatch);
         } else {
@@ -570,6 +590,34 @@ const handleGenerate = async () => {
               </div>
             </div>
             
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label htmlFor="totalBatchPrice" className="block text-sm font-medium text-gray-700 mb-1">Total Batch Price (GH₵)</label>
+                <input 
+                  type="number" 
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
+                  id="totalBatchPrice" 
+                  name="totalBatchPrice" 
+                  min="0" 
+                  step="0.01" 
+                  placeholder="e.g. 500.00"
+                  value={formData.totalBatchPrice}
+                  onChange={handleInputChange}
+                />
+                <p className="mt-2 text-sm text-gray-500">Enter the total price for all bags in this batch.</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Bag Price (GH₵)</label>
+                <div className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-800 font-semibold text-lg">
+                  {formData.totalBatchPrice ? `₵${unitPrice}` : '—'}
+                </div>
+                <p className="mt-2 text-sm text-gray-500">
+                  Auto-calculated: Total Batch Price ÷ {formData.numberOfBags} bags{formData.totalBatchPrice ? ` = ₵${unitPrice} per bag` : ''}
+                </p>
+              </div>
+            </div>
+            
             <div className="flex justify-end mt-6 space-x-4">
               <button 
                 type="button" 
@@ -654,6 +702,18 @@ const handleGenerate = async () => {
                       <span className="text-gray-600">QR Code Prefix:</span>
                       <span className="font-bold">{previewQR?.prefix}</span>
                     </li>
+                    {formData.totalBatchPrice && (
+                      <>
+                        <li className="py-3 flex justify-between">
+                          <span className="text-gray-600">Total Batch Price:</span>
+                          <span className="font-bold">₵{parseFloat(formData.totalBatchPrice).toFixed(2)}</span>
+                        </li>
+                        <li className="py-3 flex justify-between">
+                          <span className="text-gray-600">Unit Bag Price:</span>
+                          <span className="font-bold text-green-700">₵{unitPrice}</span>
+                        </li>
+                      </>
+                    )}
                   </ul>
                 
                   <div className="mt-6">
@@ -755,6 +815,8 @@ const handleGenerate = async () => {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trash Type</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bag Size</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number of Bags</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Price</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation Date</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -785,6 +847,12 @@ const handleGenerate = async () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.size}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.quantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {batch.total_batch_price != null ? `₵${parseFloat(batch.total_batch_price).toFixed(2)}` : '—'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {batch.unit_price != null ? `₵${parseFloat(batch.unit_price).toFixed(2)}` : '—'}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formattedDate}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
@@ -888,6 +956,18 @@ const handleGenerate = async () => {
                     <div className="flex justify-between border-b border-gray-200 pb-2">
                       <span className="text-gray-600 font-medium">Total Bags:</span>
                       <span className="text-gray-900 font-semibold">{viewQRModal.batch.bag_count || viewQRModal.batch.quantity || 0}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 pb-2">
+                      <span className="text-gray-600 font-medium">Batch Price:</span>
+                      <span className="text-gray-900 font-semibold">
+                        {viewQRModal.batch.total_batch_price != null ? `₵${parseFloat(viewQRModal.batch.total_batch_price).toFixed(2)}` : '—'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 pb-2">
+                      <span className="text-gray-600 font-medium">Unit Price:</span>
+                      <span className="text-green-700 font-semibold">
+                        {viewQRModal.batch.unit_price != null ? `₵${parseFloat(viewQRModal.batch.unit_price).toFixed(2)}` : '—'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 font-medium">Created:</span>

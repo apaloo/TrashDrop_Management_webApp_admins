@@ -720,6 +720,14 @@ export const createBagBatch = async (batchData) => {
     notes: batchData.notes || `Type: ${batchData.type || 'Unknown'}, Size: ${batchData.size || 'Unknown'}`
   };
 
+  // Include pricing if provided
+  if (batchData.total_batch_price != null) {
+    batchPayload.total_batch_price = batchData.total_batch_price;
+  }
+  if (batchData.unit_price != null) {
+    batchPayload.unit_price = batchData.unit_price;
+  }
+
   // Get current user for created_by field
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -751,12 +759,16 @@ export const createBagBatch = async (batchData) => {
   const bags = [];
   
   for (let i = 1; i <= bagCount; i++) {
-    bags.push({
+    const bagRow = {
       batch_id: batch.id,
       qr_code: `${batch.id}-${String(i).padStart(4, '0')}`, // Bag-specific code
       status: 'active',
       scanned: false
-    });
+    };
+    if (batchPayload.unit_price != null) {
+      bagRow.unit_price = batchPayload.unit_price;
+    }
+    bags.push(bagRow);
   }
   
   // Insert bags in batches of 100 to avoid hitting limits
