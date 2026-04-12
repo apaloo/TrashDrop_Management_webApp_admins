@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Settings from './pages/Settings';
 import IllegalDumpingMap from './pages/IllegalDumpingMap';
 import IllegalDumpingHistory from './pages/IllegalDumpingHistory';
@@ -10,6 +11,16 @@ import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
+
+// Public marketing pages
+const HowItWorksPage         = lazy(() => import('./pages/HowItWorksPage'));
+const CollectorsPage         = lazy(() => import('./pages/CollectorsPage'));
+const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublicPage'));
+const UsersPage              = lazy(() => import('./pages/UsersPage'));
+const AccraPage              = lazy(() => import('./pages/AccraPage'));
+const AboutPage              = lazy(() => import('./pages/AboutPage'));
+const BlogPage               = lazy(() => import('./pages/BlogPage'));
+const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -134,6 +145,7 @@ function App() {
   
   return (
     <AuthProvider>
+      <ThemeProvider>
       <ModalProvider>
         <Router>
           <Layout>
@@ -152,9 +164,17 @@ function App() {
             }>
               <Routes>
               {/* Homepage - public landing page */}
-              <Route path="/" element={
-                <HomePage />
-              } />
+              <Route path="/" element={<HomePage />} />
+
+              {/* Public marketing / AI Answer pages */}
+              <Route path="/how-it-works"    element={<HowItWorksPage />} />
+              <Route path="/collectors"      element={<CollectorsPage />} />
+              <Route path="/illegal-dumping" element={<IllegalDumpingPublicPage />} />
+              <Route path="/users"           element={<UsersPage />} />
+              <Route path="/accra"           element={<AccraPage />} />
+              <Route path="/about"           element={<AboutPage />} />
+              <Route path="/blog"            element={<BlogPage />} />
+              <Route path="/blog/:slug"      element={<BlogPostPage />} />
               
               {/* Public routes */}
               <Route path="/login" element={
@@ -273,6 +293,7 @@ function App() {
           </Layout>
         </Router>
       </ModalProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

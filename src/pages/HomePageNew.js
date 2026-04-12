@@ -1284,6 +1284,112 @@ const PartnershipsSection = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   FAQ
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const HOME_FAQS = [
+  {
+    q: 'How does TrashDrop work?',
+    a: 'TrashDrop is a Progressive Web App at trashdrops.com that connects households and businesses with verified waste collectors in six steps. Sign up, set your location, choose the QR Bag System (buy official bags, scan to activate, request a free pickup) or the Digital Bin service (enter waste details, get an instant GPS quote, pay via MoMo or cash at collection). A collector accepts within 2 hours, tracks to your location via live GPS, scans the QR code to confirm collection, and delivers to an authorised disposal site. You receive confirmation and reward points.',
+  },
+  {
+    q: 'Do I need to download an app?',
+    a: 'No. TrashDrop runs as a Progressive Web App entirely in your browser at trashdrops.com — no app store download required on iOS or Android. It also works offline for core functions.',
+  },
+  {
+    q: 'What is the QR Bag System and how is pickup free?',
+    a: 'You purchase official TrashDrop bags from authorised vendors. Each bundle has a printed QR code — scan it in the app to register the bags. Once registered, requesting a pickup is completely free. You only pay the one-time cost of the bag bundle.',
+  },
+  {
+    q: 'How can I earn money collecting waste in Ghana?',
+    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your Ghana phone number, upload your Ghana Card and vehicle details, and submit for approval. Once approved, accept jobs near you on the map. Average earnings are ₵32.43 per completed pickup — paid instantly to MTN, Vodafone, or AirtelTigo mobile money. Full-time collectors earn ₵2,500–₵8,000/month.',
+  },
+  {
+    q: 'How do I report illegal dumping in Ghana?',
+    a: 'Open the TrashDrop app, tap "Report Illegal Dumping," photograph the site (minimum one clear photo), allow GPS to capture the location, and submit. You immediately earn reward points. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews. You can track cleanup status directly in the app.',
+  },
+  {
+    q: 'Which cities does TrashDrop serve?',
+    a: 'TrashDrop currently operates in Accra (including East Legon, Dome, Madina, Spintex, Achimota and surrounding areas), Kumasi, Takoradi, and Tamale. Coverage is expanding continuously across Ghana.',
+  },
+  {
+    q: 'What payment methods does TrashDrop accept?',
+    a: 'For the Digital Bin on-demand service: MTN MoMo, Vodafone Cash, AirtelTigo Money, and debit/credit cards — paid at the point of collection. For the QR Bag System, pickups are always FREE. Only the bag purchase itself has a cost, payable at your local authorised vendor.',
+  },
+  {
+    q: 'Are the waste collectors verified?',
+    a: 'Yes. Every TrashDrop collector is verified with a valid Ghana ID (Ghana Card, Passport, or Voters ID), vehicle registration, and operational licence before being approved. Collector profiles show their verification status, vehicle type, and star rating.',
+  },
+];
+
+const FAQSection = () => {
+  const { ref, visible } = useReveal(0.08);
+  const { lp, lpMode } = useLpTheme();
+  const isDark = lpMode === 'dark';
+  const [openIdx, setOpenIdx] = useState(null);
+
+  const borderColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(22,101,52,0.1)';
+  const answerColor = isDark ? 'rgba(255,255,255,0.58)' : '#4a7060';
+  const questionColor = isDark ? '#f0f5f0' : '#1b3a28';
+  const chevronColor = TD.lime;
+
+  return (
+    <section style={{ background: lp.sectionAlt, padding:'96px 24px' }}>
+      {/* FAQPage JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": HOME_FAQS.map(f => ({
+            "@type": "Question",
+            "name": f.q,
+            "acceptedAnswer": { "@type": "Answer", "text": f.a }
+          }))
+        })}}
+      />
+      <div ref={ref} style={{ maxWidth:860, margin:'0 auto' }}>
+        <div style={{ textAlign:'center', marginBottom:56, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:'all 0.8s cubic-bezier(.22,1,.36,1)' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
+            <i className="fas fa-question-circle" style={{ color:TD.lime, fontSize:11 }}></i>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>FAQ</span>
+          </div>
+          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:lp.ink2Heading, margin:'0 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
+            Frequently asked questions
+          </h2>
+          <p style={{ ...FF.body, fontSize:16, color:lp.bodyText, maxWidth:520, margin:'0 auto' }}>
+            Everything you need to know about TrashDrop waste collection in Ghana.
+          </p>
+        </div>
+
+        <div style={{ opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+          {HOME_FAQS.map((item, i) => (
+            <div key={i} style={{ borderBottom:`1px solid ${borderColor}`, overflow:'hidden' }}>
+              <button
+                onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'22px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }}>
+                <span style={{ ...FF.body, fontSize:16, fontWeight:600, color:questionColor, lineHeight:1.5 }}>{item.q}</span>
+                <span style={{ width:30, height:30, borderRadius:'50%', border:`1.5px solid ${chevronColor}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: openIdx===i ? `${chevronColor}15` : 'transparent' }}>
+                  <i className={`fas fa-chevron-${openIdx===i?'up':'down'}`} style={{ fontSize:11, color:chevronColor }}></i>
+                </span>
+              </button>
+              <div style={{ maxHeight: openIdx===i ? 400 : 0, overflow:'hidden', transition:'max-height 0.38s cubic-bezier(.22,1,.36,1)' }}>
+                <p style={{ ...FF.body, fontSize:15, color:answerColor, lineHeight:1.78, paddingBottom:22, margin:0 }}>{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ textAlign:'center', marginTop:48 }}>
+          <a href="/how-it-works" style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+            See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11 }}></i>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    FOOTER
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HomeFooter = () => {
@@ -1362,19 +1468,19 @@ const AppDownloadBanner = () => {
         {/* Left: text */}
         <div style={{ position:'relative', zIndex:1, flex:1, minWidth:260 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:`${TD.ink}80`, textTransform:'uppercase', display:'block', marginBottom:12 }}>GET STARTED TODAY — IT&rsquo;S FREE</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(32px,4vw,52px)', color:TD.ink, lineHeight:1.0, letterSpacing:'-1px', margin:'0 0 28px' }}>
-            Download the app.<br />Book your first pickup.
+          <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,50px)', color:TD.ink, lineHeight:1.05, letterSpacing:'-1px', margin:'0 0 28px' }}>
+            Book your first pickup.<br />Or report an illegal dump.
           </h2>
           <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-            <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.ink, color:'#fff', ...FF.label, fontSize:13, fontWeight:700, padding:'12px 22px', borderRadius:10, textDecoration:'none', boxShadow:`0 6px 24px rgba(0,0,0,0.25)`, transition:'transform 0.2s ease' }}
+            <a href="/signup" style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.ink, color:'#fff', ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', boxShadow:`0 6px 24px rgba(0,0,0,0.25)`, transition:'transform 0.2s ease' }}
               onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
               onMouseLeave={e=>e.currentTarget.style.transform=''}>
-              <i className="fab fa-google-play" style={{ fontSize:16 }}></i> Google Play
+              <i className="fas fa-leaf" style={{ fontSize:14 }}></i> Book a Pickup
             </a>
-            <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.ink, color:'#fff', ...FF.label, fontSize:13, fontWeight:700, padding:'12px 22px', borderRadius:10, textDecoration:'none', boxShadow:`0 6px 24px rgba(0,0,0,0.25)`, transition:'transform 0.2s ease' }}
+            <a href="/illegal-dumping" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(0,0,0,0.12)', color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(0,0,0,0.18)`, transition:'transform 0.2s ease' }}
               onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
               onMouseLeave={e=>e.currentTarget.style.transform=''}>
-              <i className="fab fa-apple" style={{ fontSize:17 }}></i> App Store
+              <i className="fas fa-exclamation-triangle" style={{ fontSize:13 }}></i> Report a Dump
             </a>
           </div>
         </div>
@@ -1555,6 +1661,7 @@ const LpPageInner = ({ auth }) => {
       <PricingGuideSection />
       <PathwaysSection />
       <PartnershipsSection />
+      <FAQSection />
       <AppDownloadBanner />
       <HomeFooter />
       <FloatingActions    isAuthenticated={auth} />

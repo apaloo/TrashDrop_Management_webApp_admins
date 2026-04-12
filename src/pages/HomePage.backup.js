@@ -1,4 +1,3 @@
-import HomePageNew from './HomePageNew';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
@@ -1753,5 +1752,44 @@ const FloatingActions = ({ isAuthenticated }) => {
   );
 };
 
-// ─── Main HomePage — delegates to new redesigned component ──────────────────
-export default HomePageNew;
+// ─── Main HomePage Component ──────────────────────────────────────────────────
+const HomePage = () => {
+  const { isAuthenticated, authInitialized } = useAuth();
+
+  // Don't block render while auth is loading — homepage is public
+  const effectiveAuth = authInitialized ? isAuthenticated : false;
+
+  return (
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+      `}</style>
+
+      <HomeNavbar isAuthenticated={effectiveAuth} />
+      <HeroSection isAuthenticated={effectiveAuth} />
+      <MapPreviewSection isAuthenticated={effectiveAuth} />
+      <HowItWorksSection />
+      <DigitalBinSection />
+      <ReportDumpingSection isAuthenticated={effectiveAuth} />
+      <DashboardPreviewSection isAuthenticated={effectiveAuth} />
+      <ProductShowcaseSection />
+      <PricingGuideSection />
+      <PathwaysSection />
+      <ImpactSection />
+      <PartnershipsSection />
+      <HomeFooter />
+      <FloatingActions isAuthenticated={effectiveAuth} />
+    </div>
+  );
+};
+
+export default HomePage;

@@ -96,18 +96,43 @@
 
     <title>TrashDrop — Smart Waste Management Platform | Admin Portal</title>
     
-    <!-- Import Google Fonts -->
+    <!-- Import Google Fonts — TrashDrop Design System Stack -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=Syne:wght@400;500;600;700;800&family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <style>
+      :root {
+        /* TrashDrop Brand Tokens */
+        --td-lime:       #a8e63d;
+        --td-lime-dim:   #c8f135;
+        --td-forest:     #1b6e35;
+        --td-forest-dk:  #0f4020;
+        --td-ink:        #0a0f0a;
+        --td-ink-2:      #111a13;
+        --td-sage:       #6b7565;
+        --td-cream:      #f5f2eb;
+        --td-gold:       #f5c842;
+        /* Font families */
+        --font-display:  'DM Serif Display', Georgia, serif;
+        --font-body:     'DM Sans', system-ui, sans-serif;
+        --font-label:    'Syne', sans-serif;
+        --font-data:     'Bebas Neue', 'Barlow Condensed', sans-serif;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
       body {
-        font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-family: var(--font-body);
         background-color: #F9FAFB;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
       }
       
       #root {
@@ -115,26 +140,97 @@
         flex-direction: column;
         min-height: 100vh;
       }
-      
+
+      /* ── Global animation utilities ── */
+      @keyframes td-fadeup {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes td-fadein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      @keyframes td-float {
+        0%, 100% { transform: translateY(0px); }
+        50%       { transform: translateY(-12px); }
+      }
+      @keyframes td-shimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+      @keyframes td-spin-slow {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      @keyframes td-pulse-ring {
+        0%   { transform: scale(1);   opacity: 0.6; }
+        100% { transform: scale(2.2); opacity: 0; }
+      }
+      @keyframes td-marquee {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      @keyframes td-blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0; }
+      }
+      @keyframes td-gradient-shift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .animate-td-fadeup   { animation: td-fadeup 0.8s cubic-bezier(.22,1,.36,1) forwards; }
+      .animate-td-fadein   { animation: td-fadein 0.6s ease forwards; }
+      .animate-td-float    { animation: td-float 4s ease-in-out infinite; }
+      .animate-td-shimmer  { animation: td-shimmer 3s linear infinite; }
+      .animate-td-spin-slow{ animation: td-spin-slow 18s linear infinite; }
+      .animate-td-marquee  { animation: td-marquee 26s linear infinite; }
+      .animate-td-blink    { animation: td-blink 1s step-end infinite; }
+
+      /* Noise grain overlay helper */
+      .td-grain::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        opacity: 0.22;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* Magnetic button base */
+      .td-magnetic { transition: transform 0.2s cubic-bezier(.34,1.56,.64,1); }
+      .td-magnetic:hover { transform: scale(1.04) translateY(-2px); }
+
+      /* Shimmer border */
+      .td-shimmer-border {
+        position: relative;
+        background: linear-gradient(90deg, var(--td-lime), #22c55e, var(--td-lime));
+        background-size: 200% auto;
+      }
+      .td-shimmer-border.animate-td-shimmer {
+        animation: td-shimmer 2.5s linear infinite;
+      }
+
+      /* Loading screen */
       .loading-screen {
         display: flex;
         align-items: center;
         justify-content: center;
         min-height: 100vh;
-        background-color: #F0FDF4;
+        background-color: var(--td-ink);
       }
-      
       .loading-logo {
-        width: 120px;
-        height: 120px;
-        animation: pulse 1.5s infinite;
+        width: 72px;
+        height: 72px;
+        animation: td-float 2s ease-in-out infinite;
       }
-      
-      @keyframes pulse {
-        0% { opacity: 0.6; transform: scale(0.95); }
-        50% { opacity: 1; transform: scale(1); }
-        100% { opacity: 0.6; transform: scale(0.95); }
-      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--td-forest); border-radius: 99px; }
     </style>
   </head>
   <body>

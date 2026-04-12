@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import PageTransitionLoader from './PageTransitionLoader';
 
 const Layout = ({ children }) => {
   const { user, role, isAuthenticated, loading } = useAuth();
+  const { theme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLayout, setShowLayout] = useState(false);
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
@@ -15,7 +17,9 @@ const Layout = ({ children }) => {
   
   // Check if current path is auth-related (login, signup, etc.)
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname);
-  const isHomePage = location.pathname === '/';
+  const PUBLIC_MARKETING_PATHS = ['/', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog'];
+  const isPublicPage = PUBLIC_MARKETING_PATHS.includes(location.pathname) || location.pathname.startsWith('/blog/');
+  const isHomePage = isPublicPage;
   
   // Get user's first name from metadata for header greeting
   const firstName = user?.user_metadata?.firstName || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
@@ -26,7 +30,7 @@ const Layout = ({ children }) => {
   
   // Handle page transitions - show loader when navigating between pages
   useEffect(() => {
-    if (previousPathRef.current && previousPathRef.current !== location.pathname && !isAuthPage && !isHomePage) {
+    if (previousPathRef.current && previousPathRef.current !== location.pathname && !isAuthPage && !isPublicPage) {
       setIsPageTransitioning(true);
       // Hide loader after a short delay to allow lazy component to load
       const timer = setTimeout(() => {
@@ -35,12 +39,12 @@ const Layout = ({ children }) => {
       return () => clearTimeout(timer);
     }
     previousPathRef.current = location.pathname;
-  }, [location.pathname, isAuthPage, isHomePage]);
+  }, [location.pathname, isAuthPage, isPublicPage]);
   
   useEffect(() => {
     // Only show layout if not on auth page, not homepage, and either authenticated or loading is complete
-    setShowLayout(!isAuthPage && !isHomePage && effectiveAuthState);
-  }, [isAuthPage, isHomePage, effectiveAuthState, loading]);
+    setShowLayout(!isAuthPage && !isPublicPage && effectiveAuthState);
+  }, [isAuthPage, isPublicPage, effectiveAuthState, loading]);
   
   // If we're on an auth page or homepage, only render children without layout
   if (isAuthPage || isHomePage) {
@@ -49,7 +53,7 @@ const Layout = ({ children }) => {
   
   // For authenticated pages, render the full layout with sidebar and navbar
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div data-theme={theme} className="flex h-screen overflow-hidden" style={{ background: 'var(--td-page-bg)', color: 'var(--td-text-primary)', transition: 'background 0.25s ease, color 0.25s ease' }}>
       {/* Sidebar for authenticated users - 250px width */}
       {showLayout && (
         <>
@@ -92,12 +96,12 @@ const Layout = ({ children }) => {
         )}
         
         {/* Main content area - with correct top margin and padding */}
-        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen relative`}>
+        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen relative`} style={{ background: 'var(--td-page-bg)' }}>
           {/* Page transition loader overlay */}
           {isPageTransitioning && <PageTransitionLoader />}
           
           {loading ? (
-            <div className="min-h-screen flex items-center justify-center bg-green-50">
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--td-page-bg)' }}>
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
             </div>
           ) : (
@@ -107,13 +111,13 @@ const Layout = ({ children }) => {
         
         {/* Footer */}
         {showLayout && (
-          <footer className="bg-white border-t border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-              <p>© {new Date().getFullYear()} TrashDrop. All rights reserved.</p>
+          <footer className="py-3 px-4 sm:px-6 lg:px-8" style={{ background: 'var(--td-footer-bg)', borderTop: '1px solid var(--td-footer-border)' }}>
+            <div className="flex flex-col md:flex-row justify-between items-center text-sm" style={{ color: 'var(--td-footer-text)' }}>
+              <p> {new Date().getFullYear()} TrashDrop. All rights reserved.</p>
               <div className="flex space-x-4 mt-2 md:mt-0">
-                <a href="#" className="hover:text-green-600">Privacy Policy</a>
-                <a href="#" className="hover:text-green-600">Terms of Service</a>
-                <a href="#" className="hover:text-green-600">Contact Support</a>
+                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Privacy Policy</a>
+                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Terms of Service</a>
+                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Contact Support</a>
               </div>
             </div>
           </footer>

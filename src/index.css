@@ -2,6 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light theme (default) ─────────────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --td-page-bg:        #f0fdf4;
+  --td-card-bg:        #ffffff;
+  --td-card-border:    #e5e7eb;
+
+  --td-sidebar-bg:     #15803d;
+  --td-sidebar-hover:  #166534;
+  --td-sidebar-active: #14532d;
+  --td-sidebar-text:   #dcfce7;
+  --td-sidebar-subtext:#bbf7d0;
+  --td-sidebar-border: #16a34a;
+
+  --td-navbar-bg:      #ffffff;
+  --td-navbar-border:  #e5e7eb;
+  --td-navbar-text:    #374151;
+  --td-navbar-icon:    #6b7280;
+
+  --td-text-primary:   #111827;
+  --td-text-secondary: #6b7280;
+  --td-text-muted:     #9ca3af;
+
+  --td-input-bg:       #ffffff;
+  --td-input-border:   #d1d5db;
+  --td-input-text:     #111827;
+
+  --td-footer-bg:      #ffffff;
+  --td-footer-border:  #e5e7eb;
+  --td-footer-text:    #6b7280;
+
+  --td-dropdown-bg:    #ffffff;
+  --td-dropdown-hover: #f9fafb;
+  --td-dropdown-border:#e5e7eb;
+
+  --td-accent:         #16a34a;
+  --td-accent-light:   #dcfce7;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --td-page-bg:        #0d1117;
+  --td-card-bg:        #161b22;
+  --td-card-border:    #30363d;
+
+  --td-sidebar-bg:     #0f4020;
+  --td-sidebar-hover:  #1a5c32;
+  --td-sidebar-active: #0a2e16;
+  --td-sidebar-text:   #d1fae5;
+  --td-sidebar-subtext:#6ee7b7;
+  --td-sidebar-border: #1a5c32;
+
+  --td-navbar-bg:      #161b22;
+  --td-navbar-border:  #30363d;
+  --td-navbar-text:    #e6edf3;
+  --td-navbar-icon:    #8b949e;
+
+  --td-text-primary:   #e6edf3;
+  --td-text-secondary: #8b949e;
+  --td-text-muted:     #6e7681;
+
+  --td-input-bg:       #0d1117;
+  --td-input-border:   #30363d;
+  --td-input-text:     #e6edf3;
+
+  --td-footer-bg:      #161b22;
+  --td-footer-border:  #30363d;
+  --td-footer-text:    #8b949e;
+
+  --td-dropdown-bg:    #1c2128;
+  --td-dropdown-hover: #22272e;
+  --td-dropdown-border:#30363d;
+
+  --td-accent:         #a8e63d;
+  --td-accent-light:   #1a2e0a;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

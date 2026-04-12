@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import MessagesModal from './modals/MessagesModal';
 import NotificationsModal from './modals/NotificationsModal';
 import { fetchNotifications, subscribeToNotifications, getUnreadNotificationsCount, markNotificationAsRead } from '../utils/notificationService';
@@ -9,6 +10,7 @@ import { fetchContacts, getUnreadMessageCount, markAllMessagesFromSenderAsRead, 
 
 const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const { user } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
@@ -140,11 +142,12 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 md:left-64 right-0 h-14 bg-white shadow z-10">
+      <nav className="fixed top-0 left-0 md:left-64 right-0 h-14 z-10" style={{ background: 'var(--td-navbar-bg)', borderBottom: '1px solid var(--td-navbar-border)', boxShadow: isDark ? '0 1px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div className="h-full px-4 flex justify-between items-center">
           {/* Mobile hamburger menu */}
           <button
-            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            style={{ color: 'var(--td-navbar-icon)' }}
             onClick={toggleMobileMenu}
           >
             <span className="sr-only">Open sidebar</span>
@@ -166,20 +169,34 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              style={{ background: 'var(--td-input-bg)', border: '1px solid var(--td-input-border)', color: 'var(--td-input-text)' }}
             />
-            <button className="absolute right-2 top-2 text-gray-500">
+            <button className="absolute right-2 top-2" style={{ color: 'var(--td-navbar-icon)' }}>
               <i className="fas fa-search"></i>
             </button>
           </div>
           
           {/* Right side icons */}
           <div className="flex items-center space-x-4">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="p-2 rounded-full transition-colors duration-200 focus:outline-none"
+              style={{ color: 'var(--td-navbar-icon)', background: isDark ? 'rgba(168,230,61,0.12)' : 'rgba(0,0,0,0.04)' }}
+            >
+              {isDark
+                ? <i className="fas fa-sun" style={{ fontSize: 16, color: '#a8e63d' }}></i>
+                : <i className="fas fa-moon" style={{ fontSize: 15 }}></i>
+              }
+            </button>
             {/* Messages icon */}
             <div className="relative">
               <button
                 onClick={toggleMessagesDropdown}
-                className="p-2 text-gray-600 hover:text-green-500 focus:outline-none"
+                className="p-2 hover:text-green-500 focus:outline-none"
+                style={{ color: 'var(--td-navbar-icon)' }}
                 aria-label="Messages"
               >
                 <i className="fas fa-comment-alt"></i>
@@ -192,12 +209,12 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               
               {/* Messages dropdown */}
               {showMessagesDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg overflow-hidden z-20">
-                  <div className="px-4 py-3 bg-gray-100 border-b flex justify-between items-center">
-                    <h3 className="font-semibold">Messages</h3>
+                <div className="absolute right-0 mt-2 w-80 rounded-lg shadow-lg overflow-hidden z-20" style={{ background: 'var(--td-dropdown-bg)', border: '1px solid var(--td-dropdown-border)' }}>
+                  <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: 'var(--td-dropdown-border)', background: isDark ? 'rgba(255,255,255,0.04)' : '#f9fafb' }}>
+                    <h3 className="font-semibold" style={{ color: 'var(--td-text-primary)' }}>Messages</h3>
                     <button 
                       onClick={openMessagesModal}
-                      className="text-sm text-green-600 hover:text-green-700"
+                      className="text-sm text-green-500 hover:text-green-400"
                     >
                       View all
                     </button>
@@ -221,7 +238,8 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
             <div className="relative">
               <button
                 onClick={toggleNotificationsDropdown}
-                className="p-2 text-gray-600 hover:text-green-500 focus:outline-none"
+                className="p-2 hover:text-green-500 focus:outline-none"
+                style={{ color: 'var(--td-navbar-icon)' }}
                 aria-label="Notifications"
               >
                 <i className="fas fa-bell"></i>
@@ -234,9 +252,9 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               
               {/* Notification dropdown */}
               {showNotificationsDropdown && (
-                <div className={`dropdown-menu ${showNotificationsDropdown ? 'show' : ''}`}>
-                  <div className="py-2 px-4 border-b border-gray-200">
-                    <h6 className="text-sm font-medium">Notifications</h6>
+                <div className="absolute right-0 mt-2 w-80 rounded-lg shadow-lg overflow-hidden z-20" style={{ background: 'var(--td-dropdown-bg)', border: '1px solid var(--td-dropdown-border)' }}>
+                  <div className="py-2 px-4 border-b" style={{ borderColor: 'var(--td-dropdown-border)' }}>
+                    <h6 className="text-sm font-medium" style={{ color: 'var(--td-text-primary)' }}>Notifications</h6>
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {isLoadingNotifications ? (
@@ -254,7 +272,10 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                     ) : recentNotifications.map(notification => (
                       <div 
                         key={notification.id} 
-                        className="px-4 py-3 border-b hover:bg-gray-50 cursor-pointer"
+                        className="px-4 py-3 border-b cursor-pointer"
+                        style={{ borderColor: 'var(--td-dropdown-border)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         onClick={() => markNotificationAsRead(notification.id).then(() => {
                           // Update local state to show notification as read
                           setNotifications(notifications.map(n => 
@@ -275,8 +296,8 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                             } text-sm`}></i>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium">{notification.message}</p>
-                            <p className="text-xs text-gray-500">{notification.time}</p>
+                            <p className="text-sm font-medium" style={{ color: 'var(--td-text-primary)' }}>{notification.message}</p>
+                            <p className="text-xs" style={{ color: 'var(--td-text-muted)' }}>{notification.time}</p>
                           </div>
                           {!notification.read && (
                             <span className="h-2 w-2 bg-blue-500 rounded-full mt-2"></span>
@@ -315,21 +336,27 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               
               {/* Profile dropdown */}
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-20">
-                  <div className="px-4 py-3 border-b">
-                    <p className="text-sm font-semibold">{user?.user_metadata?.full_name || 'User'}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg overflow-hidden z-20" style={{ background: 'var(--td-dropdown-bg)', border: '1px solid var(--td-dropdown-border)' }}>
+                  <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--td-dropdown-border)' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--td-text-primary)' }}>{user?.user_metadata?.full_name || 'User'}</p>
+                    <p className="text-xs" style={{ color: 'var(--td-text-muted)' }}>{user?.email}</p>
                   </div>
                   <div>
-                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">
+                    <Link to="/profile" className="block px-4 py-2 transition-colors" style={{ color: 'var(--td-text-primary)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <i className="fas fa-user-circle mr-2"></i> Profile
                     </Link>
-                    <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">
+                    <Link to="/settings" className="block px-4 py-2 transition-colors" style={{ color: 'var(--td-text-primary)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <i className="fas fa-cog mr-2"></i> Settings
                     </Link>
                     <button 
                       onClick={handleSignOut} 
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-red-500 transition-colors"
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <i className="fas fa-sign-out-alt mr-2"></i> Sign out
                     </button>

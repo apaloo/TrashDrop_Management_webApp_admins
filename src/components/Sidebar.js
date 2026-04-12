@@ -64,13 +64,6 @@ const Sidebar = () => {
   // Check if the menu item should be displayed based on user role
   const canView = (section) => canAccessSection(section, role, user);
 
-  // Check if the current path matches or is a child of a menu item
-  const isActive = (path, children) => {
-    if (location.pathname === path) return true;
-    if (children && children.some(child => location.pathname === child.path)) return true;
-    return false;
-  };
-
   // Toggle submenu expansion
   const toggleMenu = (index) => {
     if (expandedMenu === index) {
@@ -91,23 +84,23 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="bg-green-700 text-white w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto">
+    <div className="w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto" style={{ background: 'var(--td-sidebar-bg)', color: 'var(--td-sidebar-text)', transition: 'background 0.25s ease' }}>
       {/* Logo and brand */}
       <div className="px-6 pt-8 pb-6">
         <Link to="/dashboard" className="flex items-center">
           <img src="/logo.svg" alt="TrashDrop Logo" className="h-10 w-auto" />
-          <span className="ml-3 text-xl font-bold text-white">TrashDrop</span>
+          <span className="ml-3 text-xl font-bold" style={{ color: 'var(--td-sidebar-text)' }}>TrashDrop</span>
         </Link>
       </div>
       <div className="px-3">
-        <div className="bg-green-600 bg-opacity-30 rounded-md px-3 py-3 mb-5">
+        <div className="rounded-md px-3 py-3 mb-5" style={{ background: 'rgba(255,255,255,0.08)' }}>
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white font-medium">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center font-medium" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--td-sidebar-text)' }}>
               {user?.user_metadata?.firstName?.charAt(0) || user?.user_metadata?.full_name?.charAt(0) || 'U'}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">{user?.user_metadata?.firstName || user?.user_metadata?.full_name || 'User'}</p>
-              <p className="text-xs text-green-100">{user?.email}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--td-sidebar-text)' }}>{user?.user_metadata?.firstName || user?.user_metadata?.full_name || 'User'}</p>
+              <p className="text-xs" style={{ color: 'var(--td-sidebar-subtext)' }}>{user?.email}</p>
             </div>
           </div>
         </div>
@@ -128,7 +121,10 @@ const Sidebar = () => {
                   {item.children ? (
                     <>
                       <button 
-                        className={`flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150 ${isActive ? 'bg-green-800 text-white' : 'text-green-100 hover:bg-green-600 hover:text-white'}`}
+                        className="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150"
+                        style={isActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-text)' }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
+                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                         onClick={() => toggleMenu(index)}
                       >
                         <span className="inline-flex items-center justify-center mr-3 text-lg">
@@ -151,7 +147,10 @@ const Sidebar = () => {
                             <Link 
                               key={childIndex}
                               to={child.path} 
-                              className={`block py-2 px-2 text-sm rounded-md transition-colors duration-150 ${isChildActive ? 'text-white bg-green-800' : 'text-green-100 hover:text-white hover:bg-green-600'}`}
+                              className="block py-2 px-2 text-sm rounded-md transition-colors duration-150"
+                              style={isChildActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-subtext)' }}
+                              onMouseEnter={e => { if (!isChildActive) { e.currentTarget.style.background = 'var(--td-sidebar-hover)'; e.currentTarget.style.color = '#fff'; } }}
+                              onMouseLeave={e => { if (!isChildActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--td-sidebar-subtext)'; } }}
                             >
                               {child.title}
                             </Link>
@@ -162,7 +161,10 @@ const Sidebar = () => {
                   ) : (
                     <Link 
                       to={item.path} 
-                      className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150 ${isActive ? 'bg-green-800 text-white' : 'text-green-100 hover:bg-green-600 hover:text-white'}`}
+                      className="flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150"
+                      style={isActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-text)' }}
+                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
+                      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >
                       <span className="inline-flex items-center justify-center mr-3 text-lg">
                         <i className={item.icon}></i>
@@ -175,10 +177,13 @@ const Sidebar = () => {
             })}
         </div>
       </nav>
-      <div className="p-4 mt-auto border-t border-green-600">
+      <div className="p-4 mt-auto" style={{ borderTop: '1px solid var(--td-sidebar-border)' }}>
         <button 
           onClick={handleLogout}
-          className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-white bg-green-800 rounded-md hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+          style={{ background: 'var(--td-sidebar-active)', color: '#fff' }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           <span className="inline-flex items-center justify-center mr-3">
             <i className="fas fa-sign-out-alt"></i>

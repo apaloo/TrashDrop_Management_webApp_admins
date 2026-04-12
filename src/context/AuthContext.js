@@ -21,6 +21,10 @@ export const AuthProvider = ({ children }) => {
   const initialOnboardingState = devMode ? localStorage.getItem('trashdrop_onboarding_completed') === 'true' : false;
   const initialUserData = devMode ? JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null') : null;
   const initialRole = initialUserData ? getEffectiveRole(initialUserData.user_metadata?.role, initialUserData) : getEffectiveRole();
+  const getInitialForceResetMode = () => {
+    if (typeof window === 'undefined') return false;
+    return window.location.hash?.includes('type=recovery');
+  };
   
   // Get current authenticated user state - only use localStorage in dev mode
   const [user, setUser] = useState(initialUserData);
@@ -30,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   const [authInitialized, setAuthInitialized] = useState(false);
   // Explicitly track authentication status in its own state variable instead of derived
   const [isAuthenticated, setIsAuthenticated] = useState(devMode && (!!initialUserData || initialAuthState));
-  const [forceResetMode, setForceResetMode] = useState(false);
+  const [forceResetMode, setForceResetMode] = useState(getInitialForceResetMode);
 
   // Function to update user data on auth events
   const setAuthData = (session) => {
@@ -102,7 +106,15 @@ export const AuthProvider = ({ children }) => {
   
   useEffect(() => {
     let isMounted = true;
-    
+
+    const handleHashChange = () => {
+      if (window.location.hash?.includes('type=recovery')) {
+        setForceResetMode(true);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
     // Get initial session and user
     const initializeAuth = async () => {
       try {
@@ -243,6 +255,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       isMounted = false;
+      window.removeEventListener('hashchange', handleHashChange);
       if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
         authListener.subscription.unsubscribe();
       }
