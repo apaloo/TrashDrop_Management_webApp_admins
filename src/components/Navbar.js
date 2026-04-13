@@ -342,11 +342,6 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                     <p className="text-xs" style={{ color: 'var(--td-text-muted)' }}>{user?.email}</p>
                   </div>
                   <div>
-                    <Link to="/profile" className="block px-4 py-2 transition-colors" style={{ color: 'var(--td-text-primary)' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <i className="fas fa-user-circle mr-2"></i> Profile
-                    </Link>
                     <Link to="/settings" className="block px-4 py-2 transition-colors" style={{ color: 'var(--td-text-primary)' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>

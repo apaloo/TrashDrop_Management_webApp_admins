@@ -53,12 +53,6 @@ const Sidebar = () => {
         { title: 'History', path: '/illegal-dumping/history' }
       ]
     },
-    { 
-      title: 'Settings', 
-      path: '/settings',
-      icon: 'fas fa-cog',
-      section: SECTIONS.SETTINGS 
-    }
   ];
 
   // Check if the menu item should be displayed based on user role
