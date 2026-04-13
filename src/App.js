@@ -11,6 +11,7 @@ import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
+import HomePage from './pages/HomePage';
 
 // Public marketing pages
 const HowItWorksPage         = lazy(() => import('./pages/HowItWorksPage'));
@@ -23,7 +24,6 @@ const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
 
 // Lazy load components for better performance
-const HomePage = lazy(() => import('./pages/HomePage'));
 const Login = lazy(() => import('./pages/Login'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
