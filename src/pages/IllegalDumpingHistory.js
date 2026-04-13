@@ -211,79 +211,65 @@ const IllegalDumpingHistory = () => {
     setShowDetailModal(true);
   };
   return (
-    <div className="p-6">
-      {/* Page header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2 md:mb-0">
-          Illegal Dumping History
-        </h1>
-        <div className="flex items-center">
-          <div className="relative rounded-md shadow-sm">
-            <input
-              type="text"
-              className="form-input py-2 pl-10 pr-3 block w-full sm:text-sm border-gray-300 rounded-md transition ease-in-out duration-150"
-              placeholder="Search reports..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset to first page when search changes
-              }}
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-search text-gray-400"></i>
-            </div>
-            {searchTerm && (
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                  <i className="fas fa-times"></i>
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Illegal Dumping History</h1>
+          <p className="text-sm text-gray-500 mt-0.5">View resolved and cancelled illegal dumping reports</p>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input
+            type="text"
+            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm"
+            placeholder="Search reports..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <i className="fas fa-times text-xs"></i>
+            </button>
+          )}
         </div>
       </div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         {/* Total Resolved Reports Card */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 mr-4">
-              <i className="fas fa-check-circle text-blue-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 uppercase">Total Resolved Reports</p>
-              <p className="text-2xl font-bold">{metrics.totalResolved}</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-4 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <i className="fas fa-check-circle text-blue-600"></i>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-0.5">Total Resolved Reports</p>
+            <p className="text-2xl font-bold text-gray-800">{metrics.resolvedCount ?? 0}</p>
           </div>
         </div>
         
         {/* Cleanup Teams Involved Card */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 mr-4">
-              <i className="fas fa-users text-green-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 uppercase">Cleanup Teams Involved</p>
-              <p className="text-2xl font-bold">{metrics.teamsInvolved}</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-green-100 p-4 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+            <i className="fas fa-users text-green-600"></i>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-0.5">Cleanup Teams Involved</p>
+            <p className="text-2xl font-bold text-gray-800">{metrics.verifiedCount ?? 0}</p>
           </div>
         </div>
         
         {/* Average Resolution Time Card */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 mr-4">
-              <i className="fas fa-clock text-purple-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 uppercase">Avg. Resolution Time</p>
-              <p className="text-2xl font-bold">{metrics.avgResolutionTimeHours} hours</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-4 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+            <i className="fas fa-clock text-purple-600"></i>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-0.5">Avg. Resolution Time</p>
+            <p className="text-2xl font-bold text-gray-800">{metrics.averageResolutionDays ?? 0} hours</p>
           </div>
         </div>
       </div>
@@ -297,90 +283,94 @@ const IllegalDumpingHistory = () => {
       />
 
       {/* Filters section */}
-         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Filters</h3>
-          <button 
-            className="text-blue-600 text-sm flex items-center hover:underline"
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <i className="fas fa-filter text-gray-400 text-sm"></i>
+            <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
+            {(filters.resolution.length > 0 || filters.startDate || filters.endDate) && (
+              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                {filters.resolution.length + (filters.startDate ? 1 : 0) + (filters.endDate ? 1 : 0)} active
+              </span>
+            )}
+          </div>
+          <button
+            className="text-xs text-gray-500 flex items-center gap-1 hover:text-red-500 transition-colors"
             onClick={resetFilters}
           >
-            <i className="fas fa-undo-alt mr-1"></i> Reset All
+            <i className="fas fa-times-circle text-xs"></i> Reset All
           </button>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Resolution type filters */}
+        <div className="flex flex-wrap items-end gap-4">
           <div>
-            <p className="text-sm font-medium mb-2">Resolution Type</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Resolution Type</p>
+            <div className="flex gap-1.5">
               {[STATUS.ILLEGAL_DUMPING.CLEANED_UP, 'Cancelled'].map(type => {
                 const isActive = filters.resolution.includes(type);
-                const typeColor = type === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#4CAF50' : '#F44336';
+                const typeColor = type === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#10B981' : '#EF4444';
+                const label = type === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? 'Completed' : 'Cancelled';
                 return (
                   <button
                     key={type}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white' : 'text-gray-700'}`}
-                    style={{ 
-                      backgroundColor: isActive ? typeColor : 'white',
-                      borderColor: typeColor
+                    className={`text-xs px-3 py-1 rounded-full border font-medium transition-all whitespace-nowrap`}
+                    style={{
+                      backgroundColor: isActive ? typeColor : '#F9FAFB',
+                      borderColor: isActive ? typeColor : '#E5E7EB',
+                      color: isActive ? 'white' : '#374151',
                     }}
                     onClick={() => handleFilterChange('resolution', type)}
                   >
-                    {type}
+                    {label}
                   </button>
                 );
               })}
             </div>
           </div>
-          
-          {/* Date range filters */}
-          <div>
-            <p className="text-sm font-medium mb-2">From Date</p>
-            <input
-              type="date"
-              className="w-full p-2 border border-gray-300 rounded-lg"
-              value={filters.startDate || ''}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-sm font-medium mb-2">To Date</p>
-            <input
-              type="date"
-              className="w-full p-2 border border-gray-300 rounded-lg"
-              value={filters.endDate || ''}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-            />
+          <div className="flex items-end gap-2">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">From Date</p>
+              <input
+                type="date"
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                value={filters.startDate || ''}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              />
+            </div>
+            <span className="text-gray-400 mb-2 text-sm">→</span>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To Date</p>
+              <input
+                type="date"
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                value={filters.endDate || ''}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Tabs for history filtering */}
+      {/* Tabs */}
       <div className="mb-4 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${selectedTab === 'all' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-            onClick={() => setSelectedTab('all')}
-          >
-            All
-          </button>
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${selectedTab === 'resolved' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-            onClick={() => setSelectedTab('resolved')}
-          >
-            Resolved
-          </button>
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${selectedTab === 'cancelled' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-            onClick={() => setSelectedTab('cancelled')}
-          >
-            Cancelled
-          </button>
+        <nav className="-mb-px flex gap-6">
+          {[['all','All'],['resolved','Resolved'],['cancelled','Cancelled']].map(([tab, label]) => (
+            <button
+              key={tab}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                selectedTab === tab
+                  ? 'border-green-600 text-green-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => setSelectedTab(tab)}
+            >
+              {label}
+            </button>
+          ))}
         </nav>
       </div>
 
-          {/* Data Table */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-4">
+      {/* Data Table */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

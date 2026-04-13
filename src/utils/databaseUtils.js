@@ -1052,7 +1052,14 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
 export const updateIllegalDumpingStatus = async (reportId, status, notes = '') => {
   // DEPRECATED: RPC function removed, using direct table update only
   console.log('Using direct table update for illegal dumping status (RPC deprecated)');
-  
+
+  // DB constraint: status IN ('pending', 'verified', 'in_progress', 'completed', 'cancelled')
+  const DB_ALLOWED_STATUSES = ['pending', 'verified', 'in_progress', 'completed', 'cancelled'];
+  if (!DB_ALLOWED_STATUSES.includes(status)) {
+    console.error(`updateIllegalDumpingStatus: status '${status}' is not allowed by DB constraint. Allowed: ${DB_ALLOWED_STATUSES.join(', ')}`);
+    throw new Error(`Invalid status value '${status}'. Must be one of: ${DB_ALLOWED_STATUSES.join(', ')}`);
+  }
+
   // Direct table update
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',

@@ -261,14 +261,14 @@ const CollectorsManagement = () => {
         email: collectorForm.email,
         phone: collectorForm.phone,
         status: collectorForm.status,
-        region: collectorForm.region,
-        vehicle_info: collectorForm.vehicleInfo,
+        assigned_region: collectorForm.region,
         notes: collectorForm.notes,
-        avatar_url: collectorForm.avatar
+        profile_image_url: collectorForm.avatar
       };
       
       // Submit update to Supabase
-      await updateCollector(collectorData);
+      const { id: collectorId, ...updatePayload } = collectorData;
+      await updateCollector(collectorId, updatePayload);
       
       // Update the collector in the UI
       const updatedCollectors = collectors.map(c => 

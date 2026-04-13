@@ -85,23 +85,25 @@ const Layout = ({ children }) => {
         </>
       )}
       
-      {/* Main content area */}
-      <div className={`flex-1 flex flex-col ${showLayout ? 'md:ml-64' : ''} overflow-hidden`}>
-        {/* Top navigation bar - 56px height */}
+      {/* Main content column */}
+      <div className={`flex-1 flex flex-col ${showLayout ? 'md:ml-64' : ''} h-screen overflow-hidden`}>
+        {/* Fixed top navbar — rendered in normal flow so it takes up space in the flex column */}
         {showLayout && (
-          <Navbar 
-            toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-            isMobileMenuOpen={isMobileMenuOpen}
-          />
+          <div className="flex-shrink-0 h-14 w-full" style={{ zIndex: 20, position: 'relative' }}>
+            <Navbar 
+              toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              isMobileMenuOpen={isMobileMenuOpen}
+            />
+          </div>
         )}
         
-        {/* Main content area - with correct top margin and padding */}
-        <main className={`flex-1 overflow-y-auto ${showLayout ? 'mt-14' : ''} p-4 min-h-screen relative`} style={{ background: 'var(--td-page-bg)' }}>
+        {/* Scrollable page content — sits directly below the navbar, never behind it */}
+        <main className="flex-1 overflow-y-auto px-6 pt-5 pb-5 relative" style={{ background: 'var(--td-page-bg)' }}>
           {/* Page transition loader overlay */}
           {isPageTransitioning && <PageTransitionLoader />}
           
           {loading ? (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--td-page-bg)' }}>
+            <div className="flex items-center justify-center h-full" style={{ background: 'var(--td-page-bg)' }}>
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
             </div>
           ) : (
@@ -111,7 +113,7 @@ const Layout = ({ children }) => {
         
         {/* Footer */}
         {showLayout && (
-          <footer className="py-3 px-4 sm:px-6 lg:px-8" style={{ background: 'var(--td-footer-bg)', borderTop: '1px solid var(--td-footer-border)' }}>
+          <footer className="flex-shrink-0 py-3 px-4 sm:px-6 lg:px-8" style={{ background: 'var(--td-footer-bg)', borderTop: '1px solid var(--td-footer-border)' }}>
             <div className="flex flex-col md:flex-row justify-between items-center text-sm" style={{ color: 'var(--td-footer-text)' }}>
               <p> {new Date().getFullYear()} TrashDrop. All rights reserved.</p>
               <div className="flex space-x-4 mt-2 md:mt-0">

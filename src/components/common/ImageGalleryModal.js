@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import EnhancedImage from './EnhancedImage';
 
 /**
  * @component ImageGalleryModal
@@ -67,10 +68,11 @@ const ImageGalleryModal = ({ images, isOpen, onClose }) => {
           </div>
 
           <div className="bg-black flex justify-center items-center relative" style={{ height: '500px' }}>
-            <img 
-              src={images[currentIndex]} 
+            <EnhancedImage
+              src={images[currentIndex]}
               alt={`Image ${currentIndex + 1}`}
               className="max-h-full max-w-full object-contain"
+              style={{ maxHeight: '100%', maxWidth: '100%' }}
             />
             
             {images.length > 1 && (
@@ -105,10 +107,11 @@ const ImageGalleryModal = ({ images, isOpen, onClose }) => {
                     idx === currentIndex ? 'border-blue-500' : 'border-transparent'
                   }`}
                 >
-                  <img 
-                    src={img} 
+                  <EnhancedImage
+                    src={img}
                     alt={`Thumbnail ${idx + 1}`}
                     className="h-full w-full object-cover"
+                    style={{ height: '100%', width: '100%', objectFit: 'cover' }}
                   />
                 </button>
               ))}

@@ -3,6 +3,7 @@ import { fetchIllegalDumpingReports, updateIllegalDumpingStatus, fetchIllegalDum
 import { STATUS, SEVERITY } from '../config/constants';
 import { reverseGeocodeWithCache } from '../utils/geocoding';
 import { supabase } from '../utils/supabase';
+import EnhancedImage from '../components/common/EnhancedImage';
 
 const IllegalDumpingManagement = () => {
   const [reports, setReports] = useState([]);
@@ -311,21 +312,23 @@ const IllegalDumpingManagement = () => {
   }, [searchTerm, filterStatus, filterSeverity, itemsPerPage]);
 
   return (
-    <div className="p-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Illegal Dumping Management</h1>
-        <p className="text-gray-600">Track and manage illegal dumping reports and cleanups</p>
-      </div>
-      {/* Toolbar: Refresh and Auto-Refresh */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          {lastUpdated && `Last updated: ${new Date(lastUpdated).toLocaleTimeString()}`}
+    <div className="bg-gray-50 min-h-screen">
+      {/* Page Header + Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Illegal Dumping Management</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Track and manage illegal dumping reports and cleanups</p>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {lastUpdated && (
+            <span className="text-xs text-gray-400 hidden sm:block">
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </span>
+          )}
+          <label className="inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none bg-white border border-gray-200 rounded-md px-3 py-2">
             <input
               type="checkbox"
-              className="form-checkbox h-4 w-4"
+              className="accent-green-600 h-3.5 w-3.5"
               checked={autoRefreshEnabled}
               onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
             />
@@ -334,90 +337,82 @@ const IllegalDumpingManagement = () => {
           <button
             onClick={() => refreshReports(false)}
             disabled={loading}
-            className={`px-3 py-2 rounded text-white text-sm font-medium ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+            }`}
           >
-            {loading ? (
-              <span className="inline-flex items-center">
-                <i className="fas fa-spinner fa-spin mr-2"></i> Refreshing...
-              </span>
-            ) : (
-              <span className="inline-flex items-center">
-                <i className="fas fa-sync mr-2"></i> Refresh
-              </span>
-            )}
+            <i className={`fas fa-sync-alt text-xs ${loading ? 'fa-spin' : ''}`}></i>
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
 
       {/* Toast notification */}
       {showToast && (
-        <div className="fixed top-20 right-4 bg-white shadow-lg rounded-md p-4 z-50 animate-fade-in-down flex items-center">
-          <i className="fas fa-info-circle text-blue-500 mr-2"></i>
-          <span>{toastMessage}</span>
-          <button className="ml-4 text-gray-400 hover:text-gray-600" onClick={() => setShowToast(false)}>
-            <i className="fas fa-times"></i>
+        <div className="fixed top-20 right-4 bg-gray-800 text-white shadow-xl rounded-lg px-4 py-3 z-[10000] flex items-center gap-3 max-w-sm">
+          <i className="fas fa-info-circle text-blue-300 flex-shrink-0"></i>
+          <span className="text-sm">{toastMessage}</span>
+          <button className="ml-auto text-gray-400 hover:text-white" onClick={() => setShowToast(false)}>
+            <i className="fas fa-times text-xs"></i>
           </button>
         </div>
       )}
 
-      {/* Metrics Cards */}
-      {!loading && metrics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-500">Total Reports</p>
-            <p className="text-2xl font-bold">{metrics.totalReports}</p>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        {[
+          { label: 'Total Reports', value: loading ? '—' : (metrics?.totalReports ?? 0), icon: 'fa-flag', bg: 'bg-blue-50', color: 'text-blue-600', border: 'border-blue-100' },
+          { label: 'Verified Reports', value: loading ? '—' : (metrics?.verifiedReports ?? 0), icon: 'fa-shield-alt', bg: 'bg-green-50', color: 'text-green-600', border: 'border-green-100' },
+          { label: 'Cleaned Up', value: loading ? '—' : (metrics?.cleanedUpReports ?? 0), icon: 'fa-broom', bg: 'bg-emerald-50', color: 'text-emerald-600', border: 'border-emerald-100' },
+          { label: 'Avg Cleanup Time', value: loading ? '—' : `${(metrics?.avgCleanupTimeHours || 0).toFixed(1)} hrs`, icon: 'fa-clock', bg: 'bg-orange-50', color: 'text-orange-600', border: 'border-orange-100' },
+        ].map(({ label, value, icon, bg, color, border }) => (
+          <div key={label} className={`bg-white rounded-xl shadow-sm border ${border} p-4 flex items-center gap-4`}>
+            <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
+              <i className={`fas ${icon} ${color}`}></i>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">{label}</p>
+              <p className="text-2xl font-bold text-gray-800 leading-tight">{value}</p>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-500">Verified Reports</p>
-            <p className="text-2xl font-bold">{metrics.verifiedReports}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-500">Cleaned Up</p>
-            <p className="text-2xl font-bold">{metrics.cleanedUpReports}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-500">Avg Cleanup Time</p>
-            <p className="text-2xl font-bold">{metrics.avgCleanupTimeHours.toFixed(1)} hrs</p>
-          </div>
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Filters */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="w-full md:w-1/2">
-          <input
-            type="text"
-            placeholder="Search by ID, address, description, or waste type..."
-            className="w-full p-2 border border-gray-300 rounded-lg"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-1/4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input
+              type="text"
+              placeholder="Search by ID, address, description, or waste type..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <select
-            className="w-full p-2 border border-gray-300 rounded-lg"
+            className="py-2 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value={STATUS.ILLEGAL_DUMPING.REPORTED.toString()}>{STATUS.ILLEGAL_DUMPING.REPORTED}</option>
-            <option value={STATUS.ILLEGAL_DUMPING.VERIFIED.toString()}>{STATUS.ILLEGAL_DUMPING.VERIFIED}</option>
-            <option value={STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED.toString()}>{STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED}</option>
-            <option value={STATUS.ILLEGAL_DUMPING.CLEANED_UP.toString()}>{STATUS.ILLEGAL_DUMPING.CLEANED_UP}</option>
-            <option value={STATUS.ILLEGAL_DUMPING.CANCELLED.toString()}>{STATUS.ILLEGAL_DUMPING.CANCELLED}</option>
+            <option value={STATUS.ILLEGAL_DUMPING.REPORTED}>Pending</option>
+            <option value={STATUS.ILLEGAL_DUMPING.VERIFIED}>Verified</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED}>In Progress</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CLEANED_UP}>Completed</option>
+            <option value={STATUS.ILLEGAL_DUMPING.CANCELLED}>Cancelled</option>
           </select>
-        </div>
-        <div className="w-full md:w-1/4">
           <select
-            className="w-full p-2 border border-gray-300 rounded-lg"
+            className="py-2 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
           >
             <option value="All">All Severities</option>
-            <option value={SEVERITY.LOW.toString()}>{SEVERITY.LOW}</option>
-            <option value={SEVERITY.MEDIUM.toString()}>{SEVERITY.MEDIUM}</option>
-            <option value={SEVERITY.HIGH.toString()}>{SEVERITY.HIGH}</option>
-            <option value={SEVERITY.CRITICAL.toString()}>{SEVERITY.CRITICAL}</option>
+            <option value={SEVERITY.LOW}>Low</option>
+            <option value={SEVERITY.MEDIUM}>Medium</option>
+            <option value={SEVERITY.HIGH}>High</option>
+            <option value={SEVERITY.CRITICAL}>Critical</option>
           </select>
         </div>
       </div>
@@ -428,7 +423,7 @@ const IllegalDumpingManagement = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -504,14 +499,14 @@ const IllegalDumpingManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                     <button
                       onClick={() => handleViewDetails(report)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors mr-2"
                     >
                       Details
                     </button>
                     {report.status !== STATUS.ILLEGAL_DUMPING.CLEANED_UP && report.status !== STATUS.ILLEGAL_DUMPING.CANCELLED && (
                       <button 
                         onClick={() => updateReportStatus(report.id, STATUS.ILLEGAL_DUMPING.CLEANED_UP)}
-                        className="text-green-600 hover:text-green-900"
+                        className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
                       >
                         Mark Cleaned
                       </button>
@@ -722,16 +717,11 @@ const IllegalDumpingManagement = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {selectedReport.images && selectedReport.images.length > 0 ? (
                   selectedReport.images.map((img, index) => (
-                    <div key={index} className="bg-gray-100 rounded overflow-hidden">
-                      <img 
-                        src={img} 
+                    <div key={index} className="bg-gray-100 rounded overflow-hidden cursor-pointer" onClick={() => window.open(img, '_blank')}>
+                      <EnhancedImage
+                        src={img}
                         alt={`Report evidence ${index + 1}`}
-                        className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(img, '_blank')}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EImage unavailable%3C/text%3E%3C/svg%3E';
-                        }}
+                        className="w-full h-48 object-cover"
                       />
                     </div>
                   ))

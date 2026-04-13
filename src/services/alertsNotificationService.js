@@ -6,7 +6,7 @@
  * workflows, and user preference management.
  */
 
-import { supabaseAdmin } from '../utils/supabase';
+import { supabase } from '../utils/supabase';
 import { realtimeManager } from './realtimeManager';
 import { performanceMonitor } from './performanceMonitor';
 
@@ -222,7 +222,7 @@ class AlertsNotificationService {
         last_occurred_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from('alerts')
         .insert(alertRecord)
         .select()
@@ -295,7 +295,7 @@ class AlertsNotificationService {
         this.clearAlertTimers(alertId);
       }
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from('alerts')
         .update(updateData)
         .eq('id', alertId)
@@ -360,7 +360,7 @@ class AlertsNotificationService {
       }
 
       // Build query
-      let query = supabaseAdmin
+      let query = supabase
         .from('alerts')
         .select(`
           *
@@ -437,7 +437,7 @@ class AlertsNotificationService {
         return { success: true, data: cached.data };
       }
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from('alerts')
         .select(`
           *,
@@ -473,7 +473,7 @@ class AlertsNotificationService {
     const startTime = Date.now();
 
     try {
-      const { data, error } = await supabaseAdmin.rpc('get_alert_statistics', {
+      const { data, error } = await supabase.rpc('get_alert_statistics', {
         time_range: timeRange
       });
 
@@ -572,7 +572,7 @@ class AlertsNotificationService {
     });
 
     // Store in-app notification for offline users
-    await supabaseAdmin
+    await supabase
       .from('in_app_notifications')
       .insert({
         user_id: alert.assigned_to,
@@ -591,7 +591,7 @@ class AlertsNotificationService {
    */
   async sendEmailNotification(alert) {
     // Get user email preferences and details
-    const { data: user } = await supabaseAdmin
+    const { data: user } = await supabase
       .from('users')
       .select('email, first_name, last_name, notification_preferences')
       .eq('id', alert.assigned_to)
@@ -616,7 +616,7 @@ class AlertsNotificationService {
     };
 
     // Send email using Supabase Edge Function or external service
-    const { error } = await supabaseAdmin.functions.invoke('send-email', {
+    const { error } = await supabase.functions.invoke('send-email', {
       body: emailData
     });
 
@@ -628,7 +628,7 @@ class AlertsNotificationService {
    */
   async sendSMSNotification(alert) {
     // Get user phone number
-    const { data: user } = await supabaseAdmin
+    const { data: user } = await supabase
       .from('users')
       .select('phone, notification_preferences')
       .eq('id', alert.assigned_to)
@@ -643,7 +643,7 @@ class AlertsNotificationService {
     };
 
     // Send SMS using Supabase Edge Function or external service
-    const { error } = await supabaseAdmin.functions.invoke('send-sms', {
+    const { error } = await supabase.functions.invoke('send-sms', {
       body: smsData
     });
 
@@ -655,7 +655,7 @@ class AlertsNotificationService {
    */
   async sendPushNotification(alert) {
     // Get user push tokens
-    const { data: tokens } = await supabaseAdmin
+    const { data: tokens } = await supabase
       .from('push_tokens')
       .select('token, platform')
       .eq('user_id', alert.assigned_to)
@@ -676,7 +676,7 @@ class AlertsNotificationService {
     };
 
     // Send push notifications
-    const { error } = await supabaseAdmin.functions.invoke('send-push', {
+    const { error } = await supabase.functions.invoke('send-push', {
       body: pushData
     });
 
