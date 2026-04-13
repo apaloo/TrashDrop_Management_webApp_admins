@@ -1121,6 +1121,79 @@ const MapPreviewSection = ({ isAuthenticated }) => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    IMPACT STATS
    ═══════════════════════════════════════════════════════════════════════════════ */
+/* ─── Lightbox ───────────────────────────────────────────────────────────────── */
+const DUMP_PHOTOS = [
+  { src:'/images/chocked_bridge.jpeg',               label:'Bridge blockage · Accra' },
+  { src:'/images/chocked_drainage_1.jpeg',           label:'Drainage blockage' },
+  { src:'/images/chocked_pavement_1.jpeg',           label:'Pavement dump' },
+  { src:'/images/chocked_drainage_2.jpeg',           label:'Drainage overflow' },
+  { src:'/images/ksi_central_market.jpeg',           label:'Kumasi Central Market' },
+  { src:'/images/chocked_pavement_2.jpeg',           label:'Pavement · Accra' },
+  { src:'/images/chocked_pavement_3.jpeg',           label:'Roadside dump' },
+  { src:'/images/chocked_pavement_4.jpeg',           label:'Blocked walkway' },
+  { src:'/images/report_communal_bin_overflow.jpeg', label:'Bin overflow' },
+];
+
+const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
+    };
+    window.addEventListener('keydown', handler);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = '';
+    };
+  }, [onClose, onPrev, onNext]);
+
+  const photo = photos[index];
+  return (
+    <div
+      onClick={onClose}
+      style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.92)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+      {/* Close */}
+      <button onClick={onClose} style={{ position:'absolute', top:20, right:24, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)', color:'#fff', width:44, height:44, borderRadius:'50%', cursor:'pointer', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', zIndex:10000 }}>
+        <i className="fas fa-times" />
+      </button>
+      {/* Counter */}
+      <div style={{ position:'absolute', top:24, left:24, ...FF.label, fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:600, letterSpacing:'2px' }}>
+        {index + 1} / {photos.length}
+      </div>
+      {/* Prev */}
+      <button onClick={e=>{e.stopPropagation();onPrev();}} style={{ position:'absolute', left:16, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#fff', width:48, height:48, borderRadius:'50%', cursor:'pointer', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', zIndex:10000, transition:'background 0.2s' }}
+        onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.16)'}
+        onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.08)'}>
+        <i className="fas fa-chevron-left" />
+      </button>
+      {/* Image */}
+      <div onClick={e=>e.stopPropagation()} style={{ maxWidth:'90vw', maxHeight:'85vh', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
+        <img src={photo.src} alt={photo.label} style={{ maxWidth:'100%', maxHeight:'78vh', borderRadius:12, objectFit:'contain', boxShadow:'0 32px 80px rgba(0,0,0,0.7)' }} />
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', flexShrink:0 }} />
+          <span style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.75)', textTransform:'uppercase' }}>{photo.label}</span>
+        </div>
+        {/* Thumbnail strip */}
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', justifyContent:'center', maxWidth:600 }}>
+          {photos.map((p,i) => (
+            <button key={i} onClick={e=>{e.stopPropagation();onGoTo(i);}} style={{ padding:0, border:`2px solid ${i===index?TD.lime:'transparent'}`, borderRadius:6, overflow:'hidden', cursor:'pointer', background:'none', transition:'border-color 0.2s', width:44, height:44, flexShrink:0 }}>
+              <img src={p.src} alt={p.label} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Next */}
+      <button onClick={e=>{e.stopPropagation();onNext();}} style={{ position:'absolute', right:16, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#fff', width:48, height:48, borderRadius:'50%', cursor:'pointer', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', zIndex:10000, transition:'background 0.2s' }}
+        onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.16)'}
+        onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.08)'}>
+        <i className="fas fa-chevron-right" />
+      </button>
+    </div>
+  );
+};
+
 const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
   const { ref, visible } = useReveal(0.3);
   const { lp } = useLpTheme();
@@ -1144,6 +1217,11 @@ const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
 const ImpactSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
+  const [lbIndex, setLbIndex] = useState(null);
+  const lbOpen  = lbIndex !== null;
+  const lbClose = () => setLbIndex(null);
+  const lbPrev  = () => setLbIndex(i => (i - 1 + DUMP_PHOTOS.length) % DUMP_PHOTOS.length);
+  const lbNext  = () => setLbIndex(i => (i + 1) % DUMP_PHOTOS.length);
   const STATS = [
     { label:'Illegal Dumps Reported', value:12470, suffix:'+', icon:'fa-flag',         color:'#f87171', accent:'rgba(248,113,113,0.15)' },
     { label:'Tonnes Waste Removed',   value:3850,  suffix:'+', icon:'fa-dumpster',     color:TD.lime,   accent:`${TD.lime}18`            },
@@ -1161,6 +1239,60 @@ const ImpactSection = () => {
           </h2>
           <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.impactText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>Every report, every cleanup, every community action adds up to meaningful environmental change across Ghana.</p>
         </div>
+        {/* ── Photo evidence grid ── */}
+        {lbOpen && <Lightbox photos={DUMP_PHOTOS} index={lbIndex} onClose={lbClose} onPrev={lbPrev} onNext={lbNext} onGoTo={setLbIndex} />}
+        <div style={{ marginBottom:56, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.15s' }}>
+          {/* Top row: tall left + 2×2 right */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gridTemplateRows:'180px 180px', gap:6, marginBottom:6 }}>
+            {/* index 0 — tall left spanning 2 rows */}
+            {[
+              { style:{ gridRow:'1 / 3' }, idx:0 },
+              { style:{},                   idx:1 },
+              { style:{},                   idx:2 },
+              { style:{},                   idx:3 },
+              { style:{},                   idx:4 },
+            ].map(({ style, idx }) => {
+              const p = DUMP_PHOTOS[idx];
+              return (
+                <div key={idx} style={{ ...style, position:'relative', borderRadius:14, overflow:'hidden', cursor:'pointer' }}
+                  onClick={() => setLbIndex(idx)}
+                  onMouseEnter={e=>{e.currentTarget.querySelector('img').style.transform='scale(1.06)'; e.currentTarget.querySelector('.expand-icon').style.opacity='1';}}
+                  onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
+                  <img src={p.src} alt={p.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 55%)', pointerEvents:'none' }} />
+                  <span style={{ position:'absolute', bottom:10, left:12, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.85)', textTransform:'uppercase' }}>{p.label}</span>
+                  <span className="expand-icon" style={{ position:'absolute', top:10, right:10, width:28, height:28, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
+                    <i className="fas fa-expand-alt" style={{ fontSize:11, color:'#fff' }} />
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {/* Bottom row: 4 equal images (indices 5-8) */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
+            {DUMP_PHOTOS.slice(5).map((img, i) => {
+              const idx = i + 5;
+              return (
+                <div key={idx} style={{ position:'relative', height:130, borderRadius:12, overflow:'hidden', cursor:'pointer' }}
+                  onClick={() => setLbIndex(idx)}
+                  onMouseEnter={e=>{e.currentTarget.querySelector('img').style.transform='scale(1.07)'; e.currentTarget.querySelector('.expand-icon').style.opacity='1';}}
+                  onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
+                  <img src={img.src} alt={img.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 60%)', pointerEvents:'none' }} />
+                  <span style={{ position:'absolute', bottom:9, left:11, ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.82)', textTransform:'uppercase' }}>{img.label}</span>
+                  <span className="expand-icon" style={{ position:'absolute', top:8, right:8, width:24, height:24, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
+                    <i className="fas fa-expand-alt" style={{ fontSize:10, color:'#fff' }} />
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {/* Caption */}
+          <p style={{ ...FF.label, fontSize:11, color: lp.impactSub, textAlign:'center', marginTop:14, letterSpacing:'1px', fontWeight:600 }}>
+            Real reports submitted by TrashDrop users across Ghana · Photos used with permission
+          </p>
+        </div>
+
         <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
           {STATS.map((s,i) => (
             <div key={s.label} style={{ borderRight:'1px solid rgba(168,230,61,0.1)', borderBottom:'1px solid rgba(168,230,61,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
@@ -1327,13 +1459,23 @@ const FAQSection = () => {
   const isDark = lpMode === 'dark';
   const [openIdx, setOpenIdx] = useState(null);
 
-  const borderColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(22,101,52,0.1)';
-  const answerColor = isDark ? 'rgba(255,255,255,0.58)' : '#4a7060';
-  const questionColor = isDark ? '#f0f5f0' : '#1b3a28';
-  const chevronColor = TD.lime;
+  const sectionBg     = isDark ? '#0e1a0e'                    : '#f0f9f0';
+  const borderColor   = isDark ? 'rgba(255,255,255,0.14)'      : 'rgba(22,101,52,0.18)';
+  const headingColor  = isDark ? '#f0f5f0'                     : '#1b3a28';
+  const subColor      = isDark ? 'rgba(255,255,255,0.60)'      : '#4a7060';
+  const answerColor   = isDark ? 'rgba(255,255,255,0.72)'      : '#2d4a38';
+  const questionColor = isDark ? '#e8f5e8'                     : '#1b3a28';
+  const badgeBg       = isDark ? `${TD.lime}18`                : `${TD.forest}12`;
+  const badgeBorder   = isDark ? `${TD.lime}35`                : `${TD.forest}25`;
+  const badgeColor    = isDark ? TD.lime                       : TD.forest;
+  const sectionBorder = isDark ? 'rgba(168,230,61,0.08)'       : 'rgba(22,101,52,0.08)';
+  const chevronColor  = isDark ? TD.lime                       : TD.forest;
+  const chevronBorder = isDark ? `${TD.lime}55`                : `${TD.forest}40`;
+  const chevronBg     = isDark ? `${TD.lime}20`                : `${TD.forest}12`;
+  const linkColor     = isDark ? TD.lime                       : TD.forest;
 
   return (
-    <section style={{ background: lp.sectionAlt, padding:'96px 24px' }}>
+    <section style={{ background: sectionBg, padding:'96px 24px', borderTop:`1px solid ${sectionBorder}` }}>
       {/* FAQPage JSON-LD */}
       <script
         type="application/ld+json"
@@ -1349,14 +1491,14 @@ const FAQSection = () => {
       />
       <div ref={ref} style={{ maxWidth:860, margin:'0 auto' }}>
         <div style={{ textAlign:'center', marginBottom:56, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:'all 0.8s cubic-bezier(.22,1,.36,1)' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
-            <i className="fas fa-question-circle" style={{ color:TD.lime, fontSize:11 }}></i>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>FAQ</span>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:badgeBg, border:`1px solid ${badgeBorder}`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
+            <i className="fas fa-question-circle" style={{ color:badgeColor, fontSize:11 }}></i>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:badgeColor, textTransform:'uppercase' }}>FAQ</span>
           </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:lp.ink2Heading, margin:'0 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
+          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:headingColor, margin:'0 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
             Frequently asked questions
           </h2>
-          <p style={{ ...FF.body, fontSize:16, color:lp.bodyText, maxWidth:520, margin:'0 auto' }}>
+          <p style={{ ...FF.body, fontSize:16, color:subColor, maxWidth:520, margin:'0 auto' }}>
             Everything you need to know about TrashDrop waste collection in Ghana.
           </p>
         </div>
@@ -1368,7 +1510,7 @@ const FAQSection = () => {
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}
                 style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'22px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }}>
                 <span style={{ ...FF.body, fontSize:16, fontWeight:600, color:questionColor, lineHeight:1.5 }}>{item.q}</span>
-                <span style={{ width:30, height:30, borderRadius:'50%', border:`1.5px solid ${chevronColor}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: openIdx===i ? `${chevronColor}15` : 'transparent' }}>
+                <span style={{ width:30, height:30, borderRadius:'50%', border:`1.5px solid ${chevronBorder}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: openIdx===i ? chevronBg : 'transparent' }}>
                   <i className={`fas fa-chevron-${openIdx===i?'up':'down'}`} style={{ fontSize:11, color:chevronColor }}></i>
                 </span>
               </button>
@@ -1380,8 +1522,8 @@ const FAQSection = () => {
         </div>
 
         <div style={{ textAlign:'center', marginTop:48 }}>
-          <a href="/how-it-works" style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
-            See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11 }}></i>
+          <a href="/how-it-works" style={{ ...FF.label, fontSize:13, fontWeight:700, color:linkColor, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+            See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11, color:linkColor }}></i>
           </a>
         </div>
       </div>
