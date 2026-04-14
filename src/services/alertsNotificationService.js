@@ -359,8 +359,15 @@ class AlertsNotificationService {
         return { success: true, ...cached };
       }
 
+      // Guard: supabase import may be null during circular-dep module init;
+      // fall back to the window-cached singleton that is always available after boot.
+      const client = supabase || window['__trashdrop_supabase_client__'];
+      if (!client) {
+        throw new Error('Supabase client is not available');
+      }
+
       // Build query
-      let query = supabase
+      let query = client
         .from('alerts')
         .select(`
           *

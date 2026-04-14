@@ -124,28 +124,27 @@ const RequestPickupManagement = () => {
         
         // Fetch collectors - use new parameter format
         const collectorsData = await fetchCollectors({ 
-          status: STATUS.COLLECTOR.ACTIVE, 
+          status: STATUS.COLLECTOR.ACTIVE.toLowerCase(), 
           limit: 50 
         });
         
         console.log('Loaded collectors:', collectorsData?.length || 0);
         
         // Only show active collectors for assignment
-        setActiveCollectors(collectorsData.filter(c => c?.status === STATUS.COLLECTOR.ACTIVE));
+        setActiveCollectors(collectorsData.filter(c => c?.status?.toLowerCase() === STATUS.COLLECTOR.ACTIVE.toLowerCase()));
 
         // Fetch alerts using alerts notification service
-        const { data: alertsData, error } = await alertsNotificationService.getAlerts({
-          limit: 50, // Get the most recent 50 alerts
-          status: 'active',
-          orderBy: 'created_at',
-          order: 'desc'
-        });
-        
-        if (error) {
-          console.error('Error loading alerts:', error);
+        try {
+          const alertsResult = await alertsNotificationService.getAlerts({
+            limit: 50,
+            status: 'active',
+            orderBy: 'created_at',
+            order: 'desc'
+          });
+          setSystemAlerts(alertsResult?.data || []);
+        } catch (alertErr) {
+          console.error('Error loading alerts:', alertErr);
           setSystemAlerts([]);
-        } else {
-          setSystemAlerts(alertsData || []);
         }
         
         setLoading(false);

@@ -31,14 +31,10 @@ const IllegalDumpingHistory = () => {
       else if (selectedTab === 'in-progress') statusFilter = STATUS.ILLEGAL_DUMPING.VERIFIED;
       else if (selectedTab === 'resolved') statusFilter = STATUS.ILLEGAL_DUMPING.CLEANED_UP;
       
-      const data = await fetchIllegalDumpingReports(statusFilter);
+      const response = await fetchIllegalDumpingReports({ status: statusFilter, limit: 100, page: 1 });
       
-      // Ensure data is an array before mapping
-      if (!Array.isArray(data)) {
-        console.warn('fetchIllegalDumpingReports returned non-array data:', typeof data, data);
-        setHistoryData([]);
-        return;
-      }
+      // Unwrap paginated response: { data: [...], totalCount, page, limit, totalPages }
+      const data = Array.isArray(response) ? response : (response?.data || []);
       
       // Transform the data to match the expected structure
       const transformedData = data.map(item => ({
