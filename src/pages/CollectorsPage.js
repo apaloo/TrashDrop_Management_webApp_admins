@@ -200,6 +200,38 @@ const CollectorsPage = () => {
       <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Start earning today</h2>
         <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
+        
+        {/* ── QR Code Placeholder ── */}
+        <div style={{ margin:'0 auto 32px', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
+          <div style={{ 
+            width:200, 
+            height:200, 
+            background:'rgba(255,255,255,0.95)', 
+            borderRadius:16, 
+            display:'flex', 
+            alignItems:'center', 
+            justifyContent:'center',
+            boxShadow:'0 12px 48px rgba(0,0,0,0.25)',
+            border:`2px solid ${TD.lime}30`
+          }}>
+            <img 
+              src="/images/TrashDrop Carter App QR code.jpeg" 
+              alt="Scan to download TrashDrop Carter App" 
+              style={{ width:180, height:180, borderRadius:8, objectFit:'cover' }}
+            />
+          </div>
+          <div style={{ 
+            ...FF.label, 
+            fontSize:13, 
+            fontWeight:700, 
+            color:TD.lime, 
+            letterSpacing:'2.5px', 
+            textTransform:'uppercase' 
+          }}>
+            SCAN TO DOWNLOAD
+          </div>
+        </div>
+
         <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
           Join as a Collector →
         </Link>
