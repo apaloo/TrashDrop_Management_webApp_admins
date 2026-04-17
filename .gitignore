@@ -29,6 +29,12 @@ yarn-error.log*
 .env
 .env.development
 env.development
+.env.facebook
+
+# Supabase
+.branches
+.temp
+.supabase
 
 # Backup files
 *.bak
