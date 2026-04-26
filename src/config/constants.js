@@ -31,11 +31,11 @@ export const STATUS = {
     CLOSED: 'Closed',
   },
   PICKUP_REQUEST: {
-    PENDING: 'Pending',
-    IN_PROGRESS: 'In Progress',
-    COMPLETED: 'Completed',
-    CANCELLED: 'Cancelled',
-    SCHEDULED: 'Scheduled',
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled',
+    SCHEDULED: 'scheduled',
   },
   BAG: {
     GENERATED: 'Generated',

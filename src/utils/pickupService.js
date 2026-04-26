@@ -144,7 +144,9 @@ export const fetchPickupRequests = async ({
   limit = 100 
 } = {}) => {
   try {
-    console.log('fetchPickupRequests called with:', { status, collectorId, limit });
+    // Normalize status to lowercase to match database values
+    const normalizedStatus = status ? status.toLowerCase() : null;
+    console.log('fetchPickupRequests called with:', { status, normalizedStatus, collectorId, limit });
 
     const parsePointString = (value) => {
       if (!value || typeof value !== 'string') return null;
@@ -177,7 +179,7 @@ export const fetchPickupRequests = async ({
     // Check if both pickup_requests and profiles tables exist before making query
     const pickupTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
     const profilesTableExists = await safeDatabaseService.checkTableExists('profiles');
-    const collectorsTableExists = await safeDatabaseService.checkTableExists('collectors');
+    const collectorsTableExists = await safeDatabaseService.checkTableExists('collector_profiles');
     
     console.log('Table existence check:', { 
       pickupTableExists, 
@@ -206,7 +208,7 @@ export const fetchPickupRequests = async ({
             console.warn('Found request without status property:', request);
             return false;
           }
-          return request.status === status;
+          return request.status.toLowerCase() === normalizedStatus;
         });
         console.log('Filtered mock data result:', mockData.length, 'items');
       }
@@ -226,9 +228,9 @@ export const fetchPickupRequests = async ({
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Apply filters
-    if (status) {
-      query = query.eq('status', status);
+    // Apply filters (always use lowercase for DB comparison)
+    if (normalizedStatus) {
+      query = query.eq('status', normalizedStatus);
     }
     
     if (collectorId) {
@@ -239,8 +241,69 @@ export const fetchPickupRequests = async ({
       tableName: 'pickup_requests',
       queryFn: async () => query,
       mockDataFn: generateMockPickupRequests,
-      mockDataParams: { status, limit }
+      mockDataParams: { status: normalizedStatus, limit }
     });
+
+    // ALSO fetch from digital_bins and scheduled_pickups tables
+    // The mobile app writes pickup data to these tables, not pickup_requests
+    try {
+      // --- digital_bins ---
+      // Note: digital_bins.collector_id maps to collector_profiles.user_id (auth UID)
+      const digitalBinsExists = await safeDatabaseService.checkTableExists('digital_bins');
+      if (digitalBinsExists) {
+        let dbQuery = supabase
+          .from('digital_bins')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(limit);
+        if (normalizedStatus) {
+          dbQuery = dbQuery.eq('status', normalizedStatus);
+        }
+        if (collectorId) {
+          // collectorId from the UI may be collector_profiles.id
+          // but digital_bins.collector_id is the auth user_id
+          // Try to resolve the mapping
+          const { data: colProfile } = await supabase
+            .from('collector_profiles')
+            .select('user_id')
+            .eq('id', collectorId)
+            .single();
+          if (colProfile?.user_id) {
+            dbQuery = dbQuery.eq('collector_id', colProfile.user_id);
+          } else {
+            dbQuery = dbQuery.eq('collector_id', collectorId);
+          }
+        }
+        const dbResult = await dbQuery;
+        if (dbResult.data && dbResult.data.length > 0) {
+          console.log(`✅ Found ${dbResult.data.length} rows in 'digital_bins'`);
+          // Tag each row with its source table for the transformer
+          const tagged = dbResult.data.map(r => ({ ...r, _source: 'digital_bins' }));
+          result.data = [...(result.data || []), ...tagged];
+        }
+      }
+
+      // --- scheduled_pickups ---
+      const scheduledExists = await safeDatabaseService.checkTableExists('scheduled_pickups');
+      if (scheduledExists) {
+        let spQuery = supabase
+          .from('scheduled_pickups')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(limit);
+        if (normalizedStatus) {
+          spQuery = spQuery.eq('status', normalizedStatus);
+        }
+        const spResult = await spQuery;
+        if (spResult.data && spResult.data.length > 0) {
+          console.log(`✅ Found ${spResult.data.length} rows in 'scheduled_pickups'`);
+          const tagged = spResult.data.map(r => ({ ...r, _source: 'scheduled_pickups' }));
+          result.data = [...(result.data || []), ...tagged];
+        }
+      }
+    } catch (altError) {
+      console.warn('⚠️ Error fetching from alternative pickup tables:', altError);
+    }
     
     if (result.fromFallback) {
       let mockData = result.data || [];
@@ -261,7 +324,7 @@ export const fetchPickupRequests = async ({
             console.warn('Found request without status property in fallback data:', request);
             return false;
           }
-          return request.status === status;
+          return request.status.toLowerCase() === normalizedStatus;
         });
         console.log('Filtered fallback data result:', mockData.length, 'items');
       }
@@ -269,56 +332,299 @@ export const fetchPickupRequests = async ({
       return mockData.slice(0, limit);
     }
     
-    // If we have real data, manually fetch user profiles for requester details
-    if (result.data && result.data.length > 0 && profilesTableExists) {
+    // If we have real data, fetch related profiles, collector names, and locations
+    if (result.data && result.data.length > 0) {
       try {
-        // Use user_id field (not requester_id) to fetch profiles
-        const userIds = [...new Set(result.data.map(r => r.user_id).filter(Boolean))];
-        console.log('📋 Fetching profiles for user IDs:', userIds);
-        
-        if (userIds.length > 0) {
+        // 1. Fetch requester profiles from 'profiles' table
+        // profiles.id = auth.users.id = digital_bins.user_id = pickup_requests.user_id
+        const allUserIds = [...new Set(result.data.map(r => r.user_id).filter(Boolean))];
+        console.log('📋 Fetching profiles for user IDs:', allUserIds);
+        const profileMap = {};
+
+        if (profilesTableExists && allUserIds.length > 0) {
           const { data: profiles, error: profileError } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, email, phone, avatar_url')
-            .in('id', userIds);
+            .select('id, first_name, last_name, email, phone, avatar_url, address')
+            .in('id', allUserIds);
           
           if (profileError) {
             console.warn('❌ Error fetching profiles:', profileError);
           } else {
             console.log('✅ Fetched profiles:', profiles?.length || 0);
+            if (profiles) {
+              profiles.forEach(profile => {
+                profileMap[profile.id] = profile;
+              });
+            }
           }
+
+          // Log any user_ids that had no matching profile
+          const missingIds = allUserIds.filter(uid => !profileMap[uid]);
+          if (missingIds.length > 0) {
+            console.warn('⚠️ No profiles found for user_ids:', missingIds);
+          }
+        }
+
+        // Fallback chain for users without a profile:
+        // 1. contacts table (primary contact)
+        // 2. get_user_emails RPC (auth.users email)
+        // 3. bin_locations (address as identifier)
+        let missingProfileIds = allUserIds.filter(uid => !profileMap[uid]);
+        if (missingProfileIds.length > 0) {
+          // Try contacts table first
+          try {
+            const { data: contacts } = await supabase
+              .from('contacts')
+              .select('user_id, name, email, phone')
+              .in('user_id', missingProfileIds)
+              .eq('primary_contact', true);
+            if (contacts && contacts.length > 0) {
+              console.log('✅ Found contacts fallback:', contacts.length);
+              contacts.forEach(c => {
+                if (!profileMap[c.user_id]) {
+                  profileMap[c.user_id] = {
+                    id: c.user_id,
+                    first_name: c.name?.split(' ')[0] || null,
+                    last_name: c.name?.split(' ').slice(1).join(' ') || null,
+                    email: c.email,
+                    phone: c.phone
+                  };
+                }
+              });
+            }
+          } catch (contactErr) {
+            console.log('ℹ️ Contacts fallback skipped:', contactErr.message);
+          }
+
+          // Try get_user_emails RPC for remaining missing profiles
+          missingProfileIds = allUserIds.filter(uid => !profileMap[uid]);
+          if (missingProfileIds.length > 0) {
+            try {
+              const { data: authUsers, error: rpcErr } = await supabase
+                .rpc('get_user_emails', { user_ids: missingProfileIds });
+              if (!rpcErr && authUsers && authUsers.length > 0) {
+                console.log('✅ Found auth emails via RPC:', authUsers.length);
+                authUsers.forEach(u => {
+                  if (!profileMap[u.id]) {
+                    profileMap[u.id] = {
+                      id: u.id,
+                      first_name: null,
+                      last_name: null,
+                      email: u.email,
+                      phone: null
+                    };
+                  }
+                });
+              }
+            } catch (rpcErr) {
+              console.log('ℹ️ get_user_emails RPC not available:', rpcErr.message);
+            }
+          }
+        }
+
+        // Attach profile data to each request
+        result.data = result.data.map(request => {
+          const profile = profileMap[request.user_id] || null;
+          return {
+            ...request,
+            requester: profile,
+            requester_id: request.user_id
+          };
+        });
+
+        // 2. For digital_bins rows, resolve collector_id (auth user_id) → collector name
+        const digitalBinRows = result.data.filter(r => r._source === 'digital_bins' && r.collector_id);
+        if (digitalBinRows.length > 0 && collectorsTableExists) {
+          const collectorUserIds = [...new Set(digitalBinRows.map(r => r.collector_id).filter(Boolean))];
+          console.log('� Resolving collector names for user_ids:', collectorUserIds);
+          const { data: collectorProfiles } = await supabase
+            .from('collector_profiles')
+            .select('id, user_id, first_name, last_name, phone, email')
+            .in('user_id', collectorUserIds);
           
-          // Create a map for quick lookup
-          const profileMap = {};
-          if (profiles) {
-            profiles.forEach(profile => {
-              profileMap[profile.id] = profile;
-              console.log('👤 Profile mapped:', profile.id, `${profile.first_name} ${profile.last_name}`);
+          const collectorMap = {};
+          if (collectorProfiles) {
+            collectorProfiles.forEach(cp => {
+              collectorMap[cp.user_id] = cp;
             });
           }
           
-          // Attach profile data to each request
           result.data = result.data.map(request => {
-            const profile = profileMap[request.user_id];
-            console.log(`📍 Request ${request.id}: user_id=${request.user_id}, profile=${profile ? 'found' : 'NOT FOUND'}`);
+            if (request._source !== 'digital_bins' || !request.collector_id) return request;
+            const cp = collectorMap[request.collector_id];
             return {
               ...request,
-              requester: profile || null,
-              requester_id: request.user_id // Map user_id to requester_id for compatibility
+              collector: cp || null,
+              collectorName: cp ? `${cp.first_name || ''} ${cp.last_name || ''}`.trim() : null,
+              // Remap collector_id to the collector_profiles.id for UI consistency
+              _collector_profile_id: cp?.id || null
             };
           });
-        } else {
-          console.warn('⚠️ No user IDs found in pickup requests');
         }
-      } catch (profileError) {
-        console.warn('❌ Failed to fetch user profiles, continuing without:', profileError);
+
+        // 3. Resolve location_id → address/coordinates
+        // digital_bins.location_id → bin_locations table
+        // scheduled_pickups.location_id → locations table
+        const rowsWithLocationId = result.data.filter(r => r.location_id && !r.address);
+        if (rowsWithLocationId.length > 0) {
+          try {
+            const locationMap = {};
+
+            // digital_bins rows → bin_locations table
+            const binLocIds = [...new Set(
+              rowsWithLocationId
+                .filter(r => r._source === 'digital_bins')
+                .map(r => r.location_id)
+                .filter(Boolean)
+            )];
+            if (binLocIds.length > 0) {
+              // First try: use RPC with ST_X/ST_Y for reliable coordinate extraction
+              let binLocs = null;
+              try {
+                const idsLiteral = binLocIds.map(id => `'${id}'`).join(',');
+                const { data: rpcResult, error: rpcErr } = await supabase.rpc('exec_sql', {
+                  query: `SELECT id, location_name, address, ST_Y(coordinates) as latitude, ST_X(coordinates) as longitude FROM bin_locations WHERE id IN (${idsLiteral})`
+                });
+                if (!rpcErr && rpcResult) {
+                  binLocs = rpcResult;
+                  console.log('✅ Got bin_locations via RPC:', binLocs.length);
+                }
+              } catch (rpcErr) {
+                console.log('ℹ️ RPC exec_sql not available, falling back to standard query');
+              }
+
+              // Fallback: standard query (coordinates may be PostGIS blob)
+              if (!binLocs) {
+                const { data: stdResult } = await supabase
+                  .from('bin_locations')
+                  .select('id, location_name, address, coordinates')
+                  .in('id', binLocIds);
+                binLocs = stdResult;
+                console.log('ℹ️ Got bin_locations via standard query:', binLocs?.length, 'coords type:', binLocs?.[0]?.coordinates ? typeof binLocs[0].coordinates : 'N/A');
+              }
+              if (binLocs) {
+                binLocs.forEach(loc => { locationMap[loc.id] = loc; });
+              }
+            }
+
+            // scheduled_pickups rows → locations table
+            const schedLocIds = [...new Set(
+              rowsWithLocationId
+                .filter(r => r._source === 'scheduled_pickups')
+                .map(r => r.location_id)
+                .filter(Boolean)
+            )];
+            if (schedLocIds.length > 0) {
+              const { data: locs } = await supabase
+                .from('locations')
+                .select('id, location_name, address, latitude, longitude')
+                .in('id', schedLocIds);
+              if (locs) {
+                locs.forEach(loc => { locationMap[loc.id] = loc; });
+              }
+            }
+
+            // Also try remaining unmatched IDs against both tables
+            const unmatchedIds = rowsWithLocationId
+              .filter(r => !locationMap[r.location_id])
+              .map(r => r.location_id)
+              .filter(Boolean);
+            if (unmatchedIds.length > 0) {
+              const { data: fallbackLocs } = await supabase
+                .from('bin_locations')
+                .select('id, location_name, address, coordinates')
+                .in('id', unmatchedIds);
+              if (fallbackLocs) {
+                fallbackLocs.forEach(loc => { locationMap[loc.id] = loc; });
+              }
+            }
+
+            if (Object.keys(locationMap).length > 0) {
+              result.data = result.data.map(request => {
+                if (!request.location_id) return request;
+                const loc = locationMap[request.location_id];
+                if (!loc) return request;
+
+                // Parse coordinates from PostGIS point — multiple formats:
+                // 1. GeoJSON: { type: "Point", coordinates: [lng, lat] }
+                // 2. WKT text: "POINT(lng lat)" or "SRID=4326;POINT(lng lat)"
+                // 3. Object: { x, y } or { lng, lat }
+                // 4. Direct numeric columns: latitude, longitude
+                let parsedLat = loc.latitude ?? null;
+                let parsedLng = loc.longitude ?? null;
+                if (parsedLat == null && loc.coordinates != null) {
+                  console.log('🔍 bin_locations coordinates type:', typeof loc.coordinates, loc.coordinates);
+                  const coords = loc.coordinates;
+                  if (typeof coords === 'object' && coords !== null) {
+                    // GeoJSON: { type: "Point", coordinates: [lng, lat] }
+                    if (coords.type === 'Point' && Array.isArray(coords.coordinates) && coords.coordinates.length >= 2) {
+                      parsedLng = parseFloat(coords.coordinates[0]);
+                      parsedLat = parseFloat(coords.coordinates[1]);
+                    } else {
+                      // Object: { x, y } or { lng, lat } or { longitude, latitude }
+                      parsedLng = coords.x ?? coords.lng ?? coords.longitude ?? null;
+                      parsedLat = coords.y ?? coords.lat ?? coords.latitude ?? null;
+                    }
+                  } else if (typeof coords === 'string') {
+                    // WKT: "POINT(lng lat)" or "SRID=4326;POINT(lng lat)"
+                    const pointMatch = coords.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+                    if (pointMatch) {
+                      parsedLng = parseFloat(pointMatch[1]);
+                      parsedLat = parseFloat(pointMatch[2]);
+                    } else if (/^[0-9a-f]+$/i.test(coords) && coords.length >= 42) {
+                      // WKB hex string from PostGIS (e.g. "0101000020E6100000...")
+                      try {
+                        const isLE = coords.substring(0, 2) === '01';
+                        let off = 2;
+                        const typeHex = coords.substring(off, off + 8);
+                        off += 8;
+                        const hasSRID = (isLE && typeHex === '01000020') || (!isLE && typeHex === '20000001');
+                        const isPoint = hasSRID || typeHex === '01000000' || typeHex === '00000001';
+                        if (isPoint) {
+                          if (hasSRID) off += 8; // skip 4-byte SRID
+                          const hexToDouble = (h, le) => {
+                            const buf = new ArrayBuffer(8);
+                            const dv = new DataView(buf);
+                            for (let i = 0; i < 8; i++) {
+                              const idx = le ? i : 7 - i;
+                              dv.setUint8(idx, parseInt(h.substring(i * 2, i * 2 + 2), 16));
+                            }
+                            return dv.getFloat64(0, true);
+                          };
+                          parsedLng = hexToDouble(coords.substring(off, off + 16), isLE);
+                          off += 16;
+                          parsedLat = hexToDouble(coords.substring(off, off + 16), isLE);
+                          console.log('✅ Parsed WKB hex → lat:', parsedLat, 'lng:', parsedLng);
+                        }
+                      } catch (wkbErr) {
+                        console.warn('⚠️ Failed to parse WKB hex:', wkbErr);
+                      }
+                    }
+                  }
+                  if (parsedLat != null) {
+                    console.log(`✅ Parsed location: lat=${parsedLat}, lng=${parsedLng}`);
+                  } else {
+                    console.warn('⚠️ Could not parse bin_locations coordinates:', coords);
+                  }
+                }
+
+                return {
+                  ...request,
+                  address: request.address || loc.address || loc.location_name || null,
+                  latitude: request.latitude || parsedLat || null,
+                  longitude: request.longitude || parsedLng || null
+                };
+              });
+            }
+          } catch (locErr) {
+            console.warn('⚠️ Error fetching locations:', locErr);
+          }
+        }
+      } catch (enrichError) {
+        console.warn('❌ Failed to enrich data with profiles/locations:', enrichError);
       }
     } else {
-      console.log('ℹ️ Skipping profile fetch:', {
-        hasData: !!result.data,
-        dataLength: result.data?.length || 0,
-        profilesTableExists
-      });
+      console.log('ℹ️ No data to enrich');
     }
 
     if (result.error) {
@@ -341,7 +647,7 @@ export const fetchPickupRequests = async ({
             console.warn('Found request without status property in error fallback data:', request);
             return false;
           }
-          return request.status === status;
+          return request.status.toLowerCase() === normalizedStatus;
         });
         console.log('Filtered error fallback data result:', mockData.length, 'items');
       }
@@ -372,6 +678,13 @@ export const fetchPickupRequests = async ({
         // Handle requestor/requester with null safety
         // Note: request.requester is populated by the profile fetch above
         const requestor = request.requestor || request.requester || null;
+        const requesterFullName = requestor 
+          ? `${requestor.first_name || ''} ${requestor.last_name || ''}`.trim() 
+          : '';
+        const requesterEmail = requestor?.email || null;
+        const requesterPhone = requestor?.phone || request.phone || null;
+        const requesterAddress = requestor?.address || null;
+
         const requestedBy = {
           id: request.user_id || 
               request.requester_id || 
@@ -379,21 +692,19 @@ export const fetchPickupRequests = async ({
               (requestor ? requestor.id : null) || 
               'customer-unknown',
           name: request.customer || 
-                (requestor ? `${requestor.first_name || ''} ${requestor.last_name || ''}`.trim() : '') || 
-                (request.requester ? request.requester.name : '') || 
+                requesterFullName || 
+                (requesterEmail ? requesterEmail.split('@')[0] : '') ||
                 'Unknown Customer',
-          email: (requestor ? requestor.email : null) || 
-                 (request.requester ? request.requester.email : null) || 
-                 'unknown@example.com',
-          phone: (requestor ? requestor.phone : null) || 
-                 (request.requester ? request.requester.phone : null) || 
-                request.phone || 
-                'N/A'
+          email: requesterEmail || 'unknown@example.com',
+          phone: requesterPhone || 'N/A',
+          address: requesterAddress || null
         };
         
         // Handle collector data with fallbacks for all schema variations
+        // For digital_bins: collector_id is auth user_id; _collector_profile_id is the profile id
         const collector = request.collector || {};
-        const collectorId = request.collector_id || 
+        const collectorId = request._collector_profile_id || 
+                          request.collector_id || 
                           (collector ? collector.id : null) || 
                           (request.collector ? request.collector.id : null);
         
@@ -434,22 +745,33 @@ export const fetchPickupRequests = async ({
         
         // Transform the request to match the expected format with safe property access
         const safeStatus = request.status || 'pending';
+        const source = request._source || 'pickup_requests';
         return {
           id: request.id || `request-${Date.now()}`,
           status: safeStatus,
+          source: source,
           requestedBy: requestedBy,
           assignedTo: assignedTo,
           requestTime: request.created_at || request.requestTime || new Date().toISOString(),
-          scheduledDate: request.scheduled_date || request.scheduledDate || null,
-          priority: getPriority(safeStatus, request.priority || 'medium'),
+          scheduledDate: request.scheduled_date || request.scheduledDate || request.pickup_date || null,
+          priority: request.is_urgent ? 'High' : getPriority(safeStatus, request.priority || 'medium'),
           wasteType: request.waste_type || request.wasteType || 'General',
           bags: request.bag_count || request.bags || 0,
-          notes: request.notes || request.specialInstructions || '',
+          notes: request.notes || request.special_instructions || request.specialInstructions || '',
           location: location,
           phone: requestedBy.phone,
           collectorId: collectorId || null,
           collectorName: assignedTo ? assignedTo.name : null,
-          wasteTypes: request.wasteTypes || ['general']
+          wasteTypes: request.wasteTypes || [request.waste_type || 'general'],
+          // digital_bins specific fields
+          fee: request.fee || null,
+          collectorPayout: request.collector_total_payout || null,
+          isUrgent: request.is_urgent || false,
+          qrCodeUrl: request.qr_code_url || null,
+          frequency: request.frequency || null,
+          binSizeLiters: request.bin_size_liters || null,
+          collectedAt: request.collected_at || null,
+          acceptedAt: request.accepted_at || null
         };
       } catch (transformError) {
         console.error('Error transforming request:', transformError, 'Request data:', request);
@@ -480,7 +802,7 @@ export const fetchPickupRequests = async ({
           console.warn('Found request without status property in catch block data:', request);
           return false;
         }
-        return request.status === status;
+        return (request.status || '').toLowerCase() === (status || '').toLowerCase();
       });
       console.log('Filtered catch block data result:', mockData.length, 'items');
     }

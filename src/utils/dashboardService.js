@@ -46,12 +46,12 @@ const safeSlaRateInWindow = async ({ startIso, endIso } = {}) => {
     let completedQuery = supabase
       .from('pickup_requests')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'Completed');
+      .eq('status', 'completed');
 
     let onTimeQuery = supabase
       .from('pickup_requests')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'Completed')
+      .eq('status', 'completed')
       .lt('completed_at', 'scheduled_pickup_time');
 
     if (startIso) {
@@ -350,12 +350,12 @@ export const fetchDashboardMetrics = async () => {
       .from('pickup_requests')
       .select('*')
       .lt('completed_at', 'scheduled_pickup_time')
-      .not('status', 'eq', 'Cancelled');
+      .not('status', 'eq', 'cancelled');
     
     const { data: allCompletedRequests, error: completedError } = await supabase
       .from('pickup_requests')
       .select('*')
-      .eq('status', 'Completed');
+      .eq('status', 'completed');
     
     if (slaError || completedError) {
       console.error('Error calculating SLA compliance:', slaError || completedError);

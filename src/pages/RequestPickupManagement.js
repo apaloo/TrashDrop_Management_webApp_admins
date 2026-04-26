@@ -1,8 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { fetchPickupRequests, updatePickupRequest } from '../utils/pickupService';
 import { fetchCollectors } from '../utils/collectorService';
 import { alertsNotificationService } from '../services/alertsNotificationService';
 import { STATUS } from '../config/constants';
+
+// Fix default Leaflet marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+const formatStatus = (status) => {
+  if (!status) return 'Unknown';
+  return status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 const RequestPickupManagement = () => {
   // State management
@@ -16,9 +35,12 @@ const RequestPickupManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   
-  // Function to filter requests by status
+  // Function to filter requests by status (case-insensitive)
   const getRequestsByStatus = (status) => {
-    return requests.filter(request => request.status === status);
+    const normalised = String(status || '').toLowerCase();
+    return requests.filter(request =>
+      String(request.status || '').toLowerCase() === normalised
+    );
   };
 
   const getStatusBadgeClasses = (status) => {
@@ -57,17 +79,24 @@ const RequestPickupManagement = () => {
         // Transform the data to match the expected structure with proper nested objects
         const formattedRequests = (requestsData || []).map(req => {
           // Handle customer/requester information
-          const customerName = req?.customer || req?.requester?.name || 
+          const customerName = req?.customer || 
+            req?.requestedBy?.name ||
+            req?.requester?.name || 
             (req?.requestor?.first_name && req?.requestor?.last_name ? 
-              `${req.requestor.first_name} ${req.requestor.last_name}` : 'Unknown');
+              `${req.requestor.first_name} ${req.requestor.last_name}` : null) ||
+            (req?.requester?.first_name ? 
+              `${req.requester.first_name} ${req.requester.last_name || ''}`.trim() : null) ||
+            'Unknown';
           
-          const customerEmail = req?.requester?.email || req?.requestor?.email || 'unknown@example.com';
-          const customerPhone = req?.requester?.phone || req?.requestor?.phone || req?.phone || 'N/A';
+          const customerEmail = req?.requestedBy?.email || req?.requester?.email || req?.requestor?.email || 'unknown@example.com';
+          const customerPhone = req?.requestedBy?.phone || req?.requester?.phone || req?.requestor?.phone || req?.phone || 'N/A';
           
-          // Handle collector assignment information
-          const collectorName = req?.collector ? 
-            `${req.collector.first_name} ${req.collector.last_name}` : 
+          // Handle collector assignment - use pre-resolved data from pickupService
+          const collectorName = req?.assignedTo?.name || 
+            (req?.collector ? `${req.collector.first_name || ''} ${req.collector.last_name || ''}`.trim() : null) || 
             req?.collectorName || null;
+
+          const resolvedCollectorId = req?.assignedTo?.id || req?.collectorId || req?.collector_id || null;
 
           const feeDue =
             req?.fee ??
@@ -84,23 +113,24 @@ const RequestPickupManagement = () => {
           return {
             id: req?.id || `request-${Math.random()}`,
             requesterId: req?.requester_id || req?.requested_by,
+            source: req?.source || 'pickup_requests',
             
             // Create requestedBy object structure expected by UI
             requestedBy: {
-              id: req?.requester_id || req?.requested_by,
+              id: req?.requester_id || req?.requested_by || req?.requestedBy?.id,
               name: customerName,
               email: customerEmail,
               phone: customerPhone
             },
             
             // Create assignedTo object structure expected by UI  
-            assignedTo: req?.collector_id ? {
-              id: req?.collector_id,
+            assignedTo: resolvedCollectorId ? {
+              id: resolvedCollectorId,
               name: collectorName || 'Unknown Collector'
             } : null,
             
             status: req?.status || 'pending',
-            priority: req?.priority || 'medium',
+            priority: req?.priority || (req?.isUrgent ? 'High' : 'medium'),
             location: {
               address: req?.location?.address || req?.address || 'Address not provided',
               coordinates: {
@@ -108,15 +138,22 @@ const RequestPickupManagement = () => {
                 lng: req?.location?.lng || req?.longitude || -0.1870
               }
             },
-            scheduledDate: req?.scheduled_date,
-            createdAt: req?.created_at || req?.requestTime,
+            scheduledDate: req?.scheduledDate || req?.scheduled_date,
+            createdAt: req?.requestTime || req?.created_at,
             updatedAt: req?.updated_at,
             notes: req?.notes || req?.specialInstructions || '',
-            bagCount: req?.bag_count || req?.bags || 1,
-            collectorId: req?.collector_id,
-            wasteType: req?.waste_type || req?.wasteType || 'General',
+            bagCount: req?.bags || req?.bag_count || 1,
+            collectorId: resolvedCollectorId,
+            wasteType: req?.wasteType || req?.waste_type || 'General',
             estimatedWeight: req?.estimated_weight || 'Not specified',
-            feeDue
+            feeDue,
+            // Digital bin specific
+            collectorPayout: req?.collectorPayout || null,
+            isUrgent: req?.isUrgent || false,
+            frequency: req?.frequency || null,
+            binSizeLiters: req?.binSizeLiters || null,
+            collectedAt: req?.collectedAt || null,
+            acceptedAt: req?.acceptedAt || null
           };
         });
         
@@ -179,7 +216,7 @@ const RequestPickupManagement = () => {
       (request.location?.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (request.assignedTo?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesStatus = filterStatus === 'All' || request.status === filterStatus;
+    const matchesStatus = filterStatus === 'All' || String(request.status || '').toLowerCase() === String(filterStatus || '').toLowerCase();
     const matchesPriority = filterPriority === 'All' || request.priority === filterPriority;
     
     return matchesSearch && matchesStatus && matchesPriority;
@@ -453,6 +490,9 @@ const RequestPickupManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Fee Due
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Source
+                </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -482,7 +522,7 @@ const RequestPickupManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClasses(request.status)}`}>
-                      {request.status}
+                      {formatStatus(request.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -499,6 +539,17 @@ const RequestPickupManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatCurrency(request.feeDue)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      request.source === 'digital_bins' ? 'bg-purple-100 text-purple-800' :
+                      request.source === 'scheduled_pickups' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {request.source === 'digital_bins' ? 'Digital Bin' :
+                       request.source === 'scheduled_pickups' ? 'Scheduled' :
+                       'Request'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -569,7 +620,7 @@ const RequestPickupManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Request Date</p>
                 <p className="font-medium">
-                  {new Date(selectedRequest.requestedAt).toLocaleString()}
+                  {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleString() : 'N/A'}
                 </p>
               </div>
               <div>
@@ -580,7 +631,7 @@ const RequestPickupManagement = () => {
                   selectedRequest.status === STATUS.PICKUP_REQUEST.IN_PROGRESS ? 'text-blue-600' :
                   'text-yellow-600'
                 }`}>
-                  {selectedRequest.status}
+                  {formatStatus(selectedRequest.status)}
                 </p>
               </div>
               <div>
@@ -599,13 +650,13 @@ const RequestPickupManagement = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Quantity</p>
-                <p className="font-medium">{selectedRequest.quantity} bags</p>
+                <p className="font-medium">{selectedRequest.bagCount || 0} bags</p>
               </div>
               <div className="col-span-2">
                 <p className="text-gray-600 text-sm">Location</p>
                 <p className="font-medium">{selectedRequest.location?.address || 'Address not provided'}</p>
                 <p className="text-sm text-gray-500">
-                  Lat: {selectedRequest.location?.lat?.toFixed(4) || 'N/A'}, Lng: {selectedRequest.location?.lng?.toFixed(4) || 'N/A'}
+                  Lat: {(selectedRequest.location?.lat ?? selectedRequest.location?.coordinates?.lat)?.toFixed(4) || 'N/A'}, Lng: {(selectedRequest.location?.lng ?? selectedRequest.location?.coordinates?.lng)?.toFixed(4) || 'N/A'}
                 </p>
               </div>
               {selectedRequest.assignedTo && (
@@ -614,20 +665,32 @@ const RequestPickupManagement = () => {
                   <p className="font-medium">{selectedRequest.assignedTo?.name || 'Unknown Collector'}</p>
                 </div>
               )}
-              {selectedRequest.scheduledTime && (
+              {selectedRequest.scheduledDate && (
                 <div>
                   <p className="text-gray-600 text-sm">Scheduled Pickup</p>
                   <p className="font-medium">
-                    {new Date(selectedRequest.scheduledTime).toLocaleString()}
+                    {new Date(selectedRequest.scheduledDate).toLocaleString()}
                   </p>
                 </div>
               )}
-              {selectedRequest.completedTime && (
+              {(selectedRequest.collectedAt || selectedRequest.completedTime) && (
                 <div>
-                  <p className="text-gray-600 text-sm">Completed At</p>
+                  <p className="text-gray-600 text-sm">Collected At</p>
                   <p className="font-medium">
-                    {new Date(selectedRequest.completedTime).toLocaleString()}
+                    {new Date(selectedRequest.collectedAt || selectedRequest.completedTime).toLocaleString()}
                   </p>
+                </div>
+              )}
+              {selectedRequest.feeDue && (
+                <div>
+                  <p className="text-gray-600 text-sm">Fee</p>
+                  <p className="font-medium">GHS {Number(selectedRequest.feeDue).toFixed(2)}</p>
+                </div>
+              )}
+              {selectedRequest.source && selectedRequest.source !== 'pickup_requests' && (
+                <div>
+                  <p className="text-gray-600 text-sm">Source</p>
+                  <p className="font-medium">{selectedRequest.source === 'digital_bins' ? 'Digital Bin' : 'Scheduled Pickup'}</p>
                 </div>
               )}
               {selectedRequest.notes && (
@@ -638,10 +701,33 @@ const RequestPickupManagement = () => {
               )}
             </div>
             
-            {/* Map Placeholder - In a real app, this would be an actual map */}
-            <div className="mb-6 h-64 bg-gray-200 flex items-center justify-center rounded">
-              <p className="text-gray-500">Map view would be displayed here</p>
-            </div>
+            {/* Request location map */}
+            {(() => {
+              const lat = selectedRequest?.location?.lat ?? selectedRequest?.location?.coordinates?.lat;
+              const lng = selectedRequest?.location?.lng ?? selectedRequest?.location?.coordinates?.lng;
+              return lat && lng ? (
+                <div className="mb-6 h-64 rounded overflow-hidden border border-gray-200">
+                  <MapContainer
+                    key={`request-map-${selectedRequest?.id}`}
+                    center={[lat, lng]}
+                    zoom={14}
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={[lat, lng]}>
+                      <Popup>
+                        <strong>Pickup Location</strong><br />
+                        {selectedRequest.location?.address || 'Unknown'}
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              ) : null;
+            })()}
             
             {/* Action Buttons */}
             {selectedRequest.status !== STATUS.PICKUP_REQUEST.COMPLETED && selectedRequest.status !== STATUS.PICKUP_REQUEST.CANCELLED && (
@@ -750,14 +836,18 @@ const RequestPickupManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <p className={`font-medium ${
-                  selectedCollector?.status === STATUS.COLLECTOR.ACTIVE ? 'text-green-600' : 'text-gray-600'
+                  (selectedCollector?.status || '').toLowerCase() === STATUS.COLLECTOR.ACTIVE.toLowerCase() ? 'text-green-600' : 'text-gray-600'
                 }`}>
-                  {selectedCollector?.status || 'Unknown'}
+                  {formatStatus(selectedCollector?.status) || 'Unknown'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Email</p>
-                <p className="font-medium">{selectedCollector?.email || 'N/A'}</p>
+                <p className="font-medium">
+                  {selectedCollector?.email && selectedCollector.email.includes('@')
+                    ? selectedCollector.email
+                    : 'No email provided'}
+                </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Phone</p>
@@ -784,16 +874,30 @@ const RequestPickupManagement = () => {
               </div>
             </div>
             
-            {/* Map with current location - In a real app, this would be an actual map */}
-            {selectedCollector?.currentLocation && (
+            {/* Map with current location */}
+            {selectedCollector?.currentLocation?.lat && selectedCollector?.currentLocation?.lng && (
               <div className="mb-6">
                 <p className="text-gray-600 text-sm mb-2">Current Location</p>
-                <div className="h-48 bg-gray-200 flex items-center justify-center rounded">
-                  <p className="text-gray-500">Map with live location would be displayed here</p>
-                  <p className="text-gray-500 text-sm">
-                    Lat: {selectedCollector?.currentLocation?.lat?.toFixed(4) || 'N/A'}, 
-                    Lng: {selectedCollector?.currentLocation?.lng?.toFixed(4) || 'N/A'}
-                  </p>
+                <div className="h-64 rounded overflow-hidden border border-gray-200">
+                  <MapContainer
+                    key={`collector-map-${selectedCollector?.id}`}
+                    center={[selectedCollector.currentLocation.lat, selectedCollector.currentLocation.lng]}
+                    zoom={14}
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={[selectedCollector.currentLocation.lat, selectedCollector.currentLocation.lng]}>
+                      <Popup>
+                        <strong>{selectedCollector?.name || 'Collector'}</strong><br />
+                        Lat: {selectedCollector.currentLocation.lat.toFixed(4)},
+                        Lng: {selectedCollector.currentLocation.lng.toFixed(4)}
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
                 </div>
               </div>
             )}
