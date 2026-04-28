@@ -33,6 +33,8 @@ const IllegalDumpingManagement = () => {
   const [collectors, setCollectors] = useState([]);
   const [loadingCollectors, setLoadingCollectors] = useState(false);
   const [selectedReportForAssignment, setSelectedReportForAssignment] = useState(null);
+  const [cleanupFee, setCleanupFee] = useState('');
+  const [feeStep, setFeeStep] = useState(true); // true = enter fee, false = select collector
   
   // Fetch collectors from Supabase
   const fetchCollectors = async () => {
@@ -60,6 +62,8 @@ const IllegalDumpingManagement = () => {
   // Open collector selection modal
   const openCollectorModal = (report) => {
     setSelectedReportForAssignment(report);
+    setCleanupFee('');
+    setFeeStep(true);
     setShowCollectorModal(true);
     fetchCollectors();
   };
@@ -217,15 +221,15 @@ const IllegalDumpingManagement = () => {
     }
   };
 
-  const assignCleanup = async (reportId, collectorId, collectorName) => {
+  const assignCleanup = async (reportId, collectorId, collectorName, fee) => {
     try {
-      console.log('Assigning cleanup:', reportId, collectorId, collectorName);
+      console.log('Assigning cleanup:', reportId, collectorId, collectorName, 'fee:', fee);
       
       // Calculate date 2 days in the future for estimated cleanup
       const estimatedCleanupDate = new Date(Date.now() + 2*24*60*60*1000).toISOString();
       
       // Update in Supabase - pass collector UUID to be saved in assigned_to column
-      const result = await assignCleanupTeam(reportId, collectorId, estimatedCleanupDate);
+      const result = await assignCleanupTeam(reportId, collectorId, estimatedCleanupDate, fee);
       console.log('Assign cleanup result:', result);
       
       // Check for error in response
@@ -236,11 +240,13 @@ const IllegalDumpingManagement = () => {
       // Extract the data from result
       const updatedReport = result?.data || result;
       
-      // Update local state (collector info stored in app state only, not DB)
+      const feeValue = fee && !isNaN(parseFloat(fee)) ? parseFloat(fee) : null;
+
+      // Update local state
       setReports(prevReports => 
         prevReports.map(report => {
           if (report.id === reportId) {
-            return { ...report, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate };
+            return { ...report, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate, cleanup_fee: feeValue };
           }
           return report;
         })
@@ -248,7 +254,7 @@ const IllegalDumpingManagement = () => {
     
       // Update selected report if it's the one being modified
       if (selectedReport && selectedReport.id === reportId) {
-        setSelectedReport(prev => ({ ...prev, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate }));
+        setSelectedReport(prev => ({ ...prev, ...updatedReport, cleanup_team: collectorName, collectorId: collectorId, estimated_cleanup_date: estimatedCleanupDate, cleanup_fee: feeValue }));
         
         // Refresh history
         const history = await fetchIllegalDumpingHistory(reportId);
@@ -709,6 +715,12 @@ const IllegalDumpingManagement = () => {
                   </p>
                 </div>
               )}
+              {(selectedReport.cleanup_fee != null) && (
+                <div>
+                  <p className="text-gray-600 text-sm">Cleanup Payment</p>
+                  <p className="font-medium text-green-700">GHS {Number(selectedReport.cleanup_fee).toFixed(2)}</p>
+                </div>
+              )}
             </div>
             
             {/* Images section */}
@@ -806,7 +818,9 @@ const IllegalDumpingManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Select Collector for Cleanup</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {feeStep ? 'Set Cleanup Payment' : 'Select Collector for Cleanup'}
+              </h3>
               <button 
                 onClick={() => {
                   setShowCollectorModal(false);
@@ -817,71 +831,131 @@ const IllegalDumpingManagement = () => {
                 ✕
               </button>
             </div>
-            
+
             {selectedReportForAssignment && (
               <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm">
                 <p className="font-medium">Report ID: {selectedReportForAssignment.id?.slice(0, 8)}...</p>
                 <p className="text-gray-600">{selectedReportForAssignment.location_address || selectedReportForAssignment.address || 'Unknown location'}</p>
+                <p className="text-gray-500 capitalize">Severity: {selectedReportForAssignment.severity || 'N/A'} &bull; Size: {selectedReportForAssignment.size || 'N/A'}</p>
               </div>
             )}
-            
-            {loadingCollectors ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : collectors.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No active collectors available</p>
-                <p className="text-sm mt-2">Please add collectors in Collectors Management</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {collectors.map(collector => (
-                  <div 
-                    key={collector.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all"
-                    onClick={async () => {
-                      const collectorName = `${collector.first_name} ${collector.last_name}`;
-                      await assignCleanup(selectedReportForAssignment.id, collector.id, collectorName);
+
+            {feeStep ? (
+              /* Step 1: Enter payment amount */
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter the payment amount (GHS) to allocate to the collector for this cleanup job before assigning.
+                </p>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cleanup Fee (GHS)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={cleanupFee}
+                      onChange={e => setCleanupFee(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg pl-14 pr-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      autoFocus
+                    />
+                  </div>
+                  {cleanupFee && !isNaN(parseFloat(cleanupFee)) && parseFloat(cleanupFee) > 0 && (
+                    <p className="mt-2 text-sm text-green-600 font-medium">GHS {parseFloat(cleanupFee).toFixed(2)} will be allocated to the assigned collector.</p>
+                  )}
+                  {cleanupFee === '' && (
+                    <p className="mt-2 text-xs text-gray-400">Leave blank to assign without a set payment amount.</p>
+                  )}
+                </div>
+                <div className="flex justify-between gap-3">
+                  <button
+                    onClick={() => {
                       setShowCollectorModal(false);
                       setSelectedReportForAssignment(null);
                     }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">
-                          {collector.first_name} {collector.last_name}
-                        </h4>
-                        <p className="text-sm text-gray-500">{collector.email}</p>
-                        {collector.phone && (
-                          <p className="text-sm text-gray-500">Phone: {collector.phone}</p>
-                        )}
-                        {collector.vehicle_type && (
-                          <p className="text-sm text-gray-500">
-                            Vehicle: {collector.vehicle_type} {collector.vehicle_plate && `(${collector.vehicle_plate})`}
-                          </p>
-                        )}
-                      </div>
-                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                        {collector.status}
-                      </span>
-                    </div>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => setFeeStep(false)}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                  >
+                    {cleanupFee && parseFloat(cleanupFee) > 0 ? `Continue with GHS ${parseFloat(cleanupFee).toFixed(2)}` : 'Continue Without Fee →'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 2: Select collector */
+              <div>
+                {cleanupFee && parseFloat(cleanupFee) > 0 && (
+                  <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <span className="text-green-700 text-sm font-medium">💰 Payment: GHS {parseFloat(cleanupFee).toFixed(2)}</span>
+                    <button onClick={() => setFeeStep(true)} className="ml-auto text-xs text-green-600 underline">Edit</button>
                   </div>
-                ))}
+                )}
+                {loadingCollectors ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : collectors.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No active collectors available</p>
+                    <p className="text-sm mt-2">Please add collectors in Collectors Management</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {collectors.map(collector => (
+                      <div 
+                        key={collector.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all"
+                        onClick={async () => {
+                          const collectorName = `${collector.first_name} ${collector.last_name}`;
+                          await assignCleanup(selectedReportForAssignment.id, collector.id, collectorName, cleanupFee);
+                          setShowCollectorModal(false);
+                          setSelectedReportForAssignment(null);
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">
+                              {collector.first_name} {collector.last_name}
+                            </h4>
+                            <p className="text-sm text-gray-500">{collector.email}</p>
+                            {collector.phone && (
+                              <p className="text-sm text-gray-500">Phone: {collector.phone}</p>
+                            )}
+                            {collector.vehicle_type && (
+                              <p className="text-sm text-gray-500">
+                                Vehicle: {collector.vehicle_type} {collector.vehicle_plate && `(${collector.vehicle_plate})`}
+                              </p>
+                            )}
+                          </div>
+                          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            {collector.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-4 flex justify-between">
+                  <button onClick={() => setFeeStep(true)} className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm">
+                    ← Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCollectorModal(false);
+                      setSelectedReportForAssignment(null);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
-            
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => {
-                  setShowCollectorModal(false);
-                  setSelectedReportForAssignment(null);
-                }}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
         </div>
       )}

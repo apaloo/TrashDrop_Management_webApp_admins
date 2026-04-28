@@ -1087,8 +1087,8 @@ export const updateIllegalDumpingStatus = async (reportId, status, notes = '') =
  * @param {Date} scheduledDate - Scheduled cleanup date (optional, not persisted)
  * @returns {Promise<Object>} Assignment result
  */
-export const assignCleanupTeam = async (reportId, collectorId, scheduledDate) => {
-  console.log('Assigning collector to illegal dumping report:', { reportId, collectorId, scheduledDate });
+export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fee) => {
+  console.log('Assigning collector to illegal dumping report:', { reportId, collectorId, scheduledDate, fee });
   
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',
@@ -1098,13 +1098,21 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate) =>
       // Collector will change to 'in_progress' when they accept the assignment
       const newStatus = 'verified';
       
+      const updatePayload = { 
+        status: newStatus,
+        assigned_to: collectorId,
+        updated_at: new Date().toISOString()
+      };
+
+      // Only include cleanup_fee if a valid value was provided
+      const feeValue = fee !== '' && fee != null && !isNaN(parseFloat(fee)) ? parseFloat(fee) : null;
+      if (feeValue !== null) {
+        updatePayload.cleanup_fee = feeValue;
+      }
+
       const { data, error } = await supabase
         .from('illegal_dumping_mobile')
-        .update({ 
-          status: newStatus,
-          assigned_to: collectorId,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', reportId)
         .select()
         .single();
