@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
 
 /* ─── FAQPage JSON-LD schema ────────────────────────────────────────────────── */
+/* All questions here MUST be visible on the page — Google Rich Results requirement */
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
+  "url": "https://trashdrops.com/how-it-works",
   "mainEntity": [
     {
       "@type": "Question",
       "name": "How does TrashDrop work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System or the Digital Bin service. A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points."
+        "text": "TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup."
       }
     },
     {
@@ -20,23 +22,7 @@ const FAQ_SCHEMA = {
       "name": "How does the TrashDrop QR bag system work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The TrashDrop QR Bag System is a free prepaid waste collection service. Purchase official TrashDrop bags from authorised vendors, scan the QR code to register them in your account, fill the bags with waste, and request a free pickup. A verified collector navigates to your location using GPS, scans the same QR code on arrival to confirm the pickup, and transports the waste to an authorised facility. The entire process from request to collection typically completes within 8 hours in urban Accra."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What is the Digital Bin service?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The Digital Bin service allows users to enter waste details, receive an instant GPS-location based quote, and schedule collection. You only pay via MoMo or cash at the point of waste collection. A verified collector is matched to your request within 2 hours."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How long does a TrashDrop pickup take?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "A verified collector accepts the request within 2 hours. The entire process from request to collection typically completes within 8 hours in urban Accra. You can track your collector in real time via GPS directly in the app."
+        "text": "The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap Request Pickup to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra."
       }
     },
     {
@@ -44,10 +30,66 @@ const FAQ_SCHEMA = {
       "name": "Do I need to download an app to use TrashDrop?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. TrashDrop runs as a Progressive Web App (PWA) entirely in your browser at trashdrops.com. No app store download is required on iOS or Android. Simply open the URL and sign up."
+        "text": "No. TrashDrop is a Progressive Web App (PWA) — it runs entirely in your mobile or desktop browser at trashdrops.com. Open the URL, sign up with your email, and you are ready. No app store required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take for a collector to arrive?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A verified collector accepts requests within 2 hours. The full process — from request submission to completed collection — typically finishes within 8 hours in urban Accra. You can track the collector's live GPS position from the moment they accept."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between the QR Bag System and the Digital Bin?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The QR Bag System uses pre-purchased official bags. Scan the QR code to register them, fill the bags, and request a FREE pickup when ready — no extra payment at collection. The Digital Bin is for on-demand pickup of any waste: enter the details, receive a GPS-based price quote instantly, and pay via MoMo or cash only at the point of collection."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens to my waste after it is collected?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "TrashDrop collectors deliver waste only to authorised disposal sites holding valid environmental permits from the Ghana EPA. Recyclables go to licensed recycling facilities, organic waste goes to composting sites, and general waste goes to approved municipal landfills. No illegal dumping — every trip is tracked."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I earn reward points?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You earn reward points automatically when a pickup is completed, when you report illegal dumping sites, when you refer new users, and when you separate waste by type before collection. Points can be redeemed for discounts on future pickups or donated to community environmental projects."
       }
     }
   ]
+};
+
+/* ─── WebPage JSON-LD schema (BreadcrumbList + publisher for AI crawlability) ── */
+const WEBPAGE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://trashdrops.com/how-it-works",
+  "name": "How TrashDrop Works | Waste Collection App Ghana | trashdrops.com",
+  "description": "TrashDrop connects Ghanaian households with verified waste collectors in 6 steps. Choose the QR Bag System for free pickups or the Digital Bin for on-demand collection. Available at trashdrops.com — no app download needed.",
+  "url": "https://trashdrops.com/how-it-works",
+  "inLanguage": "en-GH",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://trashdrops.com" },
+      { "@type": "ListItem", "position": 2, "name": "How It Works", "item": "https://trashdrops.com/how-it-works" }
+    ]
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Infobrix Limited",
+    "url": "https://trashdrops.com",
+    "logo": { "@type": "ImageObject", "url": "https://trashdrops.com/icon-512x512.png" }
+  }
 };
 
 const STEPS = [
@@ -82,14 +124,45 @@ const HowItWorksPage = () => {
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', 'TrashDrop connects Ghanaian households with verified waste collectors in 6 steps. Choose the QR Bag System for free pickups or the Digital Bin for on-demand collection. Available at trashdrops.com — no app download needed.');
 
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.id   = 'faq-schema-how-it-works';
-    script.text = JSON.stringify(FAQ_SCHEMA);
-    const existing = document.getElementById('faq-schema-how-it-works');
-    if (existing) existing.remove();
-    document.head.appendChild(script);
-    return () => { const s = document.getElementById('faq-schema-how-it-works'); if(s) s.remove(); };
+    // Fix canonical URL for this page (index.html defaults to root)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/how-it-works';
+    // Fix OG URL
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/how-it-works');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/how-it-works');
+
+    // Inject FAQPage schema
+    const faqScript = document.createElement('script');
+    faqScript.type = 'application/ld+json';
+    faqScript.id   = 'faq-schema-how-it-works';
+    faqScript.text = JSON.stringify(FAQ_SCHEMA);
+    const existingFaq = document.getElementById('faq-schema-how-it-works');
+    if (existingFaq) existingFaq.remove();
+    document.head.appendChild(faqScript);
+
+    // Inject WebPage schema
+    const wpScript = document.createElement('script');
+    wpScript.type = 'application/ld+json';
+    wpScript.id   = 'webpage-schema-how-it-works';
+    wpScript.text = JSON.stringify(WEBPAGE_SCHEMA);
+    const existingWp = document.getElementById('webpage-schema-how-it-works');
+    if (existingWp) existingWp.remove();
+    document.head.appendChild(wpScript);
+
+    return () => {
+      const s1 = document.getElementById('faq-schema-how-it-works'); if (s1) s1.remove();
+      const s2 = document.getElementById('webpage-schema-how-it-works'); if (s2) s2.remove();
+      // Restore canonical and OG URL to root on unmount
+      const can = document.querySelector('link[rel="canonical"]');
+      if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]');
+      if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]');
+      if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

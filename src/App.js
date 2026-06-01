@@ -14,6 +14,7 @@ import { SECTIONS, canAccessSection } from './constants/accessControl';
 import HomePage from './pages/HomePage';
 
 // Public marketing pages
+const FAQPage                = lazy(() => import('./pages/FAQPage'));
 const HowItWorksPage         = lazy(() => import('./pages/HowItWorksPage'));
 const CollectorsPage         = lazy(() => import('./pages/CollectorsPage'));
 const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublicPage'));
@@ -167,6 +168,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
 
               {/* Public marketing / AI Answer pages */}
+              <Route path="/faq"             element={<FAQPage />} />
               <Route path="/how-it-works"    element={<HowItWorksPage />} />
               <Route path="/collectors"      element={<CollectorsPage />} />
               <Route path="/illegal-dumping" element={<IllegalDumpingPublicPage />} />

@@ -61,11 +61,39 @@ const FAQ_ITEMS = [
   { q:'Can I collect waste using a tricycle (aboboyaa)?', a:'Yes. Aboboyaa riders (tricycle operators) are the most common vehicle type on TrashDrop. When registering your vehicle, select the appropriate vehicle type. You will be matched to requests compatible with your vehicle\'s capacity.' },
 ];
 
+const WEBPAGE_SCHEMA_COLLECTORS = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://trashdrops.com/collectors",
+  "name": "Earn Money Collecting Waste in Ghana | TrashDrop Carter App",
+  "description": "TrashDrop pays waste collectors in Ghana ₵32.43 average per pickup, paid to your MoMo wallet. Join as a carter or aboboyaa rider. No app download needed.",
+  "url": "https://trashdrops.com/collectors",
+  "inLanguage": "en-GH",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home",       "item": "https://trashdrops.com" },
+      { "@type": "ListItem", "position": 2, "name": "Collectors", "item": "https://trashdrops.com/collectors" }
+    ]
+  },
+  "publisher": { "@type": "Organization", "name": "Infobrix Limited", "url": "https://trashdrops.com", "logo": { "@type": "ImageObject", "url": "https://trashdrops.com/icon-512x512.png" } }
+};
+
 const CollectorsPage = () => {
   useEffect(() => {
     document.title = 'Earn Money Collecting Waste in Ghana | TrashDrop Carter App';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', 'TrashDrop pays waste collectors in Ghana ₵32.43 average per pickup, paid to your MoMo wallet. Join as a carter or aboboyaa rider. No app download needed. Sign up at trashdrops.com.');
+
+    // Fix canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/collectors';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/collectors');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/collectors');
+
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.id   = 'faq-schema-collectors';
@@ -73,7 +101,22 @@ const CollectorsPage = () => {
     const existing = document.getElementById('faq-schema-collectors');
     if (existing) existing.remove();
     document.head.appendChild(script);
-    return () => { const s = document.getElementById('faq-schema-collectors'); if(s) s.remove(); };
+
+    const wpScript = document.createElement('script');
+    wpScript.type = 'application/ld+json';
+    wpScript.id   = 'webpage-schema-collectors';
+    wpScript.text = JSON.stringify(WEBPAGE_SCHEMA_COLLECTORS);
+    const existingWp = document.getElementById('webpage-schema-collectors');
+    if (existingWp) existingWp.remove();
+    document.head.appendChild(wpScript);
+
+    return () => {
+      const s1 = document.getElementById('faq-schema-collectors'); if (s1) s1.remove();
+      const s2 = document.getElementById('webpage-schema-collectors'); if (s2) s2.remove();
+      const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]'); if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

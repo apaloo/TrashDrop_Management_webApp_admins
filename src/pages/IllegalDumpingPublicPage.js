@@ -57,6 +57,16 @@ const IllegalDumpingPublicPage = () => {
     document.title = 'Report Illegal Dumping in Ghana | TrashDrop';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', 'Report illegal dumping in Ghana in under 2 minutes via the TrashDrop app at trashdrops.com. Get GPS-pinpointed enforcement, earn reward points, and track cleanup. Available in Accra, Kumasi, Takoradi and Tamale.');
+
+    // Fix canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/illegal-dumping';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping');
+
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.id   = 'faq-schema-illegal-dumping-public';
@@ -64,7 +74,12 @@ const IllegalDumpingPublicPage = () => {
     const existing = document.getElementById('faq-schema-illegal-dumping-public');
     if (existing) existing.remove();
     document.head.appendChild(script);
-    return () => { const s = document.getElementById('faq-schema-illegal-dumping-public'); if(s) s.remove(); };
+    return () => {
+      const s = document.getElementById('faq-schema-illegal-dumping-public'); if (s) s.remove();
+      const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]'); if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

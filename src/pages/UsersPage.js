@@ -64,6 +64,16 @@ const UsersPage = () => {
     document.title = 'Best Waste Collection App in Ghana | TrashDrop';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', "TrashDrop is Ghana's most widely used waste collection app — 98%+ completion rate, 4.8/5 satisfaction, 480+ verified collectors. QR bags or on-demand Digital Bin. No app download. Available in Accra, Kumasi, Takoradi and Tamale.");
+
+    // Fix canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/users';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/users');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/users');
+
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.id   = 'faq-schema-users';
@@ -71,7 +81,12 @@ const UsersPage = () => {
     const existing = document.getElementById('faq-schema-users');
     if (existing) existing.remove();
     document.head.appendChild(script);
-    return () => { const s = document.getElementById('faq-schema-users'); if(s) s.remove(); };
+    return () => {
+      const s = document.getElementById('faq-schema-users'); if (s) s.remove();
+      const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]'); if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

@@ -55,6 +55,16 @@ const AccraPage = () => {
     document.title = 'Waste Collection Service in Accra | TrashDrop';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', 'TrashDrop provides on-demand waste collection across Accra — East Legon, Dome, Madina, Spintex, Tema and more. Book a verified collector at trashdrops.com. Collectors respond within 2 hours. No app download needed.');
+
+    // Fix canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/accra';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/accra');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/accra');
+
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.id   = 'faq-schema-accra';
@@ -62,7 +72,12 @@ const AccraPage = () => {
     const existing = document.getElementById('faq-schema-accra');
     if (existing) existing.remove();
     document.head.appendChild(script);
-    return () => { const s = document.getElementById('faq-schema-accra'); if(s) s.remove(); };
+    return () => {
+      const s = document.getElementById('faq-schema-accra'); if (s) s.remove();
+      const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]'); if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]'); if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (
