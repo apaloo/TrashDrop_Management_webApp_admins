@@ -10,8 +10,25 @@
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "true"  # This is used by npm install/prepare script for Husky skip
 
+# Explicit content-type headers for static SEO files
+# These ensure sitemap.xml and robots.txt are never caught by the SPA rewrite
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=UTF-8"
+    X-Robots-Tag = "noindex"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=UTF-8"
+    Cache-Control = "public, max-age=86400"
+
 # Handle Single Page Application routing
+# force=false (default) means static files always win over this rule
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false

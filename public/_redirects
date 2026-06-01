@@ -1,1 +1,2 @@
-/* /index.html 200
+# SPA routing is handled in netlify.toml — do not duplicate the catch-all here.
+# Static files (sitemap.xml, robots.txt) are served before any redirect rules.
