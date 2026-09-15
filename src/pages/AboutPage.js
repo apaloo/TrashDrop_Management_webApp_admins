@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FF, RelatedLinks } from '../components/PublicPageLayout';
 
 const TEAM = [
   { name:'Otis Apaloo',  role:'Operations Lead & Co-founder',  initial:'OA' },
@@ -176,6 +176,7 @@ const AboutPage = () => {
           </a>
         </div>
       </section>
+      <RelatedLinks links={['/how-it-works', '/blog', '/collectors']} />
     </PublicPageLayout>
   );
 };

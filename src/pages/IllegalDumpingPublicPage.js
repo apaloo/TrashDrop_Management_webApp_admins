@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FF, FAQAccordion, RelatedLinks } from '../components/PublicPageLayout';
 
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
@@ -203,6 +203,7 @@ const IllegalDumpingPublicPage = () => {
           Report a Dump Site Now
         </Link>
       </section>
+      <RelatedLinks links={['/accra', '/how-it-works', '/blog']} />
     </PublicPageLayout>
   );
 };

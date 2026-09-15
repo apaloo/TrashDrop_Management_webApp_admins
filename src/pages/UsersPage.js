@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FF, FAQAccordion, RelatedLinks } from '../components/PublicPageLayout';
 
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
@@ -183,6 +183,7 @@ const UsersPage = () => {
           Create Free Account
         </Link>
       </section>
+      <RelatedLinks links={['/how-it-works', '/accra', '/illegal-dumping']} />
     </PublicPageLayout>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FF, RelatedLinks } from '../components/PublicPageLayout';
 
 /* ─── FAQPage JSON-LD ─────────────────────────────────────────────────────────
    Structured exactly to match Google's FAQPage rich result requirements.
@@ -339,6 +339,7 @@ const FAQPage = () => {
           </Link>
         </div>
       </section>
+      <RelatedLinks links={['/how-it-works', '/users', '/collectors', '/about']} />
     </PublicPageLayout>
   );
 };

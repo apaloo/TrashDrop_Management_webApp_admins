@@ -1,11 +1,24 @@
 import React, { useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../../components/PublicPageLayout';
-import { BLOG_POSTS } from '../BlogPage';
+import PublicPageLayout, { TD, FF, FAQAccordion, RelatedLinks } from '../../components/PublicPageLayout';
+import { BLOG_POSTS, formatPostDate } from '../BlogPage';
 
 /* ────────────────────────────────────────────────────────────────────────────
    All 8 blog post contents
 ─────────────────────────────────────────────────────────────────────────────*/
+
+/* Which service pages each article should link to, by tag. Gives every post
+   outbound internal links to the pages it is meant to support. */
+const RELATED_BY_TAG = {
+  'Collectors':   ['/collectors', '/how-it-works', '/accra'],
+  'Environment':  ['/illegal-dumping', '/accra', '/how-it-works'],
+  'Recycling':    ['/how-it-works', '/users', '/illegal-dumping'],
+  'How It Works': ['/how-it-works', '/users', '/faq'],
+  'Accra':        ['/accra', '/users', '/collectors'],
+  'Legal':        ['/illegal-dumping', '/accra', '/faq'],
+  'Expansion':    ['/accra', '/collectors', '/users'],
+};
+const DEFAULT_RELATED = ['/how-it-works', '/users', '/collectors'];
 
 const POST_CONTENT = {
 
@@ -202,7 +215,8 @@ const BlogPostPage = () => {
   const postUrl = `https://trashdrops.com/blog/${slug}`;
 
   useEffect(() => {
-    if (!content) return;
+    // The schema below reads post.date, so both must be present.
+    if (!content || !post) return;
     document.title = `${content.title} | TrashDrop Blog`;
     const el = document.querySelector('meta[name="description"]');
     if (el && content.description) el.setAttribute('content', content.description);
@@ -216,7 +230,38 @@ const BlogPostPage = () => {
     const twUrl = document.querySelector('meta[name="twitter:url"]');
     if (twUrl) twUrl.setAttribute('content', postUrl);
 
+    // BlogPosting schema. datePublished/dateModified are what let Google show
+    // a date in results and judge freshness; without them an article has no
+    // recency signal at all.
+    const articleSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: content.title,
+      description: content.description,
+      datePublished: post.date,
+      dateModified: post.updated || post.date,
+      inLanguage: 'en-GH',
+      mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
+      url: postUrl,
+      author:    { '@type': 'Organization', name: 'TrashDrop', url: 'https://trashdrops.com' },
+      publisher: {
+        '@type': 'Organization',
+        name: 'TrashDrop',
+        logo: { '@type': 'ImageObject', url: 'https://trashdrops.com/icon-512x512.png' },
+      },
+    };
+    const SCHEMA_ID = 'blogposting-schema';
+    const existing = document.getElementById(SCHEMA_ID);
+    if (existing) existing.remove();
+    const schemaEl = document.createElement('script');
+    schemaEl.type = 'application/ld+json';
+    schemaEl.id   = SCHEMA_ID;
+    schemaEl.text = JSON.stringify(articleSchema);
+    document.head.appendChild(schemaEl);
+
     return () => {
+      const s = document.getElementById(SCHEMA_ID);
+      if (s) s.remove();
       const can = document.querySelector('link[rel="canonical"]');
       if (can) can.href = 'https://trashdrops.com/';
       const ogU = document.querySelector('meta[property="og:url"]');
@@ -224,7 +269,7 @@ const BlogPostPage = () => {
       const twU = document.querySelector('meta[name="twitter:url"]');
       if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
     };
-  }, [content, postUrl]);
+  }, [content, post, postUrl]);
 
   if (!post || !content) return <Navigate to="/blog" replace />;
 
@@ -244,6 +289,10 @@ const BlogPostPage = () => {
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'1.5px', color:post.tagColor, background:`${post.tagColor}15`, border:`1px solid ${post.tagColor}25`, borderRadius:99, padding:'3px 10px', textTransform:'uppercase' }}>{post.tag}</span>
             <span style={{ color:TD.sage }}>·</span>
             <span style={{ ...FF.label, fontSize:12, color:TD.sage }}>{post.readTime}</span>
+            <span style={{ color:TD.sage }}>·</span>
+            <span style={{ ...FF.label, fontSize:12, color:TD.sage }}>
+              <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+            </span>
           </div>
           <h1 style={{ ...FF.display, fontSize:'clamp(32px,5vw,58px)', color:'#f0f5f0', lineHeight:1.08, letterSpacing:'-1.5px', margin:'0 0 16px' }}>
             {content.title}
@@ -270,6 +319,12 @@ const BlogPostPage = () => {
               <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.82, margin:0 }}>{sec.body}</p>
             </div>
           ))}
+
+          {/* Last updated — shown at the end of the article body, where readers
+              look to judge whether the information is still current. */}
+          <p style={{ ...FF.label, fontSize:12, color:TD.sage, margin:'40px 0 0', paddingTop:20, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+            Last updated <time dateTime={post.updated || post.date}>{formatPostDate(post.updated || post.date)}</time>
+          </p>
 
           {/* CTA ── */}
           <div style={{ marginTop:56, background:`${TD.lime}10`, border:`1px solid ${TD.lime}25`, borderRadius:16, padding:'32px 36px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
@@ -313,6 +368,7 @@ const BlogPostPage = () => {
           </div>
         </div>
       </section>
+      <RelatedLinks links={RELATED_BY_TAG[post.tag] || DEFAULT_RELATED} heading="Explore TrashDrop" />
     </PublicPageLayout>
   );
 };

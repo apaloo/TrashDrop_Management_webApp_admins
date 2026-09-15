@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FF, FAQAccordion, RelatedLinks } from '../components/PublicPageLayout';
 
 /* ─── FAQPage JSON-LD schema ────────────────────────────────────────────────── */
 /* All questions here MUST be visible on the page — Google Rich Results requirement */
@@ -307,6 +307,7 @@ const HowItWorksPage = () => {
           Create Free Account
         </Link>
       </section>
+      <RelatedLinks links={['/users', '/collectors', '/faq']} />
     </PublicPageLayout>
   );
 };

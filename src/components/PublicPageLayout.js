@@ -20,6 +20,46 @@ export const FF = {
   data:    { fontFamily:"'Bebas Neue', sans-serif" },
 };
 
+/* ─── Internal linking ──────────────────────────────────────────────────────
+   One description per page, used wherever that page is linked, so anchor text
+   and summaries stay consistent across the site. Before this, the marketing
+   pages were reachable only from the nav and footer — there were no in-content
+   links between them for a crawler to follow or pass authority through. */
+export const PAGE_INDEX = {
+  '/how-it-works':    { title:'How TrashDrop Works',        desc:'The QR Bag System and the on-demand Digital Bin, explained step by step.' },
+  '/users':           { title:'TrashDrop for Households',   desc:'Book a pickup, track your collector and pay per bag — no app download.' },
+  '/collectors':      { title:'Earn as a Carter',           desc:'How verified collectors earn on their own schedule, paid to mobile money.' },
+  '/illegal-dumping': { title:'Report Illegal Dumping',     desc:'Flag a dump site with photo and GPS evidence, then track the cleanup.' },
+  '/accra':           { title:'Waste Collection in Accra',  desc:'Coverage, collection days and what pickups cost across the capital.' },
+  '/about':           { title:'About TrashDrop',            desc:'Who builds TrashDrop, where it operates and where it is heading.' },
+  '/blog':            { title:'The TrashDrop Blog',         desc:'Field notes on waste, recycling and running collections in Ghana.' },
+  '/faq':             { title:'Frequently Asked Questions', desc:'Straight answers on pricing, coverage, bags, payments and pickups.' },
+};
+
+export const RelatedLinks = ({ links = [], heading = 'Keep reading' }) => {
+  const items = links.map(to => ({ to, ...PAGE_INDEX[to] })).filter(i => i.title);
+  if (!items.length) return null;
+  return (
+    <section style={{ background:'#050805', borderTop:'1px solid rgba(168,230,61,0.08)', padding:'64px 24px' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto' }}>
+        <h2 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', margin:'0 0 24px' }}>
+          {heading}
+        </h2>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:14 }}>
+          {items.map(i => (
+            <Link key={i.to} to={i.to} style={{ display:'block', padding:'22px 24px', borderRadius:14, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', textDecoration:'none', transition:'all 0.25s' }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}45`;e.currentTarget.style.background='rgba(255,255,255,0.055)';e.currentTarget.style.transform='translateY(-3px)';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.08)';e.currentTarget.style.background='rgba(255,255,255,0.03)';e.currentTarget.style.transform='translateY(0)';}}>
+              <span style={{ ...FF.display, display:'block', fontSize:17, color:'#f0f5f0', marginBottom:6, letterSpacing:'-0.3px' }}>{i.title}</span>
+              <span style={{ ...FF.body, display:'block', fontSize:13, fontWeight:300, color:'rgba(255,255,255,0.45)', lineHeight:1.6 }}>{i.desc}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 /* ─── Navbar ────────────────────────────────────────────────────────────────── */
 export const PublicNavbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
