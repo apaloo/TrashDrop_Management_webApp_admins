@@ -1919,6 +1919,16 @@ const PricingGuideSection = () => {
 const HomePageNew = () => {
   const { isAuthenticated, authInitialized } = useAuth();
   const auth = authInitialized ? isAuthenticated : false;
+
+  useEffect(() => {
+    // index.html's default title ends in "| Admin Portal", which is wrong for
+    // the public landing page — it is the single most important title on the
+    // site, so set it explicitly here.
+    document.title = 'TrashDrop | Waste Collection & Trash Pickup in Ghana';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Book a waste collector in Accra, Kumasi, Takoradi and Tamale. TrashDrop connects households with verified collectors through QR-coded bags and on-demand Digital Bin pickups — and lets anyone report illegal dumping.');
+  }, []);
+
   return (
     <LpThemeProvider>
       <LpPageInner auth={auth} />

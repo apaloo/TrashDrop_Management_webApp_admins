@@ -36,7 +36,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && node scripts/prerender.js",
     "build:netlify": "npm install --legacy-peer-deps && npm run build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -45,7 +45,8 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:test": "start-server-and-test start http://localhost:3000 cy:run",
-    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true') { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\""
+    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true') { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\"",
+    "prerender": "node scripts/prerender.js"
   },
   "eslintConfig": {
     "extends": [
@@ -70,6 +71,7 @@
     "@testing-library/react-hooks": "^7.0.2",
     "cypress": "^12.17.4",
     "husky": "^9.1.7",
+    "playwright-core": "^1.49.1",
     "react-test-renderer": "^18.2.0",
     "start-server-and-test": "^2.0.0"
   }

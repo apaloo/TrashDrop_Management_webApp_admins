@@ -1,12 +1,18 @@
 [build]
-  # Build the React app with legacy peer deps support
-  # CI=false prevents ESLint warnings from being treated as errors
-  command = "CI=false npm run build"
+  # Fetch a Chromium for scripts/prerender.js, then build. The install is
+  # allowed to fail (`|| true`): prerendering is fail-soft, so a missing browser
+  # just ships the un-prerendered SPA instead of breaking the deploy.
+  # CI=false prevents ESLint warnings from being treated as errors.
+  command = "npx playwright-core install chromium || true; CI=false npm run build"
   publish = "build"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
-  NODE_VERSION = "16.20.2"  # Using an even more stable Node version compatible with React testing libraries
+  # Node 20: playwright-core (used by the prerender step) requires >=20, and
+  # Node 16 reached end-of-life in September 2023. react-scripts 5 builds
+  # cleanly on 20 — tests do not run during the Netlify build, so the previous
+  # "compatible with React testing libraries" pin no longer applies here.
+  NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "true"  # This is used by npm install/prepare script for Husky skip
 
@@ -24,10 +30,24 @@
     Content-Type = "text/plain; charset=UTF-8"
     Cache-Control = "public, max-age=86400"
 
-# Handle Single Page Application routing
-# force=false (default) means static files always win over this rule
+# The prerendered SPA shell. Requested directly it has no content worth
+# indexing; it only exists as the client-routing fallback below.
+[[headers]]
+  for = "/app-shell.html"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+# Handle Single Page Application routing.
+# force=false (default) means static files always win over this rule, so the
+# prerendered pages written by scripts/prerender.js are served as-is.
+#
+# Unmatched paths fall back to app-shell.html — the pristine, un-prerendered
+# CRA shell — rather than index.html. index.html now holds the prerendered
+# HOMEPAGE, and serving that for an unknown URL would hand crawlers homepage
+# content under a 200, which reads as a soft 404. Booting the empty shell lets
+# the router render the real NotFound page (which sets robots=noindex).
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
   force = false
