@@ -130,6 +130,69 @@ function outputPathFor(route) {
     : path.join(BUILD, route.replace(/^\//, ''), 'index.html');
 }
 
+/* Drive the page to its settled visual state before capturing.
+ *
+ * Two things otherwise get frozen into the HTML in a broken state:
+ *
+ *  - Scroll reveals. Sections animate in via IntersectionObserver and start at
+ *    `opacity: 0; transform: translateY(28px)`. Anything below the fold at
+ *    capture time keeps those inline styles forever in a static file, so whole
+ *    bands of the page render blank. The observers disconnect once fired, so
+ *    scrolling through the document reveals them permanently.
+ *
+ *  - The typewriter headline. It cycles phrase by phrase, so a naive capture
+ *    lands mid-word ("Illegal" instead of "Illegal Dumping."). It pauses ~1.8s
+ *    on each completed phrase, so waiting for the text to hold steady catches
+ *    it whole.
+ */
+async function settlePage(page) {
+  // Walk down the page so every reveal observer fires, then return to the top.
+  await page.evaluate(async () => {
+    const step = Math.floor(window.innerHeight * 0.8);
+    const end = () => document.body.scrollHeight;
+    for (let y = 0; y < end(); y += step) {
+      window.scrollTo(0, y);
+      await new Promise(r => setTimeout(r, 120));
+    }
+    window.scrollTo(0, end());
+    await new Promise(r => setTimeout(r, 400));
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 200));
+  });
+
+  // Wait for the reveal transitions to actually land.
+  await page
+    .waitForFunction(
+      () => ![...document.querySelectorAll('[style*="opacity"]')].some(el => {
+        const st = el.getAttribute('style') || '';
+        return /opacity:\s*0(?!\.)/.test(st) && /translateY\(\s*[1-9]/.test(st);
+      }),
+      { timeout: 8000 }
+    )
+    .catch(() => {});
+
+  // Hold until the typewriter stops changing (it pauses on a complete phrase).
+  await page
+    .waitForFunction(
+      () => {
+        const el = document.querySelector('#root h1');
+        if (!el) return true;
+        const hero = el.closest('section') || document.body;
+        const text = hero.innerText;
+        const prev = window.__td_prevHero;
+        window.__td_prevHero = text;
+        if (prev === undefined) return false;
+        if (prev !== text) { window.__td_stable = 0; return false; }
+        window.__td_stable = (window.__td_stable || 0) + 1;
+        return window.__td_stable >= 3;      // ~3 polls unchanged
+      },
+      { timeout: 9000, polling: 180 }
+    )
+    .catch(() => {});
+
+  await page.waitForTimeout(350);
+}
+
 async function main() {
   if (!fs.existsSync(path.join(BUILD, 'index.html'))) {
     console.warn('[prerender] no build/index.html — run the build first. Skipping.');
@@ -214,7 +277,7 @@ async function main() {
           },
           { timeout: 30000 }
         );
-        await page.waitForTimeout(600); // let head-mutating effects settle
+        await settlePage(page);          // reveals + typewriter, then head effects
 
         const html = await page.evaluate(() => '<!DOCTYPE html>\n' + document.documentElement.outerHTML);
         const meta = await page.evaluate(() => ({
