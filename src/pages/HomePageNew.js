@@ -86,7 +86,10 @@ const LP = {
     featureIconBg: 'rgba(168,230,61,0.12)',
     featureIcon:   TD.lime,
     featureText:   'rgba(255,255,255,0.72)',
-    mapTileUrl:    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    mapTileUrl:    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    // OpenStreetMap publishes no dark style, so invert the standard tiles and
+    // rotate the hue back to keep land/water reading correctly.
+    mapTileFilter: 'invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.55)',
     mapLegendBg:   'rgba(10,15,10,0.9)',
     mapLegendBorder:'rgba(255,255,255,0.1)',
     mapLegendLabel:'rgba(255,255,255,0.45)',
@@ -164,7 +167,8 @@ const LP = {
     featureIconBg: 'rgba(22,101,52,0.1)',
     featureIcon:   TD.forest,
     featureText:   '#2d4a38',
-    mapTileUrl:    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    mapTileUrl:    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    mapTileFilter: 'saturate(0.72) brightness(1.04)',
     mapLegendBg:   'rgba(255,255,255,0.95)',
     mapLegendBorder:'rgba(22,101,52,0.15)',
     mapLegendLabel:'#2d4a38',
@@ -1179,8 +1183,12 @@ const MapPreviewSection = ({ isAuthenticated }) => {
           <div style={{ flex:2, minWidth:400 }}>
             <div style={{ position:'relative', borderRadius:24, overflow:'hidden', border:`1px solid rgba(168,230,61,0.14)`, boxShadow:`0 32px 80px rgba(0,0,0,0.7)`, height:'100%', minHeight:500 }}>
               <div style={{ height:'100%', minHeight:500 }}>
-                <MapContainer center={[5.6037,-0.1870]} zoom={12} style={{ height:'100%', width:'100%', minHeight:500 }} scrollWheelZoom={true}>
-                  <TileLayer attribution='&copy; <a href="https://carto.com/">CARTO</a>' url={lp.mapTileUrl} />
+                <style>{`.td-landing-map .leaflet-tile-pane{filter:${lp.mapTileFilter||'none'}}`}</style>
+                <MapContainer className="td-landing-map" center={[5.6037,-0.1870]} zoom={12} style={{ height:'100%', width:'100%', minHeight:500 }} scrollWheelZoom={true}>
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url={lp.mapTileUrl}
+                  />
                   <MapAutoFit clusters={DUMP_CLUSTERS} />
                   {DUMP_CLUSTERS.map(c => (
                     <CircleMarker key={c.id} center={[c.lat,c.lng]} radius={Math.max(10,Math.sqrt(c.reports)*4)} pathOptions={{ fillColor:RISK_COLORS[c.risk], color:RISK_COLORS[c.risk], weight:2, opacity:0.9, fillOpacity:0.35 }}>
