@@ -61,6 +61,56 @@
     <priority>0.75</priority>
   </url>
 
+  <!-- Blog posts -->
+  <url>
+    <loc>https://trashdrops.com/blog/how-much-can-a-waste-collector-earn-accra</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/how-to-report-illegal-dumping-ghana</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/complete-guide-waste-segregation-ghana</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/how-trashdrop-qr-bag-system-works</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/comparing-waste-collection-options-accra-2026</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/ghana-waste-management-laws-explained</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/what-happens-to-waste-after-trashdrop-picks-it-up</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/blog/trashdrop-expands-kumasi</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
   <!-- Auth pages (indexed but low priority) -->
   <url>
     <loc>https://trashdrops.com/login</loc>

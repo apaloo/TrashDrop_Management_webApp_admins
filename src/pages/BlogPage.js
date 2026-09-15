@@ -90,6 +90,24 @@ const BlogPage = () => {
     document.title = 'Blog | TrashDrop — Waste Management in Ghana';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', 'Articles on waste collection, recycling, illegal dumping, and environmental action in Ghana. By TrashDrop — available at trashdrops.com.');
+
+    // Set this page's canonical (index.html defaults to the site root)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/blog';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/blog');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/blog');
+
+    return () => {
+      const can = document.querySelector('link[rel="canonical"]');
+      if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]');
+      if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]');
+      if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

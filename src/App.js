@@ -23,6 +23,7 @@ const AccraPage              = lazy(() => import('./pages/AccraPage'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
+const NotFound               = lazy(() => import('./pages/NotFound'));
 
 // Lazy load components for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -286,8 +287,10 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Default redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* 404 — render a real not-found page. Redirecting to "/" made every
+                  bad URL a soft 404 (HTTP 200 + homepage content), which Google
+                  penalises. NotFound sets robots=noindex and drops the canonical. */}
+              <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
             {/* Modal Manager to handle all modals across the application */}

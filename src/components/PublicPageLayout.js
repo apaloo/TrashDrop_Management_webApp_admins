@@ -125,7 +125,7 @@ export const PublicFooter = () => (
           { title:'Resources', links:[['Blog','/blog'],['About Us','/about'],['Report Illegal Dump','/illegal-dumping'],['Waste in Accra','/accra'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18 }}>{col.title}</h4>
+            <h3 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18 }}>{col.title}</h3>
             {col.links.map(([label, href]) => (
               href.startsWith('mailto') || href.startsWith('http')
                 ? <a key={label} href={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}

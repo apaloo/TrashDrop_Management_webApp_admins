@@ -31,6 +31,24 @@ const AboutPage = () => {
     document.title = 'About TrashDrop | Ghana\'s Leading Waste Management Platform';
     const el = document.querySelector('meta[name="description"]');
     if (el) el.setAttribute('content', "TrashDrop is Ghana's leading mobile waste management platform by Infobrix Limited. Co-founded by Otis Apaloo, Simone Fuga and Xose Ahlijah. 480+ collectors, 3,400+ monthly pickups, 55 tonnes diverted monthly. Raising Series A.");
+
+    // Set this page's canonical (index.html defaults to the site root)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://trashdrops.com/about';
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/about');
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/about');
+
+    return () => {
+      const can = document.querySelector('link[rel="canonical"]');
+      if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]');
+      if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]');
+      if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
   }, []);
 
   return (

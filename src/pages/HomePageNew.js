@@ -438,8 +438,10 @@ const HeroSection = ({ isAuthenticated }) => {
               <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
               <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Real-Time Environmental Intelligence</span>
             </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(44px,5.5vw,72px)', lineHeight:1.0, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 8px' }}>Track. Report.</h1>
-            <h1 style={{ ...FF.display, fontSize:'clamp(44px,5.5vw,72px)', lineHeight:1.0, letterSpacing:'-1.5px', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, margin:'0 0 12px' }}>Eliminate</h1>
+            <h1 style={{ ...FF.display, fontSize:'clamp(44px,5.5vw,72px)', lineHeight:1.0, letterSpacing:'-1.5px', margin:'0 0 12px' }}>
+              <span style={{ display:'block', color:'#f0f5f0', marginBottom:8 }}>Track. Report.</span>
+              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}` }}>Eliminate</span>
+            </h1>
             <div style={{ display:'flex', alignItems:'center', gap:4, minHeight:52, marginBottom:28 }}>
               <span style={{ ...FF.data, fontSize:'clamp(28px,3.5vw,44px)', color:TD.gold, letterSpacing:'1px' }}>{headline}</span>
               <span style={{ display:'inline-block', width:3, height:38, background:TD.lime, borderRadius:2, animation:'td-blink 1s step-end infinite' }} />
@@ -1540,7 +1542,7 @@ const PartnershipsSection = () => {
                 <div style={{ width:44, height:44, borderRadius:12, background:`${uc.color}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:14 }}>
                   <i className={`fas ${uc.icon}`} style={{ color:uc.color, fontSize:18 }}></i>
                 </div>
-                <h4 style={{ ...FF.display, fontSize:17, color:lp.partnerH4, margin:'0 0 8px', letterSpacing:'-0.3px' }}>{uc.title}</h4>
+                <h3 style={{ ...FF.display, fontSize:17, color:lp.partnerH4, margin:'0 0 8px', letterSpacing:'-0.3px' }}>{uc.title}</h3>
                 <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:lp.partnerP, lineHeight:1.65, margin:0 }}>{uc.desc}</p>
               </div>
             ))}
@@ -1694,11 +1696,11 @@ const HomeFooter = () => {
         </div>
         {[
           { title:'Platform', links:[['Live Map','#map'],['How It Works','#how'],['Pricing','#pricing'],['Report Dumping','/login'],['Join Community','/signup']] },
-          { title:'Resources', links:[['Documentation','#'],['API Reference','#'],['Case Studies','#'],['Blog','#'],['Privacy Policy','#']] },
-          { title:'Company',  links:[['About Us','#'],['Partnerships','#partners'],['Terms of Service','#'],['Contact Us','mailto:hello@trashdrops.com'],['Careers','#']] },
+          { title:'Resources', links:[['Documentation','#'],['API Reference','#'],['Case Studies','#'],['Blog','/blog'],['Privacy Policy','#']] },
+          { title:'Company',  links:[['About Us','/about'],['Partnerships','#partners'],['Terms of Service','#'],['Contact Us','mailto:hello@trashdrops.com'],['Careers','#']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
+            <h3 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h3>
             {col.links.map(([label,href]) => (
               href.startsWith('/') || href.startsWith('#')
                 ? <Link key={label} to={href.startsWith('/')? href : '#'} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:300, color:'rgba(255,255,255,0.38)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</Link>

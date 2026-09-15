@@ -199,13 +199,32 @@ const BlogPostPage = () => {
   const { slug } = useParams();
   const post = BLOG_POSTS.find(p => p.slug === slug);
   const content = POST_CONTENT[slug];
+  const postUrl = `https://trashdrops.com/blog/${slug}`;
 
   useEffect(() => {
     if (!content) return;
     document.title = `${content.title} | TrashDrop Blog`;
     const el = document.querySelector('meta[name="description"]');
     if (el && content.description) el.setAttribute('content', content.description);
-  }, [content]);
+
+    // Set this page's canonical (index.html defaults to the site root)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = postUrl;
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', postUrl);
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', postUrl);
+
+    return () => {
+      const can = document.querySelector('link[rel="canonical"]');
+      if (can) can.href = 'https://trashdrops.com/';
+      const ogU = document.querySelector('meta[property="og:url"]');
+      if (ogU) ogU.setAttribute('content', 'https://trashdrops.com/');
+      const twU = document.querySelector('meta[name="twitter:url"]');
+      if (twU) twU.setAttribute('content', 'https://trashdrops.com/');
+    };
+  }, [content, postUrl]);
 
   if (!post || !content) return <Navigate to="/blog" replace />;
 

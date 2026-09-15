@@ -258,7 +258,7 @@ const CollectorsPage = () => {
             border:`2px solid ${TD.lime}30`
           }}>
             <img 
-              src="/images/TrashDrop Carter App QR code.jpeg" 
+              src="/images/trashdrop-carter-app-qr.jpeg" 
               alt="Scan to download TrashDrop Carter App" 
               style={{ width:180, height:180, borderRadius:8, objectFit:'cover' }}
             />
