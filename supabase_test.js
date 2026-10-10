@@ -3,13 +3,18 @@ require('dotenv').config();
 
 // Use production environment variables if .env file is not found
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://tfdedlqdsajjdjkerkli.supabase.co';
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZGVkbHFkc2FqamRqa2Vya2xpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3NjQ5MTAsImV4cCI6MjA1OTM0MDkxMH0.GkbFdw5UjSlGvcuxuUMcflgVlJ4CHCuAg8n8F25mNMs';
+const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 // Log connection info
 console.log('SUPABASE URL:', supabaseUrl);
 console.log('SUPABASE KEY AVAILABLE:', !!supabaseKey);
 
 // Create Supabase client using environment variables
+if (!supabaseKey) {
+  console.error('Set REACT_APP_SUPABASE_ANON_KEY (e.g. in .env) to run this script.');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // List of tables we expect to exist

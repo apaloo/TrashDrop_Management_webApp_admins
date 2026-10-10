@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
   
   // Check if current path is auth-related (login, signup, etc.)
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname);
-  const PUBLIC_MARKETING_PATHS = ['/', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog'];
+  const PUBLIC_MARKETING_PATHS = ['/', '/faq', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog'];
   const isPublicPage = PUBLIC_MARKETING_PATHS.includes(location.pathname) || location.pathname.startsWith('/blog/');
   const isHomePage = isPublicPage;
   

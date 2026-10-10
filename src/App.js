@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
@@ -128,6 +128,25 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+// Auth and admin routes must stay out of search results.
+// Keep in sync with the X-Robots-Tag headers in netlify.toml.
+const NOINDEX_PATHS = [
+  '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding',
+  '/dashboard', '/settings', '/request-pickup', '/bin-management',
+  '/illegal-dumping/map', '/illegal-dumping/reports', '/illegal-dumping/history',
+];
+
+const RobotsMeta = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const noindex = NOINDEX_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'));
+    let meta = document.querySelector('meta[name="robots"]');
+    if (!meta) { meta = document.createElement('meta'); meta.name = 'robots'; document.head.appendChild(meta); }
+    meta.setAttribute('content', noindex ? 'noindex' : 'index, follow');
+  }, [pathname]);
+  return null;
+};
+
 function App() {
   // Initialize database safety checks on app start
   useEffect(() => {
@@ -149,6 +168,7 @@ function App() {
       <ThemeProvider>
       <ModalProvider>
         <Router>
+          <RobotsMeta />
           <Layout>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[60vh]">
