@@ -9,6 +9,10 @@
   NODE_VERSION = "16.20.2"  # Using an even more stable Node version compatible with React testing libraries
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "true"  # This is used by npm install/prepare script for Husky skip
+  # The Supabase project URL is public (it ships in the JS bundle), so a
+  # SUPABASE_URL env var marked secret would otherwise fail every deploy.
+  # Real secrets (service-role keys etc.) are still scanned.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
 
 # Explicit content-type headers for static SEO files
 # These ensure sitemap.xml and robots.txt are never caught by the SPA rewrite
