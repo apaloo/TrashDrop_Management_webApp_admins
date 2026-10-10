@@ -67,11 +67,12 @@
     ]
   },
   "devDependencies": {
+    "@sparticuz/chromium": "121.0.0",
     "@testing-library/cypress": "^9.0.0",
     "@testing-library/react-hooks": "^7.0.2",
     "cypress": "^12.17.4",
     "husky": "^9.1.7",
-    "puppeteer": "^21.11.0",
+    "puppeteer-core": "21.11.0",
     "react-test-renderer": "^18.2.0",
     "start-server-and-test": "^2.0.0"
   }

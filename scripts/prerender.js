@@ -12,7 +12,8 @@
  * homepage markup.
  *
  * Runs automatically as `postbuild`. Set PRERENDER_SKIP=1 to bypass.
- * Set PUPPETEER_EXECUTABLE_PATH to use a system Chrome/Chromium.
+ * Set PUPPETEER_EXECUTABLE_PATH to use a system Chrome/Chromium instead of the
+ * bundled @sparticuz/chromium binary.
  */
 const fs = require('fs');
 const http = require('http');
@@ -115,14 +116,19 @@ async function main() {
   const shellHtml = fs.readFileSync(indexPath, 'utf8');
   fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml);
 
-  // Required lazily so `npm run build` still works without puppeteer when skipped
-  const puppeteer = require('puppeteer');
+  // Required lazily so `npm run build` still works without them when skipped.
+  // @sparticuz/chromium ships the browser inside the npm package, so the build
+  // doesn't depend on a Chrome download at install time.
+  const puppeteer = require('puppeteer-core');
+  const chromium = require('@sparticuz/chromium');
   const server = await startServer(shellHtml);
   const origin = `http://127.0.0.1:${server.address().port}`;
   const browser = await puppeteer.launch({
     headless: 'new',
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
+    args: process.env.PUPPETEER_EXECUTABLE_PATH
+      ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      : chromium.args,
   });
 
   const shellJsonLdCount = (shellHtml.match(/application\/ld\+json/g) || []).length;
