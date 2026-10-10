@@ -10,6 +10,9 @@ initializeRealDataOnly()
   .then(() => console.log('✅ Background DB validation complete'))
   .catch(err => console.warn('⚠️ Background DB validation warning:', err.message));
 
+// Drop JSON-LD baked in by scripts/prerender.js; each page re-injects its own on mount.
+document.querySelectorAll('[data-prerendered]').forEach(el => el.remove());
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

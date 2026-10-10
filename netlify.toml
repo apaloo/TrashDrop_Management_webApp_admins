@@ -25,10 +25,75 @@
     Content-Type = "text/plain; charset=UTF-8"
     Cache-Control = "public, max-age=86400"
 
+# Keep auth and admin routes out of search results.
+# Keep in sync with NOINDEX_PATHS in src/App.js.
+[[headers]]
+  for = "/login"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/signup"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/forgot-password"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/reset-password"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/onboarding"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/dashboard"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/settings"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/request-pickup/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/bin-management/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/illegal-dumping/map"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/illegal-dumping/reports"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/illegal-dumping/history"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
 # Handle Single Page Application routing
-# force=false (default) means static files always win over this rule
+# force=false (default) means static files always win over this rule, so the
+# pre-rendered public pages (build/<route>/index.html, see scripts/prerender.js)
+# are served directly. Everything else gets the untouched app shell — not
+# index.html, which now holds the pre-rendered homepage.
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/app-shell.html"
   status = 200
   force = false

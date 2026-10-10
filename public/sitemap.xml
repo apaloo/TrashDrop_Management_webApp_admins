@@ -4,7 +4,7 @@
   <!-- Core public pages -->
   <url>
     <loc>https://trashdrops.com/</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -12,13 +12,13 @@
   <!-- FAQ rich result pages — priority for Google indexing -->
   <url>
     <loc>https://trashdrops.com/faq</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/how-it-works</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -26,53 +26,40 @@
   <!-- Public marketing / AI Answer pages -->
   <url>
     <loc>https://trashdrops.com/users</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/collectors</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/accra</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/illegal-dumping</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/about</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/blog</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-10-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
 
-  <!-- Auth pages (indexed but low priority) -->
-  <url>
-    <loc>https://trashdrops.com/login</loc>
-    <lastmod>2026-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.40</priority>
-  </url>
-  <url>
-    <loc>https://trashdrops.com/signup</loc>
-    <lastmod>2026-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.40</priority>
-  </url>
 
 </urlset>
