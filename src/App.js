@@ -10,6 +10,7 @@ import IllegalDumpingHistory from './pages/IllegalDumpingHistory';
 import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
+import { supabase } from './utils/supabase';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
 import HomePage from './pages/HomePage';
 
@@ -152,6 +153,9 @@ function App() {
   useEffect(() => {
     const initializeDatabaseCheck = async () => {
       try {
+        // Only for signed-in users: anonymous visitors must not probe internal tables
+        const { data: { session } = {} } = await supabase.auth.getSession();
+        if (!session) return;
         console.log('Initializing database schema check...');
         await safeDatabaseService.initializeSchemaCheck();
         console.log('Database schema check completed');

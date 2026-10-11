@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 
 import { appConfig } from '../../config';
 import { toTitle } from '../../utils/illegalDumpingReportUtils';
-import { fetchPublicDumpingReports, timeAgo, cleanupDurationText } from '../../services/publicDumpingReportsService';
+import { fetchPublicDumpingReports, timeAgo, cleanupDurationText, describeArea } from '../../services/publicDumpingReportsService';
 
 /**
  * Public, read-only illegal dumping map for the landing page (logged-out view).
@@ -82,12 +82,13 @@ const VIEWS = [
   { key: 'all', label: 'All' },
 ];
 
-const PublicDumpingMap = ({ lp, isDark, children }) => {
+/**
+ * Loads the public reports once for the whole map section, so the map and the
+ * stats row always show the same data. Refreshes every 60s while the tab is visible.
+ */
+export const usePublicDumpingReports = () => {
   const [reports, setReports] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | ready | error
-  const [view, setView] = useState('all');
-  const [selectedId, setSelectedId] = useState(null);
-  const [lightbox, setLightbox] = useState(null);
   const loadedOnce = useRef(false);
 
   const load = useCallback(async () => {
@@ -103,7 +104,6 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
     }
   }, []);
 
-  // Initial load, then refresh every 60s while the tab is visible
   useEffect(() => {
     // The build's pre-render snapshot has no network: keep the loading state
     if (window.__PRERENDER__) return undefined;
@@ -113,6 +113,16 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  const reload = useCallback(() => { setStatus('loading'); load(); }, [load]);
+  return { reports, status, reload };
+};
+
+const PublicDumpingMap = ({ lp, isDark, data, children }) => {
+  const { reports, status, reload } = data;
+  const [view, setView] = useState('all');
+  const [selectedId, setSelectedId] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     if (!lightbox) return undefined;
@@ -182,7 +192,7 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
                 icon={markerIcon(r)}
                 severity={r.severity}
                 cleaned={r.isCleanedUp}
-                title={`${r.isCleanedUp ? 'Cleaned up' : `${toTitle(r.severity)} risk`}${r.areaName ? ` · ${r.areaName}` : ''}`}
+                title={`${r.isCleanedUp ? 'Cleaned up' : `${toTitle(r.severity)} risk`} · ${describeArea(r)}`}
                 eventHandlers={{ click: () => setSelectedId(r.id) }}
               />
             ))}
@@ -197,7 +207,7 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
               {status === 'error' && (
                 <>
                   Live reports are unavailable right now.
-                  <button onClick={() => { setStatus('loading'); load(); }} style={{ display: 'block', margin: '10px auto 0', fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, background: '#1b6e35', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>Try again</button>
+                  <button onClick={reload} style={{ display: 'block', margin: '10px auto 0', fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, background: '#1b6e35', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>Try again</button>
                 </>
               )}
               {status === 'ready' && emptyText}
@@ -227,15 +237,15 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
             <div style={{ position: 'relative' }}>
               {selected.photos.length > 0 ? (
                 <button onClick={() => setLightbox(selected.photos[0])} title="View larger photo" style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: card.photoBg, cursor: 'zoom-in' }}>
-                  <img src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported${selected.areaName ? ` in ${selected.areaName}` : ''}`} loading="lazy" decoding="async"
+                  <img src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported, ${describeArea(selected)}`} loading="lazy" decoding="async"
                     style={{ display: 'block', width: '100%', height: 160, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
                 </button>
               ) : (
-                <div style={{ height: 70, background: card.photoBg, borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: card.sub }}>
+                <div data-testid="no-photo-strip" style={{ height: 34, background: card.photoBg, borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 11, color: card.sub }}>
                   <i className="fas fa-camera" style={{ marginRight: 6 }} />No photo
                 </div>
               )}
-              <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer' }}>
+              <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', top: selected.photos.length ? 8 : 3, right: 8, width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer' }}>
                 <i className="fas fa-times" />
               </button>
             </div>
@@ -252,7 +262,7 @@ const PublicDumpingMap = ({ lp, isDark, children }) => {
               </div>
               <p style={{ fontFamily: FONT_LABEL, fontSize: 15, fontWeight: 700, margin: '0 0 2px' }}>{toTitle(selected.wasteType)} waste</p>
               <p style={{ fontSize: 13, color: card.sub, margin: '0 0 12px' }}>
-                <i className="fas fa-map-marker-alt" style={{ marginRight: 6 }} />{selected.areaName || 'Location shared on map'}
+                <i className="fas fa-map-marker-alt" style={{ marginRight: 6 }} />{describeArea(selected)}
               </p>
               <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 12px', fontSize: 13, margin: 0 }}>
                 <dt style={{ color: card.sub }}>Severity</dt><dd style={{ margin: 0 }}>{toTitle(selected.severity)}</dd>

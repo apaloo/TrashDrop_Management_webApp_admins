@@ -147,6 +147,14 @@ export async function initializeRealDataOnly() {
     };
   }
   
+  // Anonymous visitors (public landing pages) must not probe internal tables;
+  // the checks run again on the next load once someone is signed in.
+  const { data: { session } = {} } = await supabase.auth.getSession();
+  if (!session) {
+    console.log('Skipping database verification for anonymous visitor');
+    return true;
+  }
+
   try {
     // First verify database connection if required
     if (REQUIRE_DATABASE) {
