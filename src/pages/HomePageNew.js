@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
 import { useAuth } from '../context/AuthContext';
+import { useSeo, BUSINESS, CITY_PAGES, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
 
 /* ─── Brand tokens ──────────────────────────────────────────────────────────── */
@@ -231,7 +232,7 @@ const useCountUp = (end, duration = 2200, shouldStart = false) => {
   return count;
 };
 
-const TW_PHRASES = ['Illegal Dumping.', 'Waste Overflow.', 'Uncollected Trash.', 'Dirty Communities.'];
+const TW_PHRASES = ['Household Trash.', 'Business Waste.', 'Recyclables.', 'Organic Waste.'];
 const useTypewriter = () => {
   const [text, setText] = useState('');
   const st = useRef({ pi: 0, ci: 0, typing: true, locked: false });
@@ -368,7 +369,6 @@ const HomeNavbar = ({ isAuthenticated }) => {
    HERO
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HeroSection = ({ isAuthenticated }) => {
-  const navigate  = useNavigate();
   const headline  = useTypewriter();
   const ORBS = [
     { s:420, t:'10%', l:'2%',  c:TD.lime,   d:0   },
@@ -409,36 +409,39 @@ const HeroSection = ({ isAuthenticated }) => {
           <div style={{ position:'relative', zIndex:3 }}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:28 }}>
               <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Real-Time Environmental Intelligence</span>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Accra · Kumasi · Takoradi · Tamale</span>
             </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(44px,5.5vw,72px)', lineHeight:1.0, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 8px' }}>Track. Report.</h1>
-            <h1 style={{ ...FF.display, fontSize:'clamp(44px,5.5vw,72px)', lineHeight:1.0, letterSpacing:'-1.5px', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, margin:'0 0 12px' }}>Eliminate</h1>
-            <div style={{ display:'flex', alignItems:'center', gap:4, minHeight:52, marginBottom:28 }}>
+            <h1 style={{ ...FF.display, fontSize:'clamp(40px,5vw,66px)', lineHeight:1.02, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
+              Trash &amp; Waste Collection in Ghana{' '}
+              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, marginTop:6 }}>— Book a Pickup in Minutes</span>
+            </h1>
+            <div style={{ display:'flex', alignItems:'center', gap:10, minHeight:52, marginBottom:28 }}>
+              <span style={{ ...FF.label, fontSize:14, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase' }}>We collect</span>
               <span style={{ ...FF.data, fontSize:'clamp(28px,3.5vw,44px)', color:TD.gold, letterSpacing:'1px' }}>{headline}</span>
               <span style={{ display:'inline-block', width:3, height:38, background:TD.lime, borderRadius:2, animation:'td-blink 1s step-end infinite' }} />
             </div>
-            <p style={{ ...FF.body, fontSize:17, lineHeight:1.75, fontWeight:300, color:'rgba(255,255,255,0.55)', maxWidth:520, marginBottom:40 }}>
-              TrashDrop empowers communities, cities, and environmental agencies across
-              <strong style={{ color:'rgba(255,255,255,0.82)', fontWeight:500 }}> Ghana</strong> to detect, report, and eliminate
-              illegal waste dumping using real-time mapping and data intelligence.
+            <p style={{ ...FF.body, fontSize:17, lineHeight:1.75, fontWeight:300, color:'rgba(255,255,255,0.62)', maxWidth:540, marginBottom:40 }}>
+              TrashDrop is fast, tracked <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>waste collection</strong> for
+              homes and businesses in Accra, Kumasi, Takoradi and Tamale. Book a <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>trash pickup</strong> from
+              your phone, follow your verified collector live on the map, and pay with MoMo or cash. Use QR Bags for regular
+              {' '}<strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>rubbish collection</strong>, or request a Digital Bin pickup when you need waste gone today.
             </p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:40 }}>
-              <a href="#map"
+              <Link to={isAuthenticated ? '/dashboard' : '/signup'}
                 style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.lime, color:TD.ink, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, transition:'all 0.25s cubic-bezier(.34,1.56,.64,1)' }}
                 onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.03)';e.currentTarget.style.boxShadow=`0 16px 40px ${TD.lime}55`;}}
                 onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 8px 32px ${TD.lime}45`;}}>
-                <i className="fas fa-map-marked-alt"></i> View Dump Map
-              </a>
-              <button
-                onClick={() => isAuthenticated ? navigate('/illegal-dumping/reports') : navigate('/signup')}
-                style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, cursor:'pointer', border:`1.5px solid rgba(255,255,255,0.18)`, transition:'all 0.25s ease' }}
+                <i className="fas fa-truck"></i> Book a Pickup
+              </Link>
+              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
+                style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)`, transition:'all 0.25s ease' }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}55`;e.currentTarget.style.background=`${TD.lime}0D`;}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';e.currentTarget.style.background='transparent';}}>
-                <i className="fas fa-exclamation-triangle" style={{ color:TD.gold }}></i> Report Illegal Dump
-              </button>
+                <i className="fab fa-whatsapp" style={{ color:'#25D366' }}></i> WhatsApp {BUSINESS.phoneDisplay}
+              </a>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
-              {[{v:'12,470+',l:'Dumps Reported'},{v:'3,850+',l:'Tonnes Removed'},{v:'156',l:'Communities'}].map(s => (
+              {[{v:'FREE',l:'Pickup with QR Bags'},{v:'90–240L',l:'Bag Sizes'},{v:'MoMo',l:'Or Cash on Pickup'}].map(s => (
                 <div key={s.l}>
                   <div style={{ ...FF.data, fontSize:22, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
                   <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
@@ -447,7 +450,7 @@ const HeroSection = ({ isAuthenticated }) => {
               <div style={{ width:1, height:36, background:'rgba(255,255,255,0.08)' }} />
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                 <span style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>Live · Accra, Ghana</span>
+                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>Live collector tracking</span>
               </div>
             </div>
           </div>
@@ -456,42 +459,35 @@ const HeroSection = ({ isAuthenticated }) => {
           <div className="td-hero-cards" style={{ position:'relative', height:480, zIndex:3 }}>
             <div style={{ position:'absolute', top:20, right:0, width:258, background:`rgba(27,110,53,0.18)`, border:`1px solid rgba(168,230,61,0.2)`, backdropFilter:'blur(20px)', borderRadius:20, padding:'20px 22px', animation:'td-float 6s ease-in-out infinite', boxShadow:`0 24px 60px rgba(0,0,0,0.5)` }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-                <span style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-                <span style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase' }}>Active Hotspots</span>
+                <i className="fas fa-qrcode" style={{ color:TD.lime, fontSize:13 }}></i>
+                <span style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase' }}>QR Bag Pickup</span>
               </div>
-              <div style={{ ...FF.data, fontSize:52, color:'#fff', lineHeight:1 }}>1,247</div>
-              <div style={{ ...FF.body, fontSize:12, color:TD.sage, marginTop:4 }}>+12% this month</div>
-              <div style={{ display:'flex', gap:3, marginTop:14, alignItems:'flex-end', height:32 }}>
-                {[40,65,50,80,70,90,75].map((h,i) => <div key={i} style={{ flex:1, height:`${h}%`, background:`${TD.lime}70`, borderRadius:2 }} />)}
+              <div style={{ ...FF.data, fontSize:52, color:'#fff', lineHeight:1 }}>FREE</div>
+              <div style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.55)', marginTop:4 }}>Collection included with every bag</div>
+              <div style={{ display:'flex', gap:6, marginTop:14 }}>
+                {['Organic','General','Recyclable'].map(t => <span key={t} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1px', color:TD.lime, background:`${TD.lime}18`, borderRadius:4, padding:'3px 6px', textTransform:'uppercase' }}>{t}</span>)}
               </div>
             </div>
             <div style={{ position:'absolute', top:185, left:0, width:218, background:'rgba(10,15,10,0.82)', border:'1px solid rgba(255,255,255,0.08)', backdropFilter:'blur(20px)', borderRadius:18, padding:'18px 20px', animation:'td-float 8s ease-in-out 1.5s infinite', boxShadow:'0 20px 50px rgba(0,0,0,0.5)' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
                 <div style={{ width:32, height:32, borderRadius:8, background:`${TD.lime}20`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <i className="fas fa-check-circle" style={{ color:TD.lime, fontSize:14 }}></i>
+                  <i className="fas fa-trash-alt" style={{ color:TD.lime, fontSize:14 }}></i>
                 </div>
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>Cleanups Done</span>
+                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>Digital Bin</span>
               </div>
-              <div style={{ ...FF.data, fontSize:40, color:'#fff' }}>892</div>
-              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>↑ +8% this month</div>
-              <div style={{ marginTop:10, background:'rgba(255,255,255,0.06)', borderRadius:99, height:4, overflow:'hidden' }}>
-                <div style={{ width:'71%', height:'100%', background:`linear-gradient(90deg,${TD.forest},${TD.lime})`, borderRadius:99 }} />
-              </div>
-              <div style={{ ...FF.label, fontSize:10, color:TD.sage, marginTop:4, fontWeight:600 }}>71% cleanup rate</div>
+              <div style={{ ...FF.data, fontSize:36, color:'#fff' }}>ON DEMAND</div>
+              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant GPS price quote</div>
             </div>
             <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.gold}18,${TD.gold}08)`, border:`1px solid ${TD.gold}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
-              <div style={{ ...FF.label, fontSize:10, color:TD.gold, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Avg Response</div>
-              <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
-                <span style={{ ...FF.data, fontSize:44, color:'#fff' }}>4.2</span>
-                <span style={{ ...FF.label, fontSize:14, color:TD.gold, fontWeight:700 }}>hrs</span>
-              </div>
-              <div style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:2 }}>Community to cleanup</div>
+              <div style={{ ...FF.label, fontSize:10, color:TD.gold, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
+              <div style={{ ...FF.data, fontSize:40, color:'#fff' }}>LIVE</div>
+              <div style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.45)', marginTop:2 }}>From request to doorstep</div>
             </div>
             <div style={{ position:'absolute', top:12, left:'36%', width:92, height:92, borderRadius:'50%', border:`1.5px solid ${TD.lime}28`, display:'flex', alignItems:'center', justifyContent:'center', animation:'td-spin-slow 18s linear infinite' }}>
               <svg viewBox="0 0 100 100" style={{ position:'absolute', width:'100%', height:'100%' }}>
                 <path id="tc" d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="none" />
                 <text style={{ fontSize:8.5, fill:`${TD.lime}60`, fontFamily:'Syne,sans-serif', fontWeight:700, letterSpacing:'3px' }}>
-                  <textPath href="#tc">Ghana's #1 Waste Platform · </textPath>
+                  <textPath href="#tc">Waste you can track · </textPath>
                 </text>
               </svg>
               <div style={{ width:36, height:36, borderRadius:'50%', background:`${TD.lime}15`, border:`1.5px solid ${TD.lime}35`, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -611,7 +607,8 @@ const ServicesSection = () => {
           Two ways to <em style={{ color:TD.forest }}>drop</em> your waste.<br />Zero excuses.
         </h2>
         <p style={{ ...FF.body, fontSize:15, fontWeight:300, color:lp.sageText, maxWidth:540, marginBottom:48, lineHeight:1.75 }}>
-          TrashDrop offers two flexible services built for how you actually live — whether you prefer a planned system or on-demand pickup.
+          TrashDrop offers two ways to book waste collection, built for how you actually live: QR Bags for regular rubbish collection
+          with free pickup, or the Digital Bin for an on-demand trash pickup whenever you need one.
         </p>
         <div className="td-services-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
           {/* QR Bag */}
@@ -1100,11 +1097,19 @@ const MapPreviewSection = ({ isAuthenticated }) => {
     <section id="map" style={{ background:lp.mapSectionBg, padding:'96px 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:52 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Public Preview</span>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
           <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:'0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
-            Illegal Dumping <em style={{ color:TD.lime }}>Live Map</em>
+            Track. Report. <em style={{ color:TD.lime }}>Eliminate</em> Illegal Dumping.
           </h2>
-          <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.bodyText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>Explore reported illegal dumping hotspots across Greater Accra in real time.</p>
+          <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.bodyText, maxWidth:620, margin:'0 auto 24px', lineHeight:1.75 }}>
+            Beyond waste collection, TrashDrop helps communities, cities and environmental agencies across Ghana detect, report and clean up
+            illegal dumping. Explore reported dumping sites across Ghana in real time.
+          </p>
+          <button
+            onClick={() => navigate(isAuthenticated ? '/illegal-dumping/reports' : '/signup')}
+            style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:lp.sectionHeading, ...FF.label, fontSize:14, fontWeight:700, padding:'12px 24px', borderRadius:10, cursor:'pointer', border:`1.5px solid ${TD.lime}55` }}>
+            <i className="fas fa-exclamation-triangle" style={{ color:TD.gold }}></i> Report Illegal Dump
+          </button>
         </div>
         
         {/* Two Column Layout: Mobile on Left, Map on Right */}
@@ -1480,9 +1485,54 @@ const PartnershipsSection = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   SERVICE AREAS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const SERVICE_AREA_BLURBS = {
+  accra:    'East Legon, Madina, Dome, Spintex, Achimota, Adenta, Tema and more',
+  kumasi:   'Adum, Asokwa, Bantama, Suame, Ahodwo, Nhyiaeso and more',
+  takoradi: 'Takoradi Central, Anaji, Effia, Kwesimintsim, Sekondi and more',
+  tamale:   'Tamale Central, Lamashegu, Kalpohin, Vittin, Sagnarigu and more',
+};
+
+const ServiceAreasSection = () => {
+  const { lp } = useLpTheme();
+  return (
+    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'88px 24px' }}>
+      <div style={{ maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ textAlign:'center', marginBottom:44 }}>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forest, textTransform:'uppercase' }}>Service Areas</span>
+          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,48px)', color:lp.ink2Heading, margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
+            Waste collection near you
+          </h2>
+          <p style={{ ...FF.body, fontSize:16, color:lp.sageText, maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
+            TrashDrop collectors handle trash pickup and rubbish collection in four cities. Choose yours to see the neighbourhoods we cover.
+          </p>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))', gap:16 }}>
+          {CITY_PAGES.map(city => (
+            <Link key={city.slug} to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, padding:'24px 22px', textDecoration:'none' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                <i className="fas fa-map-marker-alt" style={{ color:TD.forest, fontSize:13 }}></i>
+                <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:0 }}>Waste collection in {city.name}</h3>
+              </div>
+              <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:'0 0 14px', lineHeight:1.6 }}>{SERVICE_AREA_BLURBS[city.slug]}</p>
+              <span style={{ ...FF.label, fontSize:12, fontWeight:700, color:TD.forest }}>See {city.name} coverage →</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    FAQ
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HOME_FAQS = [
+  {
+    q: 'How do I book trash pickup or rubbish collection in Ghana?',
+    a: 'Sign up at trashdrops.com or message TrashDrop on WhatsApp at +233 20 933 8885. Choose the QR Bag System for regular rubbish collection, where pickup is free once your bag is registered, or the Digital Bin service for an on-demand trash pickup with an instant GPS price quote. A verified collector accepts the request and you can track them live until your waste collection is complete.',
+  },
   {
     q: 'How does TrashDrop work?',
     a: 'TrashDrop is a Progressive Web App at trashdrops.com that connects households and businesses with verified waste collectors in six steps. Sign up, set your location, choose the QR Bag System (buy official bags, scan to activate, request a free pickup) or the Digital Bin service (enter waste details, get an instant GPS quote, pay via MoMo or cash at collection). A collector accepts within 2 hours, tracks to your location via live GPS, scans the QR code to confirm collection, and delivers to an authorised disposal site. You receive confirmation and reward points.',
@@ -1504,8 +1554,8 @@ const HOME_FAQS = [
     a: 'Open the TrashDrop app, tap "Report Illegal Dumping," photograph the site (minimum one clear photo), allow GPS to capture the location, and submit. You immediately earn reward points. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews. You can track cleanup status directly in the app.',
   },
   {
-    q: 'Which cities does TrashDrop serve?',
-    a: 'TrashDrop currently operates in Accra (including East Legon, Dome, Madina, Spintex, Achimota and surrounding areas), Kumasi, Takoradi, and Tamale. Coverage is expanding continuously across Ghana.',
+    q: 'Which cities does TrashDrop waste collection serve?',
+    a: 'TrashDrop offers waste collection and trash pickup in Accra (including East Legon, Dome, Madina, Spintex, Achimota and surrounding areas), Kumasi, Takoradi and Tamale. Coverage is expanding continuously across Ghana.',
   },
   {
     q: 'What payment methods does TrashDrop accept?',
@@ -1610,7 +1660,7 @@ const HomeFooter = () => {
             <span style={{ ...FF.label, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </div>
           <p style={{ ...FF.body, fontSize:14, fontWeight:300, color:'rgba(255,255,255,0.38)', lineHeight:1.75, maxWidth:280, marginBottom:24 }}>
-            Empowering communities to fight illegal dumping with real-time data intelligence and collective action across Ghana.
+            Trash and waste collection in Accra, Kumasi, Takoradi and Tamale, plus illegal dumping reporting across Ghana. Call or WhatsApp {BUSINESS.phoneDisplay}.
           </p>
           <div style={{ display:'flex', gap:10 }}>
             {[['fab fa-twitter','#'],['fab fa-facebook-f','#'],['fab fa-linkedin-in','#'],['fab fa-instagram','#']].map(([ic,href]) => (
@@ -1621,9 +1671,9 @@ const HomeFooter = () => {
           </div>
         </div>
         {[
-          { title:'Platform', links:[['Live Map','#map'],['How It Works','#how'],['Pricing','#pricing'],['Report Dumping','/login'],['Join Community','/signup']] },
-          { title:'Resources', links:[['Documentation','#'],['API Reference','#'],['Case Studies','#'],['Blog','#'],['Privacy Policy','#']] },
-          { title:'Company',  links:[['About Us','#'],['Partnerships','#partners'],['Terms of Service','#'],['Contact Us','mailto:hello@trashdrops.com'],['Careers','#']] },
+          { title:'Waste Collection', links:CITY_PAGES.map(c => [c.name, c.path]) },
+          { title:'Platform', links:[['How It Works','/how-it-works'],['FAQ','/faq'],['For Households','/users'],['Earn as a Collector','/collectors'],['Report Dumping','/illegal-dumping']] },
+          { title:'Company',  links:[['About Us','/about'],['Blog','/blog'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
@@ -1852,8 +1902,15 @@ const HomePageNew = () => {
   );
 };
 
+export const HOME_SEO = {
+  title: 'TrashDrop — Waste & Trash Collection in Ghana | Book a Pickup',
+  description: 'Book fast, tracked trash and waste collection in Accra, Kumasi, Takoradi and Tamale. QR Bags, on-demand Digital Bin pickups, and illegal dump reporting.',
+  path: '/',
+};
+
 const LpPageInner = ({ auth }) => {
   const { lp } = useLpTheme();
+  useSeo({ ...HOME_SEO, jsonLd: [organizationJsonLd(), localBusinessJsonLd()] });
   return (
     <div style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
@@ -1867,6 +1924,7 @@ const LpPageInner = ({ auth }) => {
       <PricingGuideSection />
       <PathwaysSection />
       <PartnershipsSection />
+      <ServiceAreasSection />
       <FAQSection />
       <AppDownloadBanner />
       <HomeFooter />

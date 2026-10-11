@@ -1,65 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Public, pre-rendered pages only. Keep in sync with ROUTES in scripts/prerender.js. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- Core public pages -->
   <url>
     <loc>https://trashdrops.com/</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- FAQ rich result pages — priority for Google indexing -->
   <url>
-    <loc>https://trashdrops.com/faq</loc>
-    <lastmod>2026-10-10</lastmod>
+    <loc>https://trashdrops.com/waste-collection-accra</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/waste-collection-kumasi</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/waste-collection-takoradi</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/waste-collection-tamale</loc>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/how-it-works</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
-
-  <!-- Public marketing / AI Answer pages -->
+  <url>
+    <loc>https://trashdrops.com/faq</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.90</priority>
+  </url>
   <url>
     <loc>https://trashdrops.com/users</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/collectors</loc>
-    <lastmod>2026-10-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://trashdrops.com/accra</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/illegal-dumping</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/about</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.70</priority>
   </url>
   <url>
     <loc>https://trashdrops.com/blog</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.70</priority>
   </url>
-
-
 </urlset>

@@ -22,18 +22,22 @@ const path = require('path');
 const SITE = 'https://trashdrops.com';
 const BUILD_DIR = path.resolve(__dirname, '..', 'build');
 const SHELL_NAME = 'app-shell.html';
+const BLOG_SHELL_NAME = 'blog-shell.html';
 
-// Keep in sync with public/sitemap.xml
+// Keep in sync with public/sitemap.xml and the shell rewrites in netlify.toml
 const ROUTES = [
   '/',
   '/faq',
   '/how-it-works',
   '/users',
   '/collectors',
-  '/accra',
   '/illegal-dumping',
   '/about',
   '/blog',
+  '/waste-collection-accra',
+  '/waste-collection-kumasi',
+  '/waste-collection-takoradi',
+  '/waste-collection-tamale',
 ];
 
 const MIME = {
@@ -87,6 +91,17 @@ async function renderRoute(browser, origin, route, shellJsonLdCount) {
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 15000 }).catch(() => {});
 
   const html = await page.evaluate(shellCount => {
+    // Social tags follow the page's own title/description, so link previews
+    // and non-JS crawlers never see the homepage's tags on another page
+    const setContent = (sel, value) => { const el = document.querySelector(sel); if (el && value) el.setAttribute('content', value); };
+    const desc = (document.querySelector('meta[name="description"]') || {}).content;
+    const canon = (document.querySelector('link[rel="canonical"]') || {}).href;
+    setContent('meta[property="og:title"]', document.title);
+    setContent('meta[name="twitter:title"]', document.title);
+    setContent('meta[property="og:description"]', desc);
+    setContent('meta[name="twitter:description"]', desc);
+    setContent('meta[property="og:url"]', canon);
+    setContent('meta[name="twitter:url"]', canon);
     // Tag JSON-LD the page injected at runtime (appended after the shell's own)
     // so src/index.js can drop it before the page re-adds it — avoids duplicates.
     document.querySelectorAll('script[type="application/ld+json"]').forEach((el, i) => {
@@ -100,6 +115,7 @@ async function renderRoute(browser, origin, route, shellJsonLdCount) {
   const meta = await page.evaluate(() => ({
     title: document.title,
     h1: (document.querySelector('#root h1') || {}).textContent || '',
+    h1Count: document.querySelectorAll('h1').length,
     canonical: (document.querySelector('link[rel="canonical"]') || {}).href || '',
     description: (document.querySelector('meta[name="description"]') || {}).content || '',
   }));
@@ -116,7 +132,12 @@ async function main() {
 
   const indexPath = path.join(BUILD_DIR, 'index.html');
   const shellHtml = fs.readFileSync(indexPath, 'utf8');
-  fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml);
+  // App routes (login, dashboard...) get a shell that is noindex before any JS
+  // runs; blog posts get an indexable copy. See the rewrites in netlify.toml.
+  const robotsMeta = /<meta name="robots" content="index, follow"\s*\/?>/;
+  if (!robotsMeta.test(shellHtml)) throw new Error('robots meta not found in build/index.html');
+  fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml.replace(robotsMeta, '<meta name="robots" content="noindex"/>'));
+  fs.writeFileSync(path.join(BUILD_DIR, BLOG_SHELL_NAME), shellHtml);
 
   // Required lazily so `npm run build` still works without them when skipped.
   // @sparticuz/chromium ships the browser inside the npm package, so the build
@@ -136,6 +157,7 @@ async function main() {
   const shellJsonLdCount = (shellHtml.match(/application\/ld\+json/g) || []).length;
   const problems = [];
   const titles = new Map();
+  const descriptions = new Map();
   try {
     for (const route of ROUTES) {
       const { html, meta, errors } = await renderRoute(browser, origin, route, shellJsonLdCount);
@@ -143,8 +165,12 @@ async function main() {
 
       if (!meta.h1.trim()) problems.push(`${route}: no <h1> rendered`);
       if (meta.canonical !== expectedCanonical) problems.push(`${route}: canonical is "${meta.canonical}", expected "${expectedCanonical}"`);
+      if (meta.h1Count !== 1) problems.push(`${route}: ${meta.h1Count} <h1> elements, expected 1`);
       if (titles.has(meta.title)) problems.push(`${route}: <title> duplicates ${titles.get(meta.title)}`);
       titles.set(meta.title, route);
+      if (!meta.description) problems.push(`${route}: no meta description`);
+      if (descriptions.has(meta.description)) problems.push(`${route}: meta description duplicates ${descriptions.get(meta.description)}`);
+      descriptions.set(meta.description, route);
       errors.forEach(e => console.warn(`[prerender] ${route} page error: ${e}`));
 
       const outFile = route === '/' ? indexPath : path.join(BUILD_DIR, route, 'index.html');

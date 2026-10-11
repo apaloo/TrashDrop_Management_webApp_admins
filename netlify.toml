@@ -91,13 +91,65 @@
   [headers.values]
     X-Robots-Tag = "noindex"
 
-# Handle Single Page Application routing
-# force=false (default) means static files always win over this rule, so the
-# pre-rendered public pages (build/<route>/index.html, see scripts/prerender.js)
-# are served directly. Everything else gets the untouched app shell — not
-# index.html, which now holds the pre-rendered homepage.
+# The old Accra page moved to the city landing page
 [[redirects]]
-  from = "/*"
+  from = "/accra"
+  to = "/waste-collection-accra"
+  status = 301
+  force = true
+
+# App routes get the untouched app shell (the React router takes over).
+# Public pages are pre-rendered static files (build/<route>/index.html, see
+# scripts/prerender.js) and are served directly because static files win
+# over non-forced rules. Keep in sync with the routes in src/App.js.
+[[redirects]]
+  from = "/login"
   to = "/app-shell.html"
   status = 200
-  force = false
+[[redirects]]
+  from = "/signup"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/forgot-password"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/reset-password"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/onboarding"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/dashboard"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/settings"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/request-pickup/*"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/bin-management/*"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/illegal-dumping/*"
+  to = "/app-shell.html"
+  status = 200
+# Blog posts are public, so they get the indexable copy of the shell
+[[redirects]]
+  from = "/blog/*"
+  to = "/blog-shell.html"
+  status = 200
+
+# Anything else is a real 404 (not a 200 with the homepage)
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
