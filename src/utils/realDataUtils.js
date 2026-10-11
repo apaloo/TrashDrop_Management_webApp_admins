@@ -364,6 +364,47 @@ export const fetchCollectors = async (status = null) => {
  * @param {Object} options - Query options (page, limit, status)
  * @returns {Promise<Object>} Paginated illegal dumping reports
  */
+// Runs an .in() lookup in batches so long id lists don't exceed URL limits.
+const selectInBatches = async (table, columns, column, ids, size = 100) => {
+  const rows = [];
+  for (let i = 0; i < ids.length; i += size) {
+    const { data, error } = await supabase.from(table).select(columns).in(column, ids.slice(i, i + size));
+    if (error) throw error;
+    rows.push(...(data || []));
+  }
+  return rows;
+};
+
+const parseCoordinate = (value) => {
+  const n = typeof value === 'number' ? value : parseFloat(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+// Reporter names for a set of reported_by ids. Best effort: returns {} if the lookup fails.
+const fetchReportersById = async (ids) => {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return {};
+  try {
+    const data = await selectInBatches('profiles', 'id, first_name, last_name, email', 'id', unique);
+    return Object.fromEntries(data.map(p => [p.id, p]));
+  } catch (err) {
+    console.warn('Could not load reporter profiles for dumping reports:', err.message);
+    return {};
+  }
+};
+
+// The household app stores the reporter's description in dumping_reports_mobile. Best effort.
+const fetchDumpingDetailsById = async (ids) => {
+  if (!ids.length) return {};
+  try {
+    const data = await selectInBatches('dumping_reports_mobile', 'dumping_id, accessibility_notes, estimated_volume, hazardous_materials', 'dumping_id', ids);
+    return Object.fromEntries(data.map(d => [d.dumping_id, d]));
+  } catch (err) {
+    console.warn('Could not load dumping report details:', err.message);
+    return {};
+  }
+};
+
 export const fetchIllegalDumpingReports = async (options = {}) => {
   // Ensure options is an object to prevent null/undefined errors
   const safeOptions = options || {};
@@ -394,46 +435,56 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
 
     if (error) throw error;
 
-    // Transform the data
-    const transformedData = (data || []).map(report => {
-      // Extract coordinates - they're stored as strings in the table
-      let lat = report.latitude ? parseFloat(report.latitude) : null;
-      let lng = report.longitude ? parseFloat(report.longitude) : null;
-      
-      // Default to Accra if no valid coordinates
-      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-        lat = 5.5800;
-        lng = -0.2300;
-      }
-      
-      // Get location string (it's a text field with address and coordinates)
-      const locationStr = report.location || 'Location not specified';
-      
+    const rows = data || [];
+    const [reportersById, detailsById] = await Promise.all([
+      fetchReportersById(rows.map(r => r.reported_by)),
+      fetchDumpingDetailsById(rows.map(r => r.id)),
+    ]);
+
+    // Transform the data. Values are passed through as stored (the household app
+    // writes lowercase severity/waste_type); callers compare them case-insensitively.
+    const transformedData = rows.map(report => {
+      const lat = parseCoordinate(report.latitude ?? report.coordinates?.coordinates?.[1]);
+      const lng = parseCoordinate(report.longitude ?? report.coordinates?.coordinates?.[0]);
+      const severity = String(report.severity ?? report.severity_level ?? 'medium').trim().toLowerCase();
+      const wasteType = String(report.waste_type ?? report.type ?? 'mixed').trim().toLowerCase();
+      const status = String(report.status || 'pending').trim().toLowerCase();
+      const details = detailsById[report.id];
+      const reporter = reportersById[report.reported_by];
+      const userDescription = report.description || details?.accessibility_notes || report.notes || null;
+      const isCleaned = status === 'completed' || status === 'disposed';
+
       return {
         id: report.id,
         location: {
-          address: locationStr,
-          lat: lat,
-          lng: lng
+          address: report.location || 'Location not specified',
+          // No fallback point: a report without coordinates must not be plotted in Accra
+          lat,
+          lng
         },
-        reporter: {
-          name: 'Anonymous',
-          phone: 'N/A',
-          anonymous: true
-        },
-        status: report.status || 'pending',
-        severity: report.severity || 'medium',
-        waste_type: report.waste_type || 'household',
+        reporter: reporter
+          ? { id: reporter.id, name: [reporter.first_name, reporter.last_name].filter(Boolean).join(' ') || null, email: reporter.email || null, anonymous: false }
+          : { id: report.reported_by || null, name: null, email: null, anonymous: !report.reported_by },
+        status,
+        severity,
+        waste_type: wasteType,
         size: report.size || 'medium',
-        estimated_volume: 0,
-        description: `${report.waste_type || 'Waste'} dumping - ${report.severity || 'medium'} severity`,
+        estimated_volume: details?.estimated_volume ?? null,
+        hazardous_materials: details?.hazardous_materials ?? null,
+        description: userDescription || `${wasteType} dumping - ${severity} severity`,
+        description_is_generated: !userDescription,
         images: Array.isArray(report.photos) ? report.photos : [],
         reported_at: report.created_at,
-        resolved_at: report.status === 'cleaned_up' ? report.updated_at : null,
+        updated_at: report.updated_at,
+        // There is no completion timestamp column in use; the collector app sets
+        // updated_at when it marks a report completed.
+        resolved_at: isCleaned
+          ? (report.cleanup_completed_date || report.completed_at || report.resolved_at || report.updated_at || null)
+          : null,
         assigned_to: report.assigned_to || null,
         assignee: report.assignee || null,
         team_name: report.assignee ? `${report.assignee.first_name} ${report.assignee.last_name}` : null,
-        resolution_notes: report.status === 'cleaned_up' ? 'Site has been cleaned up.' : null
+        resolution_notes: isCleaned ? 'Site has been cleaned up.' : null
       };
     });
 

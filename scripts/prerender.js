@@ -73,6 +73,8 @@ async function renderRoute(browser, origin, route, shellJsonLdCount) {
 
   // Only load our own bundle; skip Supabase, fonts, analytics etc. so the
   // build is deterministic and has no side effects. Public pages are static.
+  // Lets components skip live-data fetches that can't succeed during the snapshot
+  await page.evaluateOnNewDocument(() => { window.__PRERENDER__ = true; });
   await page.setRequestInterception(true);
   page.on('request', req => {
     if (req.url().startsWith(origin) || req.url().startsWith('data:')) req.continue();
