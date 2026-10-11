@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import PublicDumpingMap from '../components/landing/PublicDumpingMap';
+import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
+import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
 import { useAuth } from '../context/AuthContext';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
 
@@ -1089,6 +1090,10 @@ const MapPreviewSection = ({ isAuthenticated }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
+  // One load for the map and the stats row, so they always agree
+  const dumpingData = usePublicDumpingReports();
+  const stats = computePublicStats(dumpingData.reports);
+  const statsReady = dumpingData.status === 'ready';
   // Logged-out visitors sign in first; logged-in users open the analytics map
   const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
@@ -1144,7 +1149,7 @@ const MapPreviewSection = ({ isAuthenticated }) => {
 
           {/* Right: Map (real reports, read-only) */}
           <div style={{ flex:2, minWidth:300 }}>
-            <PublicDumpingMap lp={lp} isDark={lpMode === 'dark'}>
+            <PublicDumpingMap lp={lp} isDark={lpMode === 'dark'} data={dumpingData}>
               <div style={{ position:'absolute', top:14, right:14, zIndex:1100 }}>
                 <button onClick={openFullMap} style={{ display:'flex', alignItems:'center', gap:8, background:TD.forest, color:'#fff', border:'none', cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700, padding:'10px 18px', borderRadius:10, boxShadow:`0 4px 20px ${TD.forest}60` }}>
                   <i className="fas fa-expand-arrows-alt"></i> Full Analytics Map
@@ -1157,16 +1162,16 @@ const MapPreviewSection = ({ isAuthenticated }) => {
         </div>
 
         <div className="td-map-stats" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginTop:24 }}>
-          {[{label:'Total Reports',value:'326',icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)'},
-            {label:'Hotspot Zones',value:'10',icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)'},
-            {label:'Cleanup Rate',value:'71%',icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`},
-            {label:'Avg Response',value:'4.2h',icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`}].map(s => (
-            <div key={s.label} style={{ background:lp.mapStatBg, border:`1px solid ${lp.mapStatBorder}`, borderRadius:14, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
+          {[{label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
+            {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
+            {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
+            {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'}].map(s => (
+            <div key={s.label} data-testid="map-stat" title={s.title} style={{ background:lp.mapStatBg, border:`1px solid ${lp.mapStatBorder}`, borderRadius:14, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
               <div style={{ width:44, height:44, borderRadius:12, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <i className={`fas ${s.icon}`} style={{ color:s.color, fontSize:16 }}></i>
               </div>
               <div>
-                <p style={{ ...FF.data, fontSize:28, color:lp.mapStatText, margin:0, lineHeight:1 }}>{s.value}</p>
+                <p style={{ ...FF.data, fontSize:28, color:lp.mapStatText, margin:0, lineHeight:1 }}>{statsReady ? s.value : '—'}</p>
                 <p style={{ ...FF.label, fontSize:10, color:lp.mapStatLabel, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', margin:'3px 0 0' }}>{s.label}</p>
               </div>
             </div>

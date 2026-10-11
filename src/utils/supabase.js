@@ -190,7 +190,9 @@ export const withPerformanceMonitoring = (fn, operationName) => {
 // Additional exports for real data mode
 export const STRICT_MODE_ENABLED = FORCE_REAL_DATA_ONLY;
 
-// Database validation on module import with graceful fallback
+// Database validation on module import with graceful fallback.
+// Signed-in users only: anonymous visitors (public pages) must not probe internal tables.
+const validateInitialConnection = () => {
 if (!REQUIRE_DATABASE) {
   // In non-strict mode, just log the connection attempt but don't fail
   checkConnection()
@@ -208,5 +210,9 @@ if (!REQUIRE_DATABASE) {
     .then(() => console.log('✅ Initial database connection validated'))
     .catch(error => console.error('❌ Initial database validation failed:', error));
 }
+};
+supabase.auth.getSession()
+  .then(({ data }) => { if (data?.session) validateInitialConnection(); })
+  .catch(() => {});
 
 export default supabase;

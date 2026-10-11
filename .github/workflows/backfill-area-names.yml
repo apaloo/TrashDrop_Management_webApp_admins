@@ -1,0 +1,34 @@
+name: Backfill dumping report area names
+
+# Fills illegal_dumping_mobile.area_name ("Town, Region") for new reports the
+# household app couldn't name at submission. Needs repository secrets
+# SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
+on:
+  schedule:
+    - cron: '17 * * * *'   # hourly
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Max reports to process'
+        default: '500'
+
+concurrency:
+  group: backfill-area-names
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Fill missing area names
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/backfill-area-names.mjs --apply --limit "${{ github.event.inputs.limit || '500' }}"
