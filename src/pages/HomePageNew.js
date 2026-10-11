@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import PublicDumpingMap from '../components/landing/PublicDumpingMap';
 import { useAuth } from '../context/AuthContext';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
 
@@ -86,7 +84,6 @@ const LP = {
     featureIconBg: 'rgba(168,230,61,0.12)',
     featureIcon:   TD.lime,
     featureText:   'rgba(255,255,255,0.72)',
-    mapTileUrl:    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     mapLegendBg:   'rgba(10,15,10,0.9)',
     mapLegendBorder:'rgba(255,255,255,0.1)',
     mapLegendLabel:'rgba(255,255,255,0.45)',
@@ -164,7 +161,6 @@ const LP = {
     featureIconBg: 'rgba(22,101,52,0.1)',
     featureIcon:   TD.forest,
     featureText:   '#2d4a38',
-    mapTileUrl:    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     mapLegendBg:   'rgba(255,255,255,0.95)',
     mapLegendBorder:'rgba(22,101,52,0.15)',
     mapLegendLabel:'#2d4a38',
@@ -254,30 +250,6 @@ const useTypewriter = () => {
     return () => clearTimeout(timer);
   });
   return text;
-};
-
-/* ─── Map data ──────────────────────────────────────────────────────────────── */
-const DUMP_CLUSTERS = [
-  { id:1,  lat:5.6037, lng:-0.1870, reports:47, waste:'Mixed Waste',  risk:'High',     lastReport:'2 hours ago'  },
-  { id:2,  lat:5.6350, lng:-0.1650, reports:23, waste:'Plastic',      risk:'Medium',   lastReport:'5 hours ago'  },
-  { id:3,  lat:5.5700, lng:-0.2100, reports:61, waste:'Hazardous',    risk:'Critical', lastReport:'30 min ago'   },
-  { id:4,  lat:5.5950, lng:-0.2300, reports:15, waste:'Organic',      risk:'Low',      lastReport:'1 day ago'    },
-  { id:5,  lat:5.6500, lng:-0.1300, reports:34, waste:'E-Waste',      risk:'High',     lastReport:'3 hours ago'  },
-  { id:6,  lat:5.5500, lng:-0.1900, reports:28, waste:'Construction', risk:'Medium',   lastReport:'8 hours ago'  },
-  { id:7,  lat:5.6200, lng:-0.2500, reports:52, waste:'Mixed Waste',  risk:'High',     lastReport:'1 hour ago'   },
-  { id:8,  lat:5.5800, lng:-0.1400, reports:9,  waste:'Plastic',      risk:'Low',      lastReport:'2 days ago'   },
-  { id:9,  lat:5.6100, lng:-0.2000, reports:38, waste:'Organic',      risk:'Medium',   lastReport:'4 hours ago'  },
-  { id:10, lat:5.6400, lng:-0.2200, reports:19, waste:'Hazardous',    risk:'High',     lastReport:'6 hours ago'  },
-];
-const RISK_COLORS = { Critical:'#dc2626', High:'#ea580c', Medium:'#eab308', Low:'#22c55e' };
-
-const MapAutoFit = ({ clusters }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (!clusters.length) return;
-    map.fitBounds(L.latLngBounds(clusters.map(c => [c.lat, c.lng])), { padding:[40,40], maxZoom:13 });
-  }, [map, clusters]);
-  return null;
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -1115,13 +1087,10 @@ const SocialFeedOverlay = () => {
    ═══════════════════════════════════════════════════════════════════════════════ */
 const MapPreviewSection = ({ isAuthenticated }) => {
   const navigate = useNavigate();
-  const [showPrompt, setShowPrompt] = useState(false);
   const { ref, visible } = useReveal(0.05);
-  const { lp } = useLpTheme();
-  const handleRestricted = () => {
-    if (!isAuthenticated) { setShowPrompt(true); setTimeout(() => setShowPrompt(false), 4000); }
-    else navigate('/illegal-dumping/map');
-  };
+  const { lp, lpMode } = useLpTheme();
+  // Logged-out visitors sign in first; logged-in users open the analytics map
+  const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
     <section id="map" style={{ background:lp.mapSectionBg, padding:'96px 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
@@ -1173,63 +1142,17 @@ const MapPreviewSection = ({ isAuthenticated }) => {
             
           </div>
 
-          {/* Right: Map */}
-          <div style={{ flex:2, minWidth:400 }}>
-            <div style={{ position:'relative', borderRadius:24, overflow:'hidden', border:`1px solid rgba(168,230,61,0.14)`, boxShadow:`0 32px 80px rgba(0,0,0,0.7)`, height:'100%', minHeight:500 }}>
-              <div style={{ height:'100%', minHeight:500 }}>
-                <MapContainer center={[5.6037,-0.1870]} zoom={12} style={{ height:'100%', width:'100%', minHeight:500 }} scrollWheelZoom={true}>
-                  <TileLayer attribution='&copy; <a href="https://carto.com/">CARTO</a>' url={lp.mapTileUrl} />
-                  <MapAutoFit clusters={DUMP_CLUSTERS} />
-                  {DUMP_CLUSTERS.map(c => (
-                    <CircleMarker key={c.id} center={[c.lat,c.lng]} radius={Math.max(10,Math.sqrt(c.reports)*4)} pathOptions={{ fillColor:RISK_COLORS[c.risk], color:RISK_COLORS[c.risk], weight:2, opacity:0.9, fillOpacity:0.35 }}>
-                      <Popup>
-                        <div style={{ minWidth:180, fontFamily:'DM Sans,sans-serif' }}>
-                          <p style={{ fontWeight:700, margin:'0 0 4px', color:'#111' }}>{c.reports} Reports</p>
-                          <p style={{ margin:'2px 0', fontSize:13, color:'#555' }}><strong>Waste:</strong> {c.waste}</p>
-                          <p style={{ margin:'2px 0', fontSize:13, color:'#555' }}><strong>Risk:</strong> <span style={{ color:RISK_COLORS[c.risk] }}>{c.risk}</span></p>
-                          <p style={{ margin:'6px 0 8px', fontSize:11, color:'#888' }}>Last: {c.lastReport}</p>
-                          <button onClick={handleRestricted} style={{ width:'100%', padding:6, background:TD.forest, color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12, fontWeight:600 }}>{isAuthenticated?'View Full Details':'Login for Details'}</button>
-                        </div>
-                      </Popup>
-                    </CircleMarker>
-                  ))}
-                </MapContainer>
-              </div>
-              <div style={{ position:'absolute', bottom:16, left:16, background:lp.mapLegendBg, backdropFilter:'blur(14px)', border:`1px solid ${lp.mapLegendBorder}`, borderRadius:12, padding:'12px 16px', zIndex:1100 }}>
-                <p style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', color:lp.mapLegendLabel, textTransform:'uppercase', margin:'0 0 8px' }}>Risk Level</p>
-                {Object.entries(RISK_COLORS).map(([label,color]) => (
-                  <div key={label} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                    <span style={{ width:8, height:8, borderRadius:'50%', background:color, display:'inline-block' }} />
-                    <span style={{ ...FF.body, fontSize:12, color:lp.mapLegendText }}>{label}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Right: Map (real reports, read-only) */}
+          <div style={{ flex:2, minWidth:300 }}>
+            <PublicDumpingMap lp={lp} isDark={lpMode === 'dark'}>
               <div style={{ position:'absolute', top:14, right:14, zIndex:1100 }}>
-                <button onClick={handleRestricted} style={{ display:'flex', alignItems:'center', gap:8, background:TD.forest, color:'#fff', border:'none', cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700, padding:'10px 18px', borderRadius:10, boxShadow:`0 4px 20px ${TD.forest}60` }}>
+                <button onClick={openFullMap} style={{ display:'flex', alignItems:'center', gap:8, background:TD.forest, color:'#fff', border:'none', cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700, padding:'10px 18px', borderRadius:10, boxShadow:`0 4px 20px ${TD.forest}60` }}>
                   <i className="fas fa-expand-arrows-alt"></i> Full Analytics Map
                 </button>
               </div>
               {/* Social feed overlay — bottom-right corner of the map */}
               <SocialFeedOverlay />
-
-              {showPrompt && (
-                <div style={{ position:'absolute', top:58, right:14, zIndex:1200, maxWidth:280, background:'#fff', borderRadius:14, padding:16, boxShadow:'0 20px 60px rgba(0,0,0,0.3)', border:'1px solid rgba(0,0,0,0.08)' }}>
-                  <div style={{ display:'flex', gap:10 }}>
-                    <div style={{ width:36, height:36, borderRadius:'50%', background:'#f0fdf4', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <i className="fas fa-lock" style={{ color:TD.forest, fontSize:14 }}></i>
-                    </div>
-                    <div>
-                      <p style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#111', margin:'0 0 4px' }}>Login Required</p>
-                      <p style={{ ...FF.body, fontSize:12, color:'#666', margin:'0 0 10px', lineHeight:1.5 }}>Sign in to access full analytics.</p>
-                      <div style={{ display:'flex', gap:8 }}>
-                        <Link to="/login"  style={{ padding:'6px 14px', background:TD.forest, color:'#fff', borderRadius:6, ...FF.label, fontSize:11, fontWeight:700, textDecoration:'none' }}>Sign In</Link>
-                        <Link to="/signup" style={{ padding:'6px 14px', border:`1px solid ${TD.forest}`, color:TD.forest, borderRadius:6, ...FF.label, fontSize:11, fontWeight:700, textDecoration:'none' }}>Sign Up</Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            </PublicDumpingMap>
           </div>
         </div>
 

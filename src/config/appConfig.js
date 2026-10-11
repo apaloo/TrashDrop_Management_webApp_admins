@@ -46,8 +46,8 @@ const appConfig = {
   // External services
   services: {
     maps: {
-      defaultCenter: [37.7749, -122.4194], // San Francisco
-      defaultZoom: 13,
+      defaultCenter: [5.6037, -0.1870], // Greater Accra
+      defaultZoom: 12,
       tileProviders: {
         openStreetMap: {
           url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
