@@ -20,7 +20,7 @@ const HowItWorksPage         = lazy(() => import('./pages/HowItWorksPage'));
 const CollectorsPage         = lazy(() => import('./pages/CollectorsPage'));
 const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublicPage'));
 const UsersPage              = lazy(() => import('./pages/UsersPage'));
-const AccraPage              = lazy(() => import('./pages/AccraPage'));
+const CityWasteCollectionPage = lazy(() => import('./pages/CityWasteCollectionPage'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -197,7 +197,11 @@ function App() {
               <Route path="/collectors"      element={<CollectorsPage />} />
               <Route path="/illegal-dumping" element={<IllegalDumpingPublicPage />} />
               <Route path="/users"           element={<UsersPage />} />
-              <Route path="/accra"           element={<AccraPage />} />
+              {/* Old Accra page; netlify.toml also 301s it */}
+              <Route path="/accra"           element={<Navigate to="/waste-collection-accra" replace />} />
+              {['accra', 'kumasi', 'takoradi', 'tamale'].map(slug => (
+                <Route key={slug} path={`/waste-collection-${slug}`} element={<CityWasteCollectionPage slug={slug} />} />
+              ))}
               <Route path="/about"           element={<AboutPage />} />
               <Route path="/blog"            element={<BlogPage />} />
               <Route path="/blog/:slug"      element={<BlogPostPage />} />

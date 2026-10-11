@@ -1,9 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
+# Login, signup and dashboard pages are not blocked here on purpose: they send
+# "noindex" (meta tag + X-Robots-Tag header), and Google must be able to crawl
+# a page to see its noindex. They are also left out of the sitemap.
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /dashboard/
-Disallow: /settings/
 Disallow: /clear-storage.html
 Disallow: /clear-auth.js
 Disallow: /clear-cache.js

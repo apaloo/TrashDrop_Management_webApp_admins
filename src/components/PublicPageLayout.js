@@ -109,7 +109,7 @@ export const PublicFooter = () => (
             Ghana's leading mobile waste management platform. Connecting households with verified collectors across Accra, Kumasi, Takoradi and Tamale.
           </p>
           <div style={{ display:'flex', gap:10, marginTop:20 }}>
-            {[['fa-twitter','https://twitter.com'],['fa-linkedin','https://linkedin.com'],['fa-instagram','https://instagram.com'],['fa-facebook','https://facebook.com']].map(([icon, href]) => (
+            {[['fa-twitter','https://twitter.com'],['fa-linkedin','https://linkedin.com'],['fa-instagram','https://instagram.com'],['fa-facebook','https://web.facebook.com/profile.php?id=61590201371573']].map(([icon, href]) => (
               <a key={icon} href={href} target="_blank" rel="noopener noreferrer"
                 style={{ width:34, height:34, borderRadius:8, border:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)', textDecoration:'none', transition:'all 0.2s' }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}60`;e.currentTarget.style.color=TD.lime;}}
@@ -122,7 +122,8 @@ export const PublicFooter = () => (
         {[
           { title:'Platform', links:[['How It Works','/how-it-works'],['For Households','/users'],['QR Bag System','/how-it-works#qr'],['Digital Bin Service','/how-it-works'],['Pricing','/']] },
           { title:'Collectors', links:[['Earn as Carter','/collectors'],['Carter App','/collectors'],['Authority Assignments','/collectors'],['Earnings Calculator','/collectors'],['Sign Up Free','/signup']] },
-          { title:'Resources', links:[['Blog','/blog'],['About Us','/about'],['Report Illegal Dump','/illegal-dumping'],['Waste in Accra','/accra'],['Contact','mailto:hello@trashdrops.com']] },
+          { title:'Waste Collection', links:[['Accra','/waste-collection-accra'],['Kumasi','/waste-collection-kumasi'],['Takoradi','/waste-collection-takoradi'],['Tamale','/waste-collection-tamale']] },
+          { title:'Resources', links:[['FAQ','/faq'],['Blog','/blog'],['About Us','/about'],['Report Illegal Dump','/illegal-dumping'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18 }}>{col.title}</h4>
