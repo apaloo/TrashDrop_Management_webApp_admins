@@ -22,6 +22,7 @@ const path = require('path');
 const SITE = 'https://trashdrops.com';
 const BUILD_DIR = path.resolve(__dirname, '..', 'build');
 const SHELL_NAME = 'app-shell.html';
+const BLOG_SHELL_NAME = 'blog-shell.html';
 
 // Keep in sync with public/sitemap.xml and the shell rewrites in netlify.toml
 const ROUTES = [
@@ -131,7 +132,12 @@ async function main() {
 
   const indexPath = path.join(BUILD_DIR, 'index.html');
   const shellHtml = fs.readFileSync(indexPath, 'utf8');
-  fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml);
+  // App routes (login, dashboard...) get a shell that is noindex before any JS
+  // runs; blog posts get an indexable copy. See the rewrites in netlify.toml.
+  const robotsMeta = /<meta name="robots" content="index, follow"\s*\/?>/;
+  if (!robotsMeta.test(shellHtml)) throw new Error('robots meta not found in build/index.html');
+  fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml.replace(robotsMeta, '<meta name="robots" content="noindex"/>'));
+  fs.writeFileSync(path.join(BUILD_DIR, BLOG_SHELL_NAME), shellHtml);
 
   // Required lazily so `npm run build` still works without them when skipped.
   // @sparticuz/chromium ships the browser inside the npm package, so the build

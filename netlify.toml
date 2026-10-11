@@ -142,9 +142,10 @@
   from = "/illegal-dumping/*"
   to = "/app-shell.html"
   status = 200
+# Blog posts are public, so they get the indexable copy of the shell
 [[redirects]]
   from = "/blog/*"
-  to = "/app-shell.html"
+  to = "/blog-shell.html"
   status = 200
 
 # Anything else is a real 404 (not a 200 with the homepage)
