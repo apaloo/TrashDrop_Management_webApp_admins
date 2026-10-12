@@ -41,6 +41,10 @@ export const normalizeBatch = (row) => {
     processed: Number(row.processed_count ?? 0) || 0,
     unitPrice: row.unit_price ?? null,
     lastActivityAt: row.last_activity_at || null,
+    scannedCount: Number(row.scanned_count ?? 0) || 0,
+    scannedPct: Number(row.scanned_pct ?? 0) || 0,
+    scanCount: Number(row.scan_count ?? 0) || 0,
+    lastScanAt: row.last_scan_at || null,
   };
 };
 
@@ -55,7 +59,22 @@ export const normalizeBag = (row) => ({
   address: row.pickup_address || null,
   collectorName: row.collector_name || null,
   lastActivityAt: row.last_activity_at || null,
+  scanCount: Number(row.scan_count ?? 0) || 0,
+  lastScanAt: row.last_scan_at || null,
+  lastScannedByName: row.last_scanned_by_name || null,
+  lastLocation: row.last_location || null,
 });
+
+/** admin_bag_events rows → { [bagId]: [events, oldest first] } */
+export const groupBagEvents = (rows) => {
+  const out = {};
+  (rows || []).forEach(e => {
+    if (!e.bag_id) return;
+    (out[e.bag_id] = out[e.bag_id] || []).push({ kind: e.kind, at: e.at, actor: e.actor || null, location: e.location || null, label: e.label });
+  });
+  Object.values(out).forEach(list => list.sort((a, b) => new Date(a.at) - new Date(b.at)));
+  return out;
+};
 
 /** Bar segments for a batch: how many bags reached each step (counts are "at least this step") */
 export const batchProgress = (b) => {
@@ -82,9 +101,10 @@ export const batchQrUrl = (batchId) => `${SCAN_BASE_URL}?batch=${encodeURICompon
 
 /* ── filters ↔ URL ──────────────────────────────────────────────────────── */
 
-export const BATCH_SORTS = { created_at: 'Created at', bag_count: 'Quantity' };
+export const BATCH_SORTS = { created_at: 'Created at', bag_count: 'Quantity', scanned_pct: '% scanned' };
 
-export const DEFAULT_BATCH_FILTERS = { q: '', stage: '', from: '', to: '', sort: 'created_at', dir: 'desc', page: 1, size: 10 };
+/** min: only batches with at least this % of bags scanned (Bag History) */
+export const DEFAULT_BATCH_FILTERS = { q: '', stage: '', from: '', to: '', min: 0, sort: 'created_at', dir: 'desc', page: 1, size: 10 };
 
 export const filtersFromParams = (params) => {
   const get = (k) => params.get(k) || '';
@@ -92,6 +112,7 @@ export const filtersFromParams = (params) => {
   if (BATCH_SORTS[get('sort')]) f.sort = get('sort');
   if (get('dir') === 'asc') f.dir = 'asc';
   f.page = Math.max(1, parseInt(get('page'), 10) || 1);
+  f.min = Math.min(100, Math.max(0, parseInt(get('min'), 10) || 0));
   const size = parseInt(get('size'), 10);
   if ([5, 10, 25, 50].includes(size)) f.size = size;
   return f;
@@ -113,6 +134,21 @@ export const dateBounds = ({ from, to }) => ({
   from: from ? `${from}T00:00:00Z` : null,
   to: to ? new Date(new Date(`${to}T00:00:00Z`).getTime() + 24 * 3600e3).toISOString() : null,
 });
+
+/* ── CSV ────────────────────────────────────────────────────────────────── */
+
+export const BATCH_CSV_COLUMNS = ['Batch ID', 'Batch number', 'Created', 'Type', 'Size', 'QR prefix', 'Bags', 'Status',
+  'Bags scanned', '% scanned', 'Bags collected', 'Last scan', 'Created by', 'Household'];
+
+export const batchesToCsv = (batches) => {
+  const cell = (v) => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = batches.map(b => [b.id, b.batchNumber, b.createdAt, b.type, b.size, b.qrPrefix, b.bagCount, b.stage,
+    b.scannedCount, b.scannedPct, b.collected, b.lastScanAt, b.generatedByName, b.householdName]);
+  return [BATCH_CSV_COLUMNS, ...rows].map(r => r.map(cell).join(',')).join('\n');
+};
 
 /* ── cards ──────────────────────────────────────────────────────────────── */
 

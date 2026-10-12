@@ -537,64 +537,21 @@ export const fetchBagBatches = async (options = {}) => {
  * @returns {Promise<Array>} Array of scan history records
  */
 export const fetchBagHistory = async (batchId = null) => {
-  // Step 1: Get bags for the batch
-  let bagsQuery = supabase
-    .from('bags')
-    .select('id, batch_id');
-  
-  if (batchId) {
-    bagsQuery = bagsQuery.eq('batch_id', batchId);
-  }
-  
-  const { data: bags, error: bagsError } = await bagsQuery;
-  
-  if (bagsError) {
-    console.error('Error fetching bags:', bagsError);
-    throw bagsError; // No fallback - throw error directly
-  }
-  
-  if (!bags || bags.length === 0) {
-    return []; // No bags found, return empty array
-  }
-  
-  // Step 2: Get scans for these bags with collector information
-  const bagIds = bags.map(bag => bag.id);
-  
-  const { data: scans, error: scansError } = await supabase
-    .from('scans')
-    .select(`
-      id,
-      bag_id,
-      scanned_at,
-      scanned_by,
-      location,
-      status,
-      notes,
-      collectors:scanned_by (
-        id,
-        first_name,
-        last_name,
-        email
-      )
-    `)
-    .in('bag_id', bagIds)
+  // Read from the admin_bag_scans view (20261020_bag_history.sql), which looks the
+  // scanner's name up itself. Embedding scans → scanned_by failed because no
+  // foreign key backs that column.
+  let query = supabase
+    .from('admin_bag_scans')
+    .select('id, bag_id, batch_id, scanned_at, scanned_by, scanned_by_name, location, status')
     .order('scanned_at', { ascending: false });
-  
-  if (scansError) {
-    console.error('Error fetching scans:', scansError);
-    throw scansError; // No fallback - throw error directly
+  if (batchId) query = query.eq('batch_id', batchId);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching scans:', error);
+    throw error;
   }
-  
-  // Enrich scans with batch information
-  const enrichedScans = (scans || []).map(scan => {
-    const bag = bags.find(b => b.id === scan.bag_id);
-    return {
-      ...scan,
-      bags: bag ? { batch_id: bag.batch_id } : null
-    };
-  });
-  
-  return enrichedScans;
+  return (data || []).map(scan => ({ ...scan, bags: { batch_id: scan.batch_id } }));
 };
 
 /**

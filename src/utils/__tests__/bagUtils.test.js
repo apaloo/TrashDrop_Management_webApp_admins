@@ -1,6 +1,7 @@
 import {
   typeSizeLabel, orDash, normalizeBatch, normalizeBag, batchProgress, bagQrUrl, batchQrUrl,
   filtersFromParams, paramsFromFilters, cleanBatchSearch, dateBounds, weekCollectedPct, formatMinutes, DEFAULT_BATCH_FILTERS,
+  groupBagEvents, batchesToCsv,
 } from '../bagUtils';
 import { normalizeBagStage, bagStageInfo, bagStageRank, BAG_STAGES, BATCH_STAGE_FILTERS } from '../../constants/bagStatus';
 
@@ -86,5 +87,34 @@ describe('cards', () => {
     expect(formatMinutes(105)).toBe('1 h 45 min');
     expect(formatMinutes(120)).toBe('2 h');
     expect(formatMinutes(60 * 72)).toBe('3 days');
+  });
+});
+
+describe('Bag History', () => {
+  it('reads the % scanned slider and the % sort from the URL', () => {
+    const f = filtersFromParams(new URLSearchParams('min=40&sort=scanned_pct'));
+    expect(f).toMatchObject({ min: 40, sort: 'scanned_pct' });
+    expect(filtersFromParams(new URLSearchParams('min=250')).min).toBe(100);
+    expect(paramsFromFilters({ ...DEFAULT_BATCH_FILTERS, min: 40 })).toEqual({ min: '40' });
+  });
+
+  it('groups each bag\'s events oldest first', () => {
+    const g = groupBagEvents([
+      { bag_id: 'a', kind: 'collected', at: '2026-10-12T16:00:00Z', actor: 'Jack' },
+      { bag_id: 'a', kind: 'household_scan', at: '2026-10-06T10:00:00Z', actor: 'Abena' },
+      { bag_id: null, kind: 'scan', at: '2026-10-07T10:00:00Z' },
+      { bag_id: 'b', kind: 'household_scan', at: '2026-10-06T10:00:00Z' },
+    ]);
+    expect(g.a.map(e => e.kind)).toEqual(['household_scan', 'collected']);
+    expect(Object.keys(g)).toEqual(['a', 'b']);
+  });
+
+  it('exports batches as CSV', () => {
+    const b = normalizeBatch({ id: 'b1', batch_number: '555', bag_count: 5, type: 'Organic, wet', size: null, stage: 'distributed',
+      scanned_count: 5, scanned_pct: 100, collected_count: 2, last_scan_at: '2026-10-06T10:00:00Z' });
+    const [head, row] = batchesToCsv([b]).split('\n');
+    expect(head.startsWith('Batch ID,Batch number,Created')).toBe(true);
+    expect(row).toContain('"Organic, wet"');
+    expect(row).toContain(',5,100,2,');
   });
 });

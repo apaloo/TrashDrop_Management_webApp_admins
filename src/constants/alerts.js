@@ -186,6 +186,7 @@ export const LOG_ACTIONS = [
   { key: 'batch.archived', label: 'Batch archived' },
   { key: 'batch.restored', label: 'Batch restored' },
   { key: 'batch.update_failed', label: 'Batch change failed' },
+  { key: 'bags.exported', label: 'Bag History exported' },
   { key: 'notification.failed', label: 'Notification failed' },
   { key: 'auth.login', label: 'Signed in' },
   { key: 'auth.login_failed', label: 'Sign-in failed' },

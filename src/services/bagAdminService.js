@@ -6,9 +6,9 @@
  */
 import { supabase } from '../utils/supabase';
 import { logFailure } from './auditLogService';
-import { normalizeBatch, normalizeBag, cleanBatchSearch, dateBounds } from '../utils/bagUtils';
+import { normalizeBatch, normalizeBag, cleanBatchSearch, dateBounds, groupBagEvents } from '../utils/bagUtils';
 
-const MIGRATION = 'supabase/migrations/20261019_bag_batches_admin.sql';
+const MIGRATION = 'supabase/migrations/20261019_bag_batches_admin.sql and 20261020_bag_history.sql';
 
 const isMissingSchema = (error) => ['42P01', '42883', 'PGRST202', 'PGRST205'].includes(error?.code)
   || /does not exist|could not find/i.test(error?.message || '');
@@ -30,6 +30,7 @@ const applyBatchFilters = (query, f) => {
   const { from, to } = dateBounds(f);
   if (from) query = query.gte('created_at', from);
   if (to) query = query.lt('created_at', to);
+  if (f.min > 0) query = query.gte('scanned_pct', f.min);
   return query;
 };
 
@@ -58,6 +59,35 @@ export const fetchBatchBags = async (batchId, { page = 1, size = 10 } = {}) => {
     .eq('batch_id', batchId).order('bag_no', { ascending: true }).range(start, start + size - 1);
   if (error) throw fail(error, 'Could not load the bags');
   return { rows: (data || []).map(normalizeBag), total: count || 0 };
+};
+
+/** Every batch matching the filters (CSV export), up to 5000 */
+export const fetchAllBatches = async (f) => {
+  const { data, error } = await applyBatchFilters(supabase.from('admin_bag_batches').select('*'), f)
+    .order(f.sort || 'created_at', { ascending: f.dir === 'asc', nullsFirst: false }).order('id').limit(5000);
+  if (error) throw fail(error, 'Could not export batches');
+  return (data || []).map(normalizeBatch);
+};
+
+/**
+ * A batch's history: its bags (with scan counts) and each bag's timeline.
+ * Read from views, so no join through scans.scanned_by is needed.
+ */
+export const fetchBatchHistory = async (batchId) => {
+  const [bags, events] = await Promise.all([
+    supabase.from('admin_bag_items').select('*').eq('batch_id', batchId).order('bag_no', { ascending: true }).limit(1000),
+    supabase.from('admin_bag_events').select('*').eq('batch_id', batchId).order('at', { ascending: true }).limit(5000),
+  ]);
+  if (bags.error) throw fail(bags.error, 'Could not load the bags');
+  if (events.error) throw fail(events.error, 'Could not load the scan history');
+  return { bags: (bags.data || []).map(normalizeBag), events: groupBagEvents(events.data) };
+};
+
+/** Bag History cards: totals, scanned / collected, scans per day for the last `days` days */
+export const fetchHistoryStats = async (days = 30) => {
+  const { data, error } = await supabase.rpc('admin_bag_history_stats', { p_days: days });
+  if (error) throw fail(error, 'Could not load history numbers');
+  return data || {};
 };
 
 /** Numbers for the Live Bag Requests and Performance cards */
