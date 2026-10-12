@@ -899,18 +899,25 @@ export const updateCollector = async (collectorId, updateData) => {
  * @returns {Promise<Array>} History entries
  */
 export const fetchIllegalDumpingHistory = async (reportId) => {
-  return await safeDatabaseService.safeQuery({
-    tableName: 'illegal_dumping_history',
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('illegal_dumping_history')
-        .select('*')
-        .eq('report_id', reportId)
-        .order('created_at', { ascending: false });
-      
-      return { data, error };
-    }
-  });
+  // The status trigger on illegal_dumping_mobile logs every change here
+  // (dumping_id, status, notes, updated_by). Newest first.
+  const { data, error } = await supabase
+    .from('illegal_dumping_history_mobile')
+    .select('*')
+    .eq('dumping_id', reportId);
+  if (error) {
+    console.warn('Could not load report activity:', error.message);
+    return [];
+  }
+  return (data || [])
+    .map(row => ({
+      id: row.id || `${row.dumping_id}-${row.created_at}-${row.status}`,
+      status: row.status,
+      notes: row.notes || null,
+      at: row.created_at || row.updated_at || null,
+      by: row.updated_by || null,
+    }))
+    .sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0));
 };
 
 /**
@@ -1039,6 +1046,24 @@ const generateMockDashboardStats = () => {
  */
 export const fetchIllegalDumpingReports = async (options = {}) => {
   return await fetchIllegalDumpingReportsReal(options);
+};
+
+/**
+ * Fetch every illegal dumping report, page by page, so totals and KPIs are
+ * never capped at one page of rows.
+ * @param {Object} options - { status, pageSize }
+ * @returns {Promise<Array>} All matching reports, newest first
+ */
+export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 500 } = {}) => {
+  const all = [];
+  for (let page = 1; ; page++) {
+    const response = await fetchIllegalDumpingReportsReal({ status, limit: pageSize, page });
+    const rows = Array.isArray(response) ? response : (response?.data || []);
+    all.push(...rows);
+    const total = response?.totalCount ?? 0;
+    if (rows.length < pageSize || all.length >= total) break;
+  }
+  return all;
 };
 
 /**

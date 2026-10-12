@@ -476,15 +476,19 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         images: Array.isArray(report.photos) ? report.photos : [],
         reported_at: report.created_at,
         updated_at: report.updated_at,
-        // There is no completion timestamp column in use; the collector app sets
-        // updated_at when it marks a report completed.
+        // completed_at is stamped by a trigger when the report is completed
+        // (migration 20261012); older rows fall back to updated_at.
         resolved_at: isCleaned
-          ? (report.cleanup_completed_date || report.completed_at || report.resolved_at || report.updated_at || null)
+          ? (report.completed_at || report.cleanup_completed_date || report.resolved_at || report.updated_at || null)
           : null,
+        area_name: report.area_name || null,
+        notes: report.notes || null,
+        cleanup_fee: report.cleanup_fee ?? null,
+        disposed_at: report.disposed_at || null,
+        disposal_site_name: report.disposal_site_name || null,
         assigned_to: report.assigned_to || null,
         assignee: report.assignee || null,
-        team_name: report.assignee ? `${report.assignee.first_name} ${report.assignee.last_name}` : null,
-        resolution_notes: isCleaned ? 'Site has been cleaned up.' : null
+        team_name: report.assignee ? [report.assignee.first_name, report.assignee.last_name].filter(Boolean).join(' ') || null : null,
       };
     });
 
