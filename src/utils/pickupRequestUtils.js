@@ -244,13 +244,21 @@ export const feeBreakdown = (row, { batchPrice = null } = {}) => {
 
 /* ── filters, sorting, CSV (fallback mode and export) ─────────────────── */
 
-export const DEFAULT_FILTERS = { q: '', status: '', priority: '', collector: '', sort: 'created_at', dir: 'desc', page: 1 };
+export const DEFAULT_FILTERS = { q: '', status: '', priority: '', collector: '', from: '', to: '', source: '', unassigned: '', sort: 'created_at', dir: 'desc', page: 1 };
+
+/** from / to (yyyy-mm-dd, inclusive, Accra = UTC) → ISO bounds; used by links from the Dashboard */
+export const requestDateBounds = ({ from, to } = {}) => ({
+  from: /^\d{4}-\d{2}-\d{2}$/.test(from || '') ? `${from}T00:00:00Z` : null,
+  to: /^\d{4}-\d{2}-\d{2}$/.test(to || '') ? new Date(Date.parse(`${to}T00:00:00Z`) + 864e5).toISOString() : null,
+});
 
 /** status filter value: '' | 'group:<group>' | 'status:<canonical>' */
 export const statusFilterValues = (value) => {
   if (!value) return null;
   const [kind, key] = value.split(':');
-  return kind === 'group' ? rawValuesForGroup(key) : rawValuesForStatus(key);
+  // several keys may be given: 'status:en_route,arrived,collecting'
+  const keys = String(key || '').split(',').filter(Boolean);
+  return keys.flatMap(k => (kind === 'group' ? rawValuesForGroup(k) : rawValuesForStatus(k)));
 };
 
 export const matchesSearch = (row, q) => {
@@ -266,7 +274,17 @@ export const applyFilters = (rows, f) => {
     (!statuses || statuses.includes(String(r.status).toLowerCase())) &&
     (!f.priority || r.priority === f.priority) &&
     (!f.collector || r.collectorProfileId === f.collector) &&
+    (!f.source || r.source === f.source) &&
+    (!f.unassigned || !r.collectorRef) &&
+    inDateRange(r.createdAt, f) &&
     matchesSearch(r, f.q));
+};
+
+const inDateRange = (value, f) => {
+  const { from, to } = requestDateBounds(f);
+  if (!from && !to) return true;
+  const t = Date.parse(value);
+  return Number.isFinite(t) && (!from || t >= Date.parse(from)) && (!to || t < Date.parse(to));
 };
 
 const STATUS_ORDER = Object.fromEntries(PICKUP_STATUSES.map((s, i) => [s.key, i]));

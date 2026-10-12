@@ -28,6 +28,10 @@ const readFilters = (params) => ({
   status: params.get('status') || '',
   priority: params.get('priority') || '',
   collector: params.get('collector') || '',
+  from: params.get('from') || '',
+  to: params.get('to') || '',
+  source: params.get('source') || '',
+  unassigned: params.get('unassigned') || '',
   sort: SORTABLE[params.get('sort')] ? params.get('sort') : 'created_at',
   dir: params.get('dir') === 'asc' ? 'asc' : 'desc',
   page: Math.max(1, Number(params.get('page')) || 1),
@@ -351,7 +355,7 @@ const RequestPickupManagement = () => {
 
   /* ── page ───────────────────────────────────────────────────────────── */
   const initialLoading = !pageData && !loadError;
-  const activeFilterCount = ['q', 'status', 'priority', 'collector'].filter(k => filters[k]).length;
+  const activeFilterCount = ['q', 'status', 'priority', 'collector', 'from', 'to', 'source', 'unassigned'].filter(k => filters[k]).length;
 
   return (
     <div className="space-y-5">
@@ -448,6 +452,12 @@ const RequestPickupManagement = () => {
             {collectors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
+        {(filters.from || filters.to || filters.source || filters.unassigned) && (
+          <span className="text-xs rounded-full px-2 py-1 mb-1 bg-blue-50 text-blue-800 border border-blue-200" data-testid="dashboard-filter-note">
+            {[filters.unassigned && 'No collector', filters.source && (filters.source === 'digital_bins' ? 'Digital bins' : 'Pickup requests'),
+              (filters.from || filters.to) && `Requested ${filters.from || '…'} to ${filters.to || '…'}`].filter(Boolean).join(' · ')}
+          </span>
+        )}
         {activeFilterCount > 0 && (
           <button type="button" onClick={() => { setSearchText(''); setParams(new URLSearchParams(), { replace: true }); }} className="text-sm underline pb-1.5" style={muted}>
             Clear filters ({activeFilterCount})

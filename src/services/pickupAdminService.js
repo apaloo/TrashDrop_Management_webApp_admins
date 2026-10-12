@@ -14,7 +14,7 @@ import { supabase } from '../utils/supabase';
 import { logFailure } from './auditLogService';
 import { fetchPickupRequests } from '../utils/pickupService';
 import {
-  PAGE_SIZE, normalizeViewRow, normalizeLoaderRow, applyFilters, sortRows, statusFilterValues,
+  PAGE_SIZE, normalizeViewRow, normalizeLoaderRow, applyFilters, sortRows, statusFilterValues, requestDateBounds,
 } from '../utils/pickupRequestUtils';
 import { canTransition, canonicalStatus, dbStatusFor, statusLabel, rawValuesForGroup, IN_PROGRESS_STATUSES } from '../constants/pickupStatus';
 
@@ -45,6 +45,11 @@ const applyServerFilters = (query, f) => {
   if (statuses) query = query.in('status', statuses);
   if (f.priority) query = query.eq('priority', f.priority);
   if (f.collector) query = query.eq('collector_profile_id', f.collector);
+  if (f.source) query = query.eq('source', f.source);
+  if (f.unassigned) query = query.is('collector_ref', null);
+  const { from, to } = requestDateBounds(f);
+  if (from) query = query.gte('created_at', from);
+  if (to) query = query.lt('created_at', to);
   const q = cleanSearch(f.q);
   if (q) query = query.or(['id', 'customer_name', 'customer_email', 'customer_phone', 'address', 'collector_name'].map(c => `${c}.ilike.*${q}*`).join(','));
   return query;
