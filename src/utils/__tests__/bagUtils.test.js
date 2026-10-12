@@ -1,7 +1,7 @@
 import {
   typeSizeLabel, orDash, normalizeBatch, normalizeBag, batchProgress, bagQrUrl, batchQrUrl,
   filtersFromParams, paramsFromFilters, cleanBatchSearch, dateBounds, weekCollectedPct, formatMinutes, DEFAULT_BATCH_FILTERS,
-  groupBagEvents, batchesToCsv,
+  groupBagEvents, batchesToCsv, validateGenerateForm, generateSummary, defaultQrPrefix, formatCedis, sampleBagCode,
 } from '../bagUtils';
 import { normalizeBagStage, bagStageInfo, bagStageRank, BAG_STAGES, BATCH_STAGE_FILTERS } from '../../constants/bagStatus';
 
@@ -116,5 +116,47 @@ describe('Bag History', () => {
     expect(head.startsWith('Batch ID,Batch number,Created')).toBe(true);
     expect(row).toContain('"Organic, wet"');
     expect(row).toContain(',5,100,2,');
+  });
+});
+
+describe('Generate Bags form', () => {
+  const ok = { trashType: 'Organic', bagSize: 'Medium', bagsPerBatch: '50', numberOfBatches: '2', pricePerBatch: '100', qrPrefix: '' };
+  const now = new Date('2026-10-12T10:00:00Z');
+
+  it('defaults the prefix from type and date', () => {
+    expect(defaultQrPrefix('Organic', now)).toBe('ORG-20261012');
+    expect(defaultQrPrefix('Hazardous', now)).toBe('HAZ-20261012');
+    expect(defaultQrPrefix('Nope', now)).toBe('OTH-20261012');
+  });
+
+  it('accepts a valid form and works out prices', () => {
+    const { errors, values } = validateGenerateForm(ok);
+    expect(errors).toEqual({});
+    expect(values).toMatchObject({ type: 'Organic', size: 'Medium', bags: 50, batches: 2, price: 100 });
+    expect(generateSummary(values)).toEqual({ totalBags: 100, unitPrice: 2, totalForAll: 200 });
+    expect(generateSummary({ ...values, price: null })).toEqual({ totalBags: 100, unitPrice: null, totalForAll: null });
+    expect(generateSummary({ bags: 3, batches: 1, price: 10 }).unitPrice).toBe(3.33);
+  });
+
+  it('rejects non-whole numbers, ranges, the total cap, bad prices and prefixes', () => {
+    expect(validateGenerateForm({ ...ok, bagsPerBatch: '2.5' }).errors.bagsPerBatch).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, bagsPerBatch: '0' }).errors.bagsPerBatch).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, numberOfBatches: '1001' }).errors.numberOfBatches).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, bagsPerBatch: '1000', numberOfBatches: '6' }).errors.numberOfBatches).toMatch(/6000 bags/);
+    expect(validateGenerateForm({ ...ok, pricePerBatch: '-1' }).errors.pricePerBatch).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, pricePerBatch: '1.234' }).errors.pricePerBatch).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, pricePerBatch: '' }).values.price).toBeNull();
+    expect(validateGenerateForm({ ...ok, qrPrefix: 'bad prefix!' }).errors.qrPrefix).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, qrPrefix: 'org-2026--x' }).errors.qrPrefix).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, qrPrefix: 'td-org-1' }).values.prefix).toBe('TD-ORG-1');
+    expect(validateGenerateForm({ ...ok, trashType: 'Plastic' }).errors.trashType).toBeTruthy();
+    expect(validateGenerateForm(ok, { maxBagsPerBatch: 1000, maxBatches: 1000, maxTotalBags: 50 }).errors.numberOfBatches).toBeTruthy();
+  });
+
+  it('formats cedis and the sample bag code', () => {
+    expect(formatCedis(2)).toBe('GH₵ 2.00');
+    expect(formatCedis(null)).toBe('—');
+    expect(formatCedis('')).toBe('—');
+    expect(sampleBagCode('ORG-20261012', 1)).toBe('ORG-20261012-<batch no.>-0001');
   });
 });

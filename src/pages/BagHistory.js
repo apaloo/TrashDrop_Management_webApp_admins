@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver';
 import { fetchBatchPage, fetchAllBatches, fetchHistoryStats } from '../services/bagAdminService';
 import { logAudit } from '../services/auditLogService';
 import { BAG_STAGES, ARCHIVED_STAGE } from '../constants/bagStatus';
-import { typeSizeLabel, orDash, filtersFromParams, paramsFromFilters, formatMinutes, batchesToCsv } from '../utils/bagUtils';
+import { typeSizeLabel, orDash, filtersFromParams, paramsFromFilters, formatMinutes, batchesToCsv, formatCedis } from '../utils/bagUtils';
 import { fullDate, relativeAge } from '../utils/pickupRequestUtils';
 import BagStageBadge from '../components/bags/BagStageBadge';
 import CopyId from '../components/bags/CopyId';
@@ -238,7 +238,7 @@ const BagHistory = () => {
                 <td className="px-3 py-3 text-sm text-gray-600" title={fullDate(b.createdAt)}>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                 <td className="px-3 py-3 text-sm text-gray-700 truncate" title={typeSizeLabel(b.type, b.size)}>{typeSizeLabel(b.type, b.size)}</td>
                 <td className="px-3 py-3 text-sm font-mono text-gray-700 truncate">{orDash(b.qrPrefix)}</td>
-                <td className="px-3 py-3 text-sm text-gray-700">{b.bagCount}</td>
+                <td className="px-3 py-3 text-sm text-gray-700">{b.bagCount}{b.unitPrice != null && <span className="block text-xs text-gray-500" title="Price per bag">{formatCedis(b.unitPrice)}</span>}</td>
                 <td className="px-3 py-3"><BagStageBadge stage={b.stage} /></td>
                 <td className="px-3 py-3"><ScannedCell b={b} /></td>
                 <td className="px-3 py-3 text-sm text-gray-600">

@@ -6,7 +6,7 @@ import BagStageBadge from './BagStageBadge';
 import CopyId from './CopyId';
 import EntityHistory from '../logs/EntityHistory';
 import { fetchBatchBags } from '../../services/bagAdminService';
-import { orDash, batchProgress, bagQrUrl, batchQrUrl } from '../../utils/bagUtils';
+import { orDash, batchProgress, bagQrUrl, batchQrUrl, formatCedis } from '../../utils/bagUtils';
 import { fullDate, relativeAge } from '../../utils/pickupRequestUtils';
 
 const BAG_PAGE = 10;
@@ -77,6 +77,7 @@ const BatchDetailsModal = ({ batch: b, email, busy, paused = false, onDownloadAl
             <Field label="Size">{orDash(b.size)}</Field>
             <Field label="QR prefix"><span className="font-mono">{orDash(b.qrPrefix)}</span></Field>
             <Field label="Quantity">{b.bagCount} bags</Field>
+            <Field label="Price">{formatCedis(b.totalBatchPrice)} per batch<span className="block text-xs text-gray-500 font-normal">{formatCedis(b.unitPrice)} per bag</span></Field>
             <Field label="Scanned by household">
               {b.householdName ? <>{b.householdName}{b.scannedByHouseholdAt && <span className="block text-xs text-gray-500 font-normal">{fullDate(b.scannedByHouseholdAt)}</span>}</> : '—'}
             </Field>

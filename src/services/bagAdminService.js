@@ -8,7 +8,7 @@ import { supabase } from '../utils/supabase';
 import { logFailure } from './auditLogService';
 import { normalizeBatch, normalizeBag, cleanBatchSearch, dateBounds, groupBagEvents } from '../utils/bagUtils';
 
-const MIGRATION = 'supabase/migrations/20261019_bag_batches_admin.sql and 20261020_bag_history.sql';
+const MIGRATION = 'supabase/migrations/20261019_bag_batches_admin.sql, 20261020_bag_history.sql and 20261021_generate_batches.sql';
 
 const isMissingSchema = (error) => ['42P01', '42883', 'PGRST202', 'PGRST205'].includes(error?.code)
   || /does not exist|could not find/i.test(error?.message || '');
@@ -88,6 +88,31 @@ export const fetchHistoryStats = async (days = 30) => {
   const { data, error } = await supabase.rpc('admin_bag_history_stats', { p_days: days });
   if (error) throw fail(error, 'Could not load history numbers');
   return data || {};
+};
+
+/** The newest batches (Generate Bags page) */
+export const fetchRecentBatches = async (limit = 10) => {
+  const { data, error } = await supabase.from('admin_bag_batches').select('*')
+    .order('created_at', { ascending: false }).order('id').limit(limit);
+  if (error) throw fail(error, 'Could not load recent batches');
+  return (data || []).map(normalizeBatch);
+};
+
+/**
+ * Create batches and their bags in one database transaction (all or nothing).
+ * values come from validateGenerateForm; the database checks them again.
+ */
+export const generateBatches = async ({ type, size, bags, batches, price, prefix }, maxTotal) => {
+  const { data, error } = await supabase.rpc('admin_generate_batches', {
+    p_type: type, p_size: size, p_bags_per_batch: bags, p_batches: batches,
+    p_price_per_batch: price, p_qr_prefix: prefix || null, p_max_total: maxTotal,
+  });
+  if (error) {
+    logFailure('batch.update_failed', { source: 'bags', entityType: 'batch', error, context: { operation: 'generate', type, size, bags, batches } });
+    if (error.code === '23514' || error.code === 'P0001' || error.code === '23505') throw new Error(error.message);
+    throw fail(error, 'Batches not generated');
+  }
+  return data;
 };
 
 /** Numbers for the Live Bag Requests and Performance cards */

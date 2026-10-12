@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import BagStageBadge from './BagStageBadge';
 import CopyId from './CopyId';
 import { fetchBatchHistory } from '../../services/bagAdminService';
-import { orDash, batchProgress } from '../../utils/bagUtils';
+import { orDash, batchProgress, formatCedis } from '../../utils/bagUtils';
 import { fullDate, relativeAge } from '../../utils/pickupRequestUtils';
 
 const KIND_STYLE = {
@@ -57,13 +57,14 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
         </div>
 
         <div className="p-5 space-y-6 text-sm">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Field label="Created">{b.createdAt ? fullDate(b.createdAt) : '—'}</Field>
             <Field label="Created by">{orDash(b.generatedByName)}</Field>
             <Field label="Type">{orDash(b.type)}</Field>
             <Field label="Size">{orDash(b.size)}</Field>
             <Field label="QR prefix"><span className="font-mono">{orDash(b.qrPrefix)}</span></Field>
             <Field label="Household">{orDash(b.householdName)}</Field>
+            <Field label="Price">{formatCedis(b.totalBatchPrice)}<span className="block text-xs text-gray-500 font-normal">{formatCedis(b.unitPrice)} per bag</span></Field>
             <Field label="Scanned">{b.scannedCount} of {p.total} bags ({b.scannedPct}%)</Field>
             <Field label="Collected">{b.collected} of {p.total} bags</Field>
           </div>

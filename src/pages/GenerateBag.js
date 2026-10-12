@@ -1,1012 +1,442 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faQrcode, 
-  faCheck, 
-  faExclamationTriangle, 
-  faMagic, 
-  faSpinner, 
+import {
+  faQrcode,
+  faCheck,
+  faExclamationTriangle,
+  faMagic,
+  faSpinner,
   faDownload,
   faTimes,
   faEye
 } from '@fortawesome/free-solid-svg-icons';
-import { createBagBatch } from '../utils/databaseUtils';
-import { INITIAL_BAG_STAGE } from '../constants/bagStatus';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
+import { generateBatches, fetchRecentBatches } from '../services/bagAdminService';
+import { TRASH_TYPES, BAG_SIZES, BAG_LIMITS } from '../constants/bagStatus';
+import {
+  validateGenerateForm, generateSummary, defaultQrPrefix, formatCedis, orDash, sampleBagCode,
+} from '../utils/bagUtils';
+import CopyId from '../components/bags/CopyId';
+import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
 
-// Generate batch data for database insertion (replaces mock data)
-const generateNewBatch = (type, size, quantity, createdBy) => {
-  const typeMap = {
-    'Recyclable': 'REC',
-    'Organic': 'ORG',
-    'Hazardous': 'HAZ',
-    'General': 'GEN',
-    'Electronic': 'ELE',
-    'Other': 'OTH'
-  };
-  
-  const sizeMap = {
-    'Small': 'S',
-    'Medium': 'M',
-    'Large': 'L'
-  };
-  
-  const prefix = `TD-${typeMap[type] || 'OTH'}-${sizeMap[size] || 'M'}`;
-  const batchId = `batch-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-  
-  const batch = {
-    id: batchId,
-    createdAt: new Date().toISOString(),
-    createdBy,
-    quantity,
-    bag_count: quantity,
-    type,
-    size,
-    status: INITIAL_BAG_STAGE, // shared step list (src/constants/bagStatus.js)
-    distributed: 0,
-    scanned: 0,
-    qrPrefix: prefix
-  };
-  
-  return { batch };
+const SCAN_BASE = 'https://trashdrops.com/scan';
+const SAMPLE_ID = '00000000-0000-0000-0000-000000000000';
+
+const TYPE_COLORS = {
+  Organic: 'bg-green-100 text-green-800',
+  Recyclable: 'bg-blue-100 text-blue-800',
+  Hazardous: 'bg-red-100 text-red-800',
+  General: 'bg-gray-800 text-white',
 };
+
+const inputClass = (bad) => `block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 ${bad ? 'border-red-500' : 'border-gray-300'}`;
+
+const FieldError = ({ id, text }) => (text ? <p id={id} className="mt-1 text-xs text-red-600">{text}</p> : null);
 
 const GenerateBag = () => {
   const { user } = useAuth();
-  // State for form values
-  const [formData, setFormData] = useState({
+
+  // Form (kept as typed; checked with validateGenerateForm)
+  const [form, setForm] = useState({
     trashType: 'Organic',
     bagSize: 'Medium',
-    numberOfBags: 50,
-    numberOfBatches: 1,
-    totalBatchPrice: ''
+    bagsPerBatch: '50',
+    numberOfBatches: '1',
+    pricePerBatch: '',
+    qrPrefix: '',
   });
+  const [touched, setTouched] = useState(false);
+  const { errors, values } = validateGenerateForm(form);
+  const summary = generateSummary(values);
+  const hasErrors = Object.keys(errors).length > 0;
 
-  // Derived unit price
-  const unitPrice = formData.totalBatchPrice && formData.numberOfBags > 0
-    ? (parseFloat(formData.totalBatchPrice) / formData.numberOfBags).toFixed(2)
-    : '0.00';
-  
-  // State for generated batches
-  const [generatedBatches, setGeneratedBatches] = useState([]);
-  
-  // State for loading and errors
-  const [isLoading, setIsLoading] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null); // { batches: [{ id, number }], totalBags }
+
+  // Newest batches from the database
+  const [recent, setRecent] = useState(null);
+  const [recentError, setRecentError] = useState(null);
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadingBatch, setDownloadingBatch] = useState(null);
-  const [error, setError] = useState(null);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewQR, setPreviewQR] = useState(null);
-  const [isWorkerReady, setIsWorkerReady] = useState(false);
-  const [workerError, setWorkerError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
-  const qrCodeRefs = useRef({});
+  const [viewQRModal, setViewQRModal] = useState({ visible: false, batch: null });
   const workerRef = useRef(null);
   const pendingPosterRequestRef = useRef(null);
 
-  // Handle input changes
-  const handleInputChange = (e) => {
+  const loadRecent = useCallback(() => {
+    fetchRecentBatches(10)
+      .then(rows => { setRecent(rows); setRecentError(null); })
+      .catch(e => { setRecent([]); setRecentError(e.message); });
+  }, []);
+  useEffect(() => { loadRecent(); }, [loadRecent]);
+
+  const onChange = (e) => {
     const { name, value } = e.target;
-    
-    // Validate numeric inputs
-    if (name === 'numberOfBags') {
-      const numValue = parseInt(value, 10);
-      if (isNaN(numValue) || numValue < 1) return;
-      if (numValue > 1000) return;
-      setFormData({ ...formData, [name]: numValue });
-    } else if (name === 'numberOfBatches') {
-      const numValue = parseInt(value, 10);
-      if (isNaN(numValue) || numValue < 1) return;
-      if (numValue > 1000) return;
-      setFormData({ ...formData, [name]: numValue });
-    } else if (name === 'totalBatchPrice') {
-      // Allow empty string or valid positive numbers
-      if (value === '' || (!isNaN(value) && parseFloat(value) >= 0)) {
-        setFormData({ ...formData, [name]: value });
-      }
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setForm(f => ({ ...f, [name]: name === 'qrPrefix' ? value.toUpperCase() : value }));
+    setPreviewVisible(false);
   };
 
-  // State for download progress
-  const [downloadProgress, setDownloadProgress] = useState({
-    progress: 0,
-    stage: 'Preparing...',
-    isProcessing: false,
-    showProgress: false
-  });
-  
-  // State for viewing QR code
-  const [viewQRModal, setViewQRModal] = useState({
-    visible: false,
-    batch: null
-  });
+  /* ── poster PNG for large bags (QR code worker) ────────────────────────── */
 
-  // Initialize Web Worker with retry mechanism
-  const initWorker = useCallback(() => {
+  useEffect(() => {
+    let worker;
     try {
-      // Use the Worker constructor with import.meta.url to load the worker as a module
-      const worker = new Worker(new URL('../workers/QRCodeWorker.js', import.meta.url), {
-        type: 'module'
-      });
-      
-      // Handle worker ready state
+      worker = new Worker(new URL('../workers/QRCodeWorker.js', import.meta.url), { type: 'module' });
       worker.postMessage({ type: 'WORKER_READY' });
-      
       worker.onmessage = (e) => {
-        const { type, progress, stage, chunks, content, filename, error, requestId } = e.data;
-        
-        if (type === 'WORKER_READY') {
-          setIsWorkerReady(true);
-          setWorkerError(null);
-        } else if (type === 'POSTER_READY') {
-          if (pendingPosterRequestRef.current && pendingPosterRequestRef.current !== requestId) return;
-          pendingPosterRequestRef.current = null;
-
-          if (content && filename) {
-            try {
-              const blob = (content instanceof Blob)
-                ? content
-                : new Blob([content], { type: 'image/png' });
-              saveAs(blob, filename);
-            } catch (err) {
-              console.error('Error saving poster PNG:', err);
-            }
-          }
-        } else if (type === 'PROGRESS') {
-          setDownloadProgress(prev => ({
-            ...prev,
-            progress,
-            stage: stage || prev.stage,
-            isProcessing: progress < 100
-          }));
-        } else if (type === 'CHUNKS_READY') {
-          // Start creating ZIP with the chunks
-          workerRef.current.postMessage({
-            type: 'CREATE_ZIP',
-            payload: {
-              chunks: e.data.chunks,
-              batch: { id: downloadingBatch },
-              baseUrl: 'https://trashdrops.com/scan',
-              email: user?.email || 'admin@trashdrop.com'
-            }
-          });
-        } else if (type === 'ZIP_READY') {
-          console.log('ZIP_READY received, starting download...');
+        const { type, content, filename, requestId } = e.data || {};
+        if (type !== 'POSTER_READY' && type !== 'POSTER_ERROR') return;
+        if (pendingPosterRequestRef.current && pendingPosterRequestRef.current !== requestId) return;
+        pendingPosterRequestRef.current = null;
+        if (type === 'POSTER_READY' && content && filename) {
           try {
-            // Ensure the filename ends with .zip
-            const safeFilename = filename.endsWith('.zip') ? filename : `${filename}.zip`;
-            
-            try {
-              // Use Blob directly if provided by worker; otherwise wrap Uint8Array
-              const blob = (content instanceof Blob)
-                ? content
-                : new Blob([content], { type: 'application/zip' });
-
-              // Use file-saver for robust cross-browser downloads
-              saveAs(blob, safeFilename);
-            } catch (error) {
-              console.error('Error creating download:', error);
-              throw new Error('Failed to create download');
-            }
-            
-            console.log('Download started successfully');
-            setDownloadProgress(prev => ({
-              ...prev,
-              progress: 100,
-              stage: 'Download complete!',
-              isProcessing: false
-            }));
-            setIsDownloading(false);
-            setRetryCount(0); // Reset retry count on success
-          } catch (error) {
-            console.error('Error saving file:', error);
-            handleWorkerError('Failed to save the ZIP file');
+            saveAs(content instanceof Blob ? content : new Blob([content], { type: 'image/png' }), filename);
+          } catch (err) {
+            console.error('Error saving poster PNG:', err);
           }
-        } else if (type === 'ERROR') {
-          handleWorkerError(error || 'An error occurred while generating QR codes');
-          pendingPosterRequestRef.current = null;
-        } else if (type === 'POSTER_ERROR') {
-          if (pendingPosterRequestRef.current && pendingPosterRequestRef.current !== requestId) return;
-          pendingPosterRequestRef.current = null;
         }
       };
-      
-      worker.onerror = (error) => {
-        console.error('Worker error:', error);
-        handleWorkerError('Failed to initialize QR code generator');
-      };
-      
+      worker.onerror = (err) => console.error('QR worker error:', err);
       workerRef.current = worker;
-      
-      return () => {
-        worker.terminate();
-      };
-    } catch (error) {
-      console.error('Error initializing worker:', error);
-      handleWorkerError('Failed to initialize QR code generator');
+    } catch (err) {
+      console.error('Error initializing QR worker:', err);
     }
+    return () => { if (worker) worker.terminate(); };
   }, []);
 
-  // Handle worker errors with retry logic
-  const handleWorkerError = useCallback((error) => {
-    console.error('QR Code Worker Error:', error);
-    setWorkerError(error);
-    
-    if (retryCount < MAX_RETRIES) {
-      setRetryCount(prev => prev + 1);
-      setError(`Attempting to recover... (${retryCount + 1}/${MAX_RETRIES})`);
-      
-      // Retry after a delay
-      const timer = setTimeout(() => {
-        if (workerRef.current) {
-          workerRef.current.terminate();
-        }
-        initWorker();
-      }, 1000 * (retryCount + 1)); // Exponential backoff
-      
-      return () => clearTimeout(timer);
-    } else {
-      setError('Failed to generate QR codes after several attempts. Please refresh the page and try again.');
-      setDownloadProgress(prev => ({
-        ...prev,
-        isProcessing: false,
-        showProgress: false
-      }));
-      setIsDownloading(false);
-    }
-  }, [retryCount]);
-
-  // Initialize worker on mount and retries
-  useEffect(() => {
-    const cleanup = initWorker();
-    return () => {
-      if (cleanup) cleanup();
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
-    };
-  }, [initWorker]);
-
-  // Function to download the BATCH QR code (single UUID QR code)
+  // Batch QR download: the QR holds the batch id, exactly as before (household app scans it)
   const handleDownloadClick = async (batch) => {
     try {
       setDownloadingBatch(batch.id);
       setIsDownloading(true);
       setError(null);
-      
-      // Get the QR code element
-      const qrElement = document.getElementById(`qrcode-${batch.id}`);
-      if (!qrElement) {
-        throw new Error('QR code not found');
-      }
-      
-      // Get the SVG element
-      const svgElement = qrElement.querySelector('svg');
-      if (!svgElement) {
-        throw new Error('QR code SVG not found');
-      }
-      
-      // Convert SVG to blob
+      const svgElement = document.getElementById(`qrcode-${batch.id}`)?.querySelector('svg');
+      if (!svgElement) throw new Error('QR code not found');
       const svgData = new XMLSerializer().serializeToString(svgElement);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      
-      // Download the file
-      const fileName = `batch-${batch.batch_number || batch.id.slice(0, 8)}-qr.svg`;
-      saveAs(svgBlob, fileName);
+      saveAs(new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' }), `batch-${batch.batchNumber || batch.id.slice(0, 8)}-qr.svg`);
 
-      try {
-        const is240L = String(batch.size || batch.bagSize || batch.capacity_label || '').toLowerCase().includes('240');
-        const isLarge = String(batch.size || batch.bagSize || '').toLowerCase() === 'large';
-        if ((is240L || isLarge) && workerRef.current) {
-          const requestId = `${batch.id}-${Date.now()}`;
-          pendingPosterRequestRef.current = requestId;
-          workerRef.current.postMessage({
-            type: 'GENERATE_POSTER_PNG',
-            payload: {
-              requestId,
-              batch: { id: batch.id, size: batch.size || batch.bagSize || '' },
-              baseUrl: 'https://trashdrops.com/scan',
-              email: user?.email || 'admin@trashdrop.com'
-            }
-          });
-        }
-      } catch (err) {
-        console.error('Error requesting poster PNG:', err);
-        pendingPosterRequestRef.current = null;
+      const size = String(batch.size || '').toLowerCase();
+      if ((size.includes('240') || size === 'large') && workerRef.current) {
+        const requestId = `${batch.id}-${Date.now()}`;
+        pendingPosterRequestRef.current = requestId;
+        workerRef.current.postMessage({
+          type: 'GENERATE_POSTER_PNG',
+          payload: { requestId, batch: { id: batch.id, size: batch.size || '' }, baseUrl: SCAN_BASE, email: user?.email || 'admin@trashdrop.com' },
+        });
       }
-      
-      console.log(`✅ Downloaded batch QR code: ${fileName}`);
-      
-    } catch (error) {
-      console.error('Error downloading QR code:', error);
-      setError(error.message || 'Failed to download QR code');
+    } catch (err) {
+      setError(err.message || 'Failed to download QR code');
     } finally {
       setIsDownloading(false);
       setDownloadingBatch(null);
     }
   };
 
-  // Function to view QR code in modal
-  const handleViewQRCode = (batch) => {
-    setViewQRModal({
-      visible: true,
-      batch: batch
-    });
+  /* ── preview and generate ──────────────────────────────────────────────── */
+
+  const handlePreview = () => {
+    setTouched(true);
+    setError(null);
+    if (!hasErrors) setPreviewVisible(true); // nothing is saved
   };
 
-  // Function to close QR code viewer
-  const closeQRViewer = () => {
-    setViewQRModal({
-      visible: false,
-      batch: null
-    });
+  const askGenerate = () => {
+    setTouched(true);
+    setError(null);
+    if (!hasErrors) setConfirmOpen(true);
   };
 
-  // Function to render the BATCH QR code (contains batch UUID for mobile scanning)
-  const renderQRCode = (batch) => {
-    // Mobile app scans the batch UUID, not individual bag codes
-    const qrValue = batch.batchQRCode || batch.id;
-    
-    return (
-      <div key={`qrcode-${batch.id}`} id={`qrcode-${batch.id}`} className="hidden">
-        <QRCodeSVG
-          value={qrValue}
-          size={256}
-          level="H"
-          includeMargin={true}
-          fgColor="#000000"
-          bgColor="#ffffff"
-        />
-      </div>
-    );
-  };
-
-
-
-  // Initialize worker on mount and retries
-  useEffect(() => {
-    const cleanup = initWorker();
-    return () => {
-      if (cleanup) cleanup();
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
-    };
-  }, [initWorker]);
-
-
-
-
-// Generate QR code preview
-const handlePreview = () => {
-  setIsLoading(true);
-  setError(null);
-
-  // Validate inputs
-  if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
-    setError('Number of bags must be between 1 and 1000');
-    setIsLoading(false);
-    return;
-  }
-
-  // Generate sample QR code for preview
-  const trashTypePrefix = formData.trashType === 'Organic' ? 'ORG' :
-                         formData.trashType === 'Recyclable' ? 'REC' :
-                         formData.trashType === 'General' ? 'GEN' : 'HAZ';
-  const bagSizePrefix = formData.bagSize === 'Small' ? 'S' :
-                       formData.bagSize === 'Medium' ? 'M' : 'L';
-
-  // Generate a sample UUID for preview (this is just for display, not saved to database)
-  const sampleUUID = '00000000-0000-0000-0000-000000000000';
-  
-  setPreviewQR({
-    prefix: `TD-${trashTypePrefix}-${bagSizePrefix}`,
-    sample: `Batch UUID`,
-    url: sampleUUID // Preview shows a sample UUID format
-  });
-
-  setPreviewVisible(true);
-  setIsLoading(false);
-};
-
-// Generate actual QR codes and save to database
-const handleGenerate = async () => {
-  setIsLoading(true);
-  setError(null);
-
-  // Validate inputs
-  if (formData.numberOfBags < 1 || formData.numberOfBags > 1000) {
-    setError('Number of bags must be between 1 and 1000');
-    setIsLoading(false);
-    return;
-  }
-
-  if (formData.numberOfBatches < 1 || formData.numberOfBatches > 1000) {
-    setError('Number of batches must be between 1 and 1000');
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    const newBatches = [];
-    
-    for (let i = 0; i < formData.numberOfBatches; i++) {
-      // Generate batch data
-      const { batch } = generateNewBatch(
-        formData.trashType,
-        formData.bagSize,
-        formData.numberOfBags,
-        user?.email || 'admin@trashdrop.com' // Use current user when available
-      );
-      
-      // Convert to format expected by createBagBatch
-      const totalPrice = formData.totalBatchPrice ? parseFloat(formData.totalBatchPrice) : null;
-      const perBagPrice = totalPrice && batch.quantity > 0
-        ? parseFloat((totalPrice / batch.quantity).toFixed(2))
-        : null;
-
-      const batchData = {
-        createdBy: batch.createdBy,
-        bag_count: batch.quantity, // Use bag_count for database
-        quantity: batch.quantity,   // Keep for backward compatibility
-        type: batch.type,
-        size: batch.size,
-        qrPrefix: batch.qrPrefix, // saved to batches.qr_prefix with type and size
-        batchNumber: batch.id.replace('batch-', ''), // Extract the batch number
-        total_batch_price: totalPrice,
-        unit_price: perBagPrice
-      };
-      
-      try {
-        // Save to database
-        console.log('Saving batch to database:', batchData);
-        const result = await createBagBatch(batchData);
-        console.log('Batch saved successfully:', result);
-        
-        // Add the saved batch to our local state
-        if (result && result.batch) {
-          // Merge database result with UI data for display
-          const displayBatch = {
-            ...batch, // Keep UI fields (type, size, etc)
-            id: result.batch.id, // Use actual UUID from database
-            batch_number: result.batch.batch_number,
-            batch_name: result.batch.batch_name,
-            batchQRCode: result.batchQRCode, // This is the UUID for mobile scanning
-            createdAt: result.batch.created_at,
-            bag_count: result.batch.bag_count,
-            total_batch_price: result.batch.total_batch_price ?? totalPrice,
-            unit_price: result.batch.unit_price ?? perBagPrice
-          };
-          newBatches.push(displayBatch);
-        } else {
-          // Fallback to using local batch if save failed
-          newBatches.push(batch);
-        }
-      } catch (dbError) {
-        console.error('Error saving batch to database:', dbError);
-        // Still add the local batch version
-        newBatches.push(batch);
-        // Show warning but don't stop the process
-        setError(prev => prev ? `${prev}. Database error: ${dbError.message}` : `Database error: ${dbError.message}`);
-      }
+  const runGenerate = async () => {
+    if (isGenerating) return; // no double submit
+    setIsGenerating(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await generateBatches(values, BAG_LIMITS.maxTotalBags);
+      const ids = res?.batch_ids || [];
+      const numbers = res?.batch_numbers || [];
+      setSuccess({ batches: ids.map((id, i) => ({ id, number: numbers[i] })), totalBags: res?.total_bags, prefix: res?.qr_prefix });
+      setConfirmOpen(false);
+      setPreviewVisible(false);
+      loadRecent();
+    } catch (err) {
+      setError(`Nothing was generated: ${err.message || 'unknown error'}`);
+      setConfirmOpen(false);
+    } finally {
+      setIsGenerating(false);
     }
-    
-    // Update UI with the new batches
-    setGeneratedBatches(prevBatches => [...newBatches, ...prevBatches]);
-    setPreviewVisible(false);
-    setPreviewQR(null);
-    
-  } catch (err) {
-    setError('Error generating QR codes: ' + err.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
-  // Main component JSX
+  const showErr = (f) => (touched ? errors[f] : null);
+
   return (
     <div className="container mx-auto p-6">
-      {/* Form section */}
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Generate Bags</h1>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-start mb-4" role="alert" data-testid="generate-error">
+          <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2 mt-1" />
+          <span>{error}</span>
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded mb-4" role="status" data-testid="generate-success">
+          <p className="font-medium"><FontAwesomeIcon icon={faCheck} className="mr-2" />
+            Generated {success.batches.length} batch{success.batches.length === 1 ? '' : 'es'} with {success.totalBags} bags (prefix {success.prefix}).</p>
+          <ul className="mt-1 text-sm flex flex-wrap gap-x-4">
+            {success.batches.map(b => (
+              <li key={b.id}><Link to={`/bin-management/manage?batch=${b.id}`} className="underline">Batch {b.number || b.id.slice(0, 8)}</Link></li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Form */}
       <div className="bg-white shadow-sm rounded-lg mb-6">
         <div className="p-6">
           <h5 className="text-xl font-semibold mb-4 text-gray-700">Bag Batch Configuration</h5>
-          
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center mb-4" role="alert">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
-              <span>{error}</span>
-            </div>
-          )}
-          
-          <form>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <form onSubmit={(e) => { e.preventDefault(); askGenerate(); }} noValidate>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="trashType" className="block text-sm font-medium text-gray-700 mb-1">Trash Type</label>
-                <select 
-                  id="trashType" 
-                  name="trashType" 
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md shadow-sm" 
-                  value={formData.trashType}
-                  onChange={handleInputChange}
-                >
-                  <option value="Organic">Green/Organic</option>
-                  <option value="Recyclable">Blue/Recyclable</option>
-                  <option value="Hazardous">Red/Hazardous</option>
-                  <option value="General">Black/General Waste</option>
+                <select id="trashType" name="trashType" className={inputClass(showErr('trashType'))} value={form.trashType} onChange={onChange}>
+                  {TRASH_TYPES.map(t => <option key={t.key} value={t.key}>{t.key}</option>)}
                 </select>
-                <p className="mt-2 text-sm text-gray-500">Select the type of trash for this batch.</p>
               </div>
-              
               <div>
                 <label htmlFor="bagSize" className="block text-sm font-medium text-gray-700 mb-1">Bag Size</label>
-                <select 
-                  id="bagSize" 
-                  name="bagSize" 
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md shadow-sm" 
-                  value={formData.bagSize}
-                  onChange={handleInputChange}
-                >
-                  <option value="Small">90 L</option>
-                  <option value="Medium">120 L</option>
-                  <option value="Large">240 L</option>
+                <select id="bagSize" name="bagSize" className={inputClass(showErr('bagSize'))} value={form.bagSize} onChange={onChange}>
+                  {BAG_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <p className="mt-2 text-sm text-gray-500">Select the size of the bags in this batch.</p>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label htmlFor="numberOfBags" className="block text-sm font-medium text-gray-700 mb-1">Number of Bags</label>
-                <input 
-                  type="number" 
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
-                  id="numberOfBags" 
-                  name="numberOfBags" 
-                  min="1" 
-                  max="1000" 
-                  value={formData.numberOfBags}
-                  onChange={handleInputChange}
-                />
-                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 1000.</p>
+                <label htmlFor="bagsPerBatch" className="block text-sm font-medium text-gray-700 mb-1">Bags per Batch</label>
+                <input type="number" id="bagsPerBatch" name="bagsPerBatch" min="1" max={BAG_LIMITS.maxBagsPerBatch} step="1" inputMode="numeric"
+                  className={inputClass(showErr('bagsPerBatch'))} value={form.bagsPerBatch} onChange={onChange} aria-describedby="bagsPerBatch-err" />
+                <FieldError id="bagsPerBatch-err" text={showErr('bagsPerBatch')} />
               </div>
-              
               <div>
                 <label htmlFor="numberOfBatches" className="block text-sm font-medium text-gray-700 mb-1">Number of Batches</label>
-                <input 
-                  type="number" 
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
-                  id="numberOfBatches" 
-                  name="numberOfBatches" 
-                  min="1" 
-                  max="1000" 
-                  value={formData.numberOfBatches}
-                  onChange={handleInputChange}
-                />
-                <p className="mt-2 text-sm text-gray-500">Enter a number between 1 and 1000.</p>
+                <input type="number" id="numberOfBatches" name="numberOfBatches" min="1" max={BAG_LIMITS.maxBatches} step="1" inputMode="numeric"
+                  className={inputClass(showErr('numberOfBatches'))} value={form.numberOfBatches} onChange={onChange} aria-describedby="numberOfBatches-err" />
+                <FieldError id="numberOfBatches-err" text={showErr('numberOfBatches')} />
+              </div>
+              <div>
+                <label htmlFor="pricePerBatch" className="block text-sm font-medium text-gray-700 mb-1">Price per Batch (GH₵)</label>
+                <input type="number" id="pricePerBatch" name="pricePerBatch" min="0" step="0.01" inputMode="decimal" placeholder="e.g. 50.00 (optional)"
+                  className={inputClass(showErr('pricePerBatch'))} value={form.pricePerBatch} onChange={onChange} aria-describedby="pricePerBatch-err" />
+                <FieldError id="pricePerBatch-err" text={showErr('pricePerBatch')} />
+              </div>
+              <div>
+                <label htmlFor="qrPrefix" className="block text-sm font-medium text-gray-700 mb-1">QR Prefix <span className="font-normal text-gray-500">(optional)</span></label>
+                <input type="text" id="qrPrefix" name="qrPrefix" maxLength={30} placeholder={defaultQrPrefix(form.trashType)}
+                  className={`${inputClass(showErr('qrPrefix') || errors.qrPrefix)} font-mono`} value={form.qrPrefix} onChange={onChange} aria-describedby="qrPrefix-help" />
+                {errors.qrPrefix ? <FieldError id="qrPrefix-help" text={errors.qrPrefix} /> : (
+                  <p id="qrPrefix-help" className="mt-1 text-xs text-gray-500">Letters, numbers and dashes. Empty = {defaultQrPrefix(form.trashType)}</p>
+                )}
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+            <dl className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-md bg-gray-50 border border-gray-200 p-4 text-sm" data-testid="generate-totals">
               <div>
-                <label htmlFor="totalBatchPrice" className="block text-sm font-medium text-gray-700 mb-1">Total Batch Price (GH₵)</label>
-                <input 
-                  type="number" 
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" 
-                  id="totalBatchPrice" 
-                  name="totalBatchPrice" 
-                  min="0" 
-                  step="0.01" 
-                  placeholder="e.g. 500.00"
-                  value={formData.totalBatchPrice}
-                  onChange={handleInputChange}
-                />
-                <p className="mt-2 text-sm text-gray-500">Enter the total price for all bags in this batch.</p>
+                <dt className="text-gray-500">Unit price per bag</dt>
+                <dd className="font-semibold text-gray-800">{formatCedis(summary.unitPrice)}</dd>
+                <dd className="text-xs text-gray-500">Price per batch ÷ {Number.isInteger(values.bags) ? values.bags : '?'} bags</dd>
               </div>
-              
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Bag Price (GH₵)</label>
-                <div className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-800 font-semibold text-lg">
-                  {formData.totalBatchPrice ? `₵${unitPrice}` : '—'}
-                </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  Auto-calculated: Total Batch Price ÷ {formData.numberOfBags} bags{formData.totalBatchPrice ? ` = ₵${unitPrice} per bag` : ''}
-                </p>
+                <dt className="text-gray-500">Total for all batches</dt>
+                <dd className="font-semibold text-gray-800">{formatCedis(summary.totalForAll)}</dd>
+                <dd className="text-xs text-gray-500">Price per batch × {Number.isInteger(values.batches) ? values.batches : '?'} batches</dd>
               </div>
-            </div>
-            
+              <div>
+                <dt className="text-gray-500">Bags to create</dt>
+                <dd className={`font-semibold ${summary.totalBags > BAG_LIMITS.maxTotalBags ? 'text-red-600' : 'text-gray-800'}`}>
+                  {summary.totalBags === null ? '—' : summary.totalBags.toLocaleString()}
+                </dd>
+                <dd className="text-xs text-gray-500">Limit {BAG_LIMITS.maxTotalBags.toLocaleString()} per submission</dd>
+              </div>
+            </dl>
+
             <div className="flex justify-end mt-6 space-x-4">
-              <button 
-                type="button" 
-                className="py-2 px-4 border border-blue-500 rounded-md shadow-sm text-sm font-medium text-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
-                onClick={handlePreview}
-              >
+              <button type="button" onClick={handlePreview}
+                className="py-2 px-4 border border-blue-500 rounded-md shadow-sm text-sm font-medium text-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <FontAwesomeIcon icon={faMagic} className="mr-2" /> Preview
               </button>
-              
-              <button 
-                type="button" 
-                className="py-2 px-4 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
-                onClick={handleGenerate}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faQrcode} className="mr-2" /> Generate
-                  </>
-                )}
+              <button type="submit" disabled={isGenerating}
+                className="py-2 px-4 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50">
+                {isGenerating
+                  ? <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />Generating…</>
+                  : <><FontAwesomeIcon icon={faQrcode} className="mr-2" />Generate</>}
               </button>
             </div>
           </form>
         </div>
       </div>
-      
-      {/* QR Code Preview */}
-      {previewVisible && (
-        <div className="bg-white shadow-sm rounded-lg mb-6">
-          <div className="p-6">
-            <h5 className="text-xl font-semibold mb-4 text-gray-700">QR Code Preview</h5>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="flex flex-col items-center border rounded-lg p-6 bg-gray-50">
-                  <div className="mb-4 p-3 bg-white border border-gray-300 rounded flex justify-center items-center" style={{ width: '200px', height: '200px' }}>
-                    {previewQR && (
-                      <QRCodeSVG
-                        value={previewQR.url}
-                        size={180}
-                        level="M"
-                        includeMargin={false}
-                        renderAs="svg"
-                        fgColor="#000000"
-                        bgColor="#ffffff"
-                      />
-                    )}
-                  </div>
-                  <h6 className="text-lg font-medium mb-2 text-center">{previewQR?.prefix}</h6>
-                  <p className="text-gray-500 text-sm text-center">Sample: {previewQR?.sample}</p>
-                </div>
-              </div>
-              
-              <div>
-                <h6 className="text-lg font-medium mb-3">QR Code Details</h6>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-3">
-                  <p className="text-sm text-blue-800">
-                    <strong>ℹ️ Preview Only:</strong> This shows a sample QR code. When generated, each batch will have a unique UUID for mobile app scanning.
-                  </p>
-                </div>
-                <p className="mb-2"><span className="font-semibold">Prefix:</span> {previewQR?.prefix}</p>
-                <p className="mb-2"><span className="font-semibold">Type:</span> {previewQR?.sample}</p>
-                <p className="mb-2"><span className="font-semibold">Contains:</span> Batch UUID (unique identifier)</p>
-                <p className="text-sm text-gray-600 mt-4">Generated batches will have scannable QR codes containing their database UUID.</p>
-                
-                <div className="mt-6">
-                  <h6 className="text-lg font-medium mb-3">Batch Summary</h6>
-                  <ul className="divide-y divide-gray-200">
-                    <li className="py-3 flex justify-between">
-                      <span className="text-gray-600">Number of Batches:</span>
-                      <span className="font-bold">{formData.numberOfBatches}</span>
-                    </li>
-                    <li className="py-3 flex justify-between">
-                      <span className="text-gray-600">QR Code Prefix:</span>
-                      <span className="font-bold">{previewQR?.prefix}</span>
-                    </li>
-                    {formData.totalBatchPrice && (
-                      <>
-                        <li className="py-3 flex justify-between">
-                          <span className="text-gray-600">Total Batch Price:</span>
-                          <span className="font-bold">₵{parseFloat(formData.totalBatchPrice).toFixed(2)}</span>
-                        </li>
-                        <li className="py-3 flex justify-between">
-                          <span className="text-gray-600">Unit Bag Price:</span>
-                          <span className="font-bold text-green-700">₵{unitPrice}</span>
-                        </li>
-                      </>
-                    )}
-                  </ul>
-                
-                  <div className="mt-6">
-                    <button 
-                      type="button" 
-                      className="w-full py-2 px-4 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
-                      onClick={handleGenerate}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <FontAwesomeIcon icon={faCheck} className="mr-2" /> Confirm & Generate
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Download Progress Modal */}
-      {downloadProgress.showProgress && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Generating QR Codes</h3>
-              <button 
-                onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
-                className="text-gray-500 hover:text-gray-700"
-                disabled={downloadProgress.isProcessing}
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>{downloadProgress.stage}</span>
-                <span>{Math.round(downloadProgress.progress)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
-                  style={{ width: `${downloadProgress.progress}%` }}
-                ></div>
-              </div>
-            </div>
-            
-            <div className="text-sm text-gray-500 text-center">
-              {downloadProgress.progress < 100 
-                ? 'Please wait while we prepare your download...'
-                : 'Download complete! The file should start downloading shortly.'
-              }
-            </div>
 
-            {/* Close button for dismissing the prompt */}
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
-                className={`px-4 py-2 text-sm rounded-md border ${downloadProgress.isProcessing ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'}`}
-                disabled={downloadProgress.isProcessing}
-                aria-label="Close download prompt"
-              >
-                Close
+      {/* Preview: summary + sample QR / label. Nothing is saved. */}
+      {previewVisible && !hasErrors && (
+        <div className="bg-white shadow-sm rounded-lg mb-6" data-testid="generate-preview">
+          <div className="p-6">
+            <h5 className="text-xl font-semibold mb-4 text-gray-700">Preview</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm content-start">
+                <dt className="text-gray-500">Trash type</dt><dd className="font-medium">{values.type}</dd>
+                <dt className="text-gray-500">Bag size</dt><dd className="font-medium">{values.size}</dd>
+                <dt className="text-gray-500">Batches</dt><dd className="font-medium">{values.batches}</dd>
+                <dt className="text-gray-500">Bags per batch</dt><dd className="font-medium">{values.bags}</dd>
+                <dt className="text-gray-500">Total bags</dt><dd className="font-semibold">{summary.totalBags}</dd>
+                <dt className="text-gray-500">Price per batch</dt><dd className="font-medium">{formatCedis(values.price)}</dd>
+                <dt className="text-gray-500">Unit price per bag</dt><dd className="font-medium text-green-700">{formatCedis(summary.unitPrice)}</dd>
+                <dt className="text-gray-500">Total for all batches</dt><dd className="font-semibold">{formatCedis(summary.totalForAll)}</dd>
+                <dt className="text-gray-500">QR prefix</dt><dd className="font-mono">{values.prefix}</dd>
+              </dl>
+              <div className="flex flex-col items-center">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" aria-label="Sample label">
+                  <QRCodeSVG value={SAMPLE_ID} size={140} level="H" includeMargin />
+                  <p className="mt-2 text-sm font-semibold">TrashDrop · {values.type} · {values.size}</p>
+                  <p className="text-xs font-mono text-gray-600">{sampleBagCode(values.prefix, 1)}</p>
+                  {summary.unitPrice !== null && <p className="text-xs text-gray-600">{formatCedis(summary.unitPrice)} per bag</p>}
+                </div>
+                <p className="mt-2 text-xs text-gray-500 text-center max-w-xs">Sample only. Each batch gets its own ID in the QR code when generated; nothing has been saved yet.</p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button type="button" onClick={askGenerate} disabled={isGenerating}
+                className="py-2 px-4 bg-green-600 rounded-md text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+                <FontAwesomeIcon icon={faCheck} className="mr-2" /> Confirm &amp; Generate
               </button>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Generated Batches Table */}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title={`Generate ${summary.totalBags?.toLocaleString()} bags?`}
+          confirmLabel="Generate" busy={isGenerating} onConfirm={runGenerate} onClose={() => setConfirmOpen(false)}>
+          <p>
+            {values.batches} batch{values.batches === 1 ? '' : 'es'} × {values.bags} bags of <strong>{values.type} · {values.size}</strong>,
+            prefix <span className="font-mono">{values.prefix}</span>.
+          </p>
+          {values.price !== null && <p>{formatCedis(values.price)} per batch ({formatCedis(summary.unitPrice)} per bag), {formatCedis(summary.totalForAll)} in total.</p>}
+          <p className="text-xs">Everything is created together: if anything fails, nothing is saved.</p>
+        </ConfirmDialog>
+      )}
+
+      {/* Newest batches */}
       <div className="mt-8 bg-white shadow-sm rounded-lg">
         <div className="p-6">
-          <h5 className="text-xl font-semibold mb-4 text-gray-700">Generated Batches</h5>
-          
-          {generatedBatches.length === 0 ? (
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-center" role="alert">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
-              <span>No batches have been generated yet. Use the form above to create new bag batches.</span>
-            </div>
+          <div className="flex items-center mb-4">
+            <h5 className="text-xl font-semibold text-gray-700">Generated Batches</h5>
+            <span className="ml-2 text-sm text-gray-500">newest 10</span>
+            <Link to="/bin-management/history" className="ml-auto text-sm text-green-700 hover:underline">See all in Bag History →</Link>
+          </div>
+          {recentError && <p className="text-red-600 text-sm mb-2">{recentError}</p>}
+          {recent === null ? <p className="text-gray-500 text-sm">Loading…</p> : recent.length === 0 ? (
+            <p className="text-gray-500 text-sm">{recentError ? 'Batches could not be loaded.' : 'No batches have been generated yet.'}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch ID</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trash Type</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bag Size</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number of Bags</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Price</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation Date</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <table className="w-full table-fixed text-sm" data-testid="recent-batches">
+              <thead className="bg-gray-50 text-xs text-gray-500 uppercase text-left">
+                <tr>
+                  <th className="px-3 py-2 w-[14%]">Batch</th>
+                  <th className="px-3 py-2 w-[13%]">Type</th>
+                  <th className="px-3 py-2 w-[9%]">Size</th>
+                  <th className="px-3 py-2 w-[7%]">Bags</th>
+                  <th className="px-3 py-2 w-[14%]">Price</th>
+                  <th className="px-3 py-2 w-[14%]">Created by</th>
+                  <th className="px-3 py-2 w-[11%]">Date</th>
+                  <th className="px-3 py-2 w-[18%] text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {recent.map(b => (
+                  <tr key={b.id} className="hover:bg-gray-50" data-testid="recent-row">
+                    <td className="px-3 py-2"><CopyId id={b.id} />{b.batchNumber && <span className="block text-xs text-gray-500 truncate">#{b.batchNumber}</span>}</td>
+                    <td className="px-3 py-2">{b.type ? <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TYPE_COLORS[b.type] || 'bg-gray-100 text-gray-800'}`}>{b.type}</span> : '—'}</td>
+                    <td className="px-3 py-2">{orDash(b.size)}</td>
+                    <td className="px-3 py-2">{b.bagCount}</td>
+                    <td className="px-3 py-2">{formatCedis(b.totalBatchPrice)}{b.unitPrice != null && <span className="block text-xs text-gray-500">{formatCedis(b.unitPrice)}/bag</span>}</td>
+                    <td className="px-3 py-2 truncate" title={b.generatedByName || ''}>{orDash(b.generatedByName)}</td>
+                    <td className="px-3 py-2 text-gray-600">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <button type="button" onClick={() => setViewQRModal({ visible: true, batch: b })} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 mr-1">
+                        <FontAwesomeIcon icon={faEye} /> View
+                      </button>
+                      <button type="button" onClick={() => handleDownloadClick(b)} disabled={isDownloading && downloadingBatch === b.id}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+                        <FontAwesomeIcon icon={isDownloading && downloadingBatch === b.id ? faSpinner : faDownload} className={isDownloading && downloadingBatch === b.id ? 'animate-spin' : ''} /> QR
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {generatedBatches.map((batch) => {
-                    // Format the date
-                    const formattedDate = new Date(batch.createdAt).toLocaleString();
-                    
-                    // Get color for trash type using Tailwind classes
-                    const getTrashTypeColor = (type) => {
-                      switch(type) {
-                        case 'Organic': return 'bg-green-100 text-green-800';
-                        case 'Recyclable': return 'bg-blue-100 text-blue-800';
-                        case 'Hazardous': return 'bg-red-100 text-red-800';
-                        case 'General': return 'bg-gray-800 text-white';
-                        default: return 'bg-gray-100 text-gray-800';
-                      }
-                    };
-                    
-                    return (
-                      <tr key={batch.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTrashTypeColor(batch.type)}`}>
-                            {batch.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.size}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.quantity}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {batch.total_batch_price != null ? `₵${parseFloat(batch.total_batch_price).toFixed(2)}` : '—'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {batch.unit_price != null ? `₵${parseFloat(batch.unit_price).toFixed(2)}` : '—'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formattedDate}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleViewQRCode(batch)}
-                              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                              title="View QR Code"
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                              <span>View</span>
-                            </button>
-                            <button
-                              onClick={() => handleDownloadClick(batch)}
-                              disabled={isDownloading && downloadingBatch === batch.id}
-                              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              title="Download QR Code"
-                            >
-                              <FontAwesomeIcon 
-                                icon={isDownloading && downloadingBatch === batch.id ? faSpinner : faDownload} 
-                                className={isDownloading && downloadingBatch === batch.id ? 'animate-spin' : ''} 
-                              />
-                              <span>Download</span>
-                            </button>
-                          </div>
-                        </td>
-                        </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
-        
-        {/* Hidden QR codes for download - ONE per batch */}
-        {generatedBatches.length > 0 && (
-          <div style={{ display: 'none' }}>
-            {generatedBatches.map((batch) => renderQRCode(batch))}
-          </div>
-        )}
+        {/* Hidden batch QR codes used by Download (the QR holds the batch id) */}
+        <div style={{ display: 'none' }}>
+          {(recent || []).map(b => (
+            <div key={`qrcode-${b.id}`} id={`qrcode-${b.id}`}>
+              <QRCodeSVG value={b.id} size={256} level="H" includeMargin fgColor="#000000" bgColor="#ffffff" />
+            </div>
+          ))}
+        </div>
       </div>
-      
-      {/* QR Code Viewer Modal */}
+
+      {/* QR code viewer */}
       {viewQRModal.visible && viewQRModal.batch && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setViewQRModal({ visible: false, batch: null })}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Batch QR code" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-2xl font-semibold text-gray-900">
-                Batch QR Code
-              </h3>
-              <button
-                onClick={closeQRViewer}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                title="Close"
-              >
+              <h3 className="text-2xl font-semibold text-gray-900">Batch QR Code</h3>
+              <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-gray-400 hover:text-gray-600" title="Close" aria-label="Close">
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
             </div>
-            
-            {/* Modal Body */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* QR Code Display */}
-                <div className="flex flex-col items-center">
-                  <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm">
-                    <QRCodeSVG
-                      value={viewQRModal.batch.batchQRCode || viewQRModal.batch.id}
-                      size={300}
-                      level="H"
-                      includeMargin={true}
-                      fgColor="#000000"
-                      bgColor="#ffffff"
-                    />
-                  </div>
-                  <p className="mt-4 text-sm text-gray-600 text-center">
-                    Scan this QR code with the TrashDrop mobile app
-                  </p>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col items-center">
+                <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm">
+                  <QRCodeSVG value={viewQRModal.batch.id} size={260} level="H" includeMargin fgColor="#000000" bgColor="#ffffff" />
                 </div>
-                
-                {/* Batch Information */}
-                <div className="flex flex-col justify-center">
-                  <h4 className="text-lg font-semibold mb-4 text-gray-800">Batch Details</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Batch ID:</span>
-                      <span className="text-gray-900 text-sm font-mono">{viewQRModal.batch.id?.slice(0, 8)}...</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Batch Number:</span>
-                      <span className="text-gray-900">{viewQRModal.batch.batch_number || viewQRModal.batch.batchNumber || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Type:</span>
-                      <span className="text-gray-900">{viewQRModal.batch.type || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Size:</span>
-                      <span className="text-gray-900">{viewQRModal.batch.size || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Total Bags:</span>
-                      <span className="text-gray-900 font-semibold">{viewQRModal.batch.bag_count || viewQRModal.batch.quantity || 0}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Batch Price:</span>
-                      <span className="text-gray-900 font-semibold">
-                        {viewQRModal.batch.total_batch_price != null ? `₵${parseFloat(viewQRModal.batch.total_batch_price).toFixed(2)}` : '—'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="text-gray-600 font-medium">Unit Price:</span>
-                      <span className="text-green-700 font-semibold">
-                        {viewQRModal.batch.unit_price != null ? `₵${parseFloat(viewQRModal.batch.unit_price).toFixed(2)}` : '—'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 font-medium">Created:</span>
-                      <span className="text-gray-900 text-sm">{new Date(viewQRModal.batch.createdAt || viewQRModal.batch.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="mt-6 space-y-3">
-                    <button
-                      onClick={() => {
-                        handleDownloadClick(viewQRModal.batch);
-                        closeQRViewer();
-                      }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      <FontAwesomeIcon icon={faDownload} />
-                      <span>Download QR Code</span>
-                    </button>
-                    <button
-                      onClick={closeQRViewer}
-                      className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
+                <p className="mt-4 text-sm text-gray-600 text-center">Scan this QR code with the TrashDrop mobile app</p>
               </div>
+              <dl className="text-sm space-y-2">
+                {[
+                  ['Batch ID', <CopyId id={viewQRModal.batch.id} />],
+                  ['Batch number', orDash(viewQRModal.batch.batchNumber)],
+                  ['Type', orDash(viewQRModal.batch.type)],
+                  ['Size', orDash(viewQRModal.batch.size)],
+                  ['QR prefix', <span className="font-mono">{orDash(viewQRModal.batch.qrPrefix)}</span>],
+                  ['Bags', viewQRModal.batch.bagCount],
+                  ['Price per batch', formatCedis(viewQRModal.batch.totalBatchPrice)],
+                  ['Price per bag', formatCedis(viewQRModal.batch.unitPrice)],
+                  ['Created by', orDash(viewQRModal.batch.generatedByName)],
+                  ['Created', viewQRModal.batch.createdAt ? new Date(viewQRModal.batch.createdAt).toLocaleString('en-GB') : '—'],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-3 border-b border-gray-200 pb-2"><dt className="text-gray-600">{k}</dt><dd className="text-gray-900 text-right">{v}</dd></div>
+                ))}
+                <div className="pt-3 space-y-2">
+                  <button onClick={() => { handleDownloadClick(viewQRModal.batch); setViewQRModal({ visible: false, batch: null }); }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    <FontAwesomeIcon icon={faDownload} /> Download QR Code
+                  </button>
+                  <Link to={`/bin-management/manage?batch=${viewQRModal.batch.id}`} className="block text-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Open in Bag Management
+                  </Link>
+                </div>
+              </dl>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-
-
-
-
 };
 
 export default GenerateBag;
