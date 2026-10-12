@@ -1,0 +1,77 @@
+/**
+ * Bag Management data: batches and bags with their worked-out step
+ * (views admin_bag_batches / admin_bag_items), the cards (admin_bag_stats)
+ * and archive / restore. Everything is filtered, sorted and paged in the
+ * database. See supabase/migrations/20261019_bag_batches_admin.sql.
+ */
+import { supabase } from '../utils/supabase';
+import { logFailure } from './auditLogService';
+import { normalizeBatch, normalizeBag, cleanBatchSearch, dateBounds } from '../utils/bagUtils';
+
+const MIGRATION = 'supabase/migrations/20261019_bag_batches_admin.sql';
+
+const isMissingSchema = (error) => ['42P01', '42883', 'PGRST202', 'PGRST205'].includes(error?.code)
+  || /does not exist|could not find/i.test(error?.message || '');
+
+const fail = (error, what) => {
+  if (isMissingSchema(error)) {
+    const e = new Error(`${what}: the database is missing the Bag Management update. Run ${MIGRATION} in Supabase.`);
+    e.code = 'MISSING_SCHEMA';
+    return e;
+  }
+  return new Error(`${what}: ${error?.message || 'unknown error'}`);
+};
+
+const applyBatchFilters = (query, f) => {
+  if (!f.stage) query = query.neq('stage', 'archived');
+  else query = query.eq('stage', f.stage);
+  const q = cleanBatchSearch(f.q);
+  if (q) query = query.ilike('search_text', `%${q}%`);
+  const { from, to } = dateBounds(f);
+  if (from) query = query.gte('created_at', from);
+  if (to) query = query.lt('created_at', to);
+  return query;
+};
+
+/** One page of batches for the filters (q, stage, from, to, sort, dir, page, size) */
+export const fetchBatchPage = async (f) => {
+  const size = f.size || 10;
+  const start = (Math.max(1, f.page || 1) - 1) * size;
+  const { data, error, count } = await applyBatchFilters(supabase.from('admin_bag_batches').select('*', { count: 'exact' }), f)
+    .order(f.sort || 'created_at', { ascending: f.dir === 'asc', nullsFirst: false })
+    .order('id', { ascending: true })
+    .range(start, start + size - 1);
+  if (error) throw fail(error, 'Could not load batches');
+  return { rows: (data || []).map(normalizeBatch), total: count || 0 };
+};
+
+export const fetchBatch = async (id) => {
+  const { data, error } = await supabase.from('admin_bag_batches').select('*').eq('id', id).maybeSingle();
+  if (error) throw fail(error, 'Could not load the batch');
+  return data ? normalizeBatch(data) : null;
+};
+
+/** One page of a batch's bags, in bag-number order */
+export const fetchBatchBags = async (batchId, { page = 1, size = 10 } = {}) => {
+  const start = (Math.max(1, page) - 1) * size;
+  const { data, error, count } = await supabase.from('admin_bag_items').select('*', { count: 'exact' })
+    .eq('batch_id', batchId).order('bag_no', { ascending: true }).range(start, start + size - 1);
+  if (error) throw fail(error, 'Could not load the bags');
+  return { rows: (data || []).map(normalizeBag), total: count || 0 };
+};
+
+/** Numbers for the Live Bag Requests and Performance cards */
+export const fetchBagStats = async () => {
+  const { data, error } = await supabase.rpc('admin_bag_stats');
+  if (error) throw fail(error, 'Could not load bag numbers');
+  return data || {};
+};
+
+/** Archive (hide) or restore a batch. Does not change the household app's status. */
+export const setBatchArchived = async (batchId, archived) => {
+  const { error } = await supabase.rpc('admin_set_batch_archived', { p_batch_id: batchId, p_archived: archived });
+  if (error) {
+    logFailure('batch.update_failed', { source: 'bags', entityType: 'batch', entityId: batchId, error, context: { operation: archived ? 'archive' : 'restore' } });
+    throw fail(error, archived ? 'Batch not archived' : 'Batch not restored');
+  }
+};

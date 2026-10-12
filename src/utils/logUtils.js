@@ -65,7 +65,7 @@ const FIELD_LABELS = {
   first_name: 'First name', last_name: 'Last name', email: 'Email', phone: 'Phone', assigned_region: 'Service zone',
   vehicle_type: 'Vehicle type', license_plate: 'Registration', vehicle_plate: 'Registration (old field)',
   vehicle_capacity_bags: 'Capacity (bags)', notes: 'Notes', deactivation_reason: 'Deactivation reason', user_id: 'App account',
-  cancellation_reason: 'Cancellation reason', note: 'Note', fee: 'Fee (GHS)', location: 'Location (lat, lng)', address: 'Address',
+  cancellation_reason: 'Cancellation reason', note: 'Note', archived: 'Archived', fee: 'Fee (GHS)', location: 'Location (lat, lng)', address: 'Address',
 };
 export const fieldLabel = (k) => FIELD_LABELS[k] || k.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase());
 
@@ -93,6 +93,7 @@ export const recordLink = (entityType, entityId) => {
     case 'pickup_request': return `/request-pickup/requests?q=${id}&open=${id}`;
     case 'collector': return `/request-pickup/collectors?q=${id}&open=${id}`;
     case 'alert': return `/request-pickup/alerts?alert=${id}`;
+    case 'batch': return `/bin-management/manage?batch=${id}`;
     default: return null;
   }
 };

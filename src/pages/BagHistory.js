@@ -7,6 +7,8 @@ import {
   fetchCollectorStatsReal,
   fetchPerformanceStatsReal
 } from '../utils/databaseUtils';
+import { BATCH_STAGE_FILTERS } from '../constants/bagStatus';
+import { orDash } from '../utils/bagUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCalendar, faHistory, faChartLine, faBoxOpen, faRecycle, faMapMarkerAlt, faUser, faQrcode } from '@fortawesome/free-solid-svg-icons';
 
@@ -590,10 +592,8 @@ const BagHistory = () => {
             value={filterStatus}
             onChange={handleStatusChange}
           >
-            <option value="All">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Completed">Completed</option>
+            <option value="All">All (not archived)</option>
+            {BATCH_STAGE_FILTERS.map(st => <option key={st.key} value={st.key}>{st.label}</option>)}
           </select>
         </div>
         
@@ -756,7 +756,7 @@ const BagHistory = () => {
                         setSortDirection(sortField === 'scanned' && sortDirection === 'asc' ? 'desc' : 'asc');
                       }}
                     >
-                      Bags Scanned
+                      <span title="Bags households have asked a pickup for">Bags Used</span>
                       {sortField === 'scanned' && (
                         <span className="ml-1">
                           {sortDirection === 'asc' ? '▲' : '▼'}
@@ -800,17 +800,17 @@ const BagHistory = () => {
                       };
                       
                       // Calculate scan percentage
-                      const scanPercentage = (batch.scanned / (batch.bag_count || batch.quantity)) * 100;
+                      const scanPercentage = (batch.bag_count || batch.quantity) ? (batch.scanned / (batch.bag_count || batch.quantity)) * 100 : 0;
                       
                       return (
                         <tr key={batch.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{batch.id}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTrashTypeColor(batch.type)}`}>
-                              {batch.type}
+                              {orDash(batch.type)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.size}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{orDash(batch.size)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.bag_count || batch.quantity}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(batch.createdAt).toLocaleDateString()}
