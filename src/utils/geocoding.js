@@ -96,6 +96,25 @@ export const reverseGeocodeWithCache = async (lat, lng) => {
 };
 
 /**
+ * Address search in Ghana (OpenStreetMap Nominatim, same provider as reverseGeocode)
+ * @param {string} query
+ * @returns {Promise<Array<{ label: string, lat: number, lng: number }>>}
+ */
+export const searchAddress = async (query) => {
+  const q = String(query || '').trim();
+  if (q.length < 3) return [];
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=gh&format=json&limit=6&addressdetails=0`,
+    { headers: { 'Accept-Language': 'en' } }
+  );
+  if (!response.ok) throw new Error(`Address search failed (${response.status})`);
+  const data = await response.json();
+  return (Array.isArray(data) ? data : [])
+    .map(d => ({ label: d.display_name, lat: Number(d.lat), lng: Number(d.lon) }))
+    .filter(d => Number.isFinite(d.lat) && Number.isFinite(d.lng));
+};
+
+/**
  * Format coordinates for display
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude

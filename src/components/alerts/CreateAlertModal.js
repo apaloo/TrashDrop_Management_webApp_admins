@@ -1,243 +1,105 @@
-import React, { useState } from 'react';
-import { STATUS, PRIORITY } from '../../config/constants';
+import React, { useEffect, useState } from 'react';
+import { card, input, muted, border } from '../pickupRequests/theme';
+import { ALERT_PRIORITIES, ALERT_TYPES, ENTITY_TYPES } from '../../constants/alerts';
+import RecordPicker from './RecordPicker';
+import LocationPicker from './LocationPicker';
 
-const CreateAlertModal = ({ onClose, onCreateAlert }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: PRIORITY.MEDIUM,
-    relatedToType: 'system',
-    relatedToId: '',
-    relatedToLocation: '',
-    assignedTo: ''
-  });
-  
-  const [formErrors, setFormErrors] = useState({});
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear validation error when field is updated
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
+const EMPTY = { title: '', description: '', type: 'system', priority: 'medium', entityType: 'system', entity: null, assignedTo: '', location: null };
+
+/** New alert by hand. Related record: searchable picker; location: address search or map. */
+const CreateAlertModal = ({ requests, collectors, zones, staff, busy, error, onCreate, onClose }) => {
+  const [form, setForm] = useState(EMPTY);
+  const [errors, setErrors] = useState({});
+  const set = (patch) => setForm(f => ({ ...f, ...patch }));
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, onClose]);
+
+  const changeEntityType = (entityType) => {
+    // Keep the type in step with what the alert is about
+    const typeFits = ALERT_TYPES.find(t => t.key === form.type)?.entity === entityType;
+    set({ entityType, entity: null, type: typeFits ? form.type : (ALERT_TYPES.find(t => t.entity === entityType)?.key || 'system') });
   };
-  
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!formData.title.trim()) {
-      errors.title = 'Title is required';
-    }
-    
-    if (!formData.description.trim()) {
-      errors.description = 'Description is required';
-    }
-    
-    if (!formData.relatedToId.trim() && formData.relatedToType !== 'system') {
-      errors.relatedToId = 'ID is required for the selected entity type';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+
+  const submit = (e) => {
+    e.preventDefault();
+    const errs = {};
+    if (!form.title.trim()) errs.title = 'Enter a title';
+    if (form.entityType !== 'system' && !form.entity) errs.entity = 'Pick the record this alert is about';
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    onCreate({ ...form, entity: form.entityType === 'system' ? null : form.entity });
   };
-  
-  const handleSubmit = () => {
-    if (!validateForm()) return;
-    
-    const newAlert = {
-      id: `alert-${Date.now()}`,
-      title: formData.title,
-      description: formData.description,
-      status: 'open',
-      priority: formData.priority,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      relatedTo: {
-        type: formData.relatedToType,
-        id: formData.relatedToId || `auto-${Date.now()}`,
-        location: formData.relatedToLocation || null
-      },
-      assignedTo: formData.assignedTo || null,
-      comments: []
-    };
-    
-    onCreateAlert(newAlert);
-    onClose();
-  };
-  
+
+  const types = ALERT_TYPES.filter(t => form.entityType === 'system' || t.entity === form.entityType || t.key === 'system');
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="border-b p-4 flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900">Create New Alert</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 transition-colors"
-          >
-            <i className="fas fa-times"></i>
-          </button>
+    <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={() => !busy && onClose()}>
+      <form onSubmit={submit} noValidate className="rounded-lg shadow-xl w-full max-w-2xl max-h-[94vh] overflow-y-auto border" style={card}
+        role="dialog" aria-modal="true" aria-labelledby="create-alert-title" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-center" style={{ ...card, ...border }}>
+          <h2 id="create-alert-title" className="font-semibold">Create alert</h2>
+          <button type="button" onClick={onClose} disabled={busy} className="ml-auto text-xl leading-none" style={muted} aria-label="Close">&times;</button>
         </div>
-        
-        <div className="p-6">
-          <div className="space-y-4">
-            {/* Title */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Alert Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                className={`w-full p-2 border rounded-md ${formErrors.title ? 'border-red-500' : ''}`}
-                placeholder="Enter alert title"
-                value={formData.title}
-                onChange={handleChange}
-              />
-              {formErrors.title && (
-                <p className="mt-1 text-sm text-red-500">{formErrors.title}</p>
-              )}
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          {error && <p className="sm:col-span-2 rounded border border-red-300 bg-red-50 text-red-800 p-3" role="alert">{error}</p>}
+          <label className="sm:col-span-2">
+            <span className="block font-medium mb-1">Title <span className="text-red-500">*</span></span>
+            <input value={form.title} onChange={e => set({ title: e.target.value })} className="w-full border rounded px-3 py-2" style={input} aria-invalid={!!errors.title} />
+            {errors.title && <span className="text-xs text-red-600">{errors.title}</span>}
+          </label>
+          <label className="sm:col-span-2">
+            <span className="block font-medium mb-1">Description</span>
+            <textarea rows="3" value={form.description} onChange={e => set({ description: e.target.value })} className="w-full border rounded px-3 py-2" style={input} />
+          </label>
+          <label>
+            <span className="block font-medium mb-1">Related to</span>
+            <select value={form.entityType} onChange={e => changeEntityType(e.target.value)} className="w-full border rounded px-2 py-2" style={input}>
+              {ENTITY_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="block font-medium mb-1">Type</span>
+            <select value={form.type} onChange={e => set({ type: e.target.value })} className="w-full border rounded px-2 py-2" style={input}>
+              {types.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </label>
+          {form.entityType !== 'system' && (
+            <div className="sm:col-span-2">
+              <span className="block font-medium mb-1">{ENTITY_TYPES.find(t => t.key === form.entityType).label} <span className="text-red-500">*</span></span>
+              <RecordPicker kind={form.entityType} value={form.entity} onChange={entity => set({ entity })}
+                requests={requests} collectors={collectors} zones={zones} />
+              {errors.entity && <span className="text-xs text-red-600">{errors.entity}</span>}
             </div>
-            
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                rows="3"
-                className={`w-full p-2 border rounded-md ${formErrors.description ? 'border-red-500' : ''}`}
-                placeholder="Describe the alert"
-                value={formData.description}
-                onChange={handleChange}
-              ></textarea>
-              {formErrors.description && (
-                <p className="mt-1 text-sm text-red-500">{formErrors.description}</p>
-              )}
-            </div>
-            
-            {/* Priority */}
-            <div>
-              <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <select
-                id="priority"
-                name="priority"
-                className="w-full p-2 border rounded-md"
-                value={formData.priority}
-                onChange={handleChange}
-              >
-                <option value={PRIORITY.CRITICAL}>Critical</option>
-                <option value={PRIORITY.HIGH}>High</option>
-                <option value={PRIORITY.MEDIUM}>Medium</option>
-                <option value={PRIORITY.LOW}>Low</option>
-              </select>
-            </div>
-            
-            {/* Related Entity Type */}
-            <div>
-              <label htmlFor="relatedToType" className="block text-sm font-medium text-gray-700 mb-1">
-                Related To
-              </label>
-              <select
-                id="relatedToType"
-                name="relatedToType"
-                className="w-full p-2 border rounded-md"
-                value={formData.relatedToType}
-                onChange={handleChange}
-              >
-                <option value="pickup_request">Pickup Request</option>
-                <option value="collector">Collector</option>
-                <option value="region">Region</option>
-                <option value="system">System</option>
-              </select>
-            </div>
-            
-            {/* Entity ID */}
-            {formData.relatedToType !== 'system' && (
-              <div>
-                <label htmlFor="relatedToId" className="block text-sm font-medium text-gray-700 mb-1">
-                  {formData.relatedToType.charAt(0).toUpperCase() + formData.relatedToType.slice(1).replace('_', ' ')} ID
-                  {formData.relatedToType !== 'system' && <span className="text-red-500">*</span>}
-                </label>
-                <input
-                  type="text"
-                  id="relatedToId"
-                  name="relatedToId"
-                  className={`w-full p-2 border rounded-md ${formErrors.relatedToId ? 'border-red-500' : ''}`}
-                  placeholder={`Enter ${formData.relatedToType} ID`}
-                  value={formData.relatedToId}
-                  onChange={handleChange}
-                />
-                {formErrors.relatedToId && (
-                  <p className="mt-1 text-sm text-red-500">{formErrors.relatedToId}</p>
-                )}
-              </div>
-            )}
-            
-            {/* Location */}
-            <div>
-              <label htmlFor="relatedToLocation" className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
-                type="text"
-                id="relatedToLocation"
-                name="relatedToLocation"
-                className="w-full p-2 border rounded-md"
-                placeholder="Location (optional)"
-                value={formData.relatedToLocation}
-                onChange={handleChange}
-              />
-            </div>
-            
-            {/* Assigned To */}
-            <div>
-              <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-1">
-                Assign To
-              </label>
-              <select
-                id="assignedTo"
-                name="assignedTo"
-                className="w-full p-2 border rounded-md"
-                value={formData.assignedTo}
-                onChange={handleChange}
-              >
-                <option value="">Not assigned</option>
-                <option value="admin@trashdrop.com">Admin</option>
-                <option value="support@trashdrop.com">Support Team</option>
-                <option value="operations@trashdrop.com">Operations</option>
-              </select>
-            </div>
+          )}
+          <label>
+            <span className="block font-medium mb-1">Priority</span>
+            <select value={form.priority} onChange={e => set({ priority: e.target.value })} className="w-full border rounded px-2 py-2" style={input}>
+              {ALERT_PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="block font-medium mb-1">Assign to</span>
+            <select value={form.assignedTo} onChange={e => set({ assignedTo: e.target.value })} className="w-full border rounded px-2 py-2" style={input}>
+              <option value="">Unassigned</option>
+              {staff.filter(u => u.id).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+          </label>
+          <div className="sm:col-span-2">
+            <span className="block font-medium mb-1">Location <span className="font-normal" style={muted}>(optional)</span></span>
+            <LocationPicker value={form.location} onChange={location => set({ location })} />
           </div>
         </div>
-        
-        <div className="border-t p-4 bg-gray-50 flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            onClick={handleSubmit}
-          >
-            Create Alert
+        <div className="sticky bottom-0 border-t px-5 py-3 flex justify-end gap-2" style={{ ...card, ...border }}>
+          <button type="button" className="px-4 py-2 rounded text-sm border" style={{ ...border, ...muted }} onClick={onClose} disabled={busy}>Cancel</button>
+          <button type="submit" disabled={busy} className="px-4 py-2 rounded text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50">
+            {busy ? 'Creating…' : 'Create alert'}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

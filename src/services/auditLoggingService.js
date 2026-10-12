@@ -1,20 +1,18 @@
 /**
  * Audit & Logging Service
  * 
- * Comprehensive audit trail and logging system for all admin portal activities.
- * Handles user actions, system events, data changes, and compliance reporting.
+ * Thin wrapper kept for systemInit and older callers. Every entry goes to
+ * public.logs through logAudit() (src/services/auditLogService.js); the old
+ * separate audit_logs table, batching and search were removed.
  */
 
-import { supabaseAdmin } from '../utils/supabase';
+import { logAudit } from './auditLogService';
 import { performanceMonitor } from './performanceMonitor';
 
 class AuditLoggingService {
   constructor() {
     this.cache = new Map();
     this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
-    this.batchSize = 50;
-    this.pendingLogs = [];
-    this.flushInterval = null;
     this.isInitialized = false;
     
     // Log levels and categories
@@ -49,11 +47,6 @@ class AuditLoggingService {
   async initialize() {
     try {
       if (this.isInitialized) return { success: true };
-
-      // Start batch flush interval
-      this.flushInterval = setInterval(() => {
-        this.flushPendingLogs();
-      }, 5000); // Flush every 5 seconds
 
       this.isInitialized = true;
       performanceMonitor.recordMetric('audit_logging_service_init', Date.now(), 'success');
@@ -130,183 +123,17 @@ class AuditLoggingService {
    * Create log entry
    */
   async createLog(logData) {
-    try {
-      const logEntry = {
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        level: logData.level || 'INFO',
-        category: logData.category || 'system_event',
-        action: logData.action,
-        details: logData.details || {},
-        user_id: logData.user_id || this.getCurrentUserId(),
-        session_id: logData.session_id || this.getCurrentSessionId(),
-        ip_address: logData.ip_address || this.getCurrentIP(),
-        user_agent: logData.user_agent || navigator.userAgent,
-        source: 'admin_portal',
-        requires_retention: logData.requires_retention || false,
-        requires_immediate_attention: logData.requires_immediate_attention || false
-      };
-
-      // Add to pending batch
-      this.pendingLogs.push(logEntry);
-
-      // Flush immediately for critical logs
-      if (logData.level === 'CRITICAL' || logData.requires_immediate_attention) {
-        await this.flushPendingLogs();
-      }
-
-      return { success: true, id: logEntry.id };
-    } catch (error) {
-      console.error('Error creating log entry:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * Flush pending logs to database
-   */
-  async flushPendingLogs() {
-    if (this.pendingLogs.length === 0) return;
-
-    try {
-      const logsToFlush = [...this.pendingLogs];
-      this.pendingLogs = [];
-
-      const { error } = await supabaseAdmin
-        .from('audit_logs')
-        .insert(logsToFlush);
-
-      if (error) {
-        // Re-add logs to pending if flush failed
-        this.pendingLogs.unshift(...logsToFlush);
-        throw error;
-      }
-
-      performanceMonitor.recordMetric('audit_logs_batch_flush', Date.now(), 'success', logsToFlush.length);
-    } catch (error) {
-      console.error('Error flushing pending logs:', error);
-    }
-  }
-
-  /**
-   * Search audit logs
-   */
-  async searchLogs(options = {}) {
-    const startTime = Date.now();
-
-    try {
-      const {
-        page = 1,
-        limit = 50,
-        level,
-        category,
-        action,
-        userId,
-        dateFrom,
-        dateTo,
-        search,
-        sortBy = 'timestamp',
-        sortDirection = 'desc'
-      } = options;
-
-      let query = supabaseAdmin
-        .from('audit_logs')
-        .select(`
-          *,
-          user:users(first_name, last_name, email)
-        `, { count: 'exact' });
-
-      // Apply filters
-      if (level) query = query.eq('level', level);
-      if (category) query = query.eq('category', category);
-      if (action) query = query.ilike('action', `%${action}%`);
-      if (userId) query = query.eq('user_id', userId);
-      if (dateFrom) query = query.gte('timestamp', dateFrom);
-      if (dateTo) query = query.lte('timestamp', dateTo);
-
-      // Search functionality
-      if (search) {
-        query = query.or(`
-          action.ilike.%${search}%,
-          details->>message.ilike.%${search}%,
-          details->>description.ilike.%${search}%
-        `);
-      }
-
-      // Sorting and pagination
-      const from = (page - 1) * limit;
-      query = query
-        .order(sortBy, { ascending: sortDirection === 'asc' })
-        .range(from, from + limit - 1);
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-
-      performanceMonitor.recordMetric('audit_logs_search', Date.now() - startTime, 'success');
-
-      return {
-        success: true,
-        data,
-        totalCount: count,
-        page,
-        limit,
-        totalPages: Math.ceil(count / limit)
-      };
-    } catch (error) {
-      console.error('Error searching audit logs:', error);
-      performanceMonitor.recordMetric('audit_logs_search', Date.now() - startTime, 'error');
-      return { success: false, error: this.formatUserError(error) };
-    }
-  }
-
-  /**
-   * Generate compliance report
-   */
-  async generateComplianceReport(options = {}) {
-    const startTime = Date.now();
-
-    try {
-      const {
-        dateFrom,
-        dateTo,
-        includeCategories = ['data_change', 'security', 'auth_event'],
-        format = 'json'
-      } = options;
-
-      const { data, error } = await supabaseAdmin.rpc('generate_compliance_report', {
-        start_date: dateFrom,
-        end_date: dateTo,
-        categories: includeCategories,
-        report_format: format
-      });
-
-      if (error) throw error;
-
-      performanceMonitor.recordMetric('audit_compliance_report', Date.now() - startTime, 'success');
-
-      return { success: true, data };
-    } catch (error) {
-      console.error('Error generating compliance report:', error);
-      return { success: false, error: this.formatUserError(error) };
-    }
-  }
-
-  /**
-   * Get audit statistics
-   */
-  async getAuditStatistics(timeRange = '24h') {
-    try {
-      const { data, error } = await supabaseAdmin.rpc('get_audit_statistics', {
-        time_range: timeRange
-      });
-
-      if (error) throw error;
-
-      return { success: true, data };
-    } catch (error) {
-      console.error('Error fetching audit statistics:', error);
-      return { success: false, error: this.formatUserError(error) };
-    }
+    // One audit trail: everything goes to public.logs through logAudit()
+    // (this service used to batch into a separate audit_logs table).
+    const slug = String(logData.action || logData.category || 'event').toLowerCase().replace(/[^a-z]+/g, '_').replace(/^_|_$/g, '') || 'event';
+    const id = await logAudit({
+      level: String(logData.level || 'info').toLowerCase() === 'audit' ? 'info' : String(logData.level || 'info').toLowerCase(),
+      source: 'system',
+      action: `system.${slug}`,
+      message: logData.message || logData.action || 'System event',
+      metadata: { category: logData.category || null, ...(logData.details || {}) },
+    });
+    return id ? { success: true, id } : { success: false, error: 'Audit log not written' };
   }
 
   /**
@@ -368,9 +195,7 @@ class AuditLoggingService {
   getHealthStatus() {
     return {
       isInitialized: this.isInitialized,
-      pendingLogCount: this.pendingLogs.length,
       cacheSize: this.cache.size,
-      flushIntervalActive: !!this.flushInterval
     };
   }
 
@@ -379,16 +204,7 @@ class AuditLoggingService {
    */
   async cleanup() {
     try {
-      // Flush any remaining logs
-      await this.flushPendingLogs();
-
-      // Clear flush interval
-      if (this.flushInterval) {
-        clearInterval(this.flushInterval);
-      }
-
       this.cache.clear();
-      this.pendingLogs = [];
       this.isInitialized = false;
 
       return { success: true };

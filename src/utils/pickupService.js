@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
+import { parsePoint, assertSavableCoordinates } from './mapCoordinates';
 
 /**
  * Generate mock pickup requests data for development
@@ -141,40 +142,19 @@ const generateMockPickupRequests = () => [
 export const fetchPickupRequests = async ({ 
   status = null, 
   collectorId = null, 
-  limit = 100 
+  limit = 100,
+  // strict: real data only — errors are thrown instead of returning mock rows,
+  // and a request without coordinates gets lat/lng null instead of Accra's centre
+  strict = false
 } = {}) => {
   try {
     // Normalize status to lowercase to match database values
     const normalizedStatus = status ? status.toLowerCase() : null;
     console.log('fetchPickupRequests called with:', { status, normalizedStatus, collectorId, limit });
 
-    const parsePointString = (value) => {
-      if (!value || typeof value !== 'string') return null;
-      const match = value.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
-      if (!match) return null;
-      const a = Number(match[1]);
-      const b = Number(match[2]);
-      if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-
-      // In PostGIS, POINT(x y) is typically (lng lat).
-      // However, some schemas store it reversed. For the admin portal/live map,
-      // we prefer values that look like a valid (lat,lng) pair for Ghana.
-      // Heuristic: pick the interpretation whose latitude is within [-90,90]
-      // and longitude within [-180,180]; if both are valid, prefer lat=a, lng=b
-      // since the DB screenshot shows POINT(5.67 -0.28) which matches (lat,lng).
-      const asLngLat = { lng: a, lat: b };
-      const asLatLng = { lat: a, lng: b };
-
-      const isValid = (p) =>
-        Number.isFinite(p.lat) &&
-        Number.isFinite(p.lng) &&
-        Math.abs(p.lat) <= 90 &&
-        Math.abs(p.lng) <= 180;
-
-      if (isValid(asLatLng)) return asLatLng;
-      if (isValid(asLngLat)) return asLngLat;
-      return null;
-    };
+    // PostGIS points are (x y) = (lng lat). Swapped data is detected and
+    // reported by the Live Map's coordinate check, not guessed here.
+    const parsePointString = (value) => parsePoint(value);
     
     // Check if both pickup_requests and profiles tables exist before making query
     const pickupTableExists = await safeDatabaseService.checkTableExists('pickup_requests');
@@ -188,6 +168,7 @@ export const fetchPickupRequests = async ({
     });
     
     if (!pickupTableExists) {
+      if (strict) throw new Error('pickup_requests table is not available');
       console.warn('Pickup requests table does not exist, using mock data');
       let mockData = generateMockPickupRequests();
       console.log('Generated mock data:', mockData.length, 'items');
@@ -306,6 +287,7 @@ export const fetchPickupRequests = async ({
     }
     
     if (result.fromFallback) {
+      if (strict) throw result.error || new Error('Could not load pickup requests');
       let mockData = result.data || [];
       
       // Apply filters to mock data with comprehensive null safety
@@ -628,6 +610,7 @@ export const fetchPickupRequests = async ({
     }
 
     if (result.error) {
+      if (strict) throw result.error;
       console.warn('Error fetching pickup requests, using mock data:', result.error);
       let mockData = generateMockPickupRequests();
       
@@ -739,8 +722,8 @@ export const fetchPickupRequests = async ({
                    (request.location ? request.location.address : null) ||
                    (requestor ? requestor.address : null) || // Use profile address as fallback
                    'Unknown Location',
-          lat: (point?.lat ?? locationData.latitude ?? locationData.lat ?? request.latitude ?? (request.location ? request.location.lat : null) ?? 5.6037),
-          lng: (point?.lng ?? locationData.longitude ?? locationData.lng ?? request.longitude ?? (request.location ? request.location.lng : null) ?? -0.1870)
+          lat: (point?.lat ?? locationData.latitude ?? locationData.lat ?? request.latitude ?? (request.location ? request.location.lat : null) ?? (strict ? null : 5.6037)),
+          lng: (point?.lng ?? locationData.longitude ?? locationData.lng ?? request.longitude ?? (request.location ? request.location.lng : null) ?? (strict ? null : -0.1870))
         };
         
         // Transform the request to match the expected format with safe property access
@@ -783,6 +766,7 @@ export const fetchPickupRequests = async ({
     return transformedData;
     
   } catch (error) {
+    if (strict) throw error;
     console.error('Error in fetchPickupRequests:', error);
     let mockData = generateMockPickupRequests();
     
@@ -846,6 +830,9 @@ export const updatePickupStatus = async (requestId, updateData = {}) => {
   }
   
   console.log(`Updating pickup request ${requestId} with data:`, updateData);
+
+  // Never save a location at 0,0 or outside Ghana
+  assertSavableCoordinates(updateData);
   
   try {
     // Extract common parameters

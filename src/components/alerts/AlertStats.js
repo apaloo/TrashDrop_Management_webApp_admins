@@ -1,144 +1,63 @@
-import React, { useMemo } from 'react';
+import React from 'react';
+import { card, muted, border } from '../pickupRequests/theme';
+import { alertType } from '../../constants/alerts';
 
-const AlertStats = ({ alerts }) => {
-  const stats = useMemo(() => {
-    return {
-      total: alerts.length,
-      open: alerts.filter(alert => alert.status === 'open').length,
-      resolved: alerts.filter(alert => alert.status === 'resolved').length,
-      critical: alerts.filter(alert => alert.priority === 'critical' && alert.status === 'open').length,
-      high: alerts.filter(alert => alert.priority === 'high' && alert.status === 'open').length,
-      medium: alerts.filter(alert => alert.priority === 'medium' && alert.status === 'open').length,
-      low: alerts.filter(alert => alert.priority === 'low' && alert.status === 'open').length,
-      byType: {
-        pickup_request: alerts.filter(alert => alert.relatedTo?.type === 'pickup_request').length,
-        collector: alerts.filter(alert => alert.relatedTo?.type === 'collector').length,
-        system: alerts.filter(alert => alert.relatedTo?.type === 'system').length,
-        region: alerts.filter(alert => alert.relatedTo?.type === 'region').length,
-      }
-    };
-  }, [alerts]);
+const Card = ({ label, value, sub, accent, onClick, active, testId }) => (
+  <button type="button" onClick={onClick} aria-pressed={!!active}
+    className={`text-left rounded-lg border px-4 py-3 transition-shadow hover:shadow flex flex-col justify-between min-h-[96px] ${active ? 'ring-2 ring-green-500' : ''}`} style={card}>
+    <p className="text-xs flex items-center gap-1.5" style={muted}>
+      {accent && <span className="w-2 h-2 rounded-full" style={{ background: accent }} aria-hidden="true"></span>}{label}
+    </p>
+    <p className="text-2xl font-bold leading-tight" data-testid={testId}>{value}</p>
+    {sub && <p className="text-xs" style={muted}>{sub}</p>}
+  </button>
+);
 
+/**
+ * Four cards (2 × 2) beside "Alerts by type", so the block has no gaps.
+ * Counts are over every alert; the type list also shows how many are still open.
+ */
+const AlertStats = ({ stats, filters, setFilters, autoResolved = 0 }) => {
+  const s = stats.byStatus;
+  const maxType = Math.max(1, ...stats.types.map(t => t.total));
   return (
-    <div className="mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {/* Total Alerts */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 mr-3 bg-gray-100">
-              <i className="fas fa-bell text-gray-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Alerts</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            {stats.open} Open • {stats.resolved} Resolved
-          </div>
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card label="Total alerts" value={stats.total} testId="stat-total"
+          sub={`${s.open} open · ${s.acknowledged} acknowledged · ${s.in_progress} in progress · ${s.resolved} resolved · ${s.closed} closed`}
+          onClick={() => setFilters({ status: 'all', priority: 'all', type: 'all' })} active={filters.status === 'all' && filters.priority === 'all' && filters.type === 'all'} />
+        <Card label="Needs attention" value={stats.active} accent="#DC2626" testId="stat-active"
+          sub="Open, acknowledged or in progress" onClick={() => setFilters({ status: 'active', priority: 'all' })} active={filters.status === 'active' && filters.priority === 'all'} />
+        <Card label="Critical / High open" value={stats.openByPriority.critical + stats.openByPriority.high} accent="#EA580C" testId="stat-urgent"
+          sub={`${stats.openByPriority.critical} critical · ${stats.openByPriority.high} high · ${stats.openByPriority.medium} medium · ${stats.openByPriority.low} low`}
+          onClick={() => setFilters({ status: 'active', priority: 'critical' })} active={filters.status === 'active' && filters.priority === 'critical'} />
+        <Card label="Resolved or closed" value={s.resolved + s.closed} accent="#16A34A" testId="stat-done"
+          sub={`${autoResolved} resolved automatically by rules`} onClick={() => setFilters({ status: 'resolved', priority: 'all' })} active={filters.status === 'resolved'} />
+      </div>
 
-        {/* Critical Alerts */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(220, 53, 69, 0.1)' }}>
-              <i className="fas fa-exclamation-circle text-red-600"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Critical</p>
-              <p className="text-2xl font-bold">{stats.critical}</p>
-            </div>
-          </div>
-          <div className="mt-2 text-xs">
-            <span className={stats.critical > 0 ? "text-red-600" : "text-gray-500"}>
-              {stats.critical > 0 ? 'Needs immediate attention' : 'No critical alerts'}
-            </span>
-          </div>
+      <div className="rounded-lg border px-4 py-3 flex flex-col" style={card}>
+        <div className="flex items-baseline justify-between mb-2">
+          <h2 className="font-semibold text-sm">Alerts by type</h2>
+          <span className="text-[11px]" style={muted}>all alerts · open in brackets</span>
         </div>
-
-        {/* High Priority */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 mr-3" style={{ backgroundColor: 'rgba(255, 193, 7, 0.1)' }}>
-              <i className="fas fa-exclamation-triangle text-yellow-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">High Priority</p>
-              <p className="text-2xl font-bold">{stats.high}</p>
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            {Math.round((stats.high / (stats.open || 1)) * 100)}% of open alerts
-          </div>
-        </div>
-
-        {/* Latest 24h */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 mr-3 bg-blue-100">
-              <i className="fas fa-clock text-blue-500"></i>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Last 24 Hours</p>
-              <p className="text-2xl font-bold">
-                {alerts.filter(alert => {
-                  const oneDayAgo = new Date();
-                  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-                  return new Date(alert.createdAt) > oneDayAgo;
-                }).length}
-              </p>
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            New alerts in the past day
-          </div>
-        </div>
-
-        {/* By Category */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <p className="text-sm text-gray-500 mb-2">Alerts by Type</p>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Pickup Requests</span>
-              <span className="text-xs font-medium">{stats.byType.pickup_request}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-blue-500 h-1.5 rounded-full" style={{ 
-                width: `${(stats.byType.pickup_request / stats.total) * 100}%` 
-              }}></div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Collectors</span>
-              <span className="text-xs font-medium">{stats.byType.collector}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-green-500 h-1.5 rounded-full" style={{ 
-                width: `${(stats.byType.collector / stats.total) * 100}%` 
-              }}></div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-xs">System</span>
-              <span className="text-xs font-medium">{stats.byType.system}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-purple-500 h-1.5 rounded-full" style={{ 
-                width: `${(stats.byType.system / stats.total) * 100}%` 
-              }}></div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Regions</span>
-              <span className="text-xs font-medium">{stats.byType.region}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-yellow-500 h-1.5 rounded-full" style={{ 
-                width: `${(stats.byType.region / stats.total) * 100}%` 
-              }}></div>
-            </div>
-          </div>
-        </div>
+        {stats.types.length === 0 ? <p className="text-sm" style={muted}>No alerts yet</p> : (
+          <ul className="space-y-1.5 text-sm overflow-y-auto max-h-[180px] pr-1" data-testid="alerts-by-type">
+            {stats.types.map(t => (
+              <li key={t.key}>
+                <button type="button" onClick={() => setFilters({ type: filters.type === t.key ? 'all' : t.key })}
+                  className={`w-full text-left rounded px-1 -mx-1 hover:bg-black hover:bg-opacity-5 ${filters.type === t.key ? 'font-semibold' : ''}`}>
+                  <span className="flex justify-between gap-2">
+                    <span className="truncate"><i className={`${alertType(t.key).icon} w-4 mr-1.5`} style={muted} aria-hidden="true"></i>{t.label}</span>
+                    <span className="whitespace-nowrap">{t.total} <span style={muted}>({t.open})</span></span>
+                  </span>
+                  <span className="block h-1 rounded mt-0.5" style={{ ...border, background: 'var(--td-card-border)' }}>
+                    <span className="block h-1 rounded bg-green-500" style={{ width: `${(t.total / maxType) * 100}%` }}></span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

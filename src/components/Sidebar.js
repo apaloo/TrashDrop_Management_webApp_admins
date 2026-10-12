@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/auth';
@@ -57,6 +57,14 @@ const Sidebar = () => {
 
   // Check if the menu item should be displayed based on user role
   const canView = (section) => canAccessSection(section, role, user);
+  const visibleItems = menuItems.filter(item => canView(item.section));
+  const activeParent = visibleItems.findIndex(item =>
+    item.children?.some(child => location.pathname === child.path || location.pathname.startsWith(`${child.path}/`)));
+
+  // Keep the menu holding the current page open (also after a reload or a deep link)
+  useEffect(() => {
+    if (activeParent !== -1) setExpandedMenu(activeParent);
+  }, [activeParent, location.pathname]);
 
   // Toggle submenu expansion
   const toggleMenu = (index) => {
@@ -103,11 +111,9 @@ const Sidebar = () => {
       {/* Navigation menu */}
       <nav className="flex-1 px-3">
         <div className="space-y-1">
-          {menuItems
-            .filter(item => canView(item.section))
+          {visibleItems
             .map((item, index) => {
-              const isActive = location.pathname === item.path || 
-                            (item.children && item.children.some(child => location.pathname === child.path));
+              const isActive = location.pathname === item.path || index === activeParent;
               const isExpanded = expandedMenu === index;
               
               return (
@@ -120,6 +126,7 @@ const Sidebar = () => {
                         onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
                         onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                         onClick={() => toggleMenu(index)}
+                        aria-expanded={isExpanded}
                       >
                         <span className="inline-flex items-center justify-center mr-3 text-lg">
                           <i className={item.icon}></i>
@@ -135,12 +142,13 @@ const Sidebar = () => {
                       {/* Submenu */}
                       <div className={`mt-1 pl-10 space-y-0.5 ${isExpanded ? 'block' : 'hidden'}`}>
                         {item.children.map((child, childIndex) => {
-                          const isChildActive = location.pathname === child.path;
+                          const isChildActive = location.pathname === child.path || location.pathname.startsWith(`${child.path}/`);
                           
                           return (
                             <Link 
                               key={childIndex}
                               to={child.path} 
+                              aria-current={isChildActive ? 'page' : undefined}
                               className="block py-2 px-2 text-sm rounded-md transition-colors duration-150"
                               style={isChildActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-subtext)' }}
                               onMouseEnter={e => { if (!isChildActive) { e.currentTarget.style.background = 'var(--td-sidebar-hover)'; e.currentTarget.style.color = '#fff'; } }}
