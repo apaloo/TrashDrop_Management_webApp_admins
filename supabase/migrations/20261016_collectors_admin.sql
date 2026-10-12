@@ -11,7 +11,8 @@
 -- 4. td_gh_phone(): Ghana phone → +233XXXXXXXXX. A trigger normalises phone,
 --    clears non-emails from email (the collector app copies the phone number
 --    there) and blocks duplicate phone/email for admin-added collectors.
--- 5. Deactivate / reactivate is logged to public.logs with the reason.
+-- 5. Logging: collector changes are logged by 20261018_audit_log.sql (one
+--    audit trail). This file only removes its old log trigger if one is left over.
 --
 -- Safe to run more than once. Changes no existing data: the cleanup of
 -- existing rows is in supabase/diagnostics/collectors_data_cleanup.sql.
@@ -165,51 +166,9 @@ CREATE TRIGGER collector_profiles_clean_contact
   BEFORE INSERT OR UPDATE OF phone, email ON public.collector_profiles
   FOR EACH ROW EXECUTE FUNCTION public.collector_profiles_clean_contact();
 
--- ── 5. log deactivate / reactivate ─────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.log_collector_status_change()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  who uuid;
-  name text := nullif(btrim(concat_ws(' ', NEW.first_name, NEW.last_name)), '');
-BEGIN
-  IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
-    RETURN NEW;
-  END IF;
-  BEGIN
-    who := auth.uid();
-  EXCEPTION WHEN OTHERS THEN
-    who := NULL;
-  END;
-  BEGIN
-    INSERT INTO public.logs (level, source, message, data, user_id, created_at)
-    VALUES (
-      CASE WHEN lower(NEW.status) = 'active' THEN 'info' ELSE 'warning' END,
-      'collectors',
-      CASE
-        WHEN lower(NEW.status) = 'active' THEN format('Collector %s reactivated', coalesce(name, left(NEW.id::text, 8)))
-        ELSE format('Collector %s deactivated%s', coalesce(name, left(NEW.id::text, 8)),
-                    coalesce(': ' || NEW.deactivation_reason, ''))
-      END,
-      jsonb_build_object('collector_id', NEW.id, 'collector_user_id', NEW.user_id,
-                         'from', OLD.status, 'to', NEW.status, 'reason', NEW.deactivation_reason),
-      who,
-      now()
-    );
-  EXCEPTION WHEN OTHERS THEN
-    NULL; -- never block a status change because logging failed
-  END;
-  RETURN NEW;
-END;
-$$;
-
+-- ── 5. logging ─────────────────────────────────────────────────────────────
+-- old status logger, replaced by td_audit_collector (20261018)
 DROP TRIGGER IF EXISTS log_collector_status_change ON public.collector_profiles;
-CREATE TRIGGER log_collector_status_change
-  AFTER UPDATE OF status ON public.collector_profiles
-  FOR EACH ROW EXECUTE FUNCTION public.log_collector_status_change();
 
 -- Check
 SELECT (SELECT count(*) FROM public.service_zones) AS zones,

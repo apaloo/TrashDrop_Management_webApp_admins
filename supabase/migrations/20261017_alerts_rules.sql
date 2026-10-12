@@ -6,8 +6,9 @@
 --
 -- 1. alerts: status, priority (severity), type, related record, assignee,
 --    resolution columns; existing values normalised (no rows deleted).
--- 2. alert_activity: timeline (created, status, assignment, comment, action),
---    copied to public.logs.
+-- 2. alert_activity: timeline (created, status, assignment, comment, action).
+--    20261018_audit_log.sql copies each entry to public.logs (the audit trail);
+--    this file never replaces that logger.
 -- 3. alert_rule_settings: on/off and thresholds per rule.
 -- 4. service_zones: centre + radius so "outside the service area" can be checked.
 -- 5. run_alert_rules(dry_run): the rules job; scheduled every 5 minutes with pg_cron.
@@ -234,37 +235,24 @@ DROP TRIGGER IF EXISTS td_alert_track ON public.alerts;
 CREATE TRIGGER td_alert_track AFTER INSERT OR UPDATE ON public.alerts
   FOR EACH ROW EXECUTE FUNCTION public.td_alert_track();
 
--- Every activity entry also goes to the Logs page
-CREATE OR REPLACE FUNCTION public.td_alert_activity_to_logs()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE al record;
+-- Who acted, on every timeline entry. The audit-log version of this function
+-- (20261018_audit_log.sql) also copies the entry to public.logs; when it is
+-- already installed it is kept, otherwise a stand-in fills in the actor only
+-- and 20261018 replaces it.
+DO $do$
 BEGIN
-  IF NEW.actor_name IS NULL OR NEW.actor_id IS NULL THEN
-    SELECT coalesce(NEW.actor_id, x.actor_id), coalesce(NEW.actor_name, x.actor_name) INTO NEW.actor_id, NEW.actor_name
-    FROM public.td_alert_actor() x LIMIT 1;
+  IF to_regprocedure('public.td_write_log(text, text, text, text, text, text, jsonb, jsonb, jsonb, uuid, text, text)') IS NULL THEN
+    CREATE OR REPLACE FUNCTION public.td_alert_activity_to_logs()
+    RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
+    BEGIN
+      IF NEW.actor_name IS NULL OR NEW.actor_id IS NULL THEN
+        SELECT coalesce(NEW.actor_id, x.actor_id), coalesce(NEW.actor_name, x.actor_name) INTO NEW.actor_id, NEW.actor_name
+        FROM public.td_alert_actor() x LIMIT 1;
+      END IF;
+      RETURN NEW;
+    END $fn$;
   END IF;
-  SELECT title, severity INTO al FROM public.alerts WHERE id = NEW.alert_id;
-  BEGIN
-    INSERT INTO public.logs (level, source, message, data, user_id, created_at)
-    VALUES (
-      CASE WHEN NEW.kind = 'created' AND al.severity IN ('critical', 'high') THEN 'warning' ELSE 'info' END,
-      'alerts',
-      format('Alert "%s": %s', left(coalesce(al.title, ''), 80), CASE NEW.kind
-        WHEN 'created'   THEN 'created by ' || coalesce(NEW.actor_name, 'System')
-        WHEN 'status'    THEN coalesce(NEW.from_value, '?') || ' → ' || NEW.to_value || coalesce(' (' || NEW.note || ')', '')
-        WHEN 'assigned'  THEN 'assignment changed'
-        WHEN 'escalated' THEN 'priority ' || coalesce(NEW.from_value, '?') || ' → ' || NEW.to_value
-        WHEN 'comment'   THEN 'comment: ' || left(coalesce(NEW.note, ''), 120)
-        WHEN 'action'    THEN 'action ' || coalesce(NEW.to_value, '') || coalesce(': ' || NEW.note, '')
-      END),
-      jsonb_build_object('alert_id', NEW.alert_id, 'kind', NEW.kind, 'from', NEW.from_value, 'to', NEW.to_value,
-                         'actor', NEW.actor_name) || NEW.data,
-      NEW.actor_id, NEW.created_at);
-  EXCEPTION WHEN OTHERS THEN
-    NULL; -- logging never blocks the alert
-  END;
-  RETURN NEW;
-END $$;
+END $do$;
 DROP TRIGGER IF EXISTS td_alert_activity_to_logs ON public.alert_activity;
 CREATE TRIGGER td_alert_activity_to_logs BEFORE INSERT ON public.alert_activity
   FOR EACH ROW EXECUTE FUNCTION public.td_alert_activity_to_logs();

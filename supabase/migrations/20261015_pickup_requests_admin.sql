@@ -16,8 +16,8 @@
 --    Cancel only before collecting. Statuses from accepted to collecting
 --    need a collector_id. Escape hatch for data fixes, in one transaction:
 --      SET LOCAL app.skip_status_flow = 'on';
--- 4. Every status change is written to public.logs (who, when, from → to),
---    so it shows on the Logs page. Logging never blocks a change.
+-- 4. Logging: status changes are logged by 20261018_audit_log.sql (one audit
+--    trail). This file only removes its old log trigger if one is left over.
 
 -- ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -252,44 +252,6 @@ BEGIN
 END;
 $$;
 
--- ── 4. status log ──────────────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.log_pickup_status_change()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  who uuid;
-BEGIN
-  IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
-    RETURN NEW;
-  END IF;
-  BEGIN
-    who := auth.uid();
-  EXCEPTION WHEN OTHERS THEN
-    who := NULL;
-  END;
-  BEGIN
-    INSERT INTO public.logs (level, source, message, data, user_id, created_at)
-    VALUES (
-      'info',
-      'pickup_requests',
-      format('%s %s: %s → %s', replace(TG_TABLE_NAME, '_', ' '), left(NEW.id::text, 8), OLD.status, NEW.status),
-      jsonb_build_object(
-        'request_id', NEW.id, 'table', TG_TABLE_NAME, 'from', OLD.status, 'to', NEW.status,
-        'collector_id', coalesce(to_jsonb(NEW) ->> 'collector_id', to_jsonb(NEW) ->> 'assigned_to'),
-        'cancellation_reason', to_jsonb(NEW) ->> 'cancellation_reason'),
-      who,
-      now()
-    );
-  EXCEPTION WHEN OTHERS THEN
-    NULL; -- never block a status change because logging failed
-  END;
-  RETURN NEW;
-END;
-$$;
-
 DO $$
 DECLARE t text;
 BEGIN
@@ -303,8 +265,8 @@ BEGIN
   END LOOP;
   FOREACH t IN ARRAY ARRAY['pickup_requests', 'digital_bins', 'scheduled_pickups'] LOOP
     CONTINUE WHEN to_regclass('public.' || t) IS NULL;
+    -- old status logger, replaced by td_audit_request (20261018)
     EXECUTE format('DROP TRIGGER IF EXISTS log_pickup_status_change ON public.%I', t);
-    EXECUTE format('CREATE TRIGGER log_pickup_status_change AFTER UPDATE OF status ON public.%I FOR EACH ROW EXECUTE FUNCTION public.log_pickup_status_change()', t);
   END LOOP;
 END;
 $$;
