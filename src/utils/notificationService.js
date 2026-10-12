@@ -32,9 +32,11 @@ export const fetchNotifications = async () => {
   // Transform to match the expected format used in the UI  
   return (data || []).map(notification => ({
     id: notification.id,
-    type: notification.type || 'info', // alert, info, success
+    type: notification.type || 'info', // alert, info, success; alert_critical / alert_high / alert_assigned from the Alerts rules
     category: notification.category || 'general',
+    title: notification.title || null,
     message: notification.message,
+    created_at: notification.created_at,
     time: formatNotificationTime(notification.created_at),
     read: notification.read || false
   }));
@@ -119,7 +121,8 @@ export const subscribeToNotifications = (callback, { userId } = {}) => {
   // Set up a polling fallback in case realtime fails
   const pollingInterval = setInterval(async () => {
     try {
-      const { data: notifications } = await fetchNotifications();
+      // fetchNotifications() resolves to the list itself
+      const notifications = await fetchNotifications();
       callback({
         eventType: 'SYNC',
         new: notifications,
@@ -142,6 +145,8 @@ export const subscribeToNotifications = (callback, { userId } = {}) => {
           id: payload.new?.id || payload.old?.id,
           type: payload.new?.type || 'info',
           category: payload.new?.category || 'system',
+          title: payload.new?.title || null,
+          user_id: payload.new?.user_id || null,
           message: payload.new?.message || '',
           created_at: payload.new?.created_at || new Date().toISOString(),
           read: payload.new?.read || false

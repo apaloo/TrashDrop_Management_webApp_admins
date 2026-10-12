@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
@@ -32,34 +32,51 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const recentNotifications = Array.isArray(notifications) ? notifications.slice(0, 3) : [];
   const recentContacts = Array.isArray(contacts) ? contacts.slice(0, 3) : [];
   
-  // Fetch notifications on component mount
+  // New High / Critical alerts (and alerts assigned to me) pop up briefly
+  const [alertToast, setAlertToast] = useState(null);
+  const alertToastTimer = useRef(null);
+  useEffect(() => () => clearTimeout(alertToastTimer.current), []);
+
+  // Fetch notifications on mount, then keep them current (realtime + 30 s polling)
   useEffect(() => {
+    let live = true;
     const loadNotifications = async () => {
       try {
-        setIsLoadingNotifications(true);
         const notificationsData = await fetchNotifications();
-        setNotifications(notificationsData);
+        if (!live) return;
+        setNotifications(Array.isArray(notificationsData) ? notificationsData : []);
         setNotificationError(null);
       } catch (err) {
         console.error('Error loading notifications:', err);
-        setNotificationError('Failed to load notifications');
+        if (live) setNotificationError('Failed to load notifications');
       } finally {
-        setIsLoadingNotifications(false);
+        if (live) setIsLoadingNotifications(false);
       }
     };
-    
+
+    setIsLoadingNotifications(true);
     loadNotifications();
-    
-    // Subscribe to real-time notification updates
-    const subscription = subscribeToNotifications((updatedNotifications) => {
-      setNotifications(updatedNotifications);
-    });
-    
+
+    // Events carry { eventType, new, old }; the polling fallback sends the whole list as 'SYNC'
+    const subscription = subscribeToNotifications((event) => {
+      if (event?.eventType === 'SYNC' && Array.isArray(event.new)) {
+        setNotifications(event.new);
+        return;
+      }
+      const n = event?.new;
+      if (event?.eventType === 'INSERT' && n && (!n.user_id || n.user_id === user?.id) && /^alert_(critical|high|assigned)$/.test(n.type || '')) {
+        clearTimeout(alertToastTimer.current);
+        setAlertToast({ title: n.title || 'New alert', message: n.message, critical: n.type === 'alert_critical' });
+        alertToastTimer.current = setTimeout(() => setAlertToast(null), 8000);
+      }
+      loadNotifications();
+    }, { userId: user?.id });
+
     return () => {
-      // Clean up subscription when component unmounts
+      live = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [user?.id]);
   
   // Fetch messages and contacts on component mount
   useEffect(() => {
@@ -363,6 +380,20 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
         </div>
       </nav>
       
+      {alertToast && (
+        <div role="alert" className={`fixed top-16 right-4 z-[4500] max-w-sm rounded-lg shadow-xl px-4 py-3 text-sm text-white ${alertToast.critical ? 'bg-red-700' : 'bg-orange-600'}`} data-testid="alert-toast">
+          <div className="flex items-start gap-2">
+            <i className="fas fa-exclamation-triangle mt-0.5" aria-hidden="true"></i>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">{alertToast.title}</p>
+              {alertToast.message && <p className="truncate">{alertToast.message}</p>}
+              <Link to="/request-pickup/alerts" className="underline text-xs" onClick={() => setAlertToast(null)}>Open alerts</Link>
+            </div>
+            <button type="button" aria-label="Dismiss" onClick={() => setAlertToast(null)} className="leading-none text-lg">&times;</button>
+          </div>
+        </div>
+      )}
+
       {/* Modals */}
       <MessagesModal isOpen={showMessagesModal} onClose={() => setShowMessagesModal(false)} />
       <NotificationsModal isOpen={showNotificationsModal} onClose={() => setShowNotificationsModal(false)} />

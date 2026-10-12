@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { isDevMode, devModeSignIn, getDevModeUser, clearDevModeUser } from './devAuth';
+import { logAudit } from '../services/auditLogService';
 
 // Authentication functions
 export const signIn = async ({ email, password }) => {
@@ -20,9 +21,13 @@ export const signIn = async ({ email, password }) => {
     });
     
     if (error) throw error;
+    logAudit({ source: 'auth', action: 'auth.login', entityType: 'user', entityId: data?.user?.id,
+      message: `Signed in to the admin: ${email}`, metadata: { email: String(email || '').toLowerCase() } });
     return { data, error: null };
   } catch (error) {
     console.error('Error signing in:', error.message);
+    logAudit({ level: 'warn', source: 'auth', action: 'auth.login_failed', message: `Sign-in failed for ${email}`,
+      metadata: { email: String(email || '').toLowerCase(), reason: error?.message || 'unknown' } });
     return { data: null, error };
   }
 };
@@ -98,6 +103,14 @@ export const signOut = async () => {
     
     // Clear dev mode user if applicable
     clearDevModeUser();
+    
+    // Log while the session is still valid
+    const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: null }));
+    const current = sessionData?.session?.user;
+    if (current) {
+      await logAudit({ source: 'auth', action: 'auth.logout', entityType: 'user', entityId: current.id,
+        message: `Signed out: ${current.email}`, metadata: { email: current.email } });
+    }
     
     const { error } = await supabase.auth.signOut();
     if (error) throw error;

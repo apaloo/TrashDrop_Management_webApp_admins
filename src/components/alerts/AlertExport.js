@@ -1,178 +1,82 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { card, border } from '../pickupRequests/theme';
+import { EXPORT_COLUMNS, exportRows, toAlertsCsv } from '../../utils/alertUtils';
 
-// CSV export utility
-const exportToCSV = (alerts) => {
-  // Define column headers
-  const headers = ['ID', 'Title', 'Description', 'Status', 'Priority', 'Created At', 'Updated At', 'Related Type', 'Related ID', 'Location', 'Assigned To'];
-  
-  // Format data for CSV
-  const csvData = alerts.map(alert => ([
-    alert.id,
-    `"${alert.title.replace(/"/g, '""')}"`, // Escape quotes in title
-    `"${alert.description.replace(/"/g, '""')}"`, // Escape quotes in description
-    alert.status,
-    alert.priority,
-    new Date(alert.createdAt).toLocaleString(),
-    new Date(alert.updatedAt).toLocaleString(),
-    alert.relatedTo.type,
-    alert.relatedTo.id,
-    alert.relatedTo.location || '',
-    alert.assignedTo || ''
-  ]));
-  
-  // Combine headers and data
-  const csvContent = [
-    headers.join(','),
-    ...csvData.map(row => row.join(','))
-  ].join('\n');
-  
-  // Create download link
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+const stamp = () => new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const downloadCsv = (rows) => {
+  const blob = new Blob([`﻿${toAlertsCsv(rows)}`], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', `alerts-export-${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trashdrop-alerts-${stamp()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-// JSON export utility
-const exportToJSON = (alerts) => {
-  const jsonContent = JSON.stringify(alerts, null, 2);
-  const blob = new Blob([jsonContent], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', `alerts-export-${new Date().toISOString().split('T')[0]}.json`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-// Print utility
-const printAlerts = (alerts) => {
-  // Create a printable version
-  const printContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Alerts Report - ${new Date().toLocaleDateString()}</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 20px;
-        }
-        h1 {
-          color: #333;
-          border-bottom: 1px solid #ccc;
-          padding-bottom: 10px;
-        }
-        .alert {
-          border: 1px solid #ddd;
-          padding: 10px;
-          margin-bottom: 10px;
-          border-radius: 5px;
-        }
-        .alert-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 5px;
-        }
-        .alert-title {
-          font-weight: bold;
-        }
-        .critical { background-color: #FFEBEE; }
-        .high { background-color: #FFF8E1; }
-        .medium { background-color: #E8F5E9; }
-        .low { background-color: #E3F2FD; }
-        .property { margin: 2px 0; }
-        .property span { font-weight: bold; }
-      </style>
-    </head>
-    <body>
-      <h1>Alerts Report - ${new Date().toLocaleDateString()}</h1>
-      <div>Total Alerts: ${alerts.length}</div>
-      <div>Generated: ${new Date().toLocaleString()}</div>
-      <hr>
-      
-      ${alerts.map(alert => `
-        <div class="alert ${alert.priority}">
-          <div class="alert-header">
-            <div class="alert-title">${alert.title}</div>
-            <div>${new Date(alert.createdAt).toLocaleString()}</div>
-          </div>
-          <div class="property"><span>Status:</span> ${alert.status}</div>
-          <div class="property"><span>Priority:</span> ${alert.priority}</div>
-          <div class="property"><span>Description:</span> ${alert.description}</div>
-          <div class="property">
-            <span>Related to:</span> 
-            ${alert.relatedTo.type} (${alert.relatedTo.id})
-            ${alert.relatedTo.location ? `- ${alert.relatedTo.location}` : ''}
-          </div>
-          <div class="property">
-            <span>Assigned to:</span> ${alert.assignedTo || 'Not assigned'}
-          </div>
-        </div>
-      `).join('')}
-    </body>
-    </html>
-  `;
-  
-  // Open print window
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(printContent);
-  printWindow.document.close();
-  
-  // Wait for resources to load then print
+/** Printable page in a hidden frame; the browser's print dialog saves it as PDF */
+const printPdf = (rows, summary) => {
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(frame);
+  const doc = frame.contentWindow.document;
+  doc.open();
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>TrashDrop alerts ${stamp()}</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm; }
+  body { font: 11px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; }
+  h1 { font-size: 16px; margin: 0 0 4px; } p { margin: 0 0 10px; color: #555; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; } tr { page-break-inside: avoid; }
+</style></head><body>
+<h1>TrashDrop alerts</h1><p>${esc(summary)} · exported ${esc(new Date().toLocaleString())}</p>
+<table><thead><tr>${EXPORT_COLUMNS.filter(c => c !== 'ID').map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+<tbody>${rows.map(r => `<tr>${r.slice(1).map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+</body></html>`);
+  doc.close();
   setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
+    frame.contentWindow.focus();
+    frame.contentWindow.print();
+    setTimeout(() => frame.remove(), 60000);
   }, 250);
 };
 
-const AlertExport = ({ alerts, filteredAlerts }) => {
+/** Export menu: CSV or PDF of the alerts currently shown (filters applied) */
+const AlertExport = ({ alerts, ctx, staffName, summary, onDone }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => { if (e.type === 'keydown' ? e.key === 'Escape' : !ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
+  }, [open]);
+
+  const run = (kind) => {
+    setOpen(false);
+    const rows = exportRows(alerts, ctx, staffName);
+    if (kind === 'csv') downloadCsv(rows); else printPdf(rows, summary);
+    onDone?.(kind === 'csv' ? `Exported ${rows.length} alerts to CSV` : `Opened ${rows.length} alerts for PDF: choose "Save as PDF" in the print dialog`);
+  };
+
   return (
-    <div className="dropdown inline-block relative">
-      <button className="bg-white text-gray-700 font-semibold py-2 px-4 rounded inline-flex items-center border border-gray-300 hover:bg-gray-50">
-        <span className="mr-1">Export</span>
-        <i className="fas fa-chevron-down"></i>
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open} disabled={!alerts.length}
+        className="px-3 py-1.5 rounded border text-sm disabled:opacity-40" style={border}>
+        <i className="fas fa-download mr-1.5" aria-hidden="true"></i>Export ({alerts.length}) ▾
       </button>
-      <ul className="dropdown-menu absolute hidden text-gray-700 pt-1 bg-white shadow-lg rounded-md border border-gray-200 w-48 z-10 right-0">
-        <li>
-          <button 
-            className="w-full text-left rounded-t py-2 px-4 hover:bg-gray-100 flex items-center"
-            onClick={() => exportToCSV(filteredAlerts)}
-          >
-            <i className="fas fa-file-csv mr-2 text-green-600"></i>
-            Export to CSV
-          </button>
-        </li>
-        <li>
-          <button 
-            className="w-full text-left py-2 px-4 hover:bg-gray-100 flex items-center"
-            onClick={() => exportToJSON(filteredAlerts)}
-          >
-            <i className="fas fa-file-code mr-2 text-blue-600"></i>
-            Export to JSON
-          </button>
-        </li>
-        <li>
-          <button 
-            className="w-full text-left rounded-b py-2 px-4 hover:bg-gray-100 flex items-center"
-            onClick={() => printAlerts(filteredAlerts)}
-          >
-            <i className="fas fa-print mr-2 text-gray-600"></i>
-            Print Alerts
-          </button>
-        </li>
-      </ul>
+      {open && (
+        <div role="menu" className="absolute right-0 mt-1 z-30 min-w-[12rem] rounded-md border shadow-lg py-1 text-sm" style={card}>
+          <button type="button" role="menuitem" className="w-full text-left px-3 py-2 hover:bg-black hover:bg-opacity-5" onClick={() => run('csv')}>CSV (spreadsheet)</button>
+          <button type="button" role="menuitem" className="w-full text-left px-3 py-2 hover:bg-black hover:bg-opacity-5" onClick={() => run('pdf')}>PDF (print / save)</button>
+        </div>
+      )}
     </div>
   );
 };

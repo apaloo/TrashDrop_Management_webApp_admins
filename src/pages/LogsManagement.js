@@ -1,669 +1,286 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { fetchLogs } from '../utils/databaseUtils';
-import { LOG_LEVEL } from '../config/constants';
-import { appConfig } from '../config';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { fetchLogsPage, fetchLogStats, fetchAllLogs, logAudit, LOG_PAGE_SIZE } from '../services/auditLogService';
+import { DEFAULT_LOG_FILTERS, formatAccra, relativeFromNow, recordLink, logsToCsv } from '../utils/logUtils';
+import { LOG_LEVELS, LOG_SOURCES, ACTOR_ROLES, LOG_ACTIONS, LOG_ENTITY_TYPES } from '../constants/alerts';
+import { card, input, muted, border } from '../components/pickupRequests/theme';
+import { LogLevelBadge, actorRoleLabel } from '../components/logs/LogBadges';
+import LogDetailsModal from '../components/logs/LogDetailsModal';
 
-// Generate mock log entries
-const generateMockLogs = () => {
-  const logLevels = [LOG_LEVEL.INFO, LOG_LEVEL.WARNING, LOG_LEVEL.ERROR, LOG_LEVEL.DEBUG];
-  const sources = ['System', 'Authentication', 'Pickup Request', 'Collector', 'Bag Management', 'User Action'];
-  const users = [appConfig.app.adminEmail, appConfig.app.supportEmail, 'john.doe@trashdrop.com', 'collector1@trashdrop.com', null];
-  const actions = [
-    'User login',
-    'Password reset request',
-    'Collector status changed',
-    'Pickup request created',
-    'Pickup request assigned',
-    'Pickup request completed',
-    'Bag batch generated',
-    'User preferences updated',
-    'System maintenance triggered',
-    'Region added',
-    'Alert resolved',
-    'Database backup',
-    'API rate limit reached',
-    'Authentication failure'
-  ];
-  
-  const mockLogs = [];
-  
-  // Current date for reference
-  const now = new Date();
-  
-  // Generate 50 log entries
-  for (let i = 0; i < 50; i++) {
-    const level = logLevels[Math.floor(Math.random() * logLevels.length)];
-    const source = sources[Math.floor(Math.random() * sources.length)];
-    const user = users[Math.floor(Math.random() * users.length)];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    
-    // Generate a timestamp within the last 7 days
-    const timestamp = new Date(now.getTime() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000));
-    
-    // Generate a unique ID
-    const id = `log-${i + 1}-${Date.now().toString(36)}`;
-    
-    // Generate IP address
-    const ip = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-    
-    // Generate request duration (for some entries)
-    const requestDuration = Math.random() > 0.7 ? null : Math.floor(Math.random() * 2000);
-    
-    // Generate response code (for some entries)
-    const responseCode = Math.random() > 0.6 ? null : [200, 201, 400, 403, 404, 500][Math.floor(Math.random() * 6)];
-    
-    // Generate details based on action and level
-    let details = '';
-    switch (level) {
-      case 'ERROR':
-        details = `Failed to ${action.toLowerCase()}. ${['Connection timeout', 'Invalid input', 'Unauthorized access', 'Internal server error'][Math.floor(Math.random() * 4)]}`;
-        break;
-      case 'WARNING':
-        details = `${action} completed with warnings. ${['Performance degradation detected', 'Retry attempt required', 'Data may be incomplete'][Math.floor(Math.random() * 3)]}`;
-        break;
-      case 'INFO':
-        details = `Successfully ${action.toLowerCase()}.`;
-        break;
-      case 'DEBUG':
-        details = `${action} process details: ${['Step 1 complete', 'Parameters validated', 'Cache refreshed', 'Response parsed'][Math.floor(Math.random() * 4)]}`;
-        break;
-      default:
-        details = `${action} recorded.`;
-    }
-    
-    // Generate related entity for some logs
-    const relatedEntity = Math.random() > 0.5 ? {
-      type: ['pickup_request', 'collector', 'bag_batch', 'user', 'region'][Math.floor(Math.random() * 5)],
-      id: `${['req', 'col', 'bag', 'usr', 'reg'][Math.floor(Math.random() * 5)]}-${Math.floor(Math.random() * 10000)}`
-    } : null;
-    
-    mockLogs.push({
-      id,
-      timestamp: timestamp.toISOString(),
-      level,
-      source,
-      message: action,
-      details,
-      user,
-      ip,
-      requestDuration,
-      responseCode,
-      relatedEntity
-    });
-  }
-  
-  // Sort by timestamp (newest first)
-  return mockLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+const SkeletonBlock = ({ className }) => <div className={`animate-pulse rounded bg-gray-300 opacity-40 ${className}`} />;
+
+const readFilters = (params) => {
+  const f = { ...DEFAULT_LOG_FILTERS };
+  Object.keys(f).forEach(k => { if (params.get(k) !== null) f[k] = params.get(k); });
+  f.page = Math.max(1, Number(f.page) || 1);
+  return f;
 };
 
-const mockLogs = generateMockLogs();
+const RANGES = [['today', 'Today'], ['24h', 'Last 24 h'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days'], ['all', 'All time'], ['custom', 'Custom…']];
 
+const Select = ({ label, value, onChange, children }) => (
+  <label className="w-full sm:w-auto">
+    <span className="block text-xs mb-1" style={muted}>{label}</span>
+    <select value={value} onChange={e => onChange(e.target.value)} aria-label={label}
+      className="w-full sm:min-w-[10rem] border rounded px-2 py-1.5 text-sm" style={input}>{children}</select>
+  </label>
+);
+
+const shortRef = (id) => (id ? String(id).slice(0, 8) : '');
+
+const RecordCell = ({ log, onOpen }) => {
+  if (!log.entityId) return <span style={muted}>—</span>;
+  const link = recordLink(log.entityType, log.entityId);
+  const label = LOG_ENTITY_TYPES.find(t => t.key === log.entityType)?.label || log.entityType || '';
+  return (
+    <span className="whitespace-nowrap">
+      {link
+        ? <button type="button" className="font-mono text-xs text-blue-600 hover:underline" title={`${label} ${log.entityId}`} onClick={e => { e.stopPropagation(); onOpen(link); }}>#{shortRef(log.entityId)}</button>
+        : <span className="font-mono text-xs" title={log.entityId}>#{shortRef(log.entityId)}</span>}
+      <span className="block text-[11px]" style={muted}>{label}</span>
+    </span>
+  );
+};
+
+/** The admin audit trail: every change, sign-in and failure, newest first */
 const LogsManagement = () => {
-  // State for logs data
-  const [logs, setLogs] = useState([]);
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const filters = useMemo(() => readFilters(params), [params]);
+  const [searchText, setSearchText] = useState(filters.q);
+  const [entityText, setEntityText] = useState(filters.entity);
+
+  const [page, setPage] = useState(null);   // { rows, total }
+  const [stats, setStats] = useState(null); // { total, errors, warnings, last24h }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // State for expanded log entry
-  const [expandedLogId, setExpandedLogId] = useState(null);
-  
-  // Filters state
-  const [filters, setFilters] = useState({
-    level: 'all',
-    source: 'all',
-    dateRange: {
-      start: null,
-      end: null
-    },
-    searchQuery: ''
-  });
-  
-  // Pagination state
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    logsPerPage: 10
-  });
-  
-  // Load logs data from Supabase
+  const [selected, setSelected] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+
+  const notify = useCallback((message, tone = 'ok') => {
+    clearTimeout(toastTimer.current);
+    setToast({ message, tone });
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  /* ── URL-backed filters ─────────────────────────────────────────────── */
+  const setFilters = useCallback((patch) => {
+    const next = { ...filters, ...patch };
+    if (!('page' in patch)) next.page = 1;
+    const sp = new URLSearchParams();
+    Object.entries(next).forEach(([k, v]) => { if (v !== '' && v != null && String(v) !== String(DEFAULT_LOG_FILTERS[k])) sp.set(k, String(v)); });
+    setParams(sp, { replace: true });
+  }, [filters, setParams]);
+
+  useEffect(() => { setSearchText(filters.q); }, [filters.q]);
+  useEffect(() => { setEntityText(filters.entity); }, [filters.entity]);
   useEffect(() => {
-    const loadLogs = async () => {
-      setLoading(true);
+    if (searchText === filters.q && entityText === filters.entity) return undefined;
+    const t = setTimeout(() => setFilters({ q: searchText, entity: entityText }), 300);
+    return () => clearTimeout(t);
+  }, [searchText, entityText, filters.q, filters.entity, setFilters]);
+
+  /* ── data ───────────────────────────────────────────────────────────── */
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [p, s] = await Promise.all([fetchLogsPage(filters), fetchLogStats(filters)]);
+      setPage(p);
+      setStats(s);
       setError(null);
-      
-      try {
-        // Get filter parameters
-        const logLevel = filters.level !== 'all' ? filters.level : null;
-        const logSource = filters.source !== 'all' ? filters.source : null;
-        const dateRange = filters.dateRange.start && filters.dateRange.end ? {
-          start: filters.dateRange.start,
-          end: filters.dateRange.end
-        } : null;
-        
-        // Fetch logs from Supabase with filters
-        const logsData = await fetchLogs(logLevel, logSource, dateRange, filters.searchQuery);
-        
-        // Transform data from snake_case to camelCase
-        const formattedLogs = logsData.map(log => ({
-          id: log.id,
-          timestamp: log.timestamp,
-          level: log.level,
-          source: log.source,
-          message: log.message,
-          userId: log.user_id,
-          userName: log.user_name,
-          userEmail: log.user_email,
-          details: log.details || {},
-          ip: log.ip,
-          requestPath: log.request_path,
-          requestMethod: log.request_method,
-          requestDuration: log.request_duration,
-          relatedEntityId: log.related_entity_id,
-          relatedEntityType: log.related_entity_type
-        }));
-        
-        setLogs(formattedLogs);
-      } catch (err) {
-        console.error('Error fetching logs:', err);
-        setError('Failed to load logs. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadLogs();
-  }, [filters]); // Re-fetch when filters change
-  
-  // Helper function to handle filter changes
-  const handleFilterChange = (filterType, value) => {
-    setFilters(prev => {
-      if (filterType === 'dateRange') {
-        return {
-          ...prev,
-          dateRange: {
-            ...prev.dateRange,
-            ...value
-          }
-        };
-      }
-      return {
-        ...prev,
-        [filterType]: value
-      };
-    });
-    
-    // Reset to first page when filters change
-    setPagination(prev => ({
-      ...prev,
-      currentPage: 1
-    }));
+    } catch (e) {
+      setError(e.message || 'Could not load logs');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+  useEffect(() => { load(); }, [load]);
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAllLogs(filters);
+      const blob = new Blob([`﻿${logsToCsv(rows)}`], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trashdrop-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      logAudit({ source: 'logs', action: 'logs.exported', message: `Exported ${rows.length} log rows to CSV`,
+        metadata: { rows: rows.length, filters: Object.fromEntries(params.entries()) } });
+      notify(`Exported ${rows.length} rows`);
+    } catch (e) {
+      notify(e.message, 'error');
+    } finally {
+      setExporting(false);
+    }
   };
-  
-  // Format date to readable string
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-  
-  // Apply filters
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
-      // Filter by level
-      if (filters.level !== 'all' && log.level !== filters.level) {
-        return false;
-      }
-      
-      // Filter by source
-      if (filters.source !== 'all' && log.source !== filters.source) {
-        return false;
-      }
-      
-      // Filter by date range
-      if (filters.dateRange.start) {
-        const startDate = new Date(filters.dateRange.start);
-        const logDate = new Date(log.timestamp);
-        if (logDate < startDate) {
-          return false;
-        }
-      }
-      
-      if (filters.dateRange.end) {
-        const endDate = new Date(filters.dateRange.end);
-        endDate.setHours(23, 59, 59, 999); // Set to end of day
-        const logDate = new Date(log.timestamp);
-        if (logDate > endDate) {
-          return false;
-        }
-      }
-      
-      // Filter by search query
-      if (filters.searchQuery) {
-        const query = filters.searchQuery.toLowerCase();
-        const detailsText = typeof log.details === 'string'
-          ? log.details
-          : JSON.stringify(log.details || '');
-        return (
-          log.message?.toLowerCase().includes(query) ||
-          detailsText?.toLowerCase().includes(query) ||
-          log.source?.toLowerCase().includes(query) ||
-          log.user?.toLowerCase?.().includes(query) ||
-          log.relatedEntity?.id?.toLowerCase?.().includes(query) ||
-          log.id?.toLowerCase?.().includes(query)
-        );
-      }
-      
-      return true;
-    });
-  }, [logs, filters]);
-  
-  // Use centralized constants for log levels and get unique sources for filter options
-  const uniqueLogLevels = useMemo(() => Object.values(LOG_LEVEL), []);
-  const uniqueSources = useMemo(() => [...new Set(logs.map(log => log.source))], [logs]);
-  
-  // Get current logs for pagination
-  const indexOfLastLog = pagination.currentPage * pagination.logsPerPage;
-  const indexOfFirstLog = indexOfLastLog - pagination.logsPerPage;
-  const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
-  
-  // Change page
-  const paginate = (pageNumber) => setPagination(prev => ({
-    ...prev,
-    currentPage: pageNumber
-  }));
-  
-  // Toggle expanded log details
-  const toggleLogExpansion = (logId) => {
-    setExpandedLogId(expandedLogId === logId ? null : logId);
-  };
-  
+
+  const rows = page?.rows || [];
+  const total = page?.total || 0;
+  const pages = Math.max(1, Math.ceil(total / LOG_PAGE_SIZE));
+  const filtered = Object.keys(DEFAULT_LOG_FILTERS).some(k => k !== 'page' && String(filters[k]) !== String(DEFAULT_LOG_FILTERS[k]));
+  const openRecord = (link) => navigate(link);
+
   return (
-    <div className="p-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-semibold text-gray-800">Logs & Audit Trail</h1>
-        
-        {/* Summary stats */}
-        <div className="flex flex-wrap gap-4">
-          <div className="px-4 py-2 bg-white rounded-lg shadow-sm border-0 flex items-center">
-            <div className="rounded-full p-2 mr-2" style={{ backgroundColor: 'rgba(220, 53, 69, 0.1)' }}>
-              <i className="fas fa-exclamation-circle" style={{ color: '#dc3545' }}></i>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Errors</p>
-              <p className="font-semibold">{logs.filter(log => log.level === LOG_LEVEL.ERROR).length}</p>
-            </div>
-          </div>
-          
-          <div className="px-4 py-2 bg-white rounded-lg shadow-sm border-0 flex items-center">
-            <div className="rounded-full p-2 mr-2" style={{ backgroundColor: 'rgba(255, 193, 7, 0.1)' }}>
-              <i className="fas fa-exclamation-triangle" style={{ color: '#ffc107' }}></i>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Warnings</p>
-              <p className="font-semibold">{logs.filter(log => log.level === LOG_LEVEL.WARNING).length}</p>
-            </div>
-          </div>
-          
-          <div className="px-4 py-2 bg-white rounded-lg shadow-sm border-0 flex items-center">
-            <div className="rounded-full p-2 mr-2" style={{ backgroundColor: 'rgba(40, 167, 69, 0.1)' }}>
-              <i className="fas fa-info-circle" style={{ color: '#28a745' }}></i>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Total Entries</p>
-              <p className="font-semibold">{logs.length}</p>
-            </div>
-          </div>
+    <div className="p-4 space-y-4" style={{ color: 'var(--td-text-primary)' }}>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="mr-auto">
+          <h1 className="text-2xl font-semibold">Logs &amp; audit trail</h1>
+          <p className="text-sm" style={muted}>Every change, sign-in and failure across the admin. Times are Accra time.</p>
         </div>
+        <button type="button" onClick={load} className="px-3 py-2 rounded border text-sm" style={border}>Refresh</button>
+        <button type="button" onClick={exportCsv} disabled={exporting || !total} className="px-3 py-2 rounded border text-sm disabled:opacity-40" style={border}>
+          {exporting ? 'Exporting…' : `Export CSV (${total})`}
+        </button>
       </div>
-      
-      {/* Filters section */}
-      <div className="bg-white rounded-lg shadow-sm border-0 p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
-          {/* Search box */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-400"></i>
-              </div>
-              <input
-                type="text"
-                placeholder="Search logs..."
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={filters.searchQuery}
-                onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-              />
-            </div>
+
+      {/* Counters for the current filters and date range */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="log-counters">
+        {[
+          ['Entries', stats?.total, null, 'counter-total'],
+          ['Errors', stats?.errors, '#DC2626', 'counter-errors'],
+          ['Warnings', stats?.warnings, '#D97706', 'counter-warnings'],
+          ['Last 24 h', stats?.last24h, '#2563EB', 'counter-24h'],
+        ].map(([label, value, color, id]) => (
+          <div key={label} className="rounded-lg border px-4 py-3" style={card}>
+            <p className="text-xs flex items-center gap-1.5" style={muted}>{color && <span className="w-2 h-2 rounded-full" style={{ background: color }}></span>}{label}</p>
+            <p className="text-2xl font-bold" data-testid={id}>{value ?? '…'}</p>
           </div>
-          
-          {/* Log level filter */}
-          <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Log Level</label>
-            <select
-              className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={filters.level}
-              onChange={(e) => handleFilterChange('level', e.target.value)}
-            >
-              <option value="all">All Levels</option>
-              {uniqueLogLevels.map(level => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Source filter */}
-          <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-            <select
-              className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={filters.source}
-              onChange={(e) => handleFilterChange('source', e.target.value)}
-            >
-              <option value="all">All Sources</option>
-              {uniqueSources.map(source => (
-                <option key={source} value={source}>{source}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Date range filter - Start date */}
-          <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
-            <input
-              type="date"
-              className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={filters.dateRange.start || ''}
-              onChange={(e) => handleFilterChange('dateRange', { start: e.target.value })}
-            />
-          </div>
-          
-          {/* Date range filter - End date */}
-          <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-            <input
-              type="date"
-              className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={filters.dateRange.end || ''}
-              onChange={(e) => handleFilterChange('dateRange', { end: e.target.value })}
-            />
-          </div>
-          
-          {/* Clear filters button */}
-          <button
-            className="px-4 py-2 text-blue-600 hover:text-blue-800 border border-blue-600 hover:border-blue-800 rounded-md"
-            onClick={() => setFilters({
-              level: 'all',
-              source: 'all',
-              dateRange: { start: null, end: null },
-              searchQuery: ''
-            })}
-          >
-            Clear Filters
-          </button>
-        </div>
+        ))}
       </div>
-      
-      {/* Error message */}
+
+      {/* Filters */}
+      <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+        <label className="flex-1 min-w-[220px]">
+          <span className="block text-xs mb-1" style={muted}>Search</span>
+          <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Message, action, source, person or record ID"
+            className="w-full border rounded px-3 py-1.5 text-sm" style={input} />
+        </label>
+        <Select label="Level" value={filters.level} onChange={v => setFilters({ level: v })}>
+          <option value="">All levels</option>
+          {LOG_LEVELS.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
+        </Select>
+        <Select label="Source" value={filters.source} onChange={v => setFilters({ source: v })}>
+          <option value="">All sources</option>
+          {LOG_SOURCES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </Select>
+        <Select label="Actor" value={filters.actor} onChange={v => setFilters({ actor: v })}>
+          <option value="">Anyone</option>
+          {ACTOR_ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+        </Select>
+        <Select label="Action" value={filters.action} onChange={v => setFilters({ action: v })}>
+          <option value="">All actions</option>
+          {LOG_ACTIONS.map(a => <option key={a.key} value={a.key}>{a.label}</option>)}
+        </Select>
+        <Select label="Record type" value={filters.entityType} onChange={v => setFilters({ entityType: v })}>
+          <option value="">Any record</option>
+          {LOG_ENTITY_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+        </Select>
+        <label className="w-full sm:w-auto">
+          <span className="block text-xs mb-1" style={muted}>Record ID</span>
+          <input value={entityText} onChange={e => setEntityText(e.target.value)} placeholder="Full or first 8 characters"
+            className="w-full sm:w-44 border rounded px-2 py-1.5 text-sm font-mono" style={input} aria-label="Record ID" />
+        </label>
+        <Select label="When" value={filters.range} onChange={v => setFilters({ range: v })}>
+          {RANGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        </Select>
+        {filters.range === 'custom' && (
+          <div className="flex gap-2 w-full sm:w-auto">
+            <label className="flex-1"><span className="block text-xs mb-1" style={muted}>From</span>
+              <input type="date" value={filters.from} onChange={e => setFilters({ from: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" style={input} /></label>
+            <label className="flex-1"><span className="block text-xs mb-1" style={muted}>To</span>
+              <input type="date" value={filters.to} onChange={e => setFilters({ to: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" style={input} /></label>
+          </div>
+        )}
+        <label className="flex items-center gap-2 text-sm pb-1.5">
+          <input type="checkbox" checked={filters.sample === '1'} onChange={e => setFilters({ sample: e.target.checked ? '1' : '0' })} />
+          Show sample data
+        </label>
+        {filtered && (
+          <button type="button" className="text-sm underline pb-1.5" style={muted}
+            onClick={() => { setSearchText(''); setEntityText(''); setParams(new URLSearchParams(), { replace: true }); }}>Clear filters</button>
+        )}
+      </div>
+
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          <p>{error}</p>
+        <div className="rounded border border-red-300 bg-red-50 text-red-800 px-4 py-3 text-sm flex gap-3" role="alert">
+          <span>Couldn't load logs: {error}</span><button type="button" className="ml-auto underline" onClick={load}>Try again</button>
         </div>
       )}
-      
-      {/* Loading state */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-blue-500 text-4xl mb-4"></i>
-            <p className="text-gray-500">Loading logs...</p>
+
+      <div className={`rounded-lg border ${loading && page ? 'opacity-60' : ''}`} style={card}>
+        {!page && loading ? (
+          <div className="p-4 space-y-2">{[0, 1, 2, 3, 4, 5].map(i => <SkeletonBlock key={i} className="h-9" />)}</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center py-10" data-testid="logs-empty">
+            <p className="font-medium">No log entries found</p>
+            <p className="text-sm" style={muted}>{filtered ? 'Try a wider date range or other filters.' : 'Nothing has been logged yet.'}</p>
           </div>
-        </div>
-      ) : filteredLogs.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border-0 p-8 text-center">
-          <div className="inline-block p-4 rounded-full bg-gray-100 mb-4">
-            <i className="fas fa-search text-gray-400 text-2xl"></i>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900">No log entries found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Try changing your filters or search query
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="bg-white rounded-lg shadow-sm border-0 overflow-hidden mb-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Timestamp
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Level
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Source
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Message
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+        ) : (
+          <>
+            {/* Desktop */}
+            <table className="hidden md:table w-full text-sm table-fixed" data-testid="logs-table">
+              <colgroup><col className="w-[9.5rem]" /><col className="w-[6rem]" /><col className="w-[11rem]" /><col className="w-[12rem]" /><col className="w-[7.5rem]" /><col /></colgroup>
+              <thead className="text-xs text-left" style={muted}>
+                <tr className="border-b" style={border}>
+                  <th className="px-3 py-2">Time</th><th className="px-2 py-2">Level</th><th className="px-2 py-2">Actor</th>
+                  <th className="px-2 py-2">Action</th><th className="px-2 py-2">Record</th><th className="px-2 py-2">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(l => (
+                  <tr key={l.id} className="border-b align-top cursor-pointer hover:bg-black hover:bg-opacity-5" style={border} onClick={() => setSelected(l)} data-testid="log-row">
+                    <td className="px-3 py-2 whitespace-nowrap" title={relativeFromNow(l.createdAt)}>{formatAccra(l.createdAt)}</td>
+                    <td className="px-2 py-2"><LogLevelBadge level={l.level} /></td>
+                    <td className="px-2 py-2 truncate" title={`${l.actorName || 'System'} (${actorRoleLabel(l.actorRole)})`}>
+                      {l.actorName || 'System'}<span className="block text-[11px]" style={muted}>{actorRoleLabel(l.actorRole)}</span>
+                    </td>
+                    <td className="px-2 py-2 truncate" title={l.action || ''}>{l.actionLabel}{l.isSample && <span className="ml-1 text-[10px] px-1 rounded bg-gray-200 text-gray-700">sample</span>}</td>
+                    <td className="px-2 py-2"><RecordCell log={l} onOpen={openRecord} /></td>
+                    <td className="px-2 py-2 truncate" title={l.message}>{l.message}</td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentLogs.map(log => (
-                    <React.Fragment key={log.id}>
-                      <tr className={`${expandedLogId === log.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                        {/* Timestamp */}
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(log.timestamp)}
-                        </td>
-                        
-                        {/* Level */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            log.level === LOG_LEVEL.ERROR ? 'bg-red-100 text-red-800' : 
-                            log.level === LOG_LEVEL.WARNING ? 'bg-yellow-100 text-yellow-800' : 
-                            log.level === LOG_LEVEL.INFO ? 'bg-green-100 text-green-800' : 
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {log.level === LOG_LEVEL.ERROR && <i className="fas fa-exclamation-circle mr-1"></i>}
-                            {log.level === LOG_LEVEL.WARNING && <i className="fas fa-exclamation-triangle mr-1"></i>}
-                            {log.level === LOG_LEVEL.INFO && <i className="fas fa-info-circle mr-1"></i>}
-                            {log.level === LOG_LEVEL.DEBUG && <i className="fas fa-bug mr-1"></i>}
-                            {log.level}
-                          </span>
-                        </td>
-                        
-                        {/* Source */}
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {log.source}
-                        </td>
-                        
-                        {/* Message */}
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-sm truncate">
-                          {log.message}
-                        </td>
-                        
-                        {/* User */}
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {log.user || <em className="text-gray-400">System</em>}
-                        </td>
-                        
-                        {/* Actions */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            className="text-blue-600 hover:text-blue-900"
-                            onClick={() => toggleLogExpansion(log.id)}
-                          >
-                            {expandedLogId === log.id ? (
-                              <>
-                                <i className="fas fa-chevron-up mr-1"></i>
-                                Hide Details
-                              </>
-                            ) : (
-                              <>
-                                <i className="fas fa-chevron-down mr-1"></i>
-                                View Details
-                              </>
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                      
-                      {/* Expanded details row */}
-                      {expandedLogId === log.id && (
-                        <tr className="bg-blue-50">
-                          <td colSpan="6" className="px-6 py-4">
-                            <div className="text-sm">
-                              {/* Log ID and IP */}
-                              <div className="flex flex-col md:flex-row md:items-center mb-4">
-                                <div className="md:w-1/2 mb-2 md:mb-0">
-                                  <span className="text-gray-500 mr-2">Log ID:</span>
-                                  <code className="bg-gray-100 px-1 py-0.5 rounded">{log.id}</code>
-                                </div>
-                                {log.ip && (
-                                  <div className="md:w-1/2">
-                                    <span className="text-gray-500 mr-2">IP Address:</span>
-                                    <code className="bg-gray-100 px-1 py-0.5 rounded">{log.ip}</code>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Details */}
-                              <div className="mb-4">
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">Details</h4>
-                                {log.details == null || (typeof log.details === 'string' && log.details.trim() === '') ? (
-                                  <p className="text-gray-500">No details</p>
-                                ) : typeof log.details === 'string' ? (
-                                  <p className="bg-white p-3 border border-gray-200 rounded break-words whitespace-pre-wrap">{log.details}</p>
-                                ) : (
-                                  <pre className="bg-white p-3 border border-gray-200 rounded overflow-auto text-xs">
-{JSON.stringify(log.details, null, 2)}
-                                  </pre>
-                                )}
-                              </div>
-                              
-                              {/* Related entity if any */}
-                              {log.relatedEntity && (
-                                <div className="mb-4">
-                                  <h4 className="text-sm font-medium text-gray-900 mb-2">Related Entity</h4>
-                                  <div className="flex items-center bg-white p-3 border border-gray-200 rounded">
-                                    <span className="text-gray-700 uppercase text-xs font-medium mr-2">{log.relatedEntity.type.replace('_', ' ')}:</span>
-                                    <span className="text-blue-600">{log.relatedEntity.id}</span>
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Performance metrics if available */}
-                              {(log.requestDuration !== null || log.responseCode !== null) && (
-                                <div className="flex flex-col md:flex-row md:items-center">
-                                  {log.requestDuration !== null && (
-                                    <div className="md:w-1/2 mb-2 md:mb-0">
-                                      <span className="text-gray-500 mr-2">Request Duration:</span>
-                                      <span className={`${log.requestDuration > 1000 ? 'text-amber-600' : 'text-gray-900'}`}>
-                                        {log.requestDuration} ms
-                                      </span>
-                                    </div>
-                                  )}
-                                  {log.responseCode !== null && (
-                                    <div className="md:w-1/2">
-                                      <span className="text-gray-500 mr-2">Response Code:</span>
-                                      <span className={`
-                                        ${log.responseCode >= 200 && log.responseCode < 300 ? 'text-green-600' : ''}
-                                        ${log.responseCode >= 400 && log.responseCode < 500 ? 'text-amber-600' : ''}
-                                        ${log.responseCode >= 500 ? 'text-red-600' : ''}
-                                      `}>
-                                        {log.responseCode}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          {/* Pagination */}
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              Showing {indexOfFirstLog + 1}-{Math.min(indexOfLastLog, filteredLogs.length)} of {filteredLogs.length} logs
-            </div>
-            
-            <div className="flex">
-              <select
-                className="mr-4 border border-gray-300 rounded-md text-sm py-1 px-2"
-                value={pagination.logsPerPage}
-                onChange={(e) => setPagination(prev => ({
-                  ...prev,
-                  logsPerPage: Number(e.target.value),
-                  currentPage: 1
-                }))}
-              >
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
-              </select>
-              
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => paginate(Math.max(1, pagination.currentPage - 1))}
-                  disabled={pagination.currentPage === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${pagination.currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                >
-                  <i className="fas fa-chevron-left"></i>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Mobile */}
+            <div className="md:hidden divide-y" style={border}>
+              {rows.map(l => (
+                <button key={l.id} type="button" className="w-full text-left p-3 block" onClick={() => setSelected(l)} data-testid="log-card">
+                  <div className="flex items-center gap-2"><LogLevelBadge level={l.level} /><span className="font-medium">{l.actionLabel}</span></div>
+                  <p className="text-xs mt-1" style={muted}>{formatAccra(l.createdAt)} · {l.actorName || 'System'} ({actorRoleLabel(l.actorRole)}){l.entityId ? ` · #${shortRef(l.entityId)}` : ''}</p>
+                  <p className="text-sm mt-1 line-clamp-2">{l.message}</p>
                 </button>
-                
-                {/* Page numbers */}
-                {[...Array(Math.ceil(filteredLogs.length / pagination.logsPerPage)).keys()].map(number => (
-                  <button
-                    key={number + 1}
-                    onClick={() => paginate(number + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      pagination.currentPage === number + 1
-                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {number + 1}
-                  </button>
-                )).slice(
-                  Math.max(0, pagination.currentPage - 3),
-                  Math.min(
-                    Math.ceil(filteredLogs.length / pagination.logsPerPage),
-                    pagination.currentPage + 2
-                  )
-                )}
-                
-                <button
-                  onClick={() => paginate(Math.min(
-                    Math.ceil(filteredLogs.length / pagination.logsPerPage),
-                    pagination.currentPage + 1
-                  ))}
-                  disabled={pagination.currentPage === Math.ceil(filteredLogs.length / pagination.logsPerPage)}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                    pagination.currentPage === Math.ceil(filteredLogs.length / pagination.logsPerPage)
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <i className="fas fa-chevron-right"></i>
-                </button>
-              </nav>
+              ))}
             </div>
-          </div>
-        </>
+
+            <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-t text-sm" style={border}>
+              <span style={muted} data-testid="logs-page-info">
+                {(filters.page - 1) * LOG_PAGE_SIZE + 1}–{Math.min(filters.page * LOG_PAGE_SIZE, total)} of {total}
+              </span>
+              <div className="ml-auto flex gap-2">
+                <button type="button" disabled={filters.page <= 1} onClick={() => setFilters({ page: filters.page - 1 })} className="px-3 py-1 rounded border disabled:opacity-40" style={border}>Previous</button>
+                <span className="px-2 py-1" style={muted}>Page {filters.page} of {pages}</span>
+                <button type="button" disabled={filters.page >= pages} onClick={() => setFilters({ page: filters.page + 1 })} className="px-3 py-1 rounded border disabled:opacity-40" style={border}>Next</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {selected && <LogDetailsModal log={selected} onOpenRecord={openRecord} onClose={() => setSelected(null)} />}
+
+      {toast && (
+        <div className={`fixed top-20 right-4 z-[4000] max-w-md rounded-lg shadow-xl px-4 py-3 text-sm text-white ${toast.tone === 'error' ? 'bg-red-700' : 'bg-gray-800'}`} role="status">
+          {toast.message}
+        </div>
       )}
     </div>
   );

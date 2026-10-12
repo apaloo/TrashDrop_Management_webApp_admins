@@ -1,329 +1,153 @@
-import React, { useState } from 'react';
-import { STATUS, PRIORITY } from '../../config/constants';
+import React, { useEffect, useState } from 'react';
+import { card, input, muted, border } from '../pickupRequests/theme';
+import { AlertPriorityBadge, AlertStatusBadge, AlertTypeLabel } from './AlertBadges';
+import { ACTIONS, actionsFor } from './alertActions';
+import { STATUS_ACTIONS, STATUS_ACTION_LABELS, alertStatus, alertPriority } from '../../constants/alerts';
+import { ageLabel } from '../../utils/alertUtils';
+import { fullDate } from '../../utils/pickupRequestUtils';
+import EntityHistory from '../logs/EntityHistory';
 
-const AlertDetailsModal = ({ alert, onClose, toggleAlertStatus, updateAlertAssignment }) => {
-  const [newComment, setNewComment] = useState('');
-  const [showComments, setShowComments] = useState(false);
-  
-  if (!alert) return null;
-  
-  // Format date helper function
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-  
-  // Get priority based styling
-  const getPriorityColorStyle = () => {
-    switch (alert.priority) {
-      case 'critical':
-        return { bgColor: 'bg-red-100', textColor: 'text-red-800', icon: 'fa-exclamation-circle', iconColor: 'text-red-600' };
-      case 'high':
-        return { bgColor: 'bg-orange-100', textColor: 'text-orange-800', icon: 'fa-exclamation-triangle', iconColor: 'text-orange-500' };
-      case 'medium':
-        return { bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', icon: 'fa-exclamation', iconColor: 'text-yellow-500' };
-      case 'low':
-        return { bgColor: 'bg-blue-100', textColor: 'text-blue-800', icon: 'fa-info-circle', iconColor: 'text-blue-500' };
-      default:
-        return { bgColor: 'bg-gray-100', textColor: 'text-gray-800', icon: 'fa-info', iconColor: 'text-gray-500' };
-    }
-  };
-  
-  // Get entity type display text and icon (null-safe)
-  const getEntityInfo = () => {
-    const type = alert.relatedTo?.type || 'unknown';
-    const id = alert.relatedTo?.id || '';
-    switch (type) {
-      case 'pickup_request':
-        return { 
-          title: 'Pickup Request', 
-          icon: 'fa-truck',
-          viewText: 'View Request',
-          link: id ? `/request-pickups?id=${id}` : '#'
-        };
-      case 'collector':
-        return { 
-          title: 'Collector', 
-          icon: 'fa-user',
-          viewText: 'View Collector',
-          link: id ? `/collectors?id=${id}` : '#'
-        };
-      case 'region':
-        return { 
-          title: 'Region', 
-          icon: 'fa-map-marker-alt',
-          viewText: 'View Region',
-          link: id ? `/regions?id=${id}` : '#'
-        };
-      case 'system':
-        return { 
-          title: 'System', 
-          icon: 'fa-cogs',
-          viewText: 'System Settings',
-          link: '/settings'
-        };
-      default:
-        return { 
-          title: 'Unknown', 
-          icon: 'fa-question-circle',
-          viewText: 'More Info',
-          link: '#'
-        };
-    }
-  };
-  
-  // Handle adding a comment
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    
-    const comment = {
-      id: `comment-${Date.now()}`,
-      text: newComment,
-      createdAt: new Date().toISOString(),
-      createdBy: 'Current User',
-      isSystem: false
-    };
-    
-    alert.comments = [...(alert.comments || []), comment];
-    setNewComment('');
-    setShowComments(true);
-  };
-  
-  // Handle assignment change
-  const handleAssignmentChange = (e) => {
-    const assignedTo = e.target.value === '' ? null : e.target.value;
-    updateAlertAssignment(alert.id, assignedTo);
-  };
-  
-  const priorityStyle = getPriorityColorStyle();
-  const entityInfo = getEntityInfo();
+const Field = ({ label, children }) => (
+  <div className="min-w-0">
+    <p className="text-xs" style={muted}>{label}</p>
+    <div className="font-medium break-words">{children}</div>
+  </div>
+);
+
+const ICON = { created: 'fas fa-plus-circle', status: 'fas fa-exchange-alt', assigned: 'fas fa-user-tag', escalated: 'fas fa-arrow-up', comment: 'far fa-comment', action: 'fas fa-bolt' };
+
+const describe = (e, staffName) => {
+  switch (e.kind) {
+    case 'created': return e.actor_name?.startsWith('Rule:') ? 'Created automatically' : 'Created';
+    case 'status': return `${alertStatus(e.from_value).label} → ${alertStatus(e.to_value).label}`;
+    case 'assigned': return e.to_value ? `Assigned to ${staffName(e.to_value)}` : 'Unassigned';
+    case 'escalated': return `Priority ${alertPriority(e.from_value).label} → ${alertPriority(e.to_value).label}`;
+    case 'comment': return 'Comment';
+    case 'action': return `${ACTIONS[e.to_value]?.label || e.to_value}${e.data?.ok === false ? ' (failed)' : ''}`;
+    default: return e.kind;
+  }
+};
+
+/**
+ * One alert: what it's about (with the record's live details), what to do
+ * (actions that fit the type), status buttons, assignment and the timeline.
+ */
+const AlertDetailsModal = ({
+  alert, rel, staff, staffName, activity, busy, canEdit,
+  onStatus, onAssign, onComment, onAction, onMoreInfo, onClose,
+}) => {
+  const [comment, setComment] = useState('');
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, onClose]);
+
+  const actions = actionsFor(alert, rel);
+  const statusActions = STATUS_ACTIONS[alert.status] || [];
+  const timeline = activity || [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
-        <div className="border-b p-4 flex justify-between items-start">
-          <div className="flex-1">
-            <div className="flex items-center mb-1">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${priorityStyle.bgColor} ${priorityStyle.textColor} mr-2`}>
-                <i className={`fas ${priorityStyle.icon} mr-1 ${priorityStyle.iconColor}`}></i>
-                {alert.priority.charAt(0).toUpperCase() + alert.priority.slice(1)}
-              </span>
-              
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                alert.status === STATUS.ALERT.OPEN ? 'bg-yellow-100 text-yellow-800' : 
-                alert.status === STATUS.ALERT.RESOLVED ? 'bg-green-100 text-green-800' : 
-                alert.status === STATUS.ALERT.IN_PROGRESS ? 'bg-blue-100 text-blue-800' : 
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {alert.status === STATUS.ALERT.OPEN ? (
-                  <>
-                    <i className="fas fa-circle text-xs mr-1"></i>
-                    Open
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-check text-xs mr-1"></i>
-                    Resolved
-                  </>
-                )}
-              </span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900">{alert.title}</h3>
+    <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={() => !busy && onClose()}>
+      <div className="rounded-lg shadow-xl w-full max-w-3xl max-h-[94vh] overflow-y-auto border" style={card}
+        role="dialog" aria-modal="true" aria-labelledby="alert-details-title" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-start gap-3" style={{ ...card, ...border }}>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1"><AlertPriorityBadge priority={alert.priority} /><AlertStatusBadge status={alert.status} /><AlertTypeLabel type={alert.type} /></div>
+            <h2 id="alert-details-title" className="font-semibold">{alert.title}</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 transition-colors"
-          >
-            <i className="fas fa-times text-xl"></i>
-          </button>
+          <button type="button" onClick={onClose} disabled={busy} className="text-xl leading-none" style={muted} aria-label="Close">&times;</button>
         </div>
-        
-        {/* Modal Content */}
-        <div className="p-6">
-          {/* Alert entity */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm text-gray-500 mb-2">Related Entity</h4>
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                <i className={`fas ${entityInfo.icon} text-blue-500`}></i>
-              </div>
-              <div>
-                <p className="font-medium">{entityInfo.title}</p>
-                <p className="text-sm text-gray-500">
-                  ID: {alert.relatedTo?.id || '—'}
-                  {alert.relatedTo?.location && (
-                    <span className="ml-2">• {alert.relatedTo.location}</span>
-                  )}
-                </p>
-              </div>
-              <div className="ml-auto">
-                <a 
-                  href={entityInfo.link}
-                  className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
-                >
-                  {entityInfo.viewText}
-                  <i className="fas fa-external-link-alt ml-1 text-xs"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          {/* Timestamps */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div>
-              <h4 className="text-xs text-gray-500 mb-1">Created</h4>
-              <p className="text-sm">{formatDate(alert.createdAt)}</p>
-            </div>
-            <div>
-              <h4 className="text-xs text-gray-500 mb-1">Last Updated</h4>
-              <p className="text-sm">{formatDate(alert.updatedAt)}</p>
-            </div>
-          </div>
-          
-          {/* Description */}
-          <div className="mb-6">
-            <h4 className="text-sm text-gray-500 mb-2">Description</h4>
-            <p className="text-sm text-gray-900 whitespace-pre-line bg-gray-50 p-3 rounded border border-gray-100">
-              {alert.description}
-            </p>
-          </div>
-          
-          {/* Alert Actions */}
-          <div className="mb-6" data-test="alert-detail-actions">
-            <h4 className="text-sm text-gray-500 mb-2">Available Actions</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                data-test="action-item"
-                className="flex items-center justify-center p-2 border rounded-md hover:bg-gray-50 text-sm"
-                onClick={() => console.log('Dispatch maintenance')}
-              >
-                <i className="fas fa-tools mr-2"></i>
-                dispatch_maintenance
-              </button>
-              <button
-                data-test="action-item"
-                className="flex items-center justify-center p-2 border rounded-md hover:bg-gray-50 text-sm"
-                onClick={() => console.log('Send notification')}
-              >
-                <i className="fas fa-bell mr-2"></i>
-                send_notification
-              </button>
-              <button
-                data-test="action-item"
-                className="flex items-center justify-center p-2 border rounded-md hover:bg-gray-50 text-sm"
-                onClick={() => console.log('Generate report')}
-              >
-                <i className="fas fa-file-alt mr-2"></i>
-                generate_report
-              </button>
-            </div>
-          </div>
-          
-          {/* Assignment */}
-          <div className="mb-6">
-            <h4 className="text-sm text-gray-500 mb-2">Assigned To</h4>
-            <select
-              className="w-full p-2 border rounded-md"
-              value={alert.assignedTo || ''}
-              onChange={handleAssignmentChange}
-            >
-              <option value="">Not assigned</option>
-              <option value="admin@trashdrop.com">Admin</option>
-              <option value="support@trashdrop.com">Support Team</option>
-              <option value="operations@trashdrop.com">Operations</option>
-            </select>
-          </div>
-          
-          {/* Comments section */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm text-gray-500">Comments & Activity</h4>
-              <button 
-                onClick={() => setShowComments(!showComments)} 
-                className="text-xs text-blue-600"
-              >
-                {showComments ? 'Hide' : 'Show'} 
-                {alert.comments && alert.comments.length > 0 ? ` (${alert.comments.length})` : ''}
-              </button>
-            </div>
-            
-            {showComments && (
-              <div className="border rounded-md mb-3">
-                <div className="max-h-40 overflow-y-auto p-2">
-                  {alert.comments && alert.comments.length > 0 ? (
-                    alert.comments.map((comment) => (
-                      <div key={comment.id} className={`p-2 mb-2 text-sm rounded ${comment.isSystem ? 'bg-blue-50' : 'bg-gray-50'}`}>
-                        <div className="flex justify-between mb-1">
-                          <span className="font-medium">
-                            {comment.isSystem ? 'System' : comment.createdBy}
-                          </span>
-                          <span className="text-gray-500 text-xs">
-                            {formatDate(comment.createdAt)}
-                          </span>
-                        </div>
-                        <p>{comment.text}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm p-2">No comments yet</p>
-                  )}
+
+        <div className="p-5 space-y-5 text-sm">
+          {alert.description && <p className="whitespace-pre-wrap">{alert.description}</p>}
+
+          {/* Related record */}
+          <div className="rounded border p-3" style={border} data-testid="related-record">
+            <p className="text-xs mb-1" style={muted}>Related to</p>
+            {rel ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium"><span className="font-mono text-xs mr-1">{rel.short}</span>{rel.name}</p>
+                  {rel.detail && <p className="text-xs" style={muted}>{rel.detail}</p>}
+                  {rel.kind === 'pickup_request' && !rel.record && <p className="text-xs text-amber-700">This request was not found in the current data.</p>}
                 </div>
+                <button type="button" onClick={onMoreInfo} className="px-3 py-1.5 rounded border text-sm whitespace-nowrap" style={border}>More info</button>
               </div>
-            )}
-            
-            <div className="flex">
-              <input
-                type="text"
-                className="flex-grow p-2 border rounded-l-md"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-              />
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
-                onClick={handleAddComment}
-              >
-                <i className="fas fa-paper-plane"></i>
-              </button>
-            </div>
+            ) : <p className="font-medium">System <span className="font-normal text-xs" style={muted}>(no linked record)</span></p>}
           </div>
-        </div>
-        
-        {/* Modal Footer */}
-        <div className="border-t p-4 bg-gray-50 flex justify-between">
-          <button 
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-            onClick={onClose}
-          >
-            Close
-          </button>
-          
-          <button
-            className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-              alert.status === STATUS.ALERT.OPEN 
-              ? 'bg-green-600 hover:bg-green-700' 
-              : 'bg-yellow-600 hover:bg-yellow-700'
-            }`}
-            onClick={() => {
-              toggleAlertStatus(alert.id);
-              onClose();
-            }}
-          >
-            {alert.status === STATUS.ALERT.OPEN ? (
-              <>
-                <i className="fas fa-check-circle mr-1"></i>
-                Mark as Resolved
-              </>
-            ) : (
-              <>
-                <i className="fas fa-redo mr-1"></i>
-                Reopen Alert
-              </>
+
+          {/* Actions */}
+          {actions.length > 0 && canEdit && (
+            <div>
+              <p className="text-xs mb-1.5" style={muted}>Actions</p>
+              <div className="flex flex-wrap gap-2">
+                {actions.map(key => (
+                  <button key={key} type="button" disabled={busy} onClick={() => onAction(key)}
+                    className="px-3 py-1.5 rounded text-sm border hover:bg-black hover:bg-opacity-5 disabled:opacity-40" style={border}>
+                    <i className={`${ACTIONS[key].icon} mr-1.5`} aria-hidden="true"></i>{ACTIONS[key].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Field label="Created"><span title={fullDate(alert.createdAt)}>{ageLabel(alert.createdAt)}</span> <span className="font-normal text-xs" style={muted}>{alert.ruleKey ? 'by a rule' : ''}</span></Field>
+            <Field label="Assigned to">
+              <select value={alert.assignedTo || ''} disabled={busy || !canEdit} onChange={e => onAssign(e.target.value || null)}
+                className="w-full border rounded px-2 py-1 text-sm font-normal" style={input} aria-label="Assign to">
+                <option value="">Unassigned</option>
+                {staff.filter(u => u.id).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </Field>
+            {alert.location?.lat != null
+              ? <Field label="Location"><span className="font-normal">{alert.location.address || `${alert.location.lat.toFixed(5)}, ${alert.location.lng.toFixed(5)}`}</span></Field>
+              : <Field label="Rule">{alert.ruleKey || 'Created by hand'}</Field>}
+            {alert.resolutionNote && <div className="sm:col-span-3"><Field label={alert.autoResolved ? 'Resolved automatically' : 'Resolution note'}><span className="font-normal">{alert.resolutionNote}</span></Field></div>}
+          </div>
+
+          {/* Timeline */}
+          <div>
+            <h3 className="font-medium mb-2">Comments &amp; activity</h3>
+            {activity === null ? <p style={muted}>The activity log appears once the alerts migration has been run.</p> : (
+              <ol className="relative border-l pl-4 space-y-3" style={border} data-testid="activity">
+                {timeline.length === 0 && <li style={muted}>Nothing yet</li>}
+                {timeline.map(e => (
+                  <li key={e.id} className="relative">
+                    <span className="absolute -left-[23px] top-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] text-white bg-green-600">
+                      <i className={ICON[e.kind] || 'fas fa-circle'} aria-hidden="true"></i>
+                    </span>
+                    <p><span className="font-medium">{describe(e, staffName)}</span>
+                      <span className="text-xs" style={muted}> · {e.actor_name || 'System'} · <span title={fullDate(e.created_at)}>{ageLabel(e.created_at)}</span></span></p>
+                    {e.note && e.kind !== 'created' && <p className="whitespace-pre-wrap" style={e.kind === 'comment' ? undefined : muted}>{e.note}</p>}
+                  </li>
+                ))}
+              </ol>
             )}
-          </button>
+            {canEdit && activity !== null && (
+              <form className="mt-3 flex gap-2" onSubmit={e => { e.preventDefault(); if (comment.trim()) onComment(comment).then(ok => ok && setComment('')); }}>
+                <input value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment" aria-label="Add a comment"
+                  className="flex-1 border rounded px-3 py-2" style={input} />
+                <button type="submit" disabled={busy || !comment.trim()} className="px-3 py-2 rounded text-sm text-white bg-green-600 disabled:opacity-40">Comment</button>
+              </form>
+            )}
+          </div>
+
+          <EntityHistory entityId={alert.id} />
         </div>
+
+        {canEdit && statusActions.length > 0 && (
+          <div className="sticky bottom-0 border-t px-5 py-3 flex flex-wrap justify-end gap-2" style={{ ...card, ...border }}>
+            {statusActions.map(to => (
+              <button key={to} type="button" disabled={busy} onClick={() => onStatus(to)}
+                className={`px-4 py-2 rounded text-sm font-medium disabled:opacity-40 ${to === 'resolved' ? 'text-white bg-green-600 hover:bg-green-700' : to === 'open' ? 'border text-blue-600' : 'border'}`}
+                style={to === 'resolved' ? undefined : { ...border, color: to === 'open' ? undefined : 'var(--td-text-primary)' }}>
+                {STATUS_ACTION_LABELS[to]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,127 +1,67 @@
 import React from 'react';
-import { STATUS, PRIORITY } from '../../config/constants';
+import { card, input, muted } from '../pickupRequests/theme';
+import { ALERT_STATUSES, ALERT_PRIORITIES, ALERT_TYPES } from '../../constants/alerts';
+import { DEFAULT_ALERT_FILTERS } from '../../utils/alertUtils';
 
-const AlertsFilter = ({ filters, handleFilterChange, clearFilters }) => {
+const Select = ({ label, value, onChange, children, className = '' }) => (
+  <label className={`w-full sm:w-auto ${className}`}>
+    <span className="block text-xs mb-1" style={muted}>{label}</span>
+    <select value={value} onChange={e => onChange(e.target.value)} aria-label={label}
+      className="w-full sm:min-w-[11rem] border rounded px-2 py-1.5 text-sm" style={input}>
+      {children}
+    </select>
+  </label>
+);
+
+/** Filters; every option value comes from src/constants/alerts.js */
+const AlertsFilter = ({ filters, setFilters, searchText, setSearchText, staff }) => {
+  const changed = Object.keys(DEFAULT_ALERT_FILTERS).some(k => filters[k] !== DEFAULT_ALERT_FILTERS[k]) || searchText;
   return (
-    <div className="bg-white rounded-lg shadow-sm border-0 p-4 mb-6">
-      <div className="flex flex-col md:flex-row gap-4 items-end">
-        {/* Search box */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-search text-gray-400"></i>
-            </div>
-            <input
-              type="text"
-              placeholder="Search alerts..."
-              className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={filters.searchQuery}
-              onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-            />
-          </div>
+    <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+      <label className="flex-1 min-w-[220px]">
+        <span className="block text-xs mb-1" style={muted}>Search</span>
+        <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)}
+          placeholder="Title, request ID, customer, collector, area" className="w-full border rounded px-3 py-1.5 text-sm" style={input} />
+      </label>
+      <Select label="Status" value={filters.status} onChange={v => setFilters({ status: v })}>
+        <option value="all">All statuses</option>
+        <option value="active">Needs attention</option>
+        {ALERT_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+      </Select>
+      <Select label="Priority" value={filters.priority} onChange={v => setFilters({ priority: v })}>
+        <option value="all">All priorities</option>
+        {ALERT_PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+      </Select>
+      <Select label="Type" value={filters.type} onChange={v => setFilters({ type: v })}>
+        <option value="all">All types</option>
+        {ALERT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+      </Select>
+      <Select label="Assigned to" value={filters.assignee} onChange={v => setFilters({ assignee: v })}>
+        <option value="all">Anyone</option>
+        <option value="none">Unassigned</option>
+        {staff.filter(u => u.id).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+      </Select>
+      <Select label="Created" value={filters.range} onChange={v => setFilters({ range: v })}>
+        <option value="all">Any time</option>
+        <option value="today">Today</option>
+        <option value="last24h">Last 24 hours</option>
+        <option value="last7Days">Last 7 days</option>
+        <option value="last30Days">Last 30 days</option>
+        <option value="custom">Custom range…</option>
+      </Select>
+      {filters.range === 'custom' && (
+        <div className="flex gap-2 w-full sm:w-auto">
+          <label className="flex-1"><span className="block text-xs mb-1" style={muted}>From</span>
+            <input type="date" value={filters.from} onChange={e => setFilters({ from: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" style={input} /></label>
+          <label className="flex-1"><span className="block text-xs mb-1" style={muted}>To</span>
+            <input type="date" value={filters.to} onChange={e => setFilters({ to: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" style={input} /></label>
         </div>
-        
-        {/* Status filter */}
-        <div className="w-full md:w-44">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            <option value={STATUS.ALERT.OPEN}>Open</option>
-            <option value={STATUS.ALERT.IN_PROGRESS}>In Progress</option>
-            <option value={STATUS.ALERT.RESOLVED}>Resolved</option>
-            <option value={STATUS.ALERT.CLOSED}>Closed</option>
-          </select>
-        </div>
-        
-        {/* Priority filter */}
-        <div className="w-full md:w-44">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-          <select
-            className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-            value={filters.priority}
-            onChange={(e) => handleFilterChange('priority', e.target.value)}
-          >
-            <option value="all">All Priorities</option>
-            <option value={PRIORITY.CRITICAL}>Critical</option>
-            <option value={PRIORITY.HIGH}>High</option>
-            <option value={PRIORITY.MEDIUM}>Medium</option>
-            <option value={PRIORITY.LOW}>Low</option>
-          </select>
-        </div>
-        
-        {/* Type filter */}
-        <div className="w-full md:w-44">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <select
-            className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-          >
-            <option value="all">All Types</option>
-            <option value="pickup_request">Pickup Requests</option>
-            <option value="collector">Collectors</option>
-            <option value="system">System</option>
-            <option value="region">Regions</option>
-          </select>
-        </div>
-        
-        {/* Date filter dropdown */}
-        <div className="w-full md:w-44">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <select
-            className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-            value={filters.dateRange}
-            onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-          >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="last7Days">Last 7 Days</option>
-            <option value="last30Days">Last 30 Days</option>
-            <option value="thisMonth">This Month</option>
-            <option value="lastMonth">Last Month</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
-        
-        {/* Custom date range */}
-        {filters.dateRange === 'custom' && (
-          <>
-            <div className="w-full md:w-auto">
-              <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
-              <input
-                type="date"
-                className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={filters.dateFrom}
-                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-              />
-            </div>
-            
-            <div className="w-full md:w-auto">
-              <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
-              <input
-                type="date"
-                className="w-full py-2 px-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={filters.dateTo}
-                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-              />
-            </div>
-          </>
-        )}
-        
-        {/* Clear filters button */}
-        <button
-          className="px-4 py-2 text-blue-600 hover:text-blue-800 border border-blue-600 hover:border-blue-800 rounded-md"
-          onClick={clearFilters}
-        >
-          Clear Filters
+      )}
+      {changed && (
+        <button type="button" className="text-sm underline pb-1.5" style={muted} onClick={() => { setSearchText(''); setFilters({ ...DEFAULT_ALERT_FILTERS }); }}>
+          Clear filters
         </button>
-      </div>
+      )}
     </div>
   );
 };

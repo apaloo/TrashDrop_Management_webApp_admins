@@ -1,190 +1,88 @@
 import React from 'react';
-import { STATUS, PRIORITY } from '../../config/constants';
+import { muted, border, card } from '../pickupRequests/theme';
+import { AlertPriorityBadge, AlertStatusBadge, AlertTypeLabel } from './AlertBadges';
+import { relatedRecord, ageLabel } from '../../utils/alertUtils';
 
-const AlertsTable = ({ 
-  alerts, 
-  onViewDetails, 
-  onToggleStatus, 
-  sorting, 
-  setSorting, 
-  selectedAlerts, 
-  toggleAlertSelection,
-  toggleSelectAll,
-  allSelected
-}) => {
-  // Format date to readable string
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
+const Related = ({ rel }) => (rel ? (
+  <div className="min-w-0">
+    <p className="truncate"><span className="font-mono text-xs">{rel.short}</span> <span>{rel.name}</span></p>
+    {rel.detail && <p className="text-xs truncate" style={muted}>{rel.detail}</p>}
+  </div>
+) : <span style={muted}>System</span>);
+
+/**
+ * Alerts list: priority, title + type, related record, assignee, age, status.
+ * Rows come sorted (open first, then priority, then newest). Cards on small screens.
+ */
+const AlertsTable = ({ alerts, ctx, staffName, selected, onToggle, onToggleAll, onOpen, sort, onSort }) => {
+  const allSelected = alerts.length > 0 && alerts.every(a => selected.has(a.id));
+  const arrow = (key) => (sort.key === key ? (sort.dir === 'desc' ? ' ↓' : ' ↑') : '');
+  const header = (key, label) => (
+    <button type="button" onClick={() => onSort(key)} className="font-semibold">{label}{arrow(key)}</button>
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border-0 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-3 py-3">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500"
-                    checked={allSelected}
-                    onChange={toggleSelectAll}
-                  />
-                </div>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Alert
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Related To
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => setSorting(prev => ({
-                  field: 'createdAt',
-                  direction: prev.field === 'createdAt' && prev.direction === 'desc' ? 'asc' : 'desc'
-                }))}
-              >
-                Created
-                {sorting.field === 'createdAt' && (
-                  <i className={`fas fa-sort-${sorting.direction === 'asc' ? 'up' : 'down'} ml-1`}></i>
-                )}
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+    <>
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm" data-testid="alerts-table">
+          <thead className="text-xs text-left" style={muted}>
+            <tr className="border-b" style={border}>
+              <th className="px-3 py-2 w-8"><input type="checkbox" aria-label="Select all alerts" checked={allSelected} onChange={() => onToggleAll(!allSelected)} /></th>
+              <th className="px-2 py-2">{header('priority', 'Priority')}</th>
+              <th className="px-2 py-2">Alert</th>
+              <th className="px-2 py-2">Related record</th>
+              <th className="px-2 py-2">Assignee</th>
+              <th className="px-2 py-2 whitespace-nowrap">{header('created', 'Age')}</th>
+              <th className="px-2 py-2">{header('status', 'Status')}</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {alerts.map(alert => (
-              <tr key={alert.id} className={selectedAlerts.includes(alert.id) ? "bg-blue-50" : ""}>
-                {/* Checkbox */}
-                <td className="px-3 py-4">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500"
-                      checked={selectedAlerts.includes(alert.id)}
-                      onChange={() => toggleAlertSelection(alert.id)}
-                    />
-                  </div>
+          <tbody>
+            {alerts.map(a => (
+              <tr key={a.id} className="border-b align-top cursor-pointer hover:bg-black hover:bg-opacity-5" style={border} onClick={() => onOpen(a)} data-testid="alert-row">
+                <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                  <input type="checkbox" aria-label={`Select ${a.title}`} checked={selected.has(a.id)} onChange={() => onToggle(a.id)} />
                 </td>
-                
-                {/* Alert info */}
-                <td className="px-6 py-4">
-                  <div className="flex items-start">
-                    <div className="mr-3 mt-1">
-                      {alert.priority === 'critical' && (
-                        <i className="fas fa-exclamation-circle text-red-600"></i>
-                      )}
-                      {alert.priority === 'high' && (
-                        <i className="fas fa-exclamation-triangle text-orange-500"></i>
-                      )}
-                      {alert.priority === 'medium' && (
-                        <i className="fas fa-exclamation text-yellow-500"></i>
-                      )}
-                      {alert.priority === 'low' && (
-                        <i className="fas fa-info-circle text-blue-500"></i>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{alert.title}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">{alert.description}</div>
-                    </div>
-                  </div>
+                <td className="px-2 py-2.5"><AlertPriorityBadge priority={a.priority} /></td>
+                <td className="px-2 py-2.5 max-w-[22rem]">
+                  <button type="button" className="font-medium text-left hover:underline line-clamp-2" onClick={e => { e.stopPropagation(); onOpen(a); }}>{a.title}</button>
+                  <AlertTypeLabel type={a.type} />
+                  {a.ruleKey && <span className="ml-2 text-[11px]" style={muted}>· automatic</span>}
                 </td>
-                
-                {/* Related entity */}
-                <td className="px-6 py-4">
-                  <div className="text-sm">
-                    <div className="font-medium text-gray-500 uppercase">
-                      {(alert.relatedTo?.type?.replace('_', ' ')) || '—'}
-                    </div>
-                    <div>
-                      <span className="text-gray-900">{alert.relatedTo?.id || '—'}</span>
-                      {alert.relatedTo?.location && (
-                        <span className="text-gray-500 ml-1">({alert.relatedTo.location})</span>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                
-                {/* Status */}
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    alert.status === STATUS.ALERT.OPEN 
-                    ? 'bg-yellow-100 text-yellow-800' 
-                    : 'bg-green-100 text-green-800'
-                  }`}>
-                    {alert.status === STATUS.ALERT.OPEN ? (
-                      <>
-                        <i className="fas fa-circle text-xs mr-1"></i>
-                        Open
-                      </>
-                    ) : alert.status === STATUS.ALERT.RESOLVED ? (
-                      <>
-                        <i className="fas fa-check text-xs mr-1"></i>
-                        Resolved
-                      </>
-                    ) : alert.status === STATUS.ALERT.IN_PROGRESS ? (
-                      <>
-                        <i className="fas fa-sync text-xs mr-1"></i>
-                        In Progress
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-times text-xs mr-1"></i>
-                        Closed
-                      </>
-                    )}
-                  </span>
-                </td>
-                
-                {/* Created date */}
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {formatDate(alert.createdAt)}
-                </td>
-                
-                {/* Actions */}
-                <td className="px-6 py-4 text-right text-sm font-medium">
-                  <button
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                    onClick={() => onViewDetails(alert.id)}
-                  >
-                    <i className="fas fa-eye mr-1"></i>
-                    View
-                  </button>
-                  <button
-                    className={`${
-                      alert.status === STATUS.ALERT.OPEN ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'
-                    }`}
-                    onClick={() => onToggleStatus(alert.id)}
-                  >
-                    {alert.status === STATUS.ALERT.OPEN ? (
-                      <>
-                        <i className="fas fa-check-circle mr-1"></i>
-                        Resolve
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-redo mr-1"></i>
-                        Reopen
-                      </>
-                    )}
-                  </button>
-                </td>
+                <td className="px-2 py-2.5 max-w-[16rem]"><Related rel={relatedRecord(a, ctx)} /></td>
+                <td className="px-2 py-2.5 whitespace-nowrap">{a.assignedTo ? staffName(a.assignedTo) : <span style={muted}>Unassigned</span>}</td>
+                <td className="px-2 py-2.5 whitespace-nowrap" title={a.createdAt ? new Date(a.createdAt).toLocaleString() : ''}>{ageLabel(a.createdAt)}</td>
+                <td className="px-2 py-2.5"><AlertStatusBadge status={a.status} /></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        <label className="flex items-center gap-2 text-sm" style={muted}>
+          <input type="checkbox" checked={allSelected} onChange={() => onToggleAll(!allSelected)} /> Select all
+        </label>
+        {alerts.map(a => (
+          <div key={a.id} className="rounded-lg border p-3" style={card} data-testid="alert-card">
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" aria-label={`Select ${a.title}`} checked={selected.has(a.id)} onChange={() => onToggle(a.id)} />
+              <button type="button" className="text-left flex-1 min-w-0" onClick={() => onOpen(a)}>
+                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                  <AlertPriorityBadge priority={a.priority} /><AlertStatusBadge status={a.status} />
+                  <span className="text-xs ml-auto" style={muted}>{ageLabel(a.createdAt)}</span>
+                </div>
+                <p className="font-medium">{a.title}</p>
+                <AlertTypeLabel type={a.type} />
+                <div className="mt-1.5 text-sm"><Related rel={relatedRecord(a, ctx)} /></div>
+                <p className="text-xs mt-1" style={muted}>{a.assignedTo ? `Assigned to ${staffName(a.assignedTo)}` : 'Unassigned'}</p>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 

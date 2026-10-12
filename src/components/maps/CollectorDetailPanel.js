@@ -1,24 +1,14 @@
 import React from 'react';
+import { relativeTime, collectorLastSeen } from '../../utils/liveMapUtils';
 
 const CollectorDetailPanel = ({ collector, onClose }) => {
-  const formatDateTime = (value) => {
-    if (!value) return '—';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return '—';
-    const pad = (n) => String(n).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    const mm = pad(d.getMonth() + 1);
-    const dd = pad(d.getDate());
-    const hh = pad(d.getHours());
-    const ii = pad(d.getMinutes());
-    const ss = pad(d.getSeconds());
-    return `${yyyy}-${mm}-${dd} ${hh}:${ii}:${ss}`;
-  };
-
-  const lastUpdateTime = formatDateTime(collector.lastUpdated);
+  const lastUpdateTime = relativeTime(collectorLastSeen(collector));
+  const capacity = collector.capacityUsed ?? 0;
+  const capacityText = capacity >= 90 ? 'text-red-600' : capacity >= 70 ? 'text-amber-600' : 'text-gray-600';
+  const capacityBar = capacity >= 90 ? 'bg-red-600' : capacity >= 70 ? 'bg-amber-500' : 'bg-gray-400';
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border-0">
+    <div className="rounded-lg shadow-lg border" style={{ background: 'var(--td-card-bg)', borderColor: 'var(--td-card-border)', color: 'var(--td-text-primary)' }}>
       <div className="border-b p-4 flex justify-between items-center">
         <div className="flex items-center">
           <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden mr-3">
@@ -58,7 +48,7 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
           <span className={`text-sm font-medium ${
             collector.status === 'active' ? 'text-green-600' : 'text-gray-500'
           }`}>
-            {collector.status === 'active' ? 'Active' : 'Inactive'} • Last Updated: {lastUpdateTime}
+            {collector.online ? 'Online' : 'Offline'} • {collector.status === 'active' ? 'Active' : 'Inactive'} account • Last update: {lastUpdateTime}
           </span>
         </div>
         
@@ -66,21 +56,10 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
             <span>Current Capacity</span>
-            <span className={`font-medium ${
-              collector.capacityRemaining < 30 ? 'text-red-600' : 
-              collector.capacityRemaining < 60 ? 'text-orange-500' : 
-              'text-green-600'
-            }`}>{collector.capacityRemaining}%</span>
+            <span className={`font-medium ${capacityText}`}>{capacity}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full ${
-                collector.capacityRemaining < 30 ? 'bg-red-600' : 
-                collector.capacityRemaining < 60 ? 'bg-orange-500' : 
-                'bg-green-600'
-              }`}
-              style={{ width: `${collector.capacityRemaining}%` }}
-            ></div>
+            <div className={`h-2 rounded-full ${capacityBar}`} style={{ width: `${Math.min(100, capacity)}%` }}></div>
           </div>
         </div>
         

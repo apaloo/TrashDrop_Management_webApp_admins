@@ -49,11 +49,13 @@ export const STATUS = {
 /**
  * Log level constants
  */
+// Stored lower-case in public.logs; full list with labels in src/constants/alerts.js (LOG_LEVELS)
 export const LOG_LEVEL = {
-  ERROR: 'ERROR',
-  WARNING: 'WARNING',
-  INFO: 'INFO',
-  DEBUG: 'DEBUG',
+  CRITICAL: 'critical',
+  ERROR: 'error',
+  WARNING: 'warn',
+  INFO: 'info',
+  DEBUG: 'debug',
 };
 
 /**
