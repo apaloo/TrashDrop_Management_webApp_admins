@@ -52,3 +52,27 @@ export const bagStageInfo = (value) => {
 
 /** 1 (generated) … 5 (processed); archived = 0 */
 export const bagStageRank = (value) => BAG_STAGES.findIndex(s => s.key === normalizeBagStage(value)) + 1;
+
+/* ── Generate Bags ──────────────────────────────────────────────────────── */
+
+/** Trash types and their QR prefix code (same codes as the database, td_bag_type_code) */
+export const TRASH_TYPES = [
+  { key: 'Organic', code: 'ORG' },
+  { key: 'Recyclable', code: 'REC' },
+  { key: 'General', code: 'GEN' },
+  { key: 'Hazardous', code: 'HAZ' },
+  { key: 'Electronic', code: 'ELE' },
+  { key: 'Other', code: 'OTH' },
+];
+export const BAG_SIZES = ['Small', 'Medium', 'Large'];
+
+/**
+ * Volume limits per submission. The database enforces the same limits
+ * (admin_generate_batches) and never more than 5,000 bags at once;
+ * REACT_APP_MAX_BAGS_PER_SUBMISSION can only lower that.
+ */
+export const BAG_LIMITS = {
+  maxBagsPerBatch: 1000,
+  maxBatches: 1000,
+  maxTotalBags: Math.min(5000, Number(process.env.REACT_APP_MAX_BAGS_PER_SUBMISSION) || 5000),
+};

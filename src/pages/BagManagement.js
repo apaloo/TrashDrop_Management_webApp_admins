@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
-import { createBagBatch, fetchCollectorStatsReal } from '../utils/databaseUtils';
-import { fetchBatchPage, fetchBatch, fetchBagStats, setBatchArchived } from '../services/bagAdminService';
+import { fetchCollectorStatsReal } from '../utils/databaseUtils';
+import { fetchBatchPage, fetchBatch, fetchBagStats, setBatchArchived, generateBatches } from '../services/bagAdminService';
 import { BAG_STAGES, ARCHIVED_STAGE } from '../constants/bagStatus';
 import {
-  typeSizeLabel, batchProgress, filtersFromParams, paramsFromFilters, weekCollectedPct, formatMinutes,
+  typeSizeLabel, batchProgress, filtersFromParams, paramsFromFilters, weekCollectedPct, formatMinutes, formatCedis,
 } from '../utils/bagUtils';
 import { fullDate } from '../utils/pickupRequestUtils';
 import BagStageBadge from '../components/bags/BagStageBadge';
@@ -237,10 +237,13 @@ const BagManagement = () => {
     e.preventDefault();
     setBusy(true);
     try {
-      const { batch } = await createBagBatch({ quantity: parseInt(formData.quantity, 10), type: formData.type, size: formData.size });
+      const qty = Number(formData.quantity);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 1000) throw new Error('Quantity must be a whole number from 1 to 1000');
+      // Same all-or-nothing database function as the Generate Bags page
+      const res = await generateBatches({ type: formData.type, size: formData.size, bags: qty, batches: 1, price: null, prefix: '' });
       setShowModal(false);
       setFormData({ type: 'Recyclable', size: 'Medium', quantity: 50 });
-      showToast(`Batch ${String(batch.id).slice(0, 8)} created with ${batch.bag_count} bags`);
+      showToast(`Batch ${res.batch_numbers?.[0] || String(res.batch_ids?.[0]).slice(0, 8)} created with ${res.total_bags} bags`);
       setReloadKey(k => k + 1);
       refreshStats();
     } catch (err) {
@@ -378,7 +381,7 @@ const BagManagement = () => {
                 </td>
                 <td className="px-3 py-3 text-sm text-gray-600" title={fullDate(batch.createdAt)}>{batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                 <td className="px-3 py-3 text-sm text-gray-700 truncate" title={typeSizeLabel(batch.type, batch.size)}>{typeSizeLabel(batch.type, batch.size)}</td>
-                <td className="px-3 py-3 text-sm text-gray-700">{batch.bagCount}</td>
+                <td className="px-3 py-3 text-sm text-gray-700">{batch.bagCount}{batch.unitPrice != null && <span className="block text-xs text-gray-500" title="Price per bag">{formatCedis(batch.unitPrice)}</span>}</td>
                 <td className="px-3 py-3"><BagStageBadge stage={batch.stage} /></td>
                 <td className="px-3 py-3"><ProgressCell batch={batch} /></td>
                 <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
