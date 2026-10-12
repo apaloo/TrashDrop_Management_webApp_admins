@@ -15,7 +15,7 @@ import { fetchIllegalDumpingReports } from '../utils/databaseUtils';
 import {
   SEVERITY_OPTIONS, WASTE_TYPE_OPTIONS, UNKNOWN_SEVERITY_COLOR, GHANA_BOUNDS,
   normalizeEnum, toTitle, getSeverityColor, hasCoordinates, isOutsideGhana,
-  matchesFilters, computeReportStats,
+  matchesFilters, computeReportStats, statusLabel, statusBadgeClass, severityBadgeClass, formatDuration,
 } from '../utils/illegalDumpingReportUtils';
 import EnhancedImage from '../components/common/EnhancedImage';
 import { supabase } from '../utils/supabase';
@@ -97,38 +97,7 @@ const createClusterIcon = (cluster) => {
   });
 };
 
-// Human-readable labels for statuses
-const STATUS_LABELS = {
-  [STATUS.ILLEGAL_DUMPING.REPORTED]: 'Pending',
-  [STATUS.ILLEGAL_DUMPING.VERIFIED]: 'Verified',
-  [STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED]: 'In Progress',
-  [STATUS.ILLEGAL_DUMPING.CLEANED_UP]: 'Completed',
-  [STATUS.ILLEGAL_DUMPING.CANCELLED]: 'Cancelled',
-  disposed: 'Disposed',
-};
-const statusLabel = (status) => STATUS_LABELS[normalizeEnum(status)] || toTitle(status) || 'Unknown';
-
-const STATUS_BADGE = {
-  completed: 'bg-green-100 text-green-800',
-  disposed: 'bg-green-100 text-green-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  verified: 'bg-yellow-100 text-yellow-800',
-  cancelled: 'bg-gray-100 text-gray-600',
-};
-const statusBadgeClass = (status) => STATUS_BADGE[normalizeEnum(status)] || 'bg-purple-100 text-purple-800';
-
-const SEVERITY_BADGE = {
-  low: 'bg-green-100 text-green-800',
-  medium: 'bg-amber-100 text-amber-800',
-  high: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800',
-};
-const severityBadgeClass = (severity) => SEVERITY_BADGE[normalizeEnum(severity)] || 'bg-gray-100 text-gray-600';
-
-const formatHours = (hours) => {
-  if (hours === null) return '—';
-  return hours >= 48 ? `${(hours / 24).toFixed(1)} days` : `${hours.toFixed(1)} hrs`;
-};
+const formatHours = (hours) => formatDuration(hours);
 
 const IllegalDumpingMap = () => {
   const { role, user } = useAuth();
@@ -573,8 +542,8 @@ const IllegalDumpingMap = () => {
                 key: value,
                 active: filters.status.includes(value),
                 color:
-                  value === STATUS.ILLEGAL_DUMPING.REPORTED ? '#9C27B0' :
-                  value === STATUS.ILLEGAL_DUMPING.VERIFIED ? '#F59E0B' :
+                  value === STATUS.ILLEGAL_DUMPING.REPORTED ? '#F59E0B' :
+                  value === STATUS.ILLEGAL_DUMPING.VERIFIED ? '#14B8A6' :
                   value === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? '#3B82F6' :
                   value === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#10B981' :
                   '#6B7280',
