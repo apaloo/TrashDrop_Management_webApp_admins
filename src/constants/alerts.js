@@ -117,6 +117,7 @@ export const LOG_SOURCES = [
   { key: 'requests', label: 'Pickup requests' },
   { key: 'collectors', label: 'Collectors' },
   { key: 'alerts', label: 'Alerts' },
+  { key: 'bags', label: 'Bags' },
   { key: 'auth', label: 'Sign-in' },
   { key: 'system', label: 'System' },
   { key: 'logs', label: 'Logs page' },
@@ -136,6 +137,7 @@ export const LOG_ENTITY_TYPES = [
   { key: 'pickup_request', label: 'Pickup request' },
   { key: 'collector', label: 'Collector' },
   { key: 'alert', label: 'Alert' },
+  { key: 'batch', label: 'Bag batch' },
   { key: 'user', label: 'User' },
 ];
 
@@ -179,6 +181,12 @@ export const LOG_ACTIONS = [
   { key: 'alert.commented', label: 'Alert comment' },
   { key: 'alert.action', label: 'Alert action' },
   { key: 'alert.update_failed', label: 'Alert change failed' },
+  { key: 'batch.created', label: 'Batch generated' },
+  { key: 'batch.distributed', label: 'Batch scanned by household' },
+  { key: 'batch.archived', label: 'Batch archived' },
+  { key: 'batch.restored', label: 'Batch restored' },
+  { key: 'batch.update_failed', label: 'Batch change failed' },
+  { key: 'bags.exported', label: 'Bag History exported' },
   { key: 'notification.failed', label: 'Notification failed' },
   { key: 'auth.login', label: 'Signed in' },
   { key: 'auth.login_failed', label: 'Sign-in failed' },

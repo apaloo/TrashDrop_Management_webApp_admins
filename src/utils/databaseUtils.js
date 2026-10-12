@@ -4,9 +4,6 @@ import { STATUS, LOG_LEVEL, LOG_SOURCE, ID_PREFIX } from '../config/constants';
 import { safeDatabaseService } from './safeDatabaseService';
 import * as realDataUtils from './realDataUtils';
 
-// Direct Supabase connection - no mock data or fallbacks for Bag Management
-const FORCE_LIVE_DATA = true; // Always use real data from Supabase
-const ALLOW_MOCK_FALLBACK = false; // NO fallback to mock data - direct DB connection only
 
 /**
  * Generate mock bag batch data
@@ -63,70 +60,17 @@ export const generateMockBagBatches = ({ page = 1, limit = 10, sortBy = 'updated
 };
 
 /**
- * Archive a bag batch by setting archived flags or falling back to status
+ * Archive a bag batch (hidden in Bag Management; restore from the Archived filter).
+ * Uses admin_set_batch_archived (20261019_bag_batches_admin.sql); never writes
+ * batches.status, which the household app relies on.
  * @param {string} batchId - The batch ID to archive
- * @returns {Promise<{success:boolean, mock?:boolean}>}
+ * @returns {Promise<{success:boolean}>}
  */
 export const archiveBagBatch = async (batchId) => {
-  try {
-    if (!batchId) throw new Error('archiveBagBatch: batchId is required');
-
-    // Prefer real data path
-    if (FORCE_LIVE_DATA) {
-      // Try soft-archive flags first (industry standard)
-      let { error } = await supabase
-        .from('batches')
-        .update({ archived: true, archived_at: new Date().toISOString() })
-        .eq('id', batchId);
-
-      if (error) {
-        // If column(s) don't exist, fall back to status update
-        if (error.code === '42703' || /column .* does not exist/i.test(error.message || '')) {
-          const fallback = await supabase
-            .from('batches')
-            .update({ status: 'Archived' })
-            .eq('id', batchId);
-          if (fallback.error) throw fallback.error;
-        } else {
-          throw error;
-        }
-      }
-      return { success: true };
-    }
-
-    // Safe path with table existence check
-    const tableExists = await safeDatabaseService.checkTableExists('batches');
-    if (!tableExists) {
-      console.warn('archiveBagBatch: batches table missing, mock-archiving');
-      return { success: true, mock: true };
-    }
-
-    // Try soft-archive flags first
-    let { error } = await supabase
-      .from('batches')
-      .update({ archived: true, archived_at: new Date().toISOString() })
-      .eq('id', batchId);
-
-    if (error) {
-      if (error.code === '42703' || /column .* does not exist/i.test(error.message || '')) {
-        const fallback = await supabase
-          .from('batches')
-          .update({ status: 'Archived' })
-          .eq('id', batchId);
-        if (fallback.error) throw fallback.error;
-      } else {
-        throw error;
-      }
-    }
-    return { success: true };
-  } catch (error) {
-    console.error('archiveBagBatch error:', error);
-    if (ALLOW_MOCK_FALLBACK) {
-      console.warn('archiveBagBatch: falling back to mock success');
-      return { success: true, mock: true };
-    }
-    throw error;
-  }
+  if (!batchId) throw new Error('archiveBagBatch: batchId is required');
+  const { error } = await supabase.rpc('admin_set_batch_archived', { p_batch_id: batchId, p_archived: true });
+  if (error) throw error;
+  return { success: true };
 };
 
 /**
@@ -537,67 +481,48 @@ export const generateMockIllegalDumpingReports = (options = {}) => {
  * @returns {Promise<Object>} Promise that resolves to an object with data and pagination info
  */
 export const fetchBagBatches = async (options = {}) => {
-  const { page = 1, limit = 10, sortBy = 'updated_at', sortOrder = 'desc', filters = {} } = options;
-  
-  // Calculate offset
+  const {
+    page = 1, limit = 10, filters = {},
+    sortBy = options.sortField || 'created_at', sortOrder = options.sortDirection || 'desc'
+  } = options;
+  const SORTABLE = { id: 'id', type: 'type', size: 'size', quantity: 'bag_count', bag_count: 'bag_count', created_at: 'created_at', createdAt: 'created_at', scanned: 'filled_count', last_scan_date: 'last_activity_at' };
   const offset = (page - 1) * limit;
-  
-  // Build query - Direct Supabase query with no fallbacks
+
   let query = supabase
-    .from('batches')
+    .from('admin_bag_batches')
     .select('*', { count: 'exact' })
-    .order(sortBy, { ascending: sortOrder === 'asc' })
+    .order(SORTABLE[sortBy] || 'created_at', { ascending: sortOrder === 'asc' })
     .range(offset, offset + limit - 1);
-  
-  // Apply status filter if provided
-  if (filters.status && filters.status !== 'All') {
-    query = query.eq('status', filters.status);
-  }
-  
-  // Apply search filter if provided
+
+  const stage = String(filters.status || '').toLowerCase();
+  if (stage && stage !== 'all') query = query.eq('stage', stage);
+  else query = query.neq('stage', 'archived');
+
   if (filters.search) {
-    query = query.or(`id.ilike.%${filters.search}%,type.ilike.%${filters.search}%,qr_prefix.ilike.%${filters.search}%`);
+    const term = String(filters.search).toLowerCase().replace(/[,()*%\\]/g, ' ').trim();
+    if (term) query = query.ilike('search_text', `%${term}%`);
   }
-  
+
   const { data, error, count } = await query;
-  
   if (error) {
-    console.error('Error fetching batches from Supabase:', error);
-    throw error; // No fallback - throw error directly
+    console.error('Error fetching batches (run supabase/migrations/20261019_bag_batches_admin.sql if admin_bag_batches is missing):', error);
+    throw error;
   }
-  
-  // Calculate scan statistics for each batch
-  const batchesWithStats = await Promise.all((data || []).map(async (batch) => {
-    // Get bag count and scanned count from bags table
-    const { data: bags, error: bagsError } = await supabase
-      .from('bags')
-      .select('id, status', { count: 'exact' })
-      .eq('batch_id', batch.id);
-    
-    if (bagsError) {
-      console.error(`Error fetching bags for batch ${batch.id}:`, bagsError);
-      return {
-        ...batch,
-        distributed: 0,
-        scanned: 0,
-        scan_rate: 0
-      };
-    }
-    
-    const totalBags = bags?.length || 0;
-    const scannedBags = bags?.filter(bag => bag.status === 'scanned' || bag.status === 'collected').length || 0;
-    const scanRate = totalBags > 0 ? Math.round((scannedBags / totalBags) * 100) : 0;
-    
-    return {
-      ...batch,
-      distributed: totalBags,
-      scanned: scannedBags,
-      scan_rate: scanRate
-    };
+
+  // Same field names as before, plus the worked-out step
+  const rows = (data || []).map(row => ({
+    ...row,
+    status: row.stage,
+    quantity: row.bag_count,
+    distributed: row.distributed_count,
+    scanned: row.filled_count, // bags households have used (asked a pickup for)
+    collected: row.collected_count,
+    scan_rate: row.bag_count > 0 ? Math.round((row.filled_count / row.bag_count) * 100) : 0,
+    last_scan_date: row.last_activity_at
   }));
-  
+
   return {
-    data: batchesWithStats,
+    data: rows,
     totalCount: count || 0,
     page,
     limit,
@@ -612,64 +537,21 @@ export const fetchBagBatches = async (options = {}) => {
  * @returns {Promise<Array>} Array of scan history records
  */
 export const fetchBagHistory = async (batchId = null) => {
-  // Step 1: Get bags for the batch
-  let bagsQuery = supabase
-    .from('bags')
-    .select('id, batch_id');
-  
-  if (batchId) {
-    bagsQuery = bagsQuery.eq('batch_id', batchId);
-  }
-  
-  const { data: bags, error: bagsError } = await bagsQuery;
-  
-  if (bagsError) {
-    console.error('Error fetching bags:', bagsError);
-    throw bagsError; // No fallback - throw error directly
-  }
-  
-  if (!bags || bags.length === 0) {
-    return []; // No bags found, return empty array
-  }
-  
-  // Step 2: Get scans for these bags with collector information
-  const bagIds = bags.map(bag => bag.id);
-  
-  const { data: scans, error: scansError } = await supabase
-    .from('scans')
-    .select(`
-      id,
-      bag_id,
-      scanned_at,
-      scanned_by,
-      location,
-      status,
-      notes,
-      collectors:scanned_by (
-        id,
-        first_name,
-        last_name,
-        email
-      )
-    `)
-    .in('bag_id', bagIds)
+  // Read from the admin_bag_scans view (20261020_bag_history.sql), which looks the
+  // scanner's name up itself. Embedding scans → scanned_by failed because no
+  // foreign key backs that column.
+  let query = supabase
+    .from('admin_bag_scans')
+    .select('id, bag_id, batch_id, scanned_at, scanned_by, scanned_by_name, location, status')
     .order('scanned_at', { ascending: false });
-  
-  if (scansError) {
-    console.error('Error fetching scans:', scansError);
-    throw scansError; // No fallback - throw error directly
+  if (batchId) query = query.eq('batch_id', batchId);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching scans:', error);
+    throw error;
   }
-  
-  // Enrich scans with batch information
-  const enrichedScans = (scans || []).map(scan => {
-    const bag = bags.find(b => b.id === scan.bag_id);
-    return {
-      ...scan,
-      bags: bag ? { batch_id: bag.batch_id } : null
-    };
-  });
-  
-  return enrichedScans;
+  return (data || []).map(scan => ({ ...scan, bags: { batch_id: scan.batch_id } }));
 };
 
 /**
@@ -716,8 +598,16 @@ export const createBagBatch = async (batchData) => {
     batch_number: batchData.batch_number || batchData.batchNumber || String(Date.now()).slice(-8),
     batch_name: batchData.batch_name || batchData.batchName || `${batchData.type || 'Bags'} - ${batchData.size || 'Standard'}`,
     bag_count: Number(batchData.bag_count ?? batchData.quantity ?? 0),
-    status: 'active', // Mobile app expects 'active' status initially
+    // Stored value belongs to the household app: it only activates 'active' batches.
+    // The admin shows the worked-out step instead (src/constants/bagStatus.js).
+    status: 'active',
     notes: batchData.notes || `Type: ${batchData.type || 'Unknown'}, Size: ${batchData.size || 'Unknown'}`
+  };
+  // Columns added by supabase/migrations/20261019_bag_batches_admin.sql
+  const detailColumns = {
+    type: batchData.type || null,
+    size: batchData.size || null,
+    qr_prefix: batchData.qr_prefix || batchData.qrPrefix || null
   };
 
   // Include pricing if provided
@@ -732,16 +622,19 @@ export const createBagBatch = async (batchData) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     batchPayload.created_by = user.id;
+    detailColumns.generated_by = user.id; // created_by is overwritten with the household when it scans the batch
   }
 
-  console.log('Creating batch with payload:', batchPayload);
-
-  // Insert batch into database
-  const { data: batch, error: batchError } = await supabase
+  // Insert batch into database (without the detail columns if the database doesn't have them yet)
+  let { data: batch, error: batchError } = await supabase
     .from('batches')
-    .insert([batchPayload])
+    .insert([{ ...batchPayload, ...detailColumns }])
     .select()
     .single();
+  if (batchError && (batchError.code === '42703' || batchError.code === 'PGRST204')) {
+    console.warn('batches has no type/size/qr_prefix columns yet; run supabase/migrations/20261019_bag_batches_admin.sql');
+    ({ data: batch, error: batchError } = await supabase.from('batches').insert([batchPayload]).select().single());
+  }
 
   if (batchError) {
     console.error('Error creating batch:', batchError);

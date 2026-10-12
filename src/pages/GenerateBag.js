@@ -12,6 +12,7 @@ import {
   faEye
 } from '@fortawesome/free-solid-svg-icons';
 import { createBagBatch } from '../utils/databaseUtils';
+import { INITIAL_BAG_STAGE } from '../constants/bagStatus';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../context/AuthContext';
 
@@ -43,7 +44,7 @@ const generateNewBatch = (type, size, quantity, createdBy) => {
     bag_count: quantity,
     type,
     size,
-    status: 'Active',
+    status: INITIAL_BAG_STAGE, // shared step list (src/constants/bagStatus.js)
     distributed: 0,
     scanned: 0,
     qrPrefix: prefix
@@ -455,7 +456,7 @@ const handleGenerate = async () => {
         quantity: batch.quantity,   // Keep for backward compatibility
         type: batch.type,
         size: batch.size,
-        qrPrefix: batch.qrPrefix,
+        qrPrefix: batch.qrPrefix, // saved to batches.qr_prefix with type and size
         batchNumber: batch.id.replace('batch-', ''), // Extract the batch number
         total_batch_price: totalPrice,
         unit_price: perBagPrice
