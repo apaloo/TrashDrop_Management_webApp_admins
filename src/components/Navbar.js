@@ -293,9 +293,9 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                         style={{ borderColor: 'var(--td-dropdown-border)' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        onClick={() => markNotificationAsRead(notification.id).then(() => {
-                          // Update local state to show notification as read
-                          setNotifications(notifications.map(n => 
+                        onClick={() => markNotificationAsRead(notification.id).then(ok => {
+                          // Only show it as read once the database has saved it
+                          if (ok) setNotifications(prev => prev.map(n =>
                             n.id === notification.id ? {...n, read: true} : n
                           ));
                         })}
@@ -396,7 +396,11 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
 
       {/* Modals */}
       <MessagesModal isOpen={showMessagesModal} onClose={() => setShowMessagesModal(false)} />
-      <NotificationsModal isOpen={showNotificationsModal} onClose={() => setShowNotificationsModal(false)} />
+      <NotificationsModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
+        onRead={(id) => setNotifications(prev => prev.map(n => (id === null || n.id === id ? { ...n, read: true } : n)))}
+      />
     </>
   );
 };

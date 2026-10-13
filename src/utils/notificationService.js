@@ -58,8 +58,8 @@ export const markNotificationAsRead = async (notificationId) => {
     }
 
     const { error } = await safeDatabaseService.safeQuery({
-      table: 'notifications',
-      query: (client) => client
+      tableName: 'notifications',
+      queryFn: () => supabase
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId)
@@ -70,9 +70,8 @@ export const markNotificationAsRead = async (notificationId) => {
     return true;
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    // Even if marking as read fails, we still return true to prevent UI issues
-    // The next refresh will sync the actual read status
-    return true;
+    // Callers only update the UI on true, so a failed save isn't shown as read
+    return false;
   }
 };
 
@@ -91,8 +90,8 @@ export const markAllNotificationsAsRead = async () => {
     }
 
     const { error } = await safeDatabaseService.safeQuery({
-      table: 'notifications',
-      query: (client) => client
+      tableName: 'notifications',
+      queryFn: () => supabase
         .from('notifications')
         .update({ read: true })
         .eq('user_id', userId)
