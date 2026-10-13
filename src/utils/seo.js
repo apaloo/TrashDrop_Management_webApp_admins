@@ -19,6 +19,18 @@ export const BUSINESS = {
   ],
 };
 
+/** On-demand pickup landing page (targets "waste pickup" / "trash pickup") */
+export const WASTE_PICKUP_PATH = '/waste-pickup';
+
+/** Services, as listed on the Google Business Profile */
+export const SERVICES = [
+  'Household waste collection',
+  'On-demand trash pickup',
+  'Business waste collection',
+  'Recyclable waste pickup',
+  'Organic waste collection',
+];
+
 export const CITY_PAGES = [
   { slug: 'accra',    name: 'Accra',    path: '/waste-collection-accra' },
   { slug: 'kumasi',   name: 'Kumasi',   path: '/waste-collection-kumasi' },
@@ -105,23 +117,37 @@ export const localBusinessJsonLd = () => ({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': `${SITE_URL}/#localbusiness`,
+  additionalType: 'https://schema.org/ProfessionalService',
   name: BUSINESS.name,
+  legalName: BUSINESS.legalName,
   url: SITE_URL,
   logo: BUSINESS.logo,
   image: BUSINESS.logo,
   telephone: BUSINESS.phoneE164,
   email: BUSINESS.email,
+  description: 'Waste collection and trash pickup in Accra, Kumasi, Takoradi and Tamale. Free pickup with QR Bags, on-demand Digital Bin pickups and live collector tracking.',
+  address: { '@type': 'PostalAddress', addressLocality: 'Accra', addressCountry: 'GH' },
+  priceRange: '₵₵',
+  // Same payment options as the site copy (MoMo: MTN, Telecel, AirtelTigo)
+  paymentAccepted: 'Cash, Mobile Money',
+  currenciesAccepted: 'GHS',
+  sameAs: BUSINESS.sameAs,
   parentOrganization: { '@id': `${SITE_URL}/#organization` },
   areaServed: BUSINESS.cities.map(name => ({ '@type': 'City', name, containedInPlace: { '@type': 'Country', name: 'Ghana' } })),
-  makesOffer: {
-    '@type': 'Offer',
-    itemOffered: {
-      '@type': 'Service',
-      serviceType: 'Waste collection',
-      name: 'Trash and waste collection',
-      description: 'Household and business waste collection with QR Bags and on-demand Digital Bin pickups, with live collector tracking.',
-      provider: { '@id': `${SITE_URL}/#localbusiness` },
-      areaServed: BUSINESS.cities.map(name => ({ '@type': 'City', name })),
-    },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Waste collection services',
+    itemListElement: SERVICES.map(name => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name, serviceType: 'Waste collection' } })),
   },
+});
+
+/** The LocalBusiness for one city page: same business, that city as its service area */
+export const cityLocalBusinessJsonLd = (cityName, path) => ({
+  ...localBusinessJsonLd(),
+  '@id': `${SITE_URL}${path}#localbusiness`,
+  name: `${BUSINESS.name} ${cityName}`,
+  url: SITE_URL + path,
+  description: `Waste collection and trash pickup in ${cityName}: free pickup with QR Bags, on-demand Digital Bin pickups and live collector tracking.`,
+  address: { '@type': 'PostalAddress', addressLocality: cityName, addressCountry: 'GH' },
+  areaServed: { '@type': 'City', name: cityName, containedInPlace: { '@type': 'Country', name: 'Ghana' } },
 });

@@ -38,6 +38,7 @@ const ROUTES = [
   '/waste-collection-kumasi',
   '/waste-collection-takoradi',
   '/waste-collection-tamale',
+  '/waste-pickup',
 ];
 
 const MIME = {

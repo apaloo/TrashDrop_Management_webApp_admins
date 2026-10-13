@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
-import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL } from '../utils/seo';
+import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, cityLocalBusinessJsonLd } from '../utils/seo';
 import { CITY_CONTENT } from './cityContent';
 
 const QR_STEPS = [
@@ -66,6 +66,7 @@ const CityWasteCollectionPage = ({ slug }) => {
         provider: { '@type': 'Organization', name: BUSINESS.name, url: SITE_URL, telephone: BUSINESS.phoneE164 },
         areaServed: { '@type': 'City', name: c.name, containedInPlace: { '@type': 'Country', name: 'Ghana' } },
       },
+      cityLocalBusinessJsonLd(c.name, page.path),
     ],
   });
 
@@ -78,7 +79,7 @@ const CityWasteCollectionPage = ({ slug }) => {
             <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Waste collection / {c.name}
           </nav>
           <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            Waste &amp; Trash Collection in {c.name}
+            Waste Collection &amp; Trash Pickup in {c.name}
           </h1>
           {c.intro.map((t, i) => <P key={i}>{t}</P>)}
           <div style={{ marginTop:28 }}><CtaButtons city={c.name} /></div>
@@ -105,6 +106,7 @@ const CityWasteCollectionPage = ({ slug }) => {
       <Section bg="#0c1a0c">
         <H2>Digital Bin: on-demand pickup in {c.name}</H2>
         <P>{c.digitalBin}</P>
+        <P>See how an <Link to={WASTE_PICKUP_PATH} style={linkStyle}>on-demand waste pickup</Link> works, from request to disposal confirmation.</P>
       </Section>
 
       {/* Bags */}
