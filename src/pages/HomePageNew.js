@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
 import { useAuth } from '../context/AuthContext';
-import { useSeo, BUSINESS, CITY_PAGES, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
+import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
 
 /* ─── Brand tokens ──────────────────────────────────────────────────────────── */
@@ -412,9 +412,12 @@ const HeroSection = ({ isAuthenticated }) => {
               <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Accra · Kumasi · Takoradi · Tamale</span>
             </div>
             <h1 style={{ ...FF.display, fontSize:'clamp(40px,5vw,66px)', lineHeight:1.02, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Trash &amp; Waste Collection in Ghana{' '}
-              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, marginTop:6 }}>— Book a Pickup in Minutes</span>
+              Waste Collection &amp; Trash Pickup in Ghana{' '}
+              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, marginTop:6 }}>— Book in Minutes</span>
             </h1>
+            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 18px', maxWidth:540 }}>
+              Fast, tracked waste pickup for homes and businesses in Accra, Kumasi, Takoradi and Tamale.
+            </p>
             <div style={{ display:'flex', alignItems:'center', gap:10, minHeight:52, marginBottom:28 }}>
               <span style={{ ...FF.label, fontSize:14, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase' }}>We collect</span>
               <span style={{ ...FF.data, fontSize:'clamp(28px,3.5vw,44px)', color:TD.gold, letterSpacing:'1px' }}>{headline}</span>
@@ -1191,6 +1194,9 @@ const MapPreviewSection = ({ isAuthenticated }) => {
    IMPACT STATS
    ═══════════════════════════════════════════════════════════════════════════════ */
 /* ─── Lightbox ───────────────────────────────────────────────────────────────── */
+/** Alt text for the illegal-dumping photos (they show reported dump sites) */
+const dumpPhotoAlt = (p) => `Illegal dumping reported on TrashDrop: ${p.label}`;
+
 const DUMP_PHOTOS = [
   { src:'/images/chocked_bridge.jpeg',               label:'Bridge blockage · Accra' },
   { src:'/images/chocked_drainage_1.jpeg',           label:'Drainage blockage' },
@@ -1239,7 +1245,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
       </button>
       {/* Image */}
       <div onClick={e=>e.stopPropagation()} style={{ maxWidth:'90vw', maxHeight:'85vh', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
-        <img src={photo.src} alt={photo.label} style={{ maxWidth:'100%', maxHeight:'78vh', borderRadius:12, objectFit:'contain', boxShadow:'0 32px 80px rgba(0,0,0,0.7)' }} />
+        <img src={photo.src} alt={dumpPhotoAlt(photo)} style={{ maxWidth:'100%', maxHeight:'78vh', borderRadius:12, objectFit:'contain', boxShadow:'0 32px 80px rgba(0,0,0,0.7)' }} />
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', flexShrink:0 }} />
           <span style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.75)', textTransform:'uppercase' }}>{photo.label}</span>
@@ -1248,7 +1254,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', justifyContent:'center', maxWidth:600 }}>
           {photos.map((p,i) => (
             <button key={i} onClick={e=>{e.stopPropagation();onGoTo(i);}} style={{ padding:0, border:`2px solid ${i===index?TD.lime:'transparent'}`, borderRadius:6, overflow:'hidden', cursor:'pointer', background:'none', transition:'border-color 0.2s', width:44, height:44, flexShrink:0 }}>
-              <img src={p.src} alt={p.label} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+              <img src={p.src} alt={dumpPhotoAlt(p)} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
             </button>
           ))}
         </div>
@@ -1327,7 +1333,7 @@ const ImpactSection = () => {
                   onClick={() => setLbIndex(idx)}
                   onMouseEnter={e=>{e.currentTarget.querySelector('img').style.transform='scale(1.06)'; e.currentTarget.querySelector('.expand-icon').style.opacity='1';}}
                   onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
-                  <img src={p.src} alt={p.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
+                  <img src={p.src} alt={dumpPhotoAlt(p)} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 55%)', pointerEvents:'none' }} />
                   <span style={{ position:'absolute', bottom:10, left:12, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.85)', textTransform:'uppercase' }}>{p.label}</span>
                   <span className="expand-icon" style={{ position:'absolute', top:10, right:10, width:28, height:28, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
@@ -1346,7 +1352,7 @@ const ImpactSection = () => {
                   onClick={() => setLbIndex(idx)}
                   onMouseEnter={e=>{e.currentTarget.querySelector('img').style.transform='scale(1.07)'; e.currentTarget.querySelector('.expand-icon').style.opacity='1';}}
                   onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
-                  <img src={img.src} alt={img.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
+                  <img src={img.src} alt={dumpPhotoAlt(img)} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 60%)', pointerEvents:'none' }} />
                   <span style={{ position:'absolute', bottom:9, left:11, ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.82)', textTransform:'uppercase' }}>{img.label}</span>
                   <span className="expand-icon" style={{ position:'absolute', top:8, right:8, width:24, height:24, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
@@ -1671,7 +1677,7 @@ const HomeFooter = () => {
           </div>
         </div>
         {[
-          { title:'Waste Collection', links:CITY_PAGES.map(c => [c.name, c.path]) },
+          { title:'Waste Collection', links:[...CITY_PAGES.map(c => [c.name, c.path]), ['On-demand waste pickup', WASTE_PICKUP_PATH]] },
           { title:'Platform', links:[['How It Works','/how-it-works'],['FAQ','/faq'],['For Households','/users'],['Earn as a Collector','/collectors'],['Report Dumping','/illegal-dumping']] },
           { title:'Company',  links:[['About Us','/about'],['Blog','/blog'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
@@ -1820,8 +1826,8 @@ const PricingGuideSection = () => {
       <div style={{ position:'relative', overflow:'hidden', minHeight:340, display:'flex', alignItems:'center', background:'#0a1a0a' }}>
         {/* 3-image row — right 50% of the banner, full height */}
         <div style={{ position:'absolute', top:0, right:0, height:'100%', display:'flex', alignItems:'stretch', gap:2, zIndex:1 }}>
-          <img src="/images/QR_code_trashbag.png"   alt="TrashDrop bag stack"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
-          <img src="/images/QR_code_trashbag_2.png" alt="TrashDrop bag label"     style={{ height:'100%', width:'auto', display:'block' }} />
+          <img src="/images/QR_code_trashbag.png"   alt="TrashDrop QR-coded waste bags for organic, general and recyclable waste"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
+          <img src="/images/QR_code_trashbag_2.png" alt="QR code label on a TrashDrop waste collection bag"     style={{ height:'100%', width:'auto', display:'block' }} />
         </div>
         {/* Dark gradient — solid left, barely touches the image area on the right */}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, #0a1a0a 0%, #0a1a0a 40%, rgba(10,26,10,0.7) 52%, rgba(10,26,10,0.08) 68%, transparent 100%)', zIndex:2 }} />
@@ -1903,8 +1909,8 @@ const HomePageNew = () => {
 };
 
 export const HOME_SEO = {
-  title: 'TrashDrop — Waste & Trash Collection in Ghana | Book a Pickup',
-  description: 'Book fast, tracked trash and waste collection in Accra, Kumasi, Takoradi and Tamale. QR Bags, on-demand Digital Bin pickups, and illegal dump reporting.',
+  title: 'Waste Collection & Trash Pickup in Ghana | TrashDrop',
+  description: 'Book waste collection and trash pickup in Accra, Kumasi, Takoradi & Tamale. Free pickup with QR Bags, on-demand bins, live tracking. Pay MoMo or cash.',
   path: '/',
 };
 

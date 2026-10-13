@@ -21,6 +21,7 @@ const CollectorsPage         = lazy(() => import('./pages/CollectorsPage'));
 const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublicPage'));
 const UsersPage              = lazy(() => import('./pages/UsersPage'));
 const CityWasteCollectionPage = lazy(() => import('./pages/CityWasteCollectionPage'));
+const WastePickupPage = lazy(() => import('./pages/WastePickupPage'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -202,6 +203,7 @@ function App() {
               {['accra', 'kumasi', 'takoradi', 'tamale'].map(slug => (
                 <Route key={slug} path={`/waste-collection-${slug}`} element={<CityWasteCollectionPage slug={slug} />} />
               ))}
+              <Route path="/waste-pickup"    element={<WastePickupPage />} />
               <Route path="/about"           element={<AboutPage />} />
               <Route path="/blog"            element={<BlogPage />} />
               <Route path="/blog/:slug"      element={<BlogPostPage />} />
