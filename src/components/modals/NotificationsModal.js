@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../utils/notificationService';
 
-const NotificationsModal = ({ isOpen, onClose }) => {
+/** onRead(id) after one is saved as read, onRead(null) after all are */
+const NotificationsModal = ({ isOpen, onClose, onRead }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,13 +34,17 @@ const NotificationsModal = ({ isOpen, onClose }) => {
 
   const markAllAsRead = async () => {
     try {
-      await markAllNotificationsAsRead();
-      // Update local state
-      const updatedNotifications = notifications.map(notification => ({
+      const ok = await markAllNotificationsAsRead();
+      if (!ok) {
+        setError('Failed to mark all as read');
+        return;
+      }
+      // Update local state only after the database saved it
+      setNotifications(prev => prev.map(notification => ({
         ...notification,
         read: true
-      }));
-      setNotifications(updatedNotifications);
+      })));
+      onRead?.(null);
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
       setError('Failed to mark all as read');
@@ -48,12 +53,13 @@ const NotificationsModal = ({ isOpen, onClose }) => {
 
   const markAsRead = async (id) => {
     try {
-      await markNotificationAsRead(id);
-      // Update local state
-      const updatedNotifications = notifications.map(notification => 
+      const ok = await markNotificationAsRead(id);
+      if (!ok) return;
+      // Update local state only after the database saved it
+      setNotifications(prev => prev.map(notification =>
         notification.id === id ? { ...notification, read: true } : notification
-      );
-      setNotifications(updatedNotifications);
+      ));
+      onRead?.(id);
     } catch (err) {
       console.error('Error marking notification as read:', err);
       // We don't set the error state here to avoid disrupting the UI for a single notification
