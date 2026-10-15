@@ -11,7 +11,7 @@ import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { supabase } from './utils/supabase';
-import { SECTIONS, canAccessSection } from './constants/accessControl';
+import { SECTIONS, ROLES, canAccessSection } from './constants/accessControl';
 import HomePage from './pages/HomePage';
 
 // Public marketing pages
@@ -23,6 +23,7 @@ const UsersPage              = lazy(() => import('./pages/UsersPage'));
 const CityWasteCollectionPage = lazy(() => import('./pages/CityWasteCollectionPage'));
 const WastePickupPage = lazy(() => import('./pages/WastePickupPage'));
 const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
+const MediaReports = lazy(() => import('./pages/MediaReports'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -47,6 +48,12 @@ const AlertsManagement = lazy(() => import('./pages/AlertsManagement'));
 const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
 // Protected route component
+// The dashboard is TrashDrop's own operations view; Media accounts start on the reports data
+const MediaHome = ({ children }) => {
+  const { role } = useAuth();
+  return role === ROLES.MEDIA ? <Navigate to="/media-data" replace /> : children;
+};
+
 const ProtectedRoute = ({ children, section }) => {
   const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading } = useAuth();
   const currentPath = window.location.pathname;
@@ -248,7 +255,7 @@ function App() {
               {/* Protected routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute section={SECTIONS.DASHBOARD}>
-                  <Dashboard />
+                  <MediaHome><Dashboard /></MediaHome>
                 </ProtectedRoute>
               } />
               
@@ -317,6 +324,13 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              <Route path="/media-data" element={
+                <ProtectedRoute section={SECTIONS.MEDIA_DATA}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <MediaReports />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
               {/* Settings route */}
               <Route path="/accounts" element={
                 <ProtectedRoute section={SECTIONS.ACCOUNTS}>

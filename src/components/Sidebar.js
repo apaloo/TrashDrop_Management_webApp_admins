@@ -59,6 +59,12 @@ const Sidebar = () => {
       icon: 'fas fa-user-check',
       section: SECTIONS.ACCOUNTS
     },
+    {
+      title: 'Reports Data',
+      path: '/media-data',
+      icon: 'fas fa-newspaper',
+      section: SECTIONS.MEDIA_DATA
+    },
   ];
 
   // Check if the menu item should be displayed based on user role
