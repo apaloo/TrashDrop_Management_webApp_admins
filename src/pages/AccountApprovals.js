@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { listAccountRoles, reviewAccountRole } from '../services/accountRoleService';
+import { listAccountRoles, reviewAccountRole, setAccountArea } from '../services/accountRoleService';
 import { COMPANY_TYPES, ROLE_LABELS, ROLES } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
 import { detailLabel } from '../constants/accountTypeFields';
+import { GHANA_REGIONS, districtsOf } from '../constants/ghanaRegions';
 
 const TABS = [
   { key: 'pending', label: 'Waiting' },
@@ -33,6 +34,11 @@ const DetailsList = ({ row }) => {
   );
 };
 
+// Roles whose view depends on the account's area
+const needsDistrict = (role) => role === ROLES.AUTHORITY;
+const needsRegion = (role) => role === ROLES.AUTHORITY || role === ROLES.VOLUNTEER;
+const knownRegion = (r) => (GHANA_REGIONS.some(x => x.name === r) ? r : '');
+
 const date = (v) => (v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 const StatusPill = ({ status }) => {
@@ -51,6 +57,8 @@ const AccountApprovals = () => {
   const [dialog, setDialog] = useState(null); // { row, approve }
   const [role, setRole] = useState('');
   const [note, setNote] = useState('');
+  const [areaRegion, setAreaRegion] = useState('');
+  const [areaDistrict, setAreaDistrict] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -66,11 +74,22 @@ const AccountApprovals = () => {
     setDialog({ row, approve });
     setRole(approve ? (row.status === 'approved' ? row.role : row.requested_role) : '');
     setNote('');
+    const reg = knownRegion(row.region);
+    setAreaRegion(reg);
+    setAreaDistrict(districtsOf(reg).includes(row.district) ? row.district : '');
   };
+
+  const areaMissing = dialog?.approve && ((needsRegion(role) && !areaRegion) || (needsDistrict(role) && !areaDistrict));
 
   const save = async () => {
     setBusy(true);
     try {
+      if (dialog.approve && needsRegion(role)) {
+        const district = needsDistrict(role) ? areaDistrict : (areaRegion === dialog.row.region ? dialog.row.district : null);
+        if (areaRegion !== (dialog.row.region || '') || (district || null) !== (dialog.row.district || null)) {
+          await setAccountArea(dialog.row.user_id, { region: areaRegion, district });
+        }
+      }
       await reviewAccountRole(dialog.row.user_id, { approve: dialog.approve, role: dialog.approve ? role : null, note });
       setToast(dialog.approve ? `${dialog.row.email}: ${ROLE_LABELS[role]} access approved` : `${dialog.row.email}: request rejected`);
       setTimeout(() => setToast(null), 3500);
@@ -157,7 +176,7 @@ const AccountApprovals = () => {
         <ConfirmDialog
           title={dialog.approve ? `Give ${dialog.row.email} access` : `Reject ${dialog.row.email}'s request`}
           confirmLabel={dialog.approve ? 'Save' : 'Reject'} danger={!dialog.approve} busy={busy}
-          confirmDisabled={!dialog.approve && !note.trim()} onConfirm={save} onClose={() => setDialog(null)}>
+          confirmDisabled={(!dialog.approve && !note.trim()) || areaMissing} onConfirm={save} onClose={() => setDialog(null)}>
           <p>{dialog.row.name} · {companyLabel(dialog.row.company_type)}{dialog.row.org_name ? ` · ${dialog.row.org_name}` : ''}</p>
           <DetailsList row={dialog.row} />
           {dialog.approve && (
@@ -166,6 +185,28 @@ const AccountApprovals = () => {
                 {ASSIGNABLE.map(x => <option key={x} value={x}>{ROLE_LABELS[x]}</option>)}
               </select>
             </label>
+          )}
+          {dialog.approve && needsRegion(role) && (
+            <div className="grid grid-cols-2 gap-2" data-testid="area-fields">
+              <label className="block">Region
+                <select value={areaRegion} onChange={e => { setAreaRegion(e.target.value); setAreaDistrict(''); }} className="mt-1 w-full border rounded px-2 py-1.5" data-testid="area-region">
+                  <option value="">Select region</option>
+                  {GHANA_REGIONS.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
+                </select>
+              </label>
+              {needsDistrict(role) && (
+                <label className="block">District
+                  <select value={areaDistrict} onChange={e => setAreaDistrict(e.target.value)} disabled={!areaRegion} className="mt-1 w-full border rounded px-2 py-1.5" data-testid="area-district">
+                    <option value="">Select district</option>
+                    {districtsOf(areaRegion).map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </label>
+              )}
+              <p className="col-span-2 text-xs text-gray-500">
+                {needsDistrict(role) ? 'An Authority sees reports in this district only.' : 'A Volunteer works on reports in this region.'}
+                {dialog.row.district && !districtsOf(knownRegion(dialog.row.region)).includes(dialog.row.district) ? ` They wrote "${dialog.row.district}"; pick the matching district.` : ''}
+              </p>
+            </div>
           )}
           <label className="block">{dialog.approve ? 'Note (optional, e.g. how you verified them)' : 'Reason (shown to the person)'}
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className="mt-1 w-full border rounded px-2 py-1.5" />

@@ -7,6 +7,8 @@
  * only takes effect once an admin approves it; until then the account works
  * as a User.
  */
+import { GHANA_REGIONS, OTHER_DISTRICT, isKnownDistrict } from './ghanaRegions';
+
 export const ROLES = {
   USER: 'user',
   VOLUNTEER: 'volunteer',
@@ -101,9 +103,9 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.DASHBOARD]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
   [SECTIONS.SETTINGS]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
   [SECTIONS.REGULATORY]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
-  // Volunteer, Media and Authority get Illegal Dumping once their limits are in
-  // place (region / read-only / district scope); until then they work as Users.
-  [SECTIONS.ILLEGAL_DUMPING]: [ROLES.MANAGER, ROLES.ADMIN],
+  // Authority sees its own district, read-only (see areaScopeFor). Volunteers
+  // work from the collector app; Media gets its read-only view separately.
+  [SECTIONS.ILLEGAL_DUMPING]: [ROLES.AUTHORITY, ROLES.MANAGER, ROLES.ADMIN],
   [SECTIONS.BIN_MANAGEMENT]: [ROLES.ADMIN],
   [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN],
   [SECTIONS.ACCOUNTS]: [ROLES.ADMIN]
@@ -114,6 +116,25 @@ export const canAccessSection = (section, role, user) => {
   const effectiveRole = getEffectiveRole(role, user);
   const allowedRoles = SECTION_PERMISSIONS[section] || [];
   return allowedRoles.includes(effectiveRole);
+};
+
+/** Who can verify, assign, complete or cancel illegal dumping reports */
+export const canManageDumping = (role) => role === ROLES.MANAGER || role === ROLES.ADMIN;
+
+/**
+ * The area an account may see. Same rules as td_my_area() in the database
+ * (supabase/migrations/20261026_area_scope.sql):
+ * Admin, Manager, Media → national; Authority → its district;
+ * Volunteer → its region; anyone else, or no known district / region → none.
+ */
+export const areaScopeFor = (role, access) => {
+  if (role === ROLES.ADMIN || role === ROLES.MANAGER || role === ROLES.MEDIA) return { level: 'national' };
+  const region = GHANA_REGIONS.some(r => r.name === access?.region) ? access.region : null;
+  if (role === ROLES.AUTHORITY && region && isKnownDistrict(region, access?.district) && access.district !== OTHER_DISTRICT) {
+    return { level: 'district', region, district: access.district };
+  }
+  if (role === ROLES.VOLUNTEER && region) return { level: 'region', region };
+  return { level: 'none' };
 };
 
 export const getAllowedRolesForSection = (section) => SECTION_PERMISSIONS[section] || [];

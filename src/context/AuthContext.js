@@ -1,8 +1,8 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
 import { hasCompletedOnboarding } from '../utils/auth';
 import { getDevModeUser, isDevMode } from '../utils/devAuth';
-import { getEffectiveRole, ROLES } from '../constants/accessControl';
+import { getEffectiveRole, areaScopeFor, ROLES } from '../constants/accessControl';
 import { fetchMyAccess } from '../services/accountRoleService';
 
 const AuthContext = createContext();
@@ -360,10 +360,13 @@ export const AuthProvider = ({ children }) => {
     ? role
     : getEffectiveRole(access?.role || ROLES.USER, user);
 
+  const area = useMemo(() => areaScopeFor(effectiveRole, access), [effectiveRole, access]);
+
   const value = {
     user,
     role: effectiveRole,
     access,
+    area,
     accessLoading,
     refreshAccess,
     loading,

@@ -8,6 +8,8 @@ import {
 import StatusBadge from '../components/illegalDumping/StatusBadge';
 import ReportPhotos from '../components/illegalDumping/ReportPhotos';
 import useEscapeKey from '../hooks/useEscapeKey';
+import { useAuth } from '../context/AuthContext';
+import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 
 // Tabs and chips filter on status only
 const TABS = [
@@ -31,6 +33,7 @@ const inDateRange = (report, start, end) => {
 };
 
 const IllegalDumpingHistory = () => {
+  const { area } = useAuth();
   const [allReports, setAllReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -44,7 +47,7 @@ const IllegalDumpingHistory = () => {
   const loadReports = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await fetchAllIllegalDumpingReports();
+      const rows = await fetchAllIllegalDumpingReports({ area });
       setAllReports(rows.map(toReportViewModel));
       setLoadError(null);
     } catch (error) {
@@ -53,7 +56,7 @@ const IllegalDumpingHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [area]);
 
   useEffect(() => { loadReports(); }, [loadReports]);
 
@@ -111,6 +114,7 @@ const IllegalDumpingHistory = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <AreaScopeNote area={area} />
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>

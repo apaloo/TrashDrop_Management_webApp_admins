@@ -56,3 +56,15 @@ export const reviewAccountRole = async (userId, { approve, role = null, note = '
   });
   if (error) throw new Error(error.message || 'Not saved');
 };
+
+/** Admin: set or correct an account's region / district (an Authority sees only its district) */
+export const setAccountArea = async (userId, { region, district }) => {
+  const { data, error } = await supabase.rpc('admin_set_account_area', {
+    p_user_id: userId, p_region: region || null, p_district: district || null,
+  });
+  if (error) {
+    if (isMissingAccessSchema(error)) throw new Error('The database is missing the areas update. Run supabase/migrations/20261026_area_scope.sql in Supabase.');
+    throw new Error(error.message || 'Area not saved');
+  }
+  return data;
+};

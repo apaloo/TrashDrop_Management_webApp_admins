@@ -7,7 +7,8 @@ import 'leaflet/dist/leaflet.css';
 // Import configuration
 import { appConfig } from '../config';
 import { STATUS } from '../config/constants';
-import { SECTIONS, canAccessSection } from '../constants/accessControl';
+import { canManageDumping } from '../constants/accessControl';
+import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 import { useAuth } from '../context/AuthContext';
 
 // Import Supabase utilities
@@ -100,8 +101,8 @@ const createClusterIcon = (cluster) => {
 const formatHours = (hours) => formatDuration(hours);
 
 const IllegalDumpingMap = () => {
-  const { role, user } = useAuth();
-  const canManageReports = canAccessSection(SECTIONS.ILLEGAL_DUMPING, role, user);
+  const { role, area } = useAuth();
+  const canManageReports = canManageDumping(role);
 
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -152,7 +153,7 @@ const IllegalDumpingMap = () => {
     try {
       if (!silent) setLoading(true);
 
-      const response = await fetchIllegalDumpingReports({ limit: REPORT_FETCH_LIMIT, page: 1 });
+      const response = await fetchIllegalDumpingReports({ limit: REPORT_FETCH_LIMIT, page: 1, area });
       const dataArray = Array.isArray(response) ? response : (response?.data || []);
 
       const transformedData = dataArray.map(item => {
@@ -201,7 +202,7 @@ const IllegalDumpingMap = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [area]);
 
   // Initial load
   useEffect(() => {
@@ -452,6 +453,7 @@ const IllegalDumpingMap = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
+      <AreaScopeNote area={area} readOnly={!canManageReports} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>

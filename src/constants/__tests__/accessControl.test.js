@@ -1,5 +1,6 @@
 import {
   ROLES, SECTIONS, COMPANY_TYPES, getEffectiveRole, canAccessSection, deriveRoleForUser, getRoleForCompanyType,
+  areaScopeFor, canManageDumping,
 } from '../accessControl';
 
 const admin = { email: 'otisadomako50@gmail.com' };
@@ -33,9 +34,9 @@ describe('sections', () => {
       expect(can(SECTIONS.REGULATORY, r)).toBe(true);
     });
   });
-  it('Illegal Dumping stays Manager and Admin until the scoped roles are built', () => {
+  it('Illegal Dumping is Manager, Admin and Authority (district view)', () => {
     expect(can(SECTIONS.ILLEGAL_DUMPING, 'manager')).toBe(true);
-    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(false));
+    ['user', 'volunteer', 'media'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(false));
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);
   });
   it('Request Pickup, Bin Management and Account Approvals are admin only', () => {
@@ -44,5 +45,34 @@ describe('sections', () => {
       expect(can(s, 'authority')).toBe(false);
       expect(canAccessSection(s, 'user', admin)).toBe(true);
     });
+  });
+});
+
+describe('areas (same rules as td_my_area)', () => {
+  const madina = { region: 'Greater Accra', district: 'La-Nkwantanang-Madina' };
+
+  it('Admin, Manager and Media see the whole country', () => {
+    ['admin', 'manager', 'media'].forEach(r => expect(areaScopeFor(r, madina)).toEqual({ level: 'national' }));
+  });
+
+  it('Authority sees its district only, and nothing without a known district', () => {
+    expect(areaScopeFor('authority', madina)).toEqual({ level: 'district', ...madina });
+    expect(areaScopeFor('authority', { region: 'Ashanti', district: madina.district })).toEqual({ level: 'none' });
+    expect(areaScopeFor('authority', { region: 'Greater Accra', district: 'Other / not listed' })).toEqual({ level: 'none' });
+    expect(areaScopeFor('authority', null)).toEqual({ level: 'none' });
+  });
+
+  it('Volunteer sees its region; User sees none', () => {
+    expect(areaScopeFor('volunteer', { region: 'Greater Accra', district: 'La Nkwantanang Madina' })).toEqual({ level: 'region', region: 'Greater Accra' });
+    expect(areaScopeFor('volunteer', { region: 'Narnia' })).toEqual({ level: 'none' });
+    expect(areaScopeFor('user', madina)).toEqual({ level: 'none' });
+  });
+
+  it('Authority can open Illegal Dumping but only Manager and Admin act on reports', () => {
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'authority', someone)).toBe(true);
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'volunteer', someone)).toBe(false);
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'media', someone)).toBe(false);
+    expect(canManageDumping('authority')).toBe(false);
+    expect(canManageDumping('manager')).toBe(true);
   });
 });

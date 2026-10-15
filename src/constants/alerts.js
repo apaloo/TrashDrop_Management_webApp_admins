@@ -184,6 +184,7 @@ export const LOG_ACTIONS = [
   { key: 'account.role_requested', label: 'Access requested' },
   { key: 'account.role_approved', label: 'Access approved' },
   { key: 'account.role_rejected', label: 'Access rejected' },
+  { key: 'account.area_changed', label: 'Account area changed' },
   { key: 'batch.created', label: 'Batch generated' },
   { key: 'batch.distributed', label: 'Batch scanned by household' },
   { key: 'batch.archived', label: 'Batch archived' },

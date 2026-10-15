@@ -13,8 +13,11 @@ jest.mock('../../utils/databaseUtils', () => ({
   assignCleanupTeam: jest.fn(),
 }));
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
+let mockAuth = { role: 'manager', area: { level: 'national' } };
+jest.mock('../../context/AuthContext', () => ({ useAuth: () => mockAuth }));
 
 beforeEach(() => {
+  mockAuth = { role: 'manager', area: { level: 'national' } };
   fetchAllIllegalDumpingReports.mockResolvedValue(buildAuditRows());
   // eslint-disable-next-line global-require
   require('../../utils/databaseUtils').fetchIllegalDumpingHistory.mockResolvedValue([]);
@@ -125,5 +128,25 @@ describe('Reports page', () => {
     await reportsLoaded();
     fireEvent.click(screen.getAllByRole('button', { name: 'Verify' })[0]);
     await waitFor(() => expect(updateIllegalDumpingStatus).toHaveBeenCalledWith(expect.any(String), 'verified'));
+  });
+});
+
+describe('Authority (district view)', () => {
+  const area = { level: 'district', region: 'Greater Accra', district: 'La-Nkwantanang-Madina' };
+
+  it('loads its district only and offers no actions', async () => {
+    mockAuth = { role: 'authority', area };
+    renderAt(<IllegalDumpingManagement />);
+    await reportsLoaded();
+    expect(fetchAllIllegalDumpingReports).toHaveBeenLastCalledWith({ area });
+    expect(screen.getByTestId('area-scope')).toHaveTextContent('La-Nkwantanang-Madina, Greater Accra');
+    expect(screen.queryByRole('button', { name: /^Verify$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Mark Cleaned/ })).toBeNull();
+  });
+
+  it('says so when the account has no district', async () => {
+    mockAuth = { role: 'authority', area: { level: 'none' } };
+    renderAt(<IllegalDumpingHistory />);
+    expect(await screen.findByTestId('area-none')).toBeInTheDocument();
   });
 });
