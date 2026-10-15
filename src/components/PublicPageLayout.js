@@ -33,12 +33,12 @@ export const PublicNavbar = () => {
   }, []);
 
   const NAV = [
-    { to: '/how-it-works',     label: 'How It Works' },
-    { to: '/users',            label: 'For Households' },
-    { to: '/collectors',       label: 'Earn as Carter' },
-    { to: '/illegal-dumping',  label: 'Report Dumping' },
-    { to: '/blog',             label: 'Blog' },
-    { to: '/about',            label: 'About' },
+    { to: '/how-it-works/',     label: 'How It Works' },
+    { to: '/users/',            label: 'For Households' },
+    { to: '/collectors/',       label: 'Earn as Carter' },
+    { to: '/illegal-dumping/',  label: 'Report Dumping' },
+    { to: '/blog/',             label: 'Blog' },
+    { to: '/about/',            label: 'About' },
   ];
 
   const navBg     = scrolled ? 'rgba(10,15,10,0.97)' : 'transparent';
@@ -120,10 +120,10 @@ export const PublicFooter = () => (
           </div>
         </div>
         {[
-          { title:'Platform', links:[['How It Works','/how-it-works'],['For Households','/users'],['QR Bag System','/how-it-works#qr'],['Digital Bin Service','/how-it-works'],['Pricing','/']] },
-          { title:'Collectors', links:[['Earn as Carter','/collectors'],['Carter App','/collectors'],['Authority Assignments','/collectors'],['Earnings Calculator','/collectors'],['Sign Up Free','/signup']] },
-          { title:'Waste Collection', links:[['Accra','/waste-collection-accra'],['Kumasi','/waste-collection-kumasi'],['Takoradi','/waste-collection-takoradi'],['Tamale','/waste-collection-tamale'],['On-demand waste pickup','/waste-pickup']] },
-          { title:'Resources', links:[['FAQ','/faq'],['Blog','/blog'],['About Us','/about'],['Report Illegal Dump','/illegal-dumping'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
+          { title:'Platform', links:[['How It Works','/how-it-works/'],['For Households','/users/'],['QR Bag System','/how-it-works/#qr'],['Digital Bin Service','/how-it-works/'],['Pricing','/']] },
+          { title:'Collectors', links:[['Earn as Carter','/collectors/'],['Carter App','/collectors/'],['Authority Assignments','/collectors/'],['Earnings Calculator','/collectors/'],['Sign Up Free','/signup']] },
+          { title:'Waste Collection', links:[['Accra','/waste-collection-accra/'],['Kumasi','/waste-collection-kumasi/'],['Takoradi','/waste-collection-takoradi/'],['Tamale','/waste-collection-tamale/'],['On-demand waste pickup','/waste-pickup/']] },
+          { title:'Resources', links:[['FAQ','/faq/'],['Blog','/blog/'],['About Us','/about/'],['Report Illegal Dump','/illegal-dumping/'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18 }}>{col.title}</h4>

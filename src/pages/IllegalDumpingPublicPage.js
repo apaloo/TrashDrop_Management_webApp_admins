@@ -61,11 +61,11 @@ const IllegalDumpingPublicPage = () => {
     // Fix canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/illegal-dumping';
+    canonical.href = 'https://trashdrops.com/illegal-dumping/';
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/illegal-dumping/');
 
     const script = document.createElement('script');
     script.type = 'application/ld+json';

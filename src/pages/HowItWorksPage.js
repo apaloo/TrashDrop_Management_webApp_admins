@@ -7,7 +7,7 @@ import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPage
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "url": "https://trashdrops.com/how-it-works",
+  "url": "https://trashdrops.com/how-it-works/",
   "mainEntity": [
     {
       "@type": "Question",
@@ -72,16 +72,16 @@ const FAQ_SCHEMA = {
 const WEBPAGE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "https://trashdrops.com/how-it-works",
+  "@id": "https://trashdrops.com/how-it-works/",
   "name": "How TrashDrop Works | Waste Collection App Ghana | trashdrops.com",
   "description": "TrashDrop connects Ghanaian households with verified waste collectors in 6 steps. Choose the QR Bag System for free pickups or the Digital Bin for on-demand collection. Available at trashdrops.com — no app download needed.",
-  "url": "https://trashdrops.com/how-it-works",
+  "url": "https://trashdrops.com/how-it-works/",
   "inLanguage": "en-GH",
   "breadcrumb": {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://trashdrops.com" },
-      { "@type": "ListItem", "position": 2, "name": "How It Works", "item": "https://trashdrops.com/how-it-works" }
+      { "@type": "ListItem", "position": 2, "name": "How It Works", "item": "https://trashdrops.com/how-it-works/" }
     ]
   },
   "publisher": {
@@ -127,12 +127,12 @@ const HowItWorksPage = () => {
     // Fix canonical URL for this page (index.html defaults to root)
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/how-it-works';
+    canonical.href = 'https://trashdrops.com/how-it-works/';
     // Fix OG URL
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/how-it-works');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/how-it-works/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/how-it-works');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/how-it-works/');
 
     // Inject FAQPage schema
     const faqScript = document.createElement('script');

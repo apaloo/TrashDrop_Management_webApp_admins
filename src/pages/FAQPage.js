@@ -12,7 +12,7 @@ const FAQ_SCHEMA = {
   "@type": "FAQPage",
   "name": "TrashDrop Frequently Asked Questions",
   "description": "Official FAQ for TrashDrop, Ghana's digital waste collection and environmental reporting platform operated by Infobrix Limited.",
-  "url": "https://trashdrops.com/faq",
+  "url": "https://trashdrops.com/faq/",
   "publisher": {
     "@type": "Organization",
     "name": "Infobrix Limited",
@@ -101,16 +101,16 @@ const FAQ_SCHEMA = {
 const WEBPAGE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "https://trashdrops.com/faq",
+  "@id": "https://trashdrops.com/faq/",
   "name": "TrashDrop FAQ — Frequently Asked Questions | Waste Collection Ghana",
   "description": "Official FAQ for TrashDrop, Ghana's digital waste collection and environmental reporting platform. Operated by Infobrix Limited. Serving Accra, Kumasi, Tamale, and Takoradi.",
-  "url": "https://trashdrops.com/faq",
+  "url": "https://trashdrops.com/faq/",
   "inLanguage": "en-GH",
   "breadcrumb": {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://trashdrops.com" },
-      { "@type": "ListItem", "position": 2, "name": "FAQ",  "item": "https://trashdrops.com/faq" }
+      { "@type": "ListItem", "position": 2, "name": "FAQ",  "item": "https://trashdrops.com/faq/" }
     ]
   },
   "publisher": {
@@ -176,12 +176,12 @@ const FAQPage = () => {
     // Fix canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/faq';
+    canonical.href = 'https://trashdrops.com/faq/';
     // Fix OG & Twitter URL
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/faq');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/faq/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/faq');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/faq/');
 
     // Inject FAQPage schema
     const faqScript = document.createElement('script');
@@ -305,10 +305,10 @@ const FAQPage = () => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
             {[
-              { to: '/how-it-works',   icon: 'fa-cogs',              title: 'How It Works',         body: 'Step-by-step guide to using TrashDrop for waste collection.' },
-              { to: '/users',          icon: 'fa-home',              title: 'For Households',        body: 'QR Bag System and Digital Bin — schedule your first pickup.' },
-              { to: '/collectors',     icon: 'fa-truck',             title: 'For Collectors',        body: 'Earn money collecting waste in Ghana with TrashDrop.' },
-              { to: '/illegal-dumping',icon: 'fa-exclamation-triangle', title: 'Report Illegal Dumping', body: 'Report dump sites and earn reward points instantly.' },
+              { to: '/how-it-works/',   icon: 'fa-cogs',              title: 'How It Works',         body: 'Step-by-step guide to using TrashDrop for waste collection.' },
+              { to: '/users/',          icon: 'fa-home',              title: 'For Households',        body: 'QR Bag System and Digital Bin — schedule your first pickup.' },
+              { to: '/collectors/',     icon: 'fa-truck',             title: 'For Collectors',        body: 'Earn money collecting waste in Ghana with TrashDrop.' },
+              { to: '/illegal-dumping/',icon: 'fa-exclamation-triangle', title: 'Report Illegal Dumping', body: 'Report dump sites and earn reward points instantly.' },
             ].map(link => (
               <Link key={link.to} to={link.to} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px 20px', textDecoration: 'none', display: 'block', transition: 'all 0.22s' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = `${TD.lime}30`; e.currentTarget.style.background = `rgba(168,230,61,0.04)`; }}
@@ -334,7 +334,7 @@ const FAQPage = () => {
           <Link to="/signup" style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: TD.lime, color: TD.ink, padding: '16px 40px', borderRadius: 12, textDecoration: 'none', boxShadow: `0 8px 32px ${TD.lime}45`, display: 'inline-block' }}>
             Create Free Account
           </Link>
-          <Link to="/how-it-works" style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: 'transparent', color: '#fff', padding: '16px 40px', borderRadius: 12, textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.18)', display: 'inline-block' }}>
+          <Link to="/how-it-works/" style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: 'transparent', color: '#fff', padding: '16px 40px', borderRadius: 12, textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.18)', display: 'inline-block' }}>
             How It Works
           </Link>
         </div>

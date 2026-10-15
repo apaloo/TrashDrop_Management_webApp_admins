@@ -19,8 +19,21 @@ export const BUSINESS = {
   ],
 };
 
+/**
+ * Public pages are served as /<page>/index.html, so Netlify redirects
+ * /<page> to /<page>/. Every canonical, sitemap entry and internal link uses
+ * the trailing-slash form, so crawlers never meet a redirect.
+ * '/about' and '/about/#faq' -> '/about/' and '/about/#faq'; '/' is unchanged.
+ */
+export const withSlash = (path = '/') => {
+  const i = path.search(/[?#]/);
+  const base = i === -1 ? path : path.slice(0, i);
+  const rest = i === -1 ? '' : path.slice(i);
+  return base.endsWith('/') ? path : `${base}/${rest}`;
+};
+
 /** On-demand pickup landing page (targets "waste pickup" / "trash pickup") */
-export const WASTE_PICKUP_PATH = '/waste-pickup';
+export const WASTE_PICKUP_PATH = '/waste-pickup/';
 
 /** Services, as listed on the Google Business Profile */
 export const SERVICES = [
@@ -32,10 +45,10 @@ export const SERVICES = [
 ];
 
 export const CITY_PAGES = [
-  { slug: 'accra',    name: 'Accra',    path: '/waste-collection-accra' },
-  { slug: 'kumasi',   name: 'Kumasi',   path: '/waste-collection-kumasi' },
-  { slug: 'takoradi', name: 'Takoradi', path: '/waste-collection-takoradi' },
-  { slug: 'tamale',   name: 'Tamale',   path: '/waste-collection-tamale' },
+  { slug: 'accra',    name: 'Accra',    path: '/waste-collection-accra/' },
+  { slug: 'kumasi',   name: 'Kumasi',   path: '/waste-collection-kumasi/' },
+  { slug: 'takoradi', name: 'Takoradi', path: '/waste-collection-takoradi/' },
+  { slug: 'tamale',   name: 'Tamale',   path: '/waste-collection-tamale/' },
 ];
 
 const setMeta = (attr, key, content) => {
@@ -56,7 +69,7 @@ const setMeta = (attr, key, content) => {
 export const useSeo = ({ title, description, path, jsonLd }) => {
   const ldKey = jsonLd ? JSON.stringify(jsonLd) : '';
   useEffect(() => {
-    const url = SITE_URL + (path === '/' ? '/' : path);
+    const url = SITE_URL + withSlash(path);
     document.title = title;
     setMeta('name', 'description', description);
     setMeta('property', 'og:title', title);
@@ -144,9 +157,9 @@ export const localBusinessJsonLd = () => ({
 /** The LocalBusiness for one city page: same business, that city as its service area */
 export const cityLocalBusinessJsonLd = (cityName, path) => ({
   ...localBusinessJsonLd(),
-  '@id': `${SITE_URL}${path}#localbusiness`,
+  '@id': `${SITE_URL}${withSlash(path)}#localbusiness`,
   name: `${BUSINESS.name} ${cityName}`,
-  url: SITE_URL + path,
+  url: SITE_URL + withSlash(path),
   description: `Waste collection and trash pickup in ${cityName}: free pickup with QR Bags, on-demand Digital Bin pickups and live collector tracking.`,
   address: { '@type': 'PostalAddress', addressLocality: cityName, addressCountry: 'GH' },
   areaServed: { '@type': 'City', name: cityName, containedInPlace: { '@type': 'Country', name: 'Ghana' } },

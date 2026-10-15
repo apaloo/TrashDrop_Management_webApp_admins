@@ -216,7 +216,7 @@ function App() {
               <Route path="/illegal-dumping" element={<IllegalDumpingPublicPage />} />
               <Route path="/users"           element={<UsersPage />} />
               {/* Old Accra page; netlify.toml also 301s it */}
-              <Route path="/accra"           element={<Navigate to="/waste-collection-accra" replace />} />
+              <Route path="/accra"           element={<Navigate to="/waste-collection-accra/" replace />} />
               {['accra', 'kumasi', 'takoradi', 'tamale'].map(slug => (
                 <Route key={slug} path={`/waste-collection-${slug}`} element={<CityWasteCollectionPage slug={slug} />} />
               ))}

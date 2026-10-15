@@ -19,7 +19,8 @@ const Layout = ({ children }) => {
   // Check if current path is auth-related (login, signup, etc.)
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname);
   const PUBLIC_MARKETING_PATHS = ['/', '/faq', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog'];
-  const isPublicPage = PUBLIC_MARKETING_PATHS.includes(location.pathname) || location.pathname.startsWith('/blog/') || location.pathname.startsWith('/waste-collection-');
+  // Public pages are linked with a trailing slash (/about/), so compare without it
+  const isPublicPage = PUBLIC_MARKETING_PATHS.includes(location.pathname.replace(/(.)\/+$/, '$1')) || location.pathname.startsWith('/blog/') || location.pathname.startsWith('/waste-collection-');
   const isHomePage = isPublicPage;
   
   // Get user's first name from metadata for header greeting

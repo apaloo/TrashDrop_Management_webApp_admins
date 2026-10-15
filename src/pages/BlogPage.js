@@ -93,11 +93,11 @@ const BlogPage = () => {
 
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/blog';
+    canonical.href = 'https://trashdrops.com/blog/';
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/blog');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/blog/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/blog');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/blog/');
 
     return () => {
       const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';
@@ -127,7 +127,7 @@ const BlogPage = () => {
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:24 }}>
             {BLOG_POSTS.map((post, i) => (
-              <Link key={post.slug} to={`/blog/${post.slug}`} style={{ textDecoration:'none' }}>
+              <Link key={post.slug} to={`/blog/${post.slug}/`} style={{ textDecoration:'none' }}>
                 <article style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px', height:'100%', transition:'all 0.25s', display:'flex', flexDirection:'column', boxSizing:'border-box' }}
                   onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;e.currentTarget.style.transform='translateY(-4px)';}}
                   onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';e.currentTarget.style.transform='translateY(0)';}}>

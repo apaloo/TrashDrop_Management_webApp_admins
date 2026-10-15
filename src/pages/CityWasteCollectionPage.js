@@ -139,7 +139,7 @@ const CityWasteCollectionPage = ({ slug }) => {
       {/* CTA */}
       <Section bg={TD.ink2}>
         <H2>Book waste collection in {c.name} today</H2>
-        <P>Message us on WhatsApp at {BUSINESS.phoneDisplay} or sign up to request your first trash pickup. New to TrashDrop? Read <Link to="/how-it-works" style={linkStyle}>how TrashDrop works</Link> or the <Link to="/faq" style={linkStyle}>full FAQ</Link>.</P>
+        <P>Message us on WhatsApp at {BUSINESS.phoneDisplay} or sign up to request your first trash pickup. New to TrashDrop? Read <Link to="/how-it-works/" style={linkStyle}>how TrashDrop works</Link> or the <Link to="/faq/" style={linkStyle}>full FAQ</Link>.</P>
         <CtaButtons city={c.name} />
       </Section>
 
