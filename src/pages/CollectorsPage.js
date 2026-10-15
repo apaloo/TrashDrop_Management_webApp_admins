@@ -64,16 +64,16 @@ const FAQ_ITEMS = [
 const WEBPAGE_SCHEMA_COLLECTORS = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "https://trashdrops.com/collectors",
+  "@id": "https://trashdrops.com/collectors/",
   "name": "Earn Money Collecting Waste in Ghana | TrashDrop Carter App",
   "description": "TrashDrop pays waste collectors in Ghana ₵32.43 average per pickup, paid to your MoMo wallet. Join as a carter or aboboyaa rider. No app download needed.",
-  "url": "https://trashdrops.com/collectors",
+  "url": "https://trashdrops.com/collectors/",
   "inLanguage": "en-GH",
   "breadcrumb": {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home",       "item": "https://trashdrops.com" },
-      { "@type": "ListItem", "position": 2, "name": "Collectors", "item": "https://trashdrops.com/collectors" }
+      { "@type": "ListItem", "position": 2, "name": "Collectors", "item": "https://trashdrops.com/collectors/" }
     ]
   },
   "publisher": { "@type": "Organization", "name": "Infobrix Limited", "url": "https://trashdrops.com", "logo": { "@type": "ImageObject", "url": "https://trashdrops.com/icon-512x512.png" } }
@@ -88,11 +88,11 @@ const CollectorsPage = () => {
     // Fix canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/collectors';
+    canonical.href = 'https://trashdrops.com/collectors/';
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/collectors');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/collectors/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/collectors');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/collectors/');
 
     const script = document.createElement('script');
     script.type = 'application/ld+json';

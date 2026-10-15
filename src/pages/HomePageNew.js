@@ -1642,7 +1642,7 @@ const FAQSection = () => {
         </div>
 
         <div style={{ textAlign:'center', marginTop:48 }}>
-          <a href="/how-it-works" style={{ ...FF.label, fontSize:13, fontWeight:700, color:linkColor, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+          <a href="/how-it-works/" style={{ ...FF.label, fontSize:13, fontWeight:700, color:linkColor, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
             See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11, color:linkColor }}></i>
           </a>
         </div>
@@ -1678,8 +1678,8 @@ const HomeFooter = () => {
         </div>
         {[
           { title:'Waste Collection', links:[...CITY_PAGES.map(c => [c.name, c.path]), ['On-demand waste pickup', WASTE_PICKUP_PATH]] },
-          { title:'Platform', links:[['How It Works','/how-it-works'],['FAQ','/faq'],['For Households','/users'],['Earn as a Collector','/collectors'],['Report Dumping','/illegal-dumping']] },
-          { title:'Company',  links:[['About Us','/about'],['Blog','/blog'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
+          { title:'Platform', links:[['How It Works','/how-it-works/'],['FAQ','/faq/'],['For Households','/users/'],['Earn as a Collector','/collectors/'],['Report Dumping','/illegal-dumping/']] },
+          { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
@@ -1739,7 +1739,7 @@ const AppDownloadBanner = () => {
               onMouseLeave={e=>e.currentTarget.style.transform=''}>
               <i className="fas fa-leaf" style={{ fontSize:14 }}></i> Book a Pickup
             </a>
-            <a href="/illegal-dumping" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(0,0,0,0.12)', color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(0,0,0,0.18)`, transition:'transform 0.2s ease' }}
+            <a href="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(0,0,0,0.12)', color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(0,0,0,0.18)`, transition:'transform 0.2s ease' }}
               onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
               onMouseLeave={e=>e.currentTarget.style.transform=''}>
               <i className="fas fa-exclamation-triangle" style={{ fontSize:13 }}></i> Report a Dump

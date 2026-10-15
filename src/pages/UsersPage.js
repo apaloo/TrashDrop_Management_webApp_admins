@@ -68,11 +68,11 @@ const UsersPage = () => {
     // Fix canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/users';
+    canonical.href = 'https://trashdrops.com/users/';
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/users');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/users/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/users');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/users/');
 
     const script = document.createElement('script');
     script.type = 'application/ld+json';
@@ -110,7 +110,7 @@ const UsersPage = () => {
             <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
               Get Started Free
             </Link>
-            <Link to="/how-it-works" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
+            <Link to="/how-it-works/" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
               How It Works
             </Link>
           </div>

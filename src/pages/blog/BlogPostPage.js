@@ -207,7 +207,7 @@ const BlogPostPage = () => {
     if (el && content.description) el.setAttribute('content', content.description);
   }, [content]);
 
-  if (!post || !content) return <Navigate to="/blog" replace />;
+  if (!post || !content) return <Navigate to="/blog/" replace />;
 
   const otherPosts = BLOG_POSTS.filter(p => p.slug !== slug).slice(0, 3);
 
@@ -218,7 +218,7 @@ const BlogPostPage = () => {
         <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
         <div style={{ maxWidth:800, margin:'0 auto', position:'relative', zIndex:1 }}>
           <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
-            <Link to="/blog" style={{ ...FF.label, fontSize:12, color:TD.sage, textDecoration:'none', fontWeight:600 }}>
+            <Link to="/blog/" style={{ ...FF.label, fontSize:12, color:TD.sage, textDecoration:'none', fontWeight:600 }}>
               ← Blog
             </Link>
             <span style={{ color:TD.sage }}>·</span>
@@ -281,7 +281,7 @@ const BlogPostPage = () => {
           <h2 style={{ ...FF.display, fontSize:'clamp(22px,3vw,32px)', color:'#f0f5f0', margin:'0 0 32px', letterSpacing:'-0.5px' }}>More from the blog</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
             {otherPosts.map(p => (
-              <Link key={p.slug} to={`/blog/${p.slug}`} style={{ textDecoration:'none' }}>
+              <Link key={p.slug} to={`/blog/${p.slug}/`} style={{ textDecoration:'none' }}>
                 <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px 22px', transition:'all 0.22s' }}
                   onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;}}
                   onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>

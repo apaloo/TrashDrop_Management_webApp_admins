@@ -41,6 +41,27 @@ const ROUTES = [
   '/waste-pickup',
 ];
 
+const slashed = (route) => (route.endsWith('/') ? route : `${route}/`);
+const PAGE_PATHS = ROUTES.filter(r => r !== '/');
+// '/about', '/about#x', '/about?x', 'https://trashdrops.com/about' -> the page path, else null
+const pagePathOf = (href) => {
+  const m = /^(?:https:\/\/trashdrops\.com)?(\/[^?#]*)/.exec(href || '');
+  return m && PAGE_PATHS.includes(m[1]) ? m[1] : null;
+};
+const noSlashLinks = (hrefs) => [...new Set(hrefs.filter(pagePathOf))];
+const noSlashUrls = (text) => [...new Set((text.match(/https:\/\/trashdrops\.com\/[a-z0-9-]+(?=["#?])/g) || []).filter(pagePathOf))];
+
+// The sitemap must list exactly the pre-rendered pages, in their trailing-slash form
+function checkSitemap() {
+  const xml = fs.readFileSync(path.join(BUILD_DIR, 'sitemap.xml'), 'utf8');
+  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  const want = ROUTES.map(r => SITE + slashed(r));
+  const problems = [];
+  want.filter(u => !locs.includes(u)).forEach(u => problems.push(`sitemap.xml: missing ${u}`));
+  locs.filter(u => !want.includes(u)).forEach(u => problems.push(`sitemap.xml: unexpected ${u}`));
+  return problems;
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript',
@@ -119,6 +140,10 @@ async function renderRoute(browser, origin, route, shellJsonLdCount) {
     h1Count: document.querySelectorAll('h1').length,
     canonical: (document.querySelector('link[rel="canonical"]') || {}).href || '',
     description: (document.querySelector('meta[name="description"]') || {}).content || '',
+    ogUrl: (document.querySelector('meta[property="og:url"]') || {}).content || '',
+    // Every same-site link and JSON-LD URL, to check they use the trailing-slash form
+    links: Array.from(document.querySelectorAll('a[href]')).map(a => a.getAttribute('href')),
+    jsonLd: Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(el => el.textContent),
   }));
 
   await page.close();
@@ -156,16 +181,21 @@ async function main() {
   });
 
   const shellJsonLdCount = (shellHtml.match(/application\/ld\+json/g) || []).length;
-  const problems = [];
+  const problems = checkSitemap();
   const titles = new Map();
   const descriptions = new Map();
   try {
     for (const route of ROUTES) {
       const { html, meta, errors } = await renderRoute(browser, origin, route, shellJsonLdCount);
-      const expectedCanonical = SITE + (route === '/' ? '/' : route);
+      // Pages are served from /<route>/index.html: Netlify redirects /<route> to
+      // /<route>/, so the canonical, links and sitemap must all use /<route>/
+      const expectedCanonical = SITE + slashed(route);
 
       if (!meta.h1.trim()) problems.push(`${route}: no <h1> rendered`);
       if (meta.canonical !== expectedCanonical) problems.push(`${route}: canonical is "${meta.canonical}", expected "${expectedCanonical}"`);
+      if (meta.ogUrl !== expectedCanonical) problems.push(`${route}: og:url is "${meta.ogUrl}", expected "${expectedCanonical}"`);
+      noSlashLinks(meta.links).forEach(h => problems.push(`${route}: link "${h}" should end with "/"`));
+      noSlashUrls(meta.jsonLd.join(' ')).forEach(u => problems.push(`${route}: JSON-LD URL "${u}" should end with "/"`));
       if (meta.h1Count !== 1) problems.push(`${route}: ${meta.h1Count} <h1> elements, expected 1`);
       if (titles.has(meta.title)) problems.push(`${route}: <title> duplicates ${titles.get(meta.title)}`);
       titles.set(meta.title, route);

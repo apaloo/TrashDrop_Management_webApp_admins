@@ -34,11 +34,11 @@ const AboutPage = () => {
 
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://trashdrops.com/about';
+    canonical.href = 'https://trashdrops.com/about/';
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/about');
+    if (ogUrl) ogUrl.setAttribute('content', 'https://trashdrops.com/about/');
     const twUrl = document.querySelector('meta[name="twitter:url"]');
-    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/about');
+    if (twUrl) twUrl.setAttribute('content', 'https://trashdrops.com/about/');
 
     return () => {
       const can = document.querySelector('link[rel="canonical"]'); if (can) can.href = 'https://trashdrops.com/';

@@ -94,7 +94,7 @@
 # The old Accra page moved to the city landing page
 [[redirects]]
   from = "/accra"
-  to = "/waste-collection-accra"
+  to = "/waste-collection-accra/"
   status = 301
   force = true
 
