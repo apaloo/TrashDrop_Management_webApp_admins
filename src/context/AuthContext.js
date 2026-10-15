@@ -1,8 +1,9 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
 import { hasCompletedOnboarding } from '../utils/auth';
 import { getDevModeUser, isDevMode } from '../utils/devAuth';
-import { getEffectiveRole } from '../constants/accessControl';
+import { getEffectiveRole, areaScopeFor, ROLES } from '../constants/accessControl';
+import { fetchMyAccess } from '../services/accountRoleService';
 
 const AuthContext = createContext();
 
@@ -325,9 +326,49 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ── Access level from the database (account_roles / my_access()) ─────────
+  // user_metadata.role can be edited by its owner, so it is only used while
+  // the account roles migration is not in the database yet (legacy).
+  const [access, setAccess] = useState(null); // null = loading
+  const userId = user?.id || null;
+
+  const refreshAccess = useCallback(async () => {
+    if (!userId || devMode) { setAccess(null); return null; }
+    try {
+      const a = await fetchMyAccess();
+      setAccess(a);
+      return a;
+    } catch (e) {
+      if (e.missingSchema) {
+        console.warn('AuthContext: account roles not in the database yet; using the account metadata role');
+        setAccess({ legacy: true });
+      } else {
+        console.error('AuthContext: access could not be loaded; treating the account as a User', e);
+        setAccess({ role: ROLES.USER, status: 'error' });
+      }
+      return null;
+    }
+  }, [userId, devMode]);
+
+  useEffect(() => {
+    setAccess(null);
+    if (userId && isAuthenticated) refreshAccess();
+  }, [userId, isAuthenticated, refreshAccess]);
+
+  const accessLoading = !devMode && isAuthenticated && !!userId && access === null;
+  const effectiveRole = devMode || access?.legacy
+    ? role
+    : getEffectiveRole(access?.role || ROLES.USER, user);
+
+  const area = useMemo(() => areaScopeFor(effectiveRole, access), [effectiveRole, access]);
+
   const value = {
     user,
-    role,
+    role: effectiveRole,
+    access,
+    area,
+    accessLoading,
+    refreshAccess,
     loading,
     isAuthenticated,
     onboardingCompleted,

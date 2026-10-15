@@ -1,0 +1,78 @@
+import {
+  ROLES, SECTIONS, COMPANY_TYPES, getEffectiveRole, canAccessSection, deriveRoleForUser, getRoleForCompanyType,
+  areaScopeFor, canManageDumping,
+} from '../accessControl';
+
+const admin = { email: 'otisadomako50@gmail.com' };
+const someone = { email: 'kofi@example.com' };
+
+describe('roles', () => {
+  it('maps every company type to the role it asks for (same as the database)', () => {
+    expect(Object.fromEntries(COMPANY_TYPES.map(t => [t.value, t.role]))).toEqual({
+      waste_management: 'manager', recycling: 'manager', municipality: 'authority',
+      volunteer_group: 'volunteer', nonprofit: 'volunteer', media: 'media', other: 'user',
+    });
+    expect(getRoleForCompanyType('unknown')).toBe('user');
+    expect(deriveRoleForUser({ email: admin.email, companyType: 'other' })).toBe('admin');
+  });
+
+  it('only whitelisted emails are admin; unknown or admin roles from elsewhere become user', () => {
+    expect(getEffectiveRole('user', admin)).toBe(ROLES.ADMIN);
+    expect(getEffectiveRole('admin', someone)).toBe(ROLES.USER);
+    expect(getEffectiveRole('superuser', someone)).toBe(ROLES.USER);
+    expect(getEffectiveRole(undefined, someone)).toBe(ROLES.USER);
+    expect(getEffectiveRole('volunteer', someone)).toBe(ROLES.VOLUNTEER);
+  });
+});
+
+describe('sections', () => {
+  const can = (section, role) => canAccessSection(section, role, someone);
+  it('everyone gets Dashboard, Settings and Regulatory', () => {
+    ['user', 'volunteer', 'media', 'manager', 'authority'].forEach(r => {
+      expect(can(SECTIONS.DASHBOARD, r)).toBe(true);
+      expect(can(SECTIONS.SETTINGS, r)).toBe(true);
+      expect(can(SECTIONS.REGULATORY, r)).toBe(true);
+    });
+  });
+  it('Illegal Dumping is Manager, Admin and Authority (district view)', () => {
+    expect(can(SECTIONS.ILLEGAL_DUMPING, 'manager')).toBe(true);
+    ['user', 'volunteer', 'media'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(false));
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);
+  });
+  it('Request Pickup, Bin Management and Account Approvals are admin only', () => {
+    [SECTIONS.REQUEST_PICKUP, SECTIONS.BIN_MANAGEMENT, SECTIONS.ACCOUNTS].forEach(s => {
+      expect(can(s, 'manager')).toBe(false);
+      expect(can(s, 'authority')).toBe(false);
+      expect(canAccessSection(s, 'user', admin)).toBe(true);
+    });
+  });
+});
+
+describe('areas (same rules as td_my_area)', () => {
+  const madina = { region: 'Greater Accra', district: 'La-Nkwantanang-Madina' };
+
+  it('Admin, Manager and Media see the whole country', () => {
+    ['admin', 'manager', 'media'].forEach(r => expect(areaScopeFor(r, madina)).toEqual({ level: 'national' }));
+  });
+
+  it('Authority sees its district only, and nothing without a known district', () => {
+    expect(areaScopeFor('authority', madina)).toEqual({ level: 'district', ...madina });
+    expect(areaScopeFor('authority', { region: 'Ashanti', district: madina.district })).toEqual({ level: 'none' });
+    expect(areaScopeFor('authority', { region: 'Greater Accra', district: 'Other / not listed' })).toEqual({ level: 'none' });
+    expect(areaScopeFor('authority', null)).toEqual({ level: 'none' });
+  });
+
+  it('Volunteer sees its region; User sees none', () => {
+    expect(areaScopeFor('volunteer', { region: 'Greater Accra', district: 'La Nkwantanang Madina' })).toEqual({ level: 'region', region: 'Greater Accra' });
+    expect(areaScopeFor('volunteer', { region: 'Narnia' })).toEqual({ level: 'none' });
+    expect(areaScopeFor('user', madina)).toEqual({ level: 'none' });
+  });
+
+  it('Authority can open Illegal Dumping but only Manager and Admin act on reports', () => {
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'authority', someone)).toBe(true);
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'volunteer', someone)).toBe(false);
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'media', someone)).toBe(false);
+    expect(canManageDumping('authority')).toBe(false);
+    expect(canManageDumping('manager')).toBe(true);
+  });
+});

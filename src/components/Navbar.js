@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
+import { ROLE_LABELS } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import MessagesModal from './modals/MessagesModal';
@@ -9,7 +10,7 @@ import { fetchNotifications, subscribeToNotifications, getUnreadNotificationsCou
 import { fetchContacts, getUnreadMessageCount, markAllMessagesFromSenderAsRead, subscribeToMessages } from '../utils/messageService';
 
 const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
@@ -346,7 +347,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                 </div>
                 <div className="hidden md:block text-left">
                   <div className="text-sm font-semibold">{user?.user_metadata?.full_name || 'User'}</div>
-                  <div className="text-xs text-gray-500">{user?.user_metadata?.role || 'user'}</div>
+                  <div className="text-xs text-gray-500">{ROLE_LABELS[role] || 'User'}</div>
                 </div>
                 <i className="fas fa-chevron-down text-xs text-gray-500"></i>
               </button>

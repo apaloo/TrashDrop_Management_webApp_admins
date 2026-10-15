@@ -5,6 +5,7 @@ import CompanyInfoStep from '../components/onboarding/CompanyInfoStep';
 import UserPreferencesStep from '../components/onboarding/UserPreferencesStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
 import { deriveRoleForUser } from '../constants/accessControl';
+import { requestAccountRole } from '../services/accountRoleService';
 import { useAuth } from '../context/AuthContext';
 
 const Onboarding = () => {
@@ -31,7 +32,7 @@ const Onboarding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshAccess } = useAuth();
   const savedOnboardingUser = typeof window !== 'undefined'
     ? localStorage.getItem('trashdrop_onboarding_user')
     : null;
@@ -47,7 +48,15 @@ const Onboarding = () => {
         companyType: savedUserData.companyType || prevData.companyType
       }));
     }
-  }, []);
+    // Region / district / verification details given at sign-up
+    const meta = user?.user_metadata || {};
+    if (meta.region || meta.district || meta.accessDetails) {
+      setFormData(prevData => ({
+        ...prevData,
+        accountDetails: prevData.accountDetails || { region: meta.region || '', district: meta.district || '', details: meta.accessDetails || {} }
+      }));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   const totalSteps = 3;
 
@@ -99,6 +108,20 @@ const Onboarding = () => {
       });
       
       if (updateError) throw updateError;
+
+      // Record the access this company type asks for (needs approval above User)
+      try {
+        await requestAccountRole({
+          companyType: formData.companyType,
+          orgName: formData.companyName,
+          region: formData.accountDetails?.region,
+          district: formData.accountDetails?.district,
+          details: formData.accountDetails?.details,
+        });
+        await refreshAccess?.();
+      } catch (accessError) {
+        console.warn('Onboarding: access request not saved (the account roles update may not be in the database yet)', accessError);
+      }
       
       // Also save preferences to localStorage for faster access
       localStorage.setItem('trashdrop_user_preferences', JSON.stringify({

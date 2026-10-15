@@ -3,11 +3,11 @@ import EnhancedImage from '../common/EnhancedImage';
 import { splitReportPhotos } from '../../utils/illegalDumpingReportUtils';
 
 /** Evidence photos, plus a note for photos that never reached storage */
-const ReportPhotos = ({ photos, enhanced = true }) => {
+const ReportPhotos = ({ photos, enhanced = true, title = 'Photos', emptyText = 'No photos were attached to this report.' }) => {
   const { viewable, lost } = splitReportPhotos(photos);
   return (
     <div>
-      <h3 className="font-medium mb-2">Photos ({viewable.length})</h3>
+      <h3 className="font-medium mb-2">{title} ({viewable.length})</h3>
       {viewable.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-2">
           {viewable.map((src, index) => (
@@ -25,7 +25,7 @@ const ReportPhotos = ({ photos, enhanced = true }) => {
         </p>
       )}
       {viewable.length === 0 && lost === 0 && (
-        <p className="text-sm text-gray-500 bg-gray-50 rounded p-3">No photos were attached to this report.</p>
+        <p className="text-sm text-gray-500 bg-gray-50 rounded p-3">{emptyText}</p>
       )}
     </div>
   );

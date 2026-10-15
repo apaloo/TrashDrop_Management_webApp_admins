@@ -15,5 +15,5 @@ it('pages through every report (150 rows, 100 per page)', async () => {
 
   expect(rows).toHaveLength(150);
   expect(realDataUtils.fetchIllegalDumpingReports).toHaveBeenCalledTimes(2);
-  expect(realDataUtils.fetchIllegalDumpingReports).toHaveBeenLastCalledWith({ status: null, limit: 100, page: 2 });
+  expect(realDataUtils.fetchIllegalDumpingReports).toHaveBeenLastCalledWith({ status: null, limit: 100, page: 2, area: null });
 });

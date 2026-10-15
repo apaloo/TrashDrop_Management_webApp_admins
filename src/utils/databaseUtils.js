@@ -944,13 +944,13 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
 /**
  * Fetch every illegal dumping report, page by page, so totals and KPIs are
  * never capped at one page of rows.
- * @param {Object} options - { status, pageSize }
+ * @param {Object} options - { status, pageSize, area } (area from useAuth())
  * @returns {Promise<Array>} All matching reports, newest first
  */
-export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 500 } = {}) => {
+export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 500, area = null } = {}) => {
   const all = [];
   for (let page = 1; ; page++) {
-    const response = await fetchIllegalDumpingReportsReal({ status, limit: pageSize, page });
+    const response = await fetchIllegalDumpingReportsReal({ status, limit: pageSize, page, area });
     const rows = Array.isArray(response) ? response : (response?.data || []);
     all.push(...rows);
     const total = response?.totalCount ?? 0;

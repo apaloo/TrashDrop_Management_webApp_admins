@@ -10,6 +10,9 @@ import {
 import StatusBadge from '../components/illegalDumping/StatusBadge';
 import ReportPhotos from '../components/illegalDumping/ReportPhotos';
 import useEscapeKey from '../hooks/useEscapeKey';
+import { useAuth } from '../context/AuthContext';
+import { canManageDumping } from '../constants/accessControl';
+import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 
 const STATUS_FILTERS = ['pending', 'verified', 'in_progress', 'completed', 'disposed', 'cancelled'];
 
@@ -17,6 +20,8 @@ const IllegalDumpingManagement = () => {
   const [searchParams] = useSearchParams();
   const initialStatus = normalizeEnum(searchParams.get('status'));
   const [reports, setReports] = useState([]);
+  const { role, area } = useAuth();
+  const canManage = canManageDumping(role);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedReportHistory, setSelectedReportHistory] = useState([]);
@@ -83,7 +88,7 @@ const IllegalDumpingManagement = () => {
   const refreshReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const rows = await fetchAllIllegalDumpingReports();
+      const rows = await fetchAllIllegalDumpingReports({ area });
       const mapped = rows.map(toReportViewModel);
       setReports(mapped);
       setSelectedReport(prev => (prev ? mapped.find(r => r.id === prev.id) || prev : prev));
@@ -95,7 +100,7 @@ const IllegalDumpingManagement = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [area]);
 
   // Initial load
   useEffect(() => {
@@ -198,6 +203,7 @@ const IllegalDumpingManagement = () => {
 
   // The next step each status allows (one primary action per row)
   const rowAction = (report) => {
+    if (!canManage) return null;
     if (report.status === 'pending') return { label: 'Verify', to: 'verified', cls: 'bg-teal-50 text-teal-700 hover:bg-teal-100' };
     if (report.status === 'in_progress') return { label: 'Mark Cleaned', to: 'completed', cls: 'bg-green-50 text-green-700 hover:bg-green-100' };
     return null;
@@ -205,6 +211,7 @@ const IllegalDumpingManagement = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <AreaScopeNote area={area} readOnly={!canManage} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
@@ -351,7 +358,7 @@ const IllegalDumpingManagement = () => {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${severityBadgeClass(report.severity)}`}>{toTitle(report.severity)}</span>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap"><StatusBadge status={report.status} /></td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600">{report.cleanupTeam || '—'}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600">{report.cleanupTeam || '—'}{report.claimedByVolunteers && <span className="ml-1 text-xs text-teal-700" title="Claimed by a volunteer group">(volunteers)</span>}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-right sticky right-0 bg-white group-hover:bg-gray-50">
                       <button
                         onClick={() => handleViewDetails(report)}
@@ -531,7 +538,7 @@ const IllegalDumpingManagement = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Assigned Collector</p>
-                <p className="font-medium">{selectedReport.cleanupTeam || 'Not assigned'}</p>
+                <p className="font-medium">{selectedReport.cleanupTeam || 'Not assigned'}{selectedReport.claimedByVolunteers && <span className="ml-1 text-xs font-normal text-teal-700">(volunteer group claim)</span>}</p>
               </div>
               {selectedReport.cleanupFee != null && (
                 <div>
@@ -568,6 +575,11 @@ const IllegalDumpingManagement = () => {
             <div className="mb-6">
               <ReportPhotos photos={selectedReport.images} />
             </div>
+            {selectedReport.cleanupPhotos.length > 0 && (
+              <div className="mb-6" data-testid="cleanup-photos">
+                <ReportPhotos photos={selectedReport.cleanupPhotos} title={selectedReport.claimedByVolunteers ? 'Cleanup photos from the volunteer group' : 'Cleanup photos'} />
+              </div>
+            )}
 
             {/* History Timeline */}
             {selectedReportHistory.length > 0 && (
@@ -587,7 +599,7 @@ const IllegalDumpingManagement = () => {
             )}
 
             {/* Actions: only the steps the current status allows */}
-            {isOpenStatus(selectedReport.status) && (
+            {canManage && isOpenStatus(selectedReport.status) && (
               <div className="border-t pt-4 flex flex-wrap justify-end items-center gap-2">
                 {selectedReport.cleanupTeam && selectedReport.status === 'verified' && (
                   <div className="px-4 py-2 bg-green-100 text-green-800 rounded text-sm mr-auto">

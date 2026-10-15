@@ -22,6 +22,7 @@ const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublic
 const UsersPage              = lazy(() => import('./pages/UsersPage'));
 const CityWasteCollectionPage = lazy(() => import('./pages/CityWasteCollectionPage'));
 const WastePickupPage = lazy(() => import('./pages/WastePickupPage'));
+const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -47,7 +48,7 @@ const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
 // Protected route component
 const ProtectedRoute = ({ children, section }) => {
-  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user } = useAuth();
+  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading } = useAuth();
   const currentPath = window.location.pathname;
   
   console.log('ProtectedRoute check:', { 
@@ -87,6 +88,15 @@ const ProtectedRoute = ({ children, section }) => {
     return <Navigate to="/onboarding" replace />;
   }
   
+  // Wait for the access level from the database before checking a section
+  if (section && accessLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-green-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
   if (section && !canAccessSection(section, role, user)) {
     console.warn('ProtectedRoute: Access denied for section', section, { role, email: user?.email });
     return <Navigate to="/dashboard" replace />;
@@ -308,6 +318,13 @@ function App() {
               } />
               
               {/* Settings route */}
+              <Route path="/accounts" element={
+                <ProtectedRoute section={SECTIONS.ACCOUNTS}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <AccountApprovals />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
               <Route path="/settings" element={
                 <ProtectedRoute section={SECTIONS.SETTINGS}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>

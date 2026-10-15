@@ -408,7 +408,9 @@ const fetchDumpingDetailsById = async (ids) => {
 export const fetchIllegalDumpingReports = async (options = {}) => {
   // Ensure options is an object to prevent null/undefined errors
   const safeOptions = options || {};
-  const { page = 1, limit = 10, status = null } = safeOptions;
+  const { page = 1, limit = 10, status = null, area = null } = safeOptions;
+  // area: { level: 'national' | 'region' | 'district' | 'none', region, district } (areaScopeFor)
+  if (area?.level === 'none') return { data: [], totalCount: 0, page, limit, totalPages: 0 };
 
   // DEPRECATED: RPC function removed, using direct table queries only
   console.log('Using direct table query for illegal dumping reports (RPC deprecated)');
@@ -426,6 +428,8 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
     if (status) {
       query = query.eq('status', status);
     }
+    if (area?.level === 'district') query = query.eq('district', area.district);
+    if (area?.level === 'region') query = query.eq('region', area.region);
 
     query = query
       .order('created_at', { ascending: false })
@@ -487,6 +491,9 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         disposed_at: report.disposed_at || null,
         disposal_site_name: report.disposal_site_name || null,
         assigned_to: report.assigned_to || null,
+        // 'claim' = taken by a volunteer group in the collector app (20261028)
+        assigned_via: report.assigned_via || null,
+        cleanup_photos: Array.isArray(report.cleanup_photos) ? report.cleanup_photos : [],
         assignee: report.assignee || null,
         team_name: report.assignee ? [report.assignee.first_name, report.assignee.last_name].filter(Boolean).join(' ') || null : null,
       };
