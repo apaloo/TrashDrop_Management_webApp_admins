@@ -150,3 +150,14 @@ describe('Authority (district view)', () => {
     expect(await screen.findByTestId('area-none')).toBeInTheDocument();
   });
 });
+
+describe('Volunteer claims', () => {
+  it('marks reports claimed by a volunteer group', async () => {
+    const rows = buildAuditRows();
+    rows[0] = { ...rows[0], team_name: 'Bus Stop Boys', assigned_to: 'c5', assigned_via: 'claim', cleanup_photos: ['https://cdn.example/after.jpg'] };
+    fetchAllIllegalDumpingReports.mockResolvedValue(rows);
+    renderAt(<IllegalDumpingManagement />);
+    await reportsLoaded();
+    expect(screen.getAllByText('(volunteers)').length).toBeGreaterThan(0);
+  });
+});

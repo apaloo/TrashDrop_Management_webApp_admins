@@ -358,7 +358,7 @@ const IllegalDumpingManagement = () => {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${severityBadgeClass(report.severity)}`}>{toTitle(report.severity)}</span>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap"><StatusBadge status={report.status} /></td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600">{report.cleanupTeam || '—'}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600">{report.cleanupTeam || '—'}{report.claimedByVolunteers && <span className="ml-1 text-xs text-teal-700" title="Claimed by a volunteer group">(volunteers)</span>}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-right sticky right-0 bg-white group-hover:bg-gray-50">
                       <button
                         onClick={() => handleViewDetails(report)}
@@ -538,7 +538,7 @@ const IllegalDumpingManagement = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Assigned Collector</p>
-                <p className="font-medium">{selectedReport.cleanupTeam || 'Not assigned'}</p>
+                <p className="font-medium">{selectedReport.cleanupTeam || 'Not assigned'}{selectedReport.claimedByVolunteers && <span className="ml-1 text-xs font-normal text-teal-700">(volunteer group claim)</span>}</p>
               </div>
               {selectedReport.cleanupFee != null && (
                 <div>
@@ -575,6 +575,11 @@ const IllegalDumpingManagement = () => {
             <div className="mb-6">
               <ReportPhotos photos={selectedReport.images} />
             </div>
+            {selectedReport.cleanupPhotos.length > 0 && (
+              <div className="mb-6" data-testid="cleanup-photos">
+                <ReportPhotos photos={selectedReport.cleanupPhotos} title={selectedReport.claimedByVolunteers ? 'Cleanup photos from the volunteer group' : 'Cleanup photos'} />
+              </div>
+            )}
 
             {/* History Timeline */}
             {selectedReportHistory.length > 0 && (

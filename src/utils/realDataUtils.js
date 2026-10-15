@@ -491,6 +491,9 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         disposed_at: report.disposed_at || null,
         disposal_site_name: report.disposal_site_name || null,
         assigned_to: report.assigned_to || null,
+        // 'claim' = taken by a volunteer group in the collector app (20261028)
+        assigned_via: report.assigned_via || null,
+        cleanup_photos: Array.isArray(report.cleanup_photos) ? report.cleanup_photos : [],
         assignee: report.assignee || null,
         team_name: report.assignee ? [report.assignee.first_name, report.assignee.last_name].filter(Boolean).join(' ') || null : null,
       };

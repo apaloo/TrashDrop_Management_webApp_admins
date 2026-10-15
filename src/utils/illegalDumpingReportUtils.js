@@ -234,6 +234,8 @@ export const toReportViewModel = (item) => {
     size: item.size || null,
     status,
     assignedTo: item.assigned_to || null,
+    claimedByVolunteers: item.assigned_via === 'claim',
+    cleanupPhotos: Array.isArray(item.cleanup_photos) ? item.cleanup_photos : [],
     cleanupTeam: item.team_name || null,
     cleanupFee: item.cleanup_fee ?? null,
     notes: item.notes || null,
