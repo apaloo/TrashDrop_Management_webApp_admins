@@ -53,6 +53,12 @@ const Sidebar = () => {
         { title: 'History', path: '/illegal-dumping/history' }
       ]
     },
+    {
+      title: 'Account Approvals',
+      path: '/accounts',
+      icon: 'fas fa-user-check',
+      section: SECTIONS.ACCOUNTS
+    },
   ];
 
   // Check if the menu item should be displayed based on user role

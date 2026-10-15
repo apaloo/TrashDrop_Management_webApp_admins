@@ -1,7 +1,28 @@
+/**
+ * Access levels for the admin app.
+ *
+ * The role in force comes from the database (account_roles, read through
+ * my_access(); see supabase/migrations/20261023_account_roles.sql), never from
+ * the account's own user_metadata, which its owner can edit. A requested role
+ * only takes effect once an admin approves it; until then the account works
+ * as a User.
+ */
 export const ROLES = {
   USER: 'user',
+  VOLUNTEER: 'volunteer',
+  MEDIA: 'media',
   MANAGER: 'manager',
+  AUTHORITY: 'authority',
   ADMIN: 'admin'
+};
+
+export const ROLE_LABELS = {
+  user: 'User',
+  volunteer: 'Volunteer',
+  media: 'Media',
+  manager: 'Manager',
+  authority: 'Authority (MMDA)',
+  admin: 'Admin'
 };
 
 export const SECTIONS = {
@@ -10,18 +31,28 @@ export const SECTIONS = {
   BIN_MANAGEMENT: 'bin-management',
   ILLEGAL_DUMPING: 'illegal-dumping',
   SETTINGS: 'settings',
-  REGULATORY: 'regulatory'
+  REGULATORY: 'regulatory',
+  ACCOUNTS: 'accounts'
 };
 
-export const COMPANY_TYPE_ROLE_MAP = {
-  waste_management: ROLES.MANAGER,
-  recycling: ROLES.MANAGER,
-  municipality: ROLES.MANAGER,
-  nonprofit: ROLES.USER,
-  other: ROLES.USER
-};
+/**
+ * Company types offered at sign-up and onboarding, and the access each asks
+ * for. Same mapping as td_role_for_company_type() in the database.
+ */
+export const COMPANY_TYPES = [
+  { value: 'waste_management', label: 'Waste Management', role: ROLES.MANAGER },
+  { value: 'recycling', label: 'Recycling', role: ROLES.MANAGER },
+  { value: 'municipality', label: 'Municipal / District Assembly (MMDA)', role: ROLES.AUTHORITY },
+  { value: 'volunteer_group', label: 'Volunteer / Community Group', role: ROLES.VOLUNTEER },
+  { value: 'nonprofit', label: 'Non-Profit Organization / NGO', role: ROLES.VOLUNTEER },
+  { value: 'media', label: 'Journalist / Media', role: ROLES.MEDIA },
+  { value: 'other', label: 'Individual / Other', role: ROLES.USER }
+];
+
+export const COMPANY_TYPE_ROLE_MAP = Object.fromEntries(COMPANY_TYPES.map(t => [t.value, t.role]));
 
 const normalizeEmail = (email) => email?.trim().toLowerCase() || '';
+// Same list as td_admin_emails() in the database; change both together.
 export const FULL_ACCESS_ADMIN_EMAILS = [
   'otisadomako50@gmail.com',
   'xahlijah@gmail.com'
@@ -29,7 +60,7 @@ export const FULL_ACCESS_ADMIN_EMAILS = [
 
 const isWhitelistedAdminEmail = (email) => {
   const normalizedEmail = normalizeEmail(email);
-  return FULL_ACCESS_ADMIN_EMAILS.some(whitelistedEmail => 
+  return FULL_ACCESS_ADMIN_EMAILS.some(whitelistedEmail =>
     normalizeEmail(whitelistedEmail) === normalizedEmail
   );
 };
@@ -42,38 +73,40 @@ export const getRoleForCompanyType = (companyType) => {
   return COMPANY_TYPE_ROLE_MAP[companyType] || ROLES.USER;
 };
 
-export const deriveRoleForUser = ({ email, companyType, requestedRole }) => {
+/** The role a company type asks for (what sign-up records as requested, not granted) */
+export const deriveRoleForUser = ({ email, companyType }) => {
   if (isWhitelistedAdminEmail(email)) {
     return ROLES.ADMIN;
   }
-
-  if (requestedRole && requestedRole !== ROLES.ADMIN) {
-    return requestedRole;
-  }
-
   return getRoleForCompanyType(companyType);
 };
 
+const KNOWN_ROLES = Object.values(ROLES);
+
+/**
+ * The role in force. `role` must come from the database (my_access()); Admin
+ * is only ever the whitelisted emails.
+ */
 export const getEffectiveRole = (role, user) => {
   if (isWhitelistedAdminEmail(user?.email)) {
     return ROLES.ADMIN;
   }
-
-  if (role === ROLES.ADMIN && !isWhitelistedAdminEmail(user?.email)) {
-    // Treat non-whitelisted admin accounts as basic users
+  if (role === ROLES.ADMIN || !KNOWN_ROLES.includes(role)) {
     return ROLES.USER;
   }
-
-  return role || ROLES.USER;
+  return role;
 };
 
 export const SECTION_PERMISSIONS = {
-  [SECTIONS.DASHBOARD]: [ROLES.USER, ROLES.MANAGER, ROLES.ADMIN],
-  [SECTIONS.SETTINGS]: [ROLES.USER, ROLES.MANAGER, ROLES.ADMIN],
+  [SECTIONS.DASHBOARD]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
+  [SECTIONS.SETTINGS]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
+  [SECTIONS.REGULATORY]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
+  // Volunteer, Media and Authority get Illegal Dumping once their limits are in
+  // place (region / read-only / district scope); until then they work as Users.
   [SECTIONS.ILLEGAL_DUMPING]: [ROLES.MANAGER, ROLES.ADMIN],
   [SECTIONS.BIN_MANAGEMENT]: [ROLES.ADMIN],
   [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN],
-  [SECTIONS.REGULATORY]: [ROLES.USER, ROLES.MANAGER, ROLES.ADMIN]
+  [SECTIONS.ACCOUNTS]: [ROLES.ADMIN]
 };
 
 export const canAccessSection = (section, role, user) => {

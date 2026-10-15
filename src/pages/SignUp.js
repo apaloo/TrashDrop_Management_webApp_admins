@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signUp } from '../utils/auth';
-import { deriveRoleForUser } from '../constants/accessControl';
+import { deriveRoleForUser, COMPANY_TYPES, ROLES } from '../constants/accessControl';
 import { Fragment } from 'react';
 
 const SignUp = () => {
@@ -427,15 +427,16 @@ const SignUp = () => {
                       className={`block w-full pl-10 pr-3 py-2.5 border ${validationErrors.companyType ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors`}
                     >
                       <option value="">Select Company Type</option>
-                      <option value="waste_management">Waste Management</option>
-                      <option value="recycling">Recycling</option>
-                      <option value="municipality">Municipality</option>
-                      <option value="nonprofit">Non-Profit Organization</option>
-                      <option value="other">Other</option>
+                      {COMPANY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
                   </div>
                   {validationErrors.companyType && (
                     <p className="text-red-500 text-xs mt-1.5">{validationErrors.companyType}</p>
+                  )}
+                  {companyType && COMPANY_TYPES.find(t => t.value === companyType)?.role !== ROLES.USER && (
+                    <p className="text-gray-500 text-xs mt-1.5" data-testid="approval-note">
+                      This account type needs approval by the TrashDrop team. You can use basic features while you wait.
+                    </p>
                   )}
                 </div>
               </div>

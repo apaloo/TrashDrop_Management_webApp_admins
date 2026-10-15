@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import PageTransitionLoader from './PageTransitionLoader';
+import AccessStatusBanner from './AccessStatusBanner';
 
 const Layout = ({ children }) => {
   const { user, role, isAuthenticated, loading } = useAuth();
@@ -107,7 +108,10 @@ const Layout = ({ children }) => {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
             </div>
           ) : (
-            children
+            <>
+              {showLayout && <AccessStatusBanner />}
+              {children}
+            </>
           )}
         </main>
         

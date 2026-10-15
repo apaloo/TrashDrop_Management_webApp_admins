@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { COMPANY_TYPES } from '../../constants/accessControl';
 
 const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
   const [companyName, setCompanyName] = useState(formData.companyName || '');
@@ -97,11 +98,7 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
               }`}
             >
             <option value="">Select Company Type</option>
-            <option value="waste_management">Waste Management</option>
-            <option value="recycling">Recycling</option>
-            <option value="municipality">Municipality</option>
-            <option value="nonprofit">Non-Profit Organization</option>
-            <option value="other">Other</option>
+                      {COMPANY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
           </div>
           {validationErrors.companyType && (
