@@ -48,7 +48,15 @@ const Onboarding = () => {
         companyType: savedUserData.companyType || prevData.companyType
       }));
     }
-  }, []);
+    // Region / district / verification details given at sign-up
+    const meta = user?.user_metadata || {};
+    if (meta.region || meta.district || meta.accessDetails) {
+      setFormData(prevData => ({
+        ...prevData,
+        accountDetails: prevData.accountDetails || { region: meta.region || '', district: meta.district || '', details: meta.accessDetails || {} }
+      }));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   const totalSteps = 3;
 
@@ -103,7 +111,13 @@ const Onboarding = () => {
 
       // Record the access this company type asks for (needs approval above User)
       try {
-        await requestAccountRole({ companyType: formData.companyType, orgName: formData.companyName });
+        await requestAccountRole({
+          companyType: formData.companyType,
+          orgName: formData.companyName,
+          region: formData.accountDetails?.region,
+          district: formData.accountDetails?.district,
+          details: formData.accountDetails?.details,
+        });
         await refreshAccess?.();
       } catch (accessError) {
         console.warn('Onboarding: access request not saved (the account roles update may not be in the database yet)', accessError);

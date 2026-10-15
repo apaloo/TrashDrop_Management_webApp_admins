@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signUp } from '../utils/auth';
 import { deriveRoleForUser, COMPANY_TYPES, ROLES } from '../constants/accessControl';
+import { validateAccountDetails } from '../constants/accountTypeFields';
+import AccountDetailsFields from '../components/AccountDetailsFields';
 import { Fragment } from 'react';
 
 const SignUp = () => {
@@ -12,6 +14,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyType, setCompanyType] = useState('');
+  const [accountDetails, setAccountDetails] = useState({ region: '', district: '', details: {} });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -74,8 +77,9 @@ const SignUp = () => {
       errors.confirmPassword = 'Passwords do not match';
     }
     
-    if (!companyName.trim()) errors.companyName = 'Company name is required';
+    if (!companyName.trim()) errors.companyName = 'Organisation or group name is required';
     if (!companyType) errors.companyType = 'Company type is required';
+    if (companyType) Object.assign(errors, validateAccountDetails(companyType, accountDetails).errors);
     if (!agreeToTerms) errors.agreeToTerms = 'You must agree to the terms of service';
     
     setValidationErrors(errors);
@@ -104,6 +108,10 @@ const SignUp = () => {
           lastName,
           companyName,
           companyType,
+          // Kept with the access request (account_roles) for the admin who approves it
+          region: accountDetails.region || null,
+          district: accountDetails.district || null,
+          accessDetails: validateAccountDetails(companyType, accountDetails).details,
           role: derivedRole,
           onboardingCompleted: false // Will be set to true after onboarding
         }
@@ -391,7 +399,7 @@ const SignUp = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="company-name" className="block text-sm font-medium text-gray-700 mb-1.5">Company Name</label>
+                  <label htmlFor="company-name" className="block text-sm font-medium text-gray-700 mb-1.5">Organisation / Group Name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <i className="fas fa-building text-gray-400 text-sm"></i>
@@ -404,7 +412,7 @@ const SignUp = () => {
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       className={`block w-full pl-10 pr-3 py-2.5 border ${validationErrors.companyName ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors`}
-                      placeholder="Company Name"
+                      placeholder="e.g. Bus Stop Boys, Accra Metro, Citi FM"
                     />
                   </div>
                   {validationErrors.companyName && (
@@ -413,7 +421,7 @@ const SignUp = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="company-type" className="block text-sm font-medium text-gray-700 mb-1.5">Company Type</label>
+                  <label htmlFor="company-type" className="block text-sm font-medium text-gray-700 mb-1.5">Account Type</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <i className="fas fa-briefcase text-gray-400 text-sm"></i>
@@ -426,7 +434,7 @@ const SignUp = () => {
                       onChange={(e) => setCompanyType(e.target.value)}
                       className={`block w-full pl-10 pr-3 py-2.5 border ${validationErrors.companyType ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors`}
                     >
-                      <option value="">Select Company Type</option>
+                      <option value="">Select account type</option>
                       {COMPANY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
                   </div>
@@ -440,7 +448,8 @@ const SignUp = () => {
                   )}
                 </div>
               </div>
-            
+              <AccountDetailsFields companyType={companyType} value={accountDetails} onChange={setAccountDetails} errors={validationErrors} />
+
               <div className="flex items-start mt-2">
                 <div className="flex items-center h-5">
                   <input

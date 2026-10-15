@@ -3,6 +3,7 @@ import { listAccountRoles, reviewAccountRole } from '../services/accountRoleServ
 import { COMPANY_TYPES, ROLE_LABELS, ROLES } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
+import { detailLabel } from '../constants/accountTypeFields';
 
 const TABS = [
   { key: 'pending', label: 'Waiting' },
@@ -13,6 +14,25 @@ const TABS = [
 const ASSIGNABLE = [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY];
 
 const companyLabel = (v) => COMPANY_TYPES.find(t => t.value === v)?.label || v || '—';
+const where = (r) => [r.district, r.region].filter(Boolean).join(', ');
+const detailEntries = (d) => Object.entries(d || {}).filter(([, v]) => v !== null && v !== '' && typeof v !== 'object');
+
+const DetailsList = ({ row }) => {
+  const items = detailEntries(row.details);
+  if (!items.length && !where(row)) return <p className="text-xs text-gray-500">No verification details were given.</p>;
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs" data-testid="request-details">
+      {where(row) && <><dt className="text-gray-500">Area</dt><dd>{where(row)}</dd></>}
+      {items.map(([k, v]) => (
+        <React.Fragment key={k}>
+          <dt className="text-gray-500">{detailLabel(k)}</dt>
+          <dd className="break-words">{/^https?:\/\//.test(String(v)) ? <a href={v} target="_blank" rel="noopener noreferrer" className="text-green-700 underline">{v}</a> : String(v)}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
+  );
+};
+
 const date = (v) => (v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 const StatusPill = ({ status }) => {
@@ -110,7 +130,8 @@ const AccountApprovals = () => {
                   </td>
                   <td className="px-3 py-3">
                     <div className="truncate">{r.org_name || '—'}</div>
-                    <div className="text-xs text-gray-500 truncate">{companyLabel(r.company_type)}{r.district ? ` · ${r.district}` : r.region ? ` · ${r.region}` : ''}</div>
+                    <div className="text-xs text-gray-500 truncate">{companyLabel(r.company_type)}{where(r) ? ` · ${where(r)}` : ''}</div>
+                    {detailEntries(r.details).length > 0 && <div className="text-xs text-gray-500 truncate" title={detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join('\n')}>{detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join(' · ')}</div>}
                   </td>
                   <td className="px-3 py-3">{ROLE_LABELS[r.requested_role] || r.requested_role}<div className="mt-1"><StatusPill status={r.status} /></div></td>
                   <td className="px-3 py-3">{ROLE_LABELS[r.role] || r.role}{r.review_note && <div className="text-xs text-gray-500 mt-1 line-clamp-2" title={r.review_note}>{r.review_note}</div>}</td>
@@ -138,6 +159,7 @@ const AccountApprovals = () => {
           confirmLabel={dialog.approve ? 'Save' : 'Reject'} danger={!dialog.approve} busy={busy}
           confirmDisabled={!dialog.approve && !note.trim()} onConfirm={save} onClose={() => setDialog(null)}>
           <p>{dialog.row.name} · {companyLabel(dialog.row.company_type)}{dialog.row.org_name ? ` · ${dialog.row.org_name}` : ''}</p>
+          <DetailsList row={dialog.row} />
           {dialog.approve && (
             <label className="block">Access level
               <select value={role} onChange={e => setRole(e.target.value)} className="mt-1 w-full border rounded px-2 py-1.5" data-testid="role-select">

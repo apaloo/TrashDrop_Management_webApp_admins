@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { COMPANY_TYPES } from '../../constants/accessControl';
+import { validateAccountDetails } from '../../constants/accountTypeFields';
+import AccountDetailsFields from '../AccountDetailsFields';
 
 const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
   const [companyName, setCompanyName] = useState(formData.companyName || '');
   const [companyType, setCompanyType] = useState(formData.companyType || '');
   const [operatingArea, setOperatingArea] = useState(formData.operatingArea || '');
+  const [accountDetails, setAccountDetails] = useState(formData.accountDetails || { region: '', district: '', details: {} });
   const [validationErrors, setValidationErrors] = useState({});
 
   const validateForm = () => {
@@ -21,6 +24,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
     if (!operatingArea.trim()) {
       errors.operatingArea = 'Operating area is required';
     }
+
+    if (companyType) Object.assign(errors, validateAccountDetails(companyType, accountDetails).errors);
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -33,7 +38,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
       updateFormData({
         companyName,
         companyType,
-        operatingArea
+        operatingArea,
+        accountDetails: { ...accountDetails, details: validateAccountDetails(companyType, accountDetails).details }
       });
       
       onNext();
@@ -130,6 +136,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
             <p className="mt-1 text-sm text-red-600">{validationErrors.operatingArea}</p>
           )}
         </div>
+
+        <AccountDetailsFields companyType={companyType} value={accountDetails} onChange={setAccountDetails} errors={validationErrors} />
 
         <div className="flex justify-end mt-8">
           <button
