@@ -34,7 +34,8 @@ export const SECTIONS = {
   ILLEGAL_DUMPING: 'illegal-dumping',
   SETTINGS: 'settings',
   REGULATORY: 'regulatory',
-  ACCOUNTS: 'accounts'
+  ACCOUNTS: 'accounts',
+  MEDIA_DATA: 'media-data'
 };
 
 /**
@@ -108,7 +109,9 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.ILLEGAL_DUMPING]: [ROLES.AUTHORITY, ROLES.MANAGER, ROLES.ADMIN],
   [SECTIONS.BIN_MANAGEMENT]: [ROLES.ADMIN],
   [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN],
-  [SECTIONS.ACCOUNTS]: [ROLES.ADMIN]
+  [SECTIONS.ACCOUNTS]: [ROLES.ADMIN],
+  // National, read-only report data without reporter details (media_dumping_reports)
+  [SECTIONS.MEDIA_DATA]: [ROLES.MEDIA, ROLES.MANAGER, ROLES.ADMIN]
 };
 
 export const canAccessSection = (section, role, user) => {
