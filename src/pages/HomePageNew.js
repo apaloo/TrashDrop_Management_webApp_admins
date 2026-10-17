@@ -262,6 +262,12 @@ const GlobalStyles = () => (
     @media(max-width:900px) { .td-pricing-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-footer-grid{grid-template-columns:1fr 1fr!important} }
     @media(max-width:480px) { .td-footer-grid{grid-template-columns:1fr!important} }
+    .td-sticky-book { right:28px; bottom:28px; }
+    @media(max-width:768px) {
+      .td-sticky-book { left:0; right:0; bottom:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:rgba(255,255,255,0.96); box-shadow:0 -4px 18px rgba(0,0,0,0.12); }
+      .td-sticky-book a { border-radius:12px !important; box-shadow:none !important; }
+      .td-page { padding-bottom:76px; }
+    }
     .td-lp-toggle { transition: background 0.2s, color 0.2s, border-color 0.2s; }
     .td-lp-toggle:hover { opacity: 0.85; }
   `}</style>
@@ -480,7 +486,7 @@ const HeroSection = ({ isAuthenticated }) => {
             <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
               A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
-            <BookingCard />
+            <div id="book" style={{ scrollMarginTop:80 }}><BookingCard /></div>
             <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
               style={{ display:'inline-flex', alignItems:'center', gap:8, color:'rgba(255,255,255,0.82)', ...FF.label, fontSize:14, fontWeight:600, textDecoration:'none', margin:'16px 0 36px' }}>
               <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
@@ -638,7 +644,7 @@ const ServicesSection = () => {
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[
                 ['1','Purchase Official Bags','Buy TrashDrop bags from any authorised vendor near you.'],
-                ['2','Scan the QR Code','Each bundle of bags has a unique batch QR code. Scan it to activate all bags in the bundle and link them to your account.'],
+                ['2','Scan the QR Code','Each pack of bags has its own code. Scan it once to add all the bags to your account.'],
                 ['3','Request Free Collection','When your bag is full, tap to request pickup — collection is completely free.']
               ].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
@@ -680,7 +686,7 @@ const ServicesSection = () => {
                 </div>
               ))}
             </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>📍 Live GPS Tracking</div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>📍 Live Tracking</div>
           </div>
         </div>
       </div>
@@ -1792,38 +1798,27 @@ const AppDownloadBanner = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    FLOATING FAB
    ═══════════════════════════════════════════════════════════════════════════════ */
-const FloatingActions = ({ isAuthenticated }) => {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+// Fixed, so it never moves the page. Shows once the top booking card has scrolled out of view.
+const StickyBookButton = () => {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const fn = () => setShow(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive:true });
-    return () => window.removeEventListener('scroll', fn);
+    const card = document.getElementById('book');
+    if (!card || !('IntersectionObserver' in window)) return undefined;
+    const obs = new IntersectionObserver(([e]) => setShow(!e.isIntersecting));
+    obs.observe(card);
+    return () => obs.disconnect();
   }, []);
-  if (!show) return null;
+  const goToCard = (e) => {
+    e.preventDefault();
+    document.getElementById('book').scrollIntoView({ behavior:'smooth', block:'center' });
+  };
   return (
-    <div style={{ position:'fixed', bottom:28, right:28, zIndex:2000, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:10 }}>
-      {open && (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {[{label:'Report Dump', icon:'fa-exclamation-triangle', color:'#ef4444', action:() => isAuthenticated?navigate('/illegal-dumping/reports'):navigate('/signup')},
-            {label:'View Map',   icon:'fa-map',                   color:'#4d9de0', href:'#map'},
-            {label:'Join Now',   icon:'fa-user-plus',             color:TD.lime,   to:'/signup'}].map(a => (
-            <div key={a.label} style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, background:TD.ink, color:'#fff', padding:'6px 12px', borderRadius:8, boxShadow:'0 4px 16px rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>{a.label}</span>
-              {a.action
-                ? <button onClick={a.action} style={{ width:44, height:44, borderRadius:'50%', background:a.color, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:'#fff', fontSize:16 }}><i className={`fas ${a.icon}`}></i></button>
-                : a.href
-                  ? <a href={a.href}  style={{ width:44, height:44, borderRadius:'50%', background:a.color, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:'#fff', fontSize:16, textDecoration:'none' }}><i className={`fas ${a.icon}`}></i></a>
-                  : <Link to={a.to}   style={{ width:44, height:44, borderRadius:'50%', background:a.color, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:TD.ink, fontSize:16, textDecoration:'none' }}><i className={`fas ${a.icon}`}></i></Link>
-              }
-            </div>
-          ))}
-        </div>
-      )}
-      <button onClick={() => setOpen(o=>!o)} style={{ width:56, height:56, borderRadius:'50%', background:open?'rgba(255,255,255,0.1)':TD.lime, border:open?'1px solid rgba(255,255,255,0.2)':'none', boxShadow:open?'none':`0 8px 32px ${TD.lime}50`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.25s ease' }}>
-        <i className={`fas ${open?'fa-times':'fa-plus'}`} style={{ fontSize:20, color:open?'#fff':TD.ink, transform:open?'rotate(45deg)':'rotate(0)', transition:'transform 0.25s ease' }}></i>
-      </button>
+    <div className="td-sticky-book" data-testid="sticky-book" aria-hidden={!show}
+      style={{ position:'fixed', zIndex:2000, transition:'transform 0.25s ease, opacity 0.25s ease', transform: show ? 'none' : 'translateY(140%)', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>
+      <a href="#book" onClick={goToCard} tabIndex={show ? 0 : -1}
+        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, padding:'0 26px', borderRadius:999, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', boxShadow:'0 8px 28px rgba(0,0,0,0.28)' }}>
+        <i className="fas fa-truck" aria-hidden="true"></i> Book a pickup
+      </a>
     </div>
   );
 };
@@ -1946,7 +1941,7 @@ const LpPageInner = ({ auth }) => {
   // One load for the map, its stats and the impact numbers, so they always agree
   const dumpingData = usePublicDumpingReports();
   return (
-    <div style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
+    <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
       <HomeNavbar         isAuthenticated={auth} />
       <HeroSection        isAuthenticated={auth} />
@@ -1963,7 +1958,7 @@ const LpPageInner = ({ auth }) => {
       <CollectorsLine />
       <AppDownloadBanner />
       <HomeFooter />
-      <FloatingActions    isAuthenticated={auth} />
+      <StickyBookButton />
     </div>
   );
 };
