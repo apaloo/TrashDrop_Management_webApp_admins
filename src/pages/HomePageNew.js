@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
-import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
@@ -254,8 +254,17 @@ const GlobalStyles = () => (
     .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
     .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
     .td-footer-link:hover { color:#a8e63d !important; }
-    @media(max-width:768px) { .td-nav-links{display:none!important} }
-    @media(min-width:769px) { .td-mobile-btn{display:none!important} }
+    .td-nav-link, .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
+    .td-nav-more { display:none; }
+    @media(max-width:1279px) {
+      .td-nav-main { gap:20px!important; }
+      .td-nav-link { font-size:12.5px!important; letter-spacing:0!important; }
+      .td-nav-wide { display:none!important; }
+      .td-nav-more { display:block; }
+      .td-lp-toggle-label { display:none; }
+    }
+    @media(max-width:1023px) { .td-nav-links{display:none!important} }
+    @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
     @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
@@ -283,6 +292,8 @@ const GlobalStyles = () => (
 const HomeNavbar = ({ isAuthenticated }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
+  const [moreOpen, setMoreOpen]     = useState(false);
+  const moreRef = useRef(null);
   const { lpMode, toggleLp } = useLpTheme();
   const isDark = lpMode === 'dark';
   useEffect(() => {
@@ -290,11 +301,20 @@ const HomeNavbar = ({ isAuthenticated }) => {
     window.addEventListener('scroll', fn, { passive:true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+  }, [moreOpen]);
+  // `more: true` items move into the "More" menu below 1280px so the bar stays on one line
   const NAV = [
     { href:'/#how',             label:'How it works'        },
     { href:'/#pricing',         label:'Prices'              },
     { href:'/illegal-dumping/', label:'Report dumping'      },
-    { href:'/collectors/',      label:'Earn as a collector' },
+    { href:'/collectors/',      label:'Earn as a collector', more:true },
     { href:'/partners/',        label:'Partners'            },
   ];
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
@@ -310,29 +330,44 @@ const HomeNavbar = ({ isAuthenticated }) => {
     : { ...FF.label, fontWeight:600, color:TD.forest, textAlign:'center', padding:12, borderRadius:8, border:`1px solid ${TD.forest}40`, textDecoration:'none' };
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:scrolled?navScrollBg:'transparent', backdropFilter:scrolled?'blur(22px)':'none', borderBottom:scrolled?`1px solid ${navScrollBorder}`:'1px solid transparent' }}>
-      <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', height:68 }}>
-        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
+        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} />
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
-        <div className="td-nav-links" style={{ display:'flex', alignItems:'center', gap:32 }}>
-          {NAV.map(l => <a key={l.href} href={l.href} className="td-nav-link" style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</a>)}
+        <div className="td-nav-links td-nav-main" style={{ display:'flex', alignItems:'center', gap:32 }}>
+          {NAV.map(l => <a key={l.href} href={l.href} className={`td-nav-link${l.more ? ' td-nav-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</a>)}
+          <div ref={moreRef} className="td-nav-more" style={{ position:'relative' }}>
+            <button type="button" className="td-nav-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
+              style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
+              More <span aria-hidden="true" style={{ fontSize:9, transform:moreOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▼</span>
+            </button>
+            {moreOpen && (
+              <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:200, background:mobileMenuBg, border:`1px solid ${isDark ? 'rgba(168,230,61,0.15)' : 'rgba(22,101,52,0.12)'}`, borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.18)', padding:6 }}>
+                {NAV.filter(l => l.more).map(l => (
+                  <a key={l.href} href={l.href} role="menuitem" onClick={() => setMoreOpen(false)}
+                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</a>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center' }}>
+        <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {/* Theme toggle */}
           <button
             className="td-lp-toggle"
             onClick={toggleLp}
             title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
+            aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
             style={{ display:'inline-flex', alignItems:'center', gap:6, background:isDark?'rgba(168,230,61,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, color:isDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
           >
             <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} style={{ fontSize:13 }}></i>
-            {isDark ? 'Light' : 'Dark'}
+            <span className="td-lp-toggle-label">{isDark ? 'Light' : 'Dark'}</span>
           </button>
           {isAuthenticated
-            ? <Link to="/dashboard" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Dashboard →</Link>
-            : <><Link to="/login"  style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/signup" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
+            ? <Link to="/dashboard" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Dashboard →</Link>
+            : <><Link to="/login"  className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
+                <Link to="/signup" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
         </div>
         <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark || !scrolled ? '#fff' : TD.forest }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
@@ -1111,18 +1146,21 @@ const SocialFeedOverlay = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
-const MapPreviewSection = ({ isAuthenticated, dumpingData }) => {
+// applyThresholds (homepage): hide Cleanup Rate / Avg Response until they pass PUBLIC_STAT_THRESHOLDS
+const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = false }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
   const stats = computePublicStats(dumpingData.reports);
   const statsReady = dumpingData.status === 'ready';
+  const show = !applyThresholds ? { cleanupRate: true, avgResponse: true }
+    : statsReady ? publicStatVisibility(stats, PUBLIC_STAT_THRESHOLDS) : { cleanupRate: false, avgResponse: false };
   const tiles = [
     {label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
     {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
-    {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
-    {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
-  ];
+    show.cleanupRate && {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
+    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
+  ].filter(Boolean);
   // Logged-out visitors sign in first; logged-in users open the analytics map
   const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
@@ -1314,7 +1352,8 @@ const ImpactStatCard = ({ label, value, ready, icon, color, accent }) => {
   );
 };
 
-const ImpactSection = ({ dumpingData }) => {
+// applyThresholds (homepage): hide the number row until the cleanup rate passes PUBLIC_STAT_THRESHOLDS
+const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const [lbIndex, setLbIndex] = useState(null);
@@ -1325,6 +1364,7 @@ const ImpactSection = ({ dumpingData }) => {
   // Same reports as the live map above, so the two sections always agree
   const stats = computePublicStats(dumpingData.reports);
   const ready = dumpingData.status === 'ready';
+  const showNumbers = !applyThresholds || (ready && publicStatVisibility(stats, PUBLIC_STAT_THRESHOLDS).cleanupRate);
   const STATS = [
     { label:'Dumps Reported',     value:stats.total,     icon:'fa-flag',          color:'#f87171', accent:'rgba(248,113,113,0.15)' },
     { label:'Cleaned Up',         value:stats.cleanedUp, icon:'fa-broom',         color:TD.lime,   accent:`${TD.lime}18`            },
@@ -1396,13 +1436,13 @@ const ImpactSection = ({ dumpingData }) => {
           </p>
         </div>
 
-        <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
+        {showNumbers && <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
           {STATS.map((s,i) => (
             <div key={s.label} style={{ borderRight:'1px solid rgba(168,230,61,0.1)', borderBottom:'1px solid rgba(168,230,61,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
               <ImpactStatCard {...s} ready={ready} />
             </div>
           ))}
-        </div>
+        </div>}
       </div>
     </section>
   );
@@ -1955,8 +1995,8 @@ const LpPageInner = ({ auth }) => {
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
-      <ImpactSection      dumpingData={dumpingData} />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds />
+      <ImpactSection      dumpingData={dumpingData} applyThresholds />
       <PricingGuideSection />
       <ServiceAreasSection />
       <FAQSection />
