@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
-import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
@@ -1117,14 +1117,12 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData }) => {
   const { lp, lpMode } = useLpTheme();
   const stats = computePublicStats(dumpingData.reports);
   const statsReady = dumpingData.status === 'ready';
-  // Cleanup rate and response time only show once they are good enough to stand behind
-  const show = statsReady ? publicStatVisibility(stats, PUBLIC_STAT_THRESHOLDS) : { cleanupRate: false, avgResponse: false };
   const tiles = [
     {label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
     {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
-    show.cleanupRate && {label:'Cleanup Rate',value:`${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
-    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
-  ].filter(Boolean);
+    {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
+    {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
+  ];
   // Logged-out visitors sign in first; logged-in users open the analytics map
   const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
