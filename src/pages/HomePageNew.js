@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { PUBLIC_STAT_THRESHOLDS, SHOW_SOCIAL_FEED, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
@@ -541,7 +541,7 @@ const HeroSection = ({ isAuthenticated }) => {
               </div>
               <div style={{ ...FF.data, fontSize:52, color:'#fff', lineHeight:1 }}>FREE</div>
               <div style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.55)', marginTop:4 }}>Collection included with every bag</div>
-              <div style={{ display:'flex', gap:6, marginTop:14 }}>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:14 }}>
                 {['Organic','General','Recyclable'].map(t => <span key={t} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1px', color:TD.lime, background:`${TD.lime}18`, borderRadius:4, padding:'3px 6px', textTransform:'uppercase' }}>{t}</span>)}
               </div>
             </div>
@@ -1231,7 +1231,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
                 </button>
               </div>
               {/* Social feed overlay — bottom-right corner of the map */}
-              <SocialFeedOverlay />
+              {SHOW_SOCIAL_FEED && <SocialFeedOverlay />}
             </PublicDumpingMap>
           </div>
         </div>
@@ -1821,6 +1821,9 @@ const AppDownloadBanner = () => {
               onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
               onMouseLeave={e=>e.currentTarget.style.transform=''}>
               <i className="fas fa-exclamation-triangle" style={{ fontSize:13 }}></i> Report a Dump
+            </a>
+            <a href="/partners/#map" style={{ display:'inline-flex', alignItems:'center', gap:8, color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 4px', textDecoration:'underline', textUnderlineOffset:3 }}>
+              <i className="fas fa-map-marked-alt" style={{ fontSize:13 }} aria-hidden="true"></i> See the live map
             </a>
           </div>
         </div>

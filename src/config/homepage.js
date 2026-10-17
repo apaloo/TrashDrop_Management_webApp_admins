@@ -12,6 +12,10 @@ export const PUBLIC_STAT_THRESHOLDS = {
   maxAvgResponseDays: num(process.env.REACT_APP_MAX_AVG_RESPONSE_DAYS, 7),
 };
 
+// The map's "Social Feed" panel. Its posts are simulated until a real source is
+// connected (see src/services/socialFeedService.js), so it stays off for now.
+export const SHOW_SOCIAL_FEED = false;
+
 // Where households book: the TrashDrop household app (the booking card's QR code opens it too)
 export const HOUSEHOLD_APP_URL = process.env.REACT_APP_HOUSEHOLD_APP_URL || 'https://trashdrop-mobile.windsurf.build/';
 
