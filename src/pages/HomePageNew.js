@@ -19,6 +19,7 @@ const TD = {
   sage:     '#6b7565',
   cream:    '#f5f2eb',
   gold:     '#f5c842',
+  orange:   '#F98B38',
 };
 const FF = {
   display: { fontFamily:"'DM Serif Display', Georgia, serif" },
@@ -290,11 +291,11 @@ const HomeNavbar = ({ isAuthenticated }) => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
   const NAV = [
-    { href:'#how',              label:'How it works'        },
-    { href:'#pricing',          label:'Prices'              },
+    { href:'/#how',             label:'How it works'        },
+    { href:'/#pricing',         label:'Prices'              },
     { href:'/illegal-dumping/', label:'Report dumping'      },
     { href:'/collectors/',      label:'Earn as a collector' },
-    { href:'#partners',         label:'Partners'            },
+    { href:'/partners/',        label:'Partners'            },
   ];
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
@@ -333,7 +334,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             : <><Link to="/login"  style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
                 <Link to="/signup" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
         </div>
-        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark?'#fff':TD.forest }}>
+        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark || !scrolled ? '#fff' : TD.forest }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
         </button>
       </div>
@@ -568,7 +569,9 @@ const TrustRow = () => (
    MARQUEE STRIP
    ═══════════════════════════════════════════════════════════════════════════════ */
 const MarqueeStrip = () => {
-  const items = ['QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Live Map Analytics','·','Municipal Dashboard','·','Accra · Kumasi · Takoradi · Tamale','·',"Ghana's #1 Waste Platform",'·','QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Live Map Analytics','·','Municipal Dashboard','·'];
+  // Two identical halves, so the -50% scroll loops seamlessly
+  const half = ['QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Accra · Kumasi · Takoradi · Tamale','·'];
+  const items = [...half, ...half];
   return (
     <div style={{ background:TD.lime, overflow:'hidden', padding:'11px 0', position:'relative', zIndex:10 }}>
       <div style={{ display:'flex', animation:'td-marquee 28s linear infinite', whiteSpace:'nowrap' }}>
@@ -1104,6 +1107,22 @@ const SocialFeedOverlay = () => {
     </div>
   );
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   REPORT DUMPING (short, households)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const ReportDumpingSection = () => (
+  <section id="report" style={{ background:TD.ink, padding:'56px 24px' }}>
+    <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:20 }}>
+      <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.4vw,40px)', color:'#f0f5f0', margin:0, letterSpacing:'-0.5px', lineHeight:1.15 }}>
+        See a dump? Snap it, we'll get it cleared.
+      </h2>
+      <a href="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:10, height:52, padding:'0 26px', borderRadius:12, background:TD.orange, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', flexShrink:0 }}>
+        <i className="fas fa-camera" aria-hidden="true"></i> Report dumping
+      </a>
+    </div>
+  </section>
+);
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LIVE MAP
@@ -1705,7 +1724,7 @@ const HomeFooter = () => {
         {[
           { title:'Waste Collection', links:[...CITY_PAGES.map(c => [c.name, c.path]), ['On-demand waste pickup', WASTE_PICKUP_PATH]] },
           { title:'Platform', links:[['How It Works','/how-it-works/'],['FAQ','/faq/'],['For Households','/users/'],['Earn as a Collector','/collectors/'],['Report Dumping','/illegal-dumping/']] },
-          { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
+          { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partners','/partners/'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
@@ -1861,7 +1880,7 @@ const PricingGuideSection = () => {
         <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.03, backgroundImage:`linear-gradient(rgba(168,230,61,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(168,230,61,0.6) 1px,transparent 1px)`, backgroundSize:'40px 40px' }} />
         {/* Lime left-edge accent line */}
         <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime},transparent)`, zIndex:3 }} />
-        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2025 PRICING GUIDE</div>
+        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2026 PRICING</div>
         <div style={{ position:'relative', zIndex:3, padding:'60px 40px', maxWidth:'50%' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
             <div style={{ width:28, height:2, background:TD.lime }} />
@@ -1943,8 +1962,6 @@ export const HOME_SEO = {
 const LpPageInner = ({ auth }) => {
   const { lp } = useLpTheme();
   useSeo({ ...HOME_SEO, jsonLd: [organizationJsonLd(), localBusinessJsonLd()] });
-  // One load for the map, its stats and the impact numbers, so they always agree
-  const dumpingData = usePublicDumpingReports();
   return (
     <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
@@ -1954,11 +1971,8 @@ const LpPageInner = ({ auth }) => {
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
-      <ImpactSection      dumpingData={dumpingData} />
+      <ReportDumpingSection />
       <PricingGuideSection />
-      <PathwaysSection />
-      <PartnershipsSection />
       <ServiceAreasSection />
       <FAQSection />
       <CollectorsLine />
@@ -1966,6 +1980,53 @@ const LpPageInner = ({ auth }) => {
       <HomeFooter />
       <StickyBookButton />
     </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   /partners — assemblies, operators, businesses and community groups
+   ═══════════════════════════════════════════════════════════════════════════════ */
+export const PARTNERS_SEO = {
+  title: 'Partner with TrashDrop | Assemblies, Operators & Businesses in Ghana',
+  description: 'For MMDAs, waste operators and businesses in Ghana: live illegal dumping map, hotspot and risk data, cleanup dispatch and municipal dashboards.',
+  path: '/partners/',
+};
+
+const PartnersPageInner = ({ auth }) => {
+  const { lp } = useLpTheme();
+  useSeo({ ...PARTNERS_SEO, jsonLd: [organizationJsonLd()] });
+  // One load for the map, its stats and the impact numbers, so they always agree
+  const dumpingData = usePublicDumpingReports();
+  return (
+    <div className="td-page td-partners-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body }}>
+      <GlobalStyles />
+      <HomeNavbar isAuthenticated={auth} />
+      <header style={{ background:TD.ink, padding:'136px 24px 64px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto' }}>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Partners</span>
+          <h1 style={{ ...FF.display, fontSize:'clamp(36px,4.6vw,58px)', lineHeight:1.05, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'12px 0 14px' }}>
+            TrashDrop for assemblies, operators and businesses
+          </h1>
+          <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.75)', maxWidth:640, margin:0 }}>
+            Live illegal dumping reports, hotspot and risk data, and cleanup crews you can dispatch, across Ghana.
+          </p>
+        </div>
+      </header>
+      <PathwaysSection />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
+      <ImpactSection      dumpingData={dumpingData} />
+      <PartnershipsSection />
+      <HomeFooter />
+    </div>
+  );
+};
+
+export const PartnersPage = () => {
+  const { isAuthenticated, authInitialized } = useAuth();
+  return (
+    <LpThemeProvider>
+      <PartnersPageInner auth={authInitialized ? isAuthenticated : false} />
+    </LpThemeProvider>
   );
 };
 

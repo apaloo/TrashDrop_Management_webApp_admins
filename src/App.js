@@ -22,6 +22,7 @@ const IllegalDumpingPublicPage = lazy(() => import('./pages/IllegalDumpingPublic
 const UsersPage              = lazy(() => import('./pages/UsersPage'));
 const CityWasteCollectionPage = lazy(() => import('./pages/CityWasteCollectionPage'));
 const WastePickupPage = lazy(() => import('./pages/WastePickupPage'));
+const PartnersPage = lazy(() => import('./pages/PartnersPage'));
 const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
 const MediaReports = lazy(() => import('./pages/MediaReports'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
@@ -221,6 +222,7 @@ function App() {
                 <Route key={slug} path={`/waste-collection-${slug}`} element={<CityWasteCollectionPage slug={slug} />} />
               ))}
               <Route path="/waste-pickup"    element={<WastePickupPage />} />
+              <Route path="/partners"        element={<PartnersPage />} />
               <Route path="/about"           element={<AboutPage />} />
               <Route path="/blog"            element={<BlogPage />} />
               <Route path="/blog/:slug"      element={<BlogPostPage />} />
