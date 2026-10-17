@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
-import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_STAT_THRESHOLDS, SHOW_SOCIAL_FEED, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
-import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
 
 /* ─── Brand tokens ──────────────────────────────────────────────────────────── */
 const TD = {
@@ -1013,131 +1012,125 @@ const MobileReportMockup = () => {
 
 const RISK_PILL = { Critical:'#dc2626', High:'#ea580c', Medium:'#eab308', Low:'#22c55e' };
 
-/* ─── Social feed overlay (absolute, bottom-right of map) ───────────────────── */
-const SocialFeedOverlay = () => {
+/* ─── Latest reports overlay (absolute, bottom-right of map) ──────────────────
+   The newest real reports from TrashDrop users, from the same public data as the
+   map (no reporter details). Refreshes with the map, every minute. */
+const FEED_FILTERS = [['all', 'All'], ['active', 'Waiting'], ['cleaned', 'Cleaned up']];
+const severityLabel = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Medium');
+
+const LatestReportsOverlay = ({ data }) => {
+  const { reports, status } = data;
   const [open, setOpen] = useState(false);
-  const [posts, setPosts] = useState([]);
-  const [newId, setNewId] = useState(null);
   const [filter, setFilter] = useState('all');
-  const [paused, setPaused] = useState(false);
-  const listRef = useRef(null);
+  const [freshIds, setFreshIds] = useState([]);
+  const seen = useRef(null);
 
+  // Highlight reports that arrive on a refresh (not the first load)
   useEffect(() => {
-    const unsub = subscribeSocialFeed((incoming, isInitial) => {
-      if (paused && !isInitial) return;
-      setPosts(prev => {
-        if (!isInitial && incoming.length > 0) {
-          setNewId(incoming[0].id);
-          setTimeout(() => setNewId(null), 2200);
-        }
-        return incoming.slice(0, 15);
-      });
-    }, 8000);
-    return unsub;
-  }, [paused]);
+    if (status !== 'ready') return undefined;
+    const ids = reports.map(r => r.id);
+    if (seen.current) {
+      const added = ids.filter(id => !seen.current.has(id));
+      if (added.length) {
+        setFreshIds(added);
+        const t = setTimeout(() => setFreshIds([]), 4000);
+        seen.current = new Set(ids);
+        return () => clearTimeout(t);
+      }
+    }
+    seen.current = new Set(ids);
+    return undefined;
+  }, [reports, status]);
 
-  const platforms = ['all', 'twitter', 'facebook', 'instagram', 'tiktok'];
-  const filtered = filter === 'all' ? posts : posts.filter(p => p.platform === filter);
+  const items = latestReports(reports, filter, 15);
+  const recentCount = latestReports(reports, 'all', 15).length;
 
   const panelBg    = 'rgba(8,12,8,0.93)';
   const borderCol  = 'rgba(168,230,61,0.18)';
   const headText   = '#f0f5f0';
-  const subText    = 'rgba(255,255,255,0.4)';
+  const subText    = 'rgba(255,255,255,0.5)';
   const cardBg     = 'rgba(255,255,255,0.04)';
   const cardBorder = 'rgba(255,255,255,0.08)';
-  const bodyTxt    = 'rgba(255,255,255,0.78)';
-  const metaTxt    = 'rgba(255,255,255,0.35)';
+  const metaTxt    = 'rgba(255,255,255,0.45)';
   const pillBg     = 'rgba(255,255,255,0.07)';
 
   return (
     <div style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
-
-      {/* Expanded panel */}
       {open && (
-        <div style={{ width:320, maxWidth:'calc(100vw - 32px)', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
-
-          {/* Header */}
+        <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'calc(100vw - 32px)', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${borderCol}`, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background:TD.lime, flexShrink:0, boxShadow:`0 0 0 3px ${TD.lime}28`, animation:'td-pulse-dot 1.8s infinite' }} />
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1.5px', textTransform:'uppercase', flex:1 }}>Social Feed</span>
-            <button onClick={() => setPaused(p => !p)} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', padding:'3px 9px', borderRadius:6, border:`1px solid ${borderCol}`, background:'transparent', color:paused ? TD.lime : subText, cursor:'pointer' }}>
-              {paused ? '▶' : '⏸'}
-            </button>
-            <button onClick={() => setOpen(false)} style={{ width:22, height:22, borderRadius:6, border:`1px solid ${borderCol}`, background:'transparent', color:subText, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11 }}>✕</button>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1.5px', textTransform:'uppercase', flex:1 }}>Latest reports</span>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close latest reports" style={{ width:22, height:22, borderRadius:6, border:`1px solid ${borderCol}`, background:'transparent', color:subText, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11 }}>✕</button>
           </div>
 
-          {/* Platform filters */}
           <div style={{ padding:'7px 12px', borderBottom:`1px solid ${borderCol}`, display:'flex', gap:5, flexWrap:'wrap' }}>
-            {platforms.map(p => {
-              const meta = PLATFORM_META[p];
-              const active = filter === p;
+            {FEED_FILTERS.map(([key, label]) => {
+              const active = filter === key;
               return (
-                <button key={p} onClick={() => setFilter(p)} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', padding:'3px 10px', borderRadius:16, cursor:'pointer', transition:'all 0.2s', background: active ? (p === 'all' ? TD.forest : (meta?.color || TD.forest)) : pillBg, color: active ? '#fff' : 'rgba(255,255,255,0.45)', border: active ? 'none' : `1px solid ${borderCol}` }}>
-                  {p === 'all' ? 'All' : (meta?.label || p)}
+                <button key={key} type="button" onClick={() => setFilter(key)} aria-pressed={active} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', padding:'3px 10px', borderRadius:16, cursor:'pointer', background: active ? TD.forest : pillBg, color: active ? '#fff' : 'rgba(255,255,255,0.55)', border: active ? 'none' : `1px solid ${borderCol}` }}>
+                  {label}
                 </button>
               );
             })}
-            <span style={{ ...FF.body, fontSize:9, color:subText, marginLeft:'auto', alignSelf:'center' }}>{filtered.length}</span>
           </div>
 
-          {/* Feed list */}
-          <div ref={listRef} style={{ maxHeight:340, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
-            {filtered.length === 0 && (
-              <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Loading…</div>
+          <div style={{ maxHeight:340, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+            {status === 'loading' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Loading reports…</div>}
+            {status === 'error' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Reports could not load right now. Try again in a minute.</div>}
+            {status === 'ready' && items.length === 0 && (
+              <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>{filter === 'all' ? 'No reports yet.' : 'No reports in this view yet.'}</div>
             )}
-            {filtered.map(post => {
-              const meta = PLATFORM_META[post.platform] || {};
-              const isNew = post.id === newId;
-              const platColor = meta.darkColor || meta.color || TD.lime;
-              const platBg    = meta.bgDark || 'rgba(255,255,255,0.06)';
+            {items.map(r => {
+              const sev = severityLabel(r.severity);
+              const sevColor = RISK_PILL[sev] || '#eab308';
+              const fresh = freshIds.includes(r.id);
+              const cleanedText = r.isCleanedUp ? (cleanupDurationText(r.createdAt, r.completedAt) || 'Cleaned up') : null;
               return (
-                <div key={post.id} style={{ background: isNew ? 'rgba(168,230,61,0.07)' : cardBg, border:`1px solid ${isNew ? TD.lime+'40' : cardBorder}`, borderRadius:12, padding:'10px 11px', transition:'all 0.4s ease' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:6 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, background:platBg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12, fontWeight:700, color:platColor }}>{meta.icon || '?'}</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                        <span style={{ ...FF.label, fontSize:10, fontWeight:700, color:headText, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{post.handle}</span>
-                        {post.verified && <span style={{ fontSize:9, color:platColor }}>✓</span>}
-                        {isNew && <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:TD.lime, background:`${TD.lime}20`, padding:'1px 5px', borderRadius:3 }}>NEW</span>}
-                      </div>
-                      <span style={{ ...FF.body, fontSize:9, color:metaTxt }}>{meta.label || post.platform} · {post.time}</span>
+                <div key={r.id} style={{ display:'flex', gap:10, background: fresh ? 'rgba(168,230,61,0.07)' : cardBg, border:`1px solid ${fresh ? TD.lime + '40' : cardBorder}`, borderRadius:12, padding:'9px 10px', transition:'all 0.4s ease' }}>
+                  {r.photos[0]
+                    ? <img src={r.photos[0]} alt={`Reported dumping at ${describeArea(r)}`} width="48" height="48" loading="lazy" decoding="async" style={{ width:48, height:48, borderRadius:8, objectFit:'cover', flexShrink:0, background:'#1a221a' }} />
+                    : <div aria-hidden="true" style={{ width:48, height:48, borderRadius:8, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:metaTxt }}><i className="fas fa-trash-alt" style={{ fontSize:14 }}></i></div>}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                      <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{describeArea(r)}</span>
+                      {fresh && <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:TD.lime, background:`${TD.lime}20`, padding:'1px 5px', borderRadius:3 }}>NEW</span>}
+                      <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:sevColor, background:sevColor + '18', padding:'2px 7px', borderRadius:5, textTransform:'uppercase', flexShrink:0 }}>{sev}</span>
                     </div>
-                    <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:RISK_PILL[post.risk]||'#eab308', background:(RISK_PILL[post.risk]||'#eab308')+'18', padding:'2px 7px', borderRadius:5, textTransform:'uppercase', flexShrink:0 }}>{post.risk}</span>
-                  </div>
-                  <p style={{ ...FF.body, fontSize:12, color:bodyTxt, margin:'0 0 6px', lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{post.text}</p>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ ...FF.body, fontSize:10, color:metaTxt, display:'flex', alignItems:'center', gap:3 }}><i className="fas fa-map-marker-alt" style={{ fontSize:8 }}></i>{post.location}</span>
-                    <span style={{ marginLeft:'auto', display:'flex', gap:8 }}>
-                      <span style={{ ...FF.body, fontSize:10, color:metaTxt }}><i className="fas fa-heart" style={{ fontSize:8, color:'#e05c7a', marginRight:2 }}></i>{post.likes}</span>
-                      <span style={{ ...FF.body, fontSize:10, color:metaTxt }}><i className="fas fa-share" style={{ fontSize:8, marginRight:2 }}></i>{post.shares}</span>
-                    </span>
+                    <div style={{ ...FF.body, fontSize:10, color:metaTxt, marginTop:2 }}>
+                      Reported {timeAgo(r.createdAt)}{r.wasteType ? ` · ${r.wasteType.replace(/_/g, ' ')} waste` : ''}
+                    </div>
+                    <div style={{ ...FF.body, fontSize:10, fontWeight:600, marginTop:4, color: r.isCleanedUp ? '#4ade80' : TD.gold }}>
+                      {r.isCleanedUp ? `✓ ${cleanedText}` : 'Waiting for cleanup'}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Footer */}
-          <div style={{ padding:'8px 14px', borderTop:`1px solid ${borderCol}`, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ ...FF.body, fontSize:9, color:subText }}>Updates every 8s</span>
-            <a href="https://twitter.com/search?q=illegal+dumping+Accra" target="_blank" rel="noopener noreferrer" style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.lime, textDecoration:'none' }}>View on X ↗</a>
+          <div style={{ padding:'8px 14px', borderTop:`1px solid ${borderCol}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
+            <span style={{ ...FF.body, fontSize:9, color:subText }}>Real reports from TrashDrop users · updates every minute</span>
+            <a href="/illegal-dumping/" style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.lime, textDecoration:'none', whiteSpace:'nowrap' }}>Report a dump →</a>
           </div>
         </div>
       )}
 
-      {/* Toggle button */}
       <button
+        type="button"
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls="latest-reports"
         style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(8,12,8,0.92)', border:`1px solid ${borderCol}`, borderRadius:12, padding:'9px 14px', cursor:'pointer', backdropFilter:'blur(16px)', boxShadow:'0 8px 32px rgba(0,0,0,0.5)', transition:'all 0.2s' }}
       >
         <span style={{ width:7, height:7, borderRadius:'50%', background:TD.lime, flexShrink:0, boxShadow:`0 0 0 2px ${TD.lime}28`, animation:'td-pulse-dot 1.8s infinite' }} />
         <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1px', textTransform:'uppercase' }}>
-          {open ? 'Hide Feed' : 'Social Feed'}
+          {open ? 'Hide reports' : 'Latest reports'}
         </span>
-        {!open && posts.length > 0 && (
-          <span style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.ink, background:TD.lime, padding:'1px 7px', borderRadius:10 }}>{posts.length}</span>
+        {!open && recentCount > 0 && (
+          <span style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.ink, background:TD.lime, padding:'1px 7px', borderRadius:10 }}>{recentCount}</span>
         )}
-        <i className={`fas fa-chevron-${open ? 'down' : 'up'}`} style={{ fontSize:9, color:subText }} />
+        <i className={`fas fa-chevron-${open ? 'down' : 'up'}`} style={{ fontSize:9, color:subText }} aria-hidden="true" />
       </button>
     </div>
   );
@@ -1231,7 +1224,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
                 </button>
               </div>
               {/* Social feed overlay — bottom-right corner of the map */}
-              {SHOW_SOCIAL_FEED && <SocialFeedOverlay />}
+              <LatestReportsOverlay data={dumpingData} />
             </PublicDumpingMap>
           </div>
         </div>

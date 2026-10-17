@@ -1,6 +1,6 @@
 import {
   mapPublicReport, isPublicMapReport, timeAgo, cleanupDurationText, PUBLIC_REPORT_COLUMNS,
-  computePublicStats, publicStatVisibility, countHotspots, formatDuration, describeArea, cleanAreaName, nearestTown,
+  computePublicStats, publicStatVisibility, latestReports, countHotspots, formatDuration, describeArea, cleanAreaName, nearestTown,
 } from '../publicDumpingReportsService';
 
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
@@ -75,6 +75,19 @@ describe('public map stats', () => {
     expect(publicStatVisibility({ cleanupRate: 50, avgResponseHours: 6.9 * 24 }, t)).toEqual({ cleanupRate: true, avgResponse: true });
     expect(publicStatVisibility({ cleanupRate: 80, avgResponseHours: 7 * 24 }, t)).toEqual({ cleanupRate: true, avgResponse: false });
     expect(publicStatVisibility({ cleanupRate: null, avgResponseHours: null }, t)).toEqual({ cleanupRate: false, avgResponse: false });
+  });
+
+  it('lists the newest reports first, filtered by status', () => {
+    const reports = [
+      row({ id: 'old', created_at: '2026-09-01T00:00:00Z' }),
+      row({ id: 'new', created_at: '2026-10-10T00:00:00Z' }),
+      row({ id: 'done', status: 'completed', created_at: '2026-10-05T00:00:00Z' }),
+    ].map(mapPublicReport);
+    expect(latestReports(reports).map(r => r.id)).toEqual(['new', 'done', 'old']);
+    expect(latestReports(reports, 'active').map(r => r.id)).toEqual(['new', 'old']);
+    expect(latestReports(reports, 'cleaned').map(r => r.id)).toEqual(['done']);
+    expect(latestReports(reports, 'all', 2)).toHaveLength(2);
+    expect(reports.map(r => r.id)).toEqual(['old', 'new', 'done']);
   });
 
   it('counts hotspots as 3+ active reports chained within 500 m', () => {
