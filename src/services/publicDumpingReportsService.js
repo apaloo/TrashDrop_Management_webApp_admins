@@ -127,6 +127,13 @@ export const publicStatVisibility = (stats, { minCleanupRatePct, maxAvgResponseD
   avgResponse: stats.avgResponseHours !== null && stats.avgResponseHours < maxAvgResponseDays * 24,
 });
 
+/** Newest reports first, optionally only waiting ('active') or cleaned up ('cleaned') ones */
+export const latestReports = (reports = [], filter = 'all', limit = 15) => reports
+  .filter(r => filter === 'all' || (filter === 'cleaned' ? r.isCleanedUp : !r.isCleanedUp))
+  .slice()
+  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  .slice(0, limit);
+
 /** "5.9h" under two days, otherwise "3.2 days"; "—" when unknown */
 export const formatDuration = (hours) => {
   if (hours === null || hours === undefined) return '—';
