@@ -39,6 +39,7 @@ const ROUTES = [
   '/waste-collection-takoradi',
   '/waste-collection-tamale',
   '/waste-pickup',
+  '/partners',
 ];
 
 const slashed = (route) => (route.endsWith('/') ? route : `${route}/`);

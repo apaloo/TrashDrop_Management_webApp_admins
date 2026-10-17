@@ -117,8 +117,15 @@ export const computePublicStats = (reports = []) => {
     cleanupRate: total ? (cleaned.length / total) * 100 : null,
     avgResponseHours: hours.length ? hours.reduce((a, b) => a + b, 0) / hours.length : null,
     hotspots: countHotspots(reports),
+    areas: new Set(reports.map(r => r.areaName && r.areaName.toLowerCase()).filter(Boolean)).size,
   };
 };
+
+/** Which threshold-gated stats are good enough to show publicly */
+export const publicStatVisibility = (stats, { minCleanupRatePct, maxAvgResponseDays }) => ({
+  cleanupRate: stats.cleanupRate !== null && stats.cleanupRate >= minCleanupRatePct,
+  avgResponse: stats.avgResponseHours !== null && stats.avgResponseHours < maxAvgResponseDays * 24,
+});
 
 /** "5.9h" under two days, otherwise "3.2 days"; "—" when unknown */
 export const formatDuration = (hours) => {

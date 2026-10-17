@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
-import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { CITY_CONTENT } from './cityContent';
+import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
@@ -16,6 +19,7 @@ const TD = {
   sage:     '#6b7565',
   cream:    '#f5f2eb',
   gold:     '#f5c842',
+  orange:   '#F98B38',
 };
 const FF = {
   display: { fontFamily:"'DM Serif Display', Georgia, serif" },
@@ -221,37 +225,17 @@ const useCountUp = (end, duration = 2200, shouldStart = false) => {
   useEffect(() => {
     if (!shouldStart) return;
     let t = null;
+    let id;
     const step = (ts) => {
       if (!t) t = ts;
       const p = Math.min((ts - t) / duration, 1);
       setCount(Math.floor(p * end));
-      if (p < 1) requestAnimationFrame(step);
+      if (p < 1) id = requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
+    id = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(id);
   }, [end, duration, shouldStart]);
   return count;
-};
-
-const TW_PHRASES = ['Household Trash.', 'Business Waste.', 'Recyclables.', 'Organic Waste.'];
-const useTypewriter = () => {
-  const [text, setText] = useState('');
-  const st = useRef({ pi: 0, ci: 0, typing: true, locked: false });
-  useEffect(() => {
-    const s = st.current;
-    if (s.locked) return;
-    const phrase = TW_PHRASES[s.pi];
-    const timer = setTimeout(() => {
-      if (s.typing) {
-        if (s.ci < phrase.length) { s.ci++; setText(phrase.slice(0, s.ci)); }
-        else { s.locked = true; setTimeout(() => { s.locked = false; s.typing = false; setText(t => t); }, 1800); }
-      } else {
-        if (s.ci > 0) { s.ci--; setText(phrase.slice(0, s.ci)); }
-        else { s.pi = (s.pi + 1) % TW_PHRASES.length; s.typing = true; }
-      }
-    }, s.typing ? 72 : 36);
-    return () => clearTimeout(timer);
-  });
-  return text;
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -266,7 +250,6 @@ const GlobalStyles = () => (
     @keyframes td-fadeup     { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
     @keyframes td-pulse-dot  { 0%,100%{box-shadow:0 0 0 0 rgba(168,230,61,0.4)} 70%{box-shadow:0 0 0 8px rgba(168,230,61,0)} }
     .td-nav-link:hover { color:#a8e63d !important; }
-    .td-step-card:hover { transform:translateY(-6px) !important; box-shadow:0 20px 48px rgba(0,0,0,0.14) !important; }
     .td-pathway-card:hover { transform:translateY(-8px) !important; }
     .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
     .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
@@ -274,14 +257,21 @@ const GlobalStyles = () => (
     @media(max-width:768px) { .td-nav-links{display:none!important} }
     @media(min-width:769px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
-    @media(max-width:1024px){ .td-steps-grid{grid-template-columns:repeat(2,1fr)!important} .td-connector{display:none!important} }
-    @media(max-width:640px) { .td-steps-grid{grid-template-columns:1fr!important} }
+    @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pathways-grid{grid-template-columns:1fr!important} .td-partners-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pricing-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-footer-grid{grid-template-columns:1fr 1fr!important} }
     @media(max-width:480px) { .td-footer-grid{grid-template-columns:1fr!important} }
+    .td-sticky-book { right:28px; bottom:28px; }
+    @media(max-width:768px) {
+      .td-sticky-book { left:0; right:0; bottom:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:rgba(255,255,255,0.96); box-shadow:0 -4px 18px rgba(0,0,0,0.12); }
+      .td-sticky-book a { border-radius:12px !important; box-shadow:none !important; }
+      .td-page { padding-bottom:76px; }
+    }
+    @media(max-width:600px) { .td-trust{grid-template-columns:repeat(2,1fr)!important; row-gap:18px!important} .td-city-row{grid-auto-columns:78%!important} }
+    .td-city-row { scrollbar-width:thin; }
     .td-lp-toggle { transition: background 0.2s, color 0.2s, border-color 0.2s; }
     .td-lp-toggle:hover { opacity: 0.85; }
   `}</style>
@@ -301,15 +291,16 @@ const HomeNavbar = ({ isAuthenticated }) => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
   const NAV = [
-    { href:'#how',      label:'How It Works' },
-    { href:'#map',      label:'Live Map'      },
-    { href:'#pricing',  label:'Pricing'       },
-    { href:'#impact',   label:'Impact'        },
-    { href:'#partners', label:'Partners'      },
+    { href:'/#how',             label:'How it works'        },
+    { href:'/#pricing',         label:'Prices'              },
+    { href:'/illegal-dumping/', label:'Report dumping'      },
+    { href:'/collectors/',      label:'Earn as a collector' },
+    { href:'/partners/',        label:'Partners'            },
   ];
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
-  const navLinkColor    = isDark ? 'rgba(255,255,255,0.75)'     : 'rgba(27,62,40,0.8)';
+  // Light links while the bar is see-through over the dark hero
+  const navLinkColor    = isDark || !scrolled ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
   const brandColor      = isDark ? '#fff'                        : TD.forest;
   const mobileMenuBg    = isDark ? TD.ink                        : '#fff';
   const mobileLinkColor = isDark ? 'rgba(255,255,255,0.8)'      : 'rgba(27,62,40,0.85)';
@@ -343,7 +334,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             : <><Link to="/login"  style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
                 <Link to="/signup" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
         </div>
-        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark?'#fff':TD.forest }}>
+        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark || !scrolled ? '#fff' : TD.forest }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
         </button>
       </div>
@@ -366,10 +357,92 @@ const HomeNavbar = ({ isAuthenticated }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   BOOKING CARD (top of the hero)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const SERVICES = {
+  bag: { label:'QR Bag pickup', note:'Free',      cta:'Request pickup' },
+  bin: { label:'Digital Bin',   note:'Get quote', cta:'Get quote'      },
+};
+
+const BookingCard = () => {
+  const [city, setCity] = useState(BOOKING_CITIES[0].name);
+  const [location, setLocation] = useState('');
+  const [service, setService] = useState('bag');
+  const [locStatus, setLocStatus] = useState('');
+  const [locating, setLocating] = useState(false);
+
+  // Location is only requested when the visitor taps the button, never on load
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { setLocStatus('Your browser cannot share your location. Type your area instead.'); return; }
+    setLocating(true);
+    setLocStatus('Finding you…');
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const near = nearestBookingCity(coords.latitude, coords.longitude);
+      if (near) setCity(near);
+      const address = await reverseGeocode(coords.latitude, coords.longitude);
+      setLocation(address || `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`);
+      setLocStatus(near ? '' : 'We are not in your area yet. We serve Accra, Kumasi, Takoradi and Tamale.');
+      setLocating(false);
+    }, () => {
+      setLocStatus('Location is off. Type your area instead.');
+      setLocating(false);
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  };
+
+  const field = { width:'100%', boxSizing:'border-box', height:48, border:'1px solid #d7dbe0', borderRadius:10, padding:'0 52px 0 14px', ...FF.body, fontSize:15, color:TD.ink, background:'#fff' };
+  return (
+    <div data-testid="booking-card" style={{ background:'#fff', borderRadius:18, padding:20, maxWidth:480, boxShadow:'0 18px 50px rgba(0,0,0,0.35)', color:TD.ink, minHeight:420, boxSizing:'border-box' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, ...FF.body, fontSize:15 }}>
+        <span>Pickup in <strong data-testid="booking-city">{city}</strong></span>
+        {/* A native picker under a "Change city" link: nothing on the page moves when it opens */}
+        <label style={{ position:'relative', color:TD.forest, fontWeight:600, fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
+          Change city
+          <select value={city} onChange={e => setCity(e.target.value)} aria-label="Change city"
+            style={{ position:'absolute', inset:0, opacity:0, cursor:'pointer', width:'100%' }}>
+            {BOOKING_CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <label htmlFor="booking-location" style={{ display:'block', ...FF.label, fontSize:12, fontWeight:700, color:'#4b5563', marginBottom:6 }}>Your location</label>
+      <div style={{ position:'relative' }}>
+        <input id="booking-location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Area, street or landmark" autoComplete="street-address" style={field} />
+        <button type="button" onClick={useMyLocation} disabled={locating} aria-label="Use my location" title="Use my location"
+          style={{ position:'absolute', right:4, top:4, width:40, height:40, border:'none', borderRadius:8, background:`${TD.lime}30`, color:TD.forest, cursor:'pointer', fontSize:16 }}>
+          <i className={`fas ${locating ? 'fa-spinner fa-spin' : 'fa-location-arrow'}`} aria-hidden="true"></i>
+        </button>
+      </div>
+      <p role="status" style={{ ...FF.body, fontSize:12, color:'#6b7280', minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
+
+      <div role="radiogroup" aria-label="Service" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, background:'#f1f3f5', borderRadius:12, padding:4, marginBottom:14 }}>
+        {Object.entries(SERVICES).map(([key, s]) => (
+          <button key={key} type="button" role="radio" aria-checked={service === key} onClick={() => setService(key)}
+            style={{ border:'none', borderRadius:9, padding:'9px 6px', cursor:'pointer', background: service === key ? '#fff' : 'transparent', boxShadow: service === key ? '0 1px 4px rgba(0,0,0,0.12)' : 'none', ...FF.body, color:TD.ink, lineHeight:1.25 }}>
+            <span style={{ display:'block', fontSize:14, fontWeight:600 }}>{s.label}</span>
+            <span style={{ display:'block', fontSize:12, color: key === 'bag' ? TD.forest : '#6b7280' }}>({s.note})</span>
+          </button>
+        ))}
+      </div>
+
+      <a href={HOUSEHOLD_APP_URL} data-testid="booking-submit"
+        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, borderRadius:12, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none' }}>
+        <i className="fas fa-truck" aria-hidden="true"></i> {SERVICES[service].cta}
+      </a>
+
+      <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
+        <img src="/images/book-in-app-qr.png" alt="QR code that opens the TrashDrop app" width="96" height="96" style={{ width:96, height:96, borderRadius:8, flexShrink:0 }} />
+        <p style={{ ...FF.body, fontSize:14, lineHeight:1.5, color:'#374151', margin:0 }}>
+          <strong>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    HERO
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HeroSection = ({ isAuthenticated }) => {
-  const headline  = useTypewriter();
   const ORBS = [
     { s:420, t:'10%', l:'2%',  c:TD.lime,   d:0   },
     { s:300, t:'65%', l:'68%', c:TD.forest, d:1.5 },
@@ -382,7 +455,7 @@ const HeroSection = ({ isAuthenticated }) => {
       <div style={{ 
         position:'absolute', 
         inset:0, 
-        backgroundImage:'url(/images/auth-bg.jpg)', 
+        backgroundImage:'url(/images/home/hero-bg.jpg)', 
         backgroundSize:'cover', 
         backgroundPosition:'center',
         backgroundRepeat:'no-repeat',
@@ -402,60 +475,26 @@ const HeroSection = ({ isAuthenticated }) => {
       <div style={{ position:'absolute', inset:0, opacity:0.04, pointerEvents:'none', backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', zIndex:2 }} />
       <div style={{ position:'absolute', top:0, right:'22%', width:1, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime}28,transparent)`, pointerEvents:'none', zIndex:2 }} />
 
-      <div style={{ position:'relative', zIndex:3, maxWidth:1280, margin:'0 auto', padding:'110px 24px 80px', width:'100%' }}>
+      <div style={{ position:'relative', zIndex:3, maxWidth:1280, margin:'0 auto', padding:'96px 24px 64px', width:'100%' }}>
         <div className="td-hero-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:64, alignItems:'center' }}>
 
           {/* Left */}
           <div style={{ position:'relative', zIndex:3 }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:28 }}>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:20 }}>
               <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Accra · Kumasi · Takoradi · Tamale</span>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
             </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(40px,5vw,66px)', lineHeight:1.02, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Waste Collection &amp; Trash Pickup in Ghana{' '}
-              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, marginTop:6 }}>— Book in Minutes</span>
+            <h1 style={{ ...FF.display, fontSize:'clamp(38px,4.4vw,56px)', lineHeight:1.04, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
+              Waste pickup in Ghana, booked in minutes
             </h1>
-            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 18px', maxWidth:540 }}>
-              Fast, tracked waste pickup for homes and businesses in Accra, Kumasi, Takoradi and Tamale.
+            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
+              A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
-            <div style={{ display:'flex', alignItems:'center', gap:10, minHeight:52, marginBottom:28 }}>
-              <span style={{ ...FF.label, fontSize:14, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase' }}>We collect</span>
-              <span style={{ ...FF.data, fontSize:'clamp(28px,3.5vw,44px)', color:TD.gold, letterSpacing:'1px' }}>{headline}</span>
-              <span style={{ display:'inline-block', width:3, height:38, background:TD.lime, borderRadius:2, animation:'td-blink 1s step-end infinite' }} />
-            </div>
-            <p style={{ ...FF.body, fontSize:17, lineHeight:1.75, fontWeight:300, color:'rgba(255,255,255,0.62)', maxWidth:540, marginBottom:40 }}>
-              TrashDrop is fast, tracked <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>waste collection</strong> for
-              homes and businesses in Accra, Kumasi, Takoradi and Tamale. Book a <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>trash pickup</strong> from
-              your phone, follow your verified collector live on the map, and pay with MoMo or cash. Use QR Bags for regular
-              {' '}<strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>rubbish collection</strong>, or request a Digital Bin pickup when you need waste gone today.
-            </p>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:40 }}>
-              <Link to={isAuthenticated ? '/dashboard' : '/signup'}
-                style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.lime, color:TD.ink, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, transition:'all 0.25s cubic-bezier(.34,1.56,.64,1)' }}
-                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.03)';e.currentTarget.style.boxShadow=`0 16px 40px ${TD.lime}55`;}}
-                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 8px 32px ${TD.lime}45`;}}>
-                <i className="fas fa-truck"></i> Book a Pickup
-              </Link>
-              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)`, transition:'all 0.25s ease' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}55`;e.currentTarget.style.background=`${TD.lime}0D`;}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';e.currentTarget.style.background='transparent';}}>
-                <i className="fab fa-whatsapp" style={{ color:'#25D366' }}></i> WhatsApp {BUSINESS.phoneDisplay}
-              </a>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
-              {[{v:'FREE',l:'Pickup with QR Bags'},{v:'90–240L',l:'Bag Sizes'},{v:'MoMo',l:'Or Cash on Pickup'}].map(s => (
-                <div key={s.l}>
-                  <div style={{ ...FF.data, fontSize:22, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-                  <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
-                </div>
-              ))}
-              <div style={{ width:1, height:36, background:'rgba(255,255,255,0.08)' }} />
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <span style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>Live collector tracking</span>
-              </div>
-            </div>
+            <div id="book" style={{ scrollMarginTop:80 }}><BookingCard /></div>
+            <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, color:'rgba(255,255,255,0.82)', ...FF.label, fontSize:14, fontWeight:600, textDecoration:'none', margin:'16px 0 36px' }}>
+              <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
+            </a>
           </div>
 
           {/* Right — floating cards */}
@@ -479,7 +518,7 @@ const HeroSection = ({ isAuthenticated }) => {
                 <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>Digital Bin</span>
               </div>
               <div style={{ ...FF.data, fontSize:36, color:'#fff' }}>ON DEMAND</div>
-              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant GPS price quote</div>
+              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant price quote</div>
             </div>
             <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.gold}18,${TD.gold}08)`, border:`1px solid ${TD.gold}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
               <div style={{ ...FF.label, fontSize:10, color:TD.gold, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
@@ -511,10 +550,28 @@ const HeroSection = ({ isAuthenticated }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   TRUST ROW (values in src/config/homepage.js)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const TrustRow = () => (
+  <section aria-label="Why households trust TrashDrop" style={{ background:TD.ink, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+    <ul className="td-trust" style={{ listStyle:'none', margin:'0 auto', maxWidth:1100, padding:'22px 24px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+      {TRUST_STATS.map(t => (
+        <li key={t.label} style={{ textAlign:'center' }}>
+          <span style={{ display:'block', ...FF.data, fontSize:30, color:TD.lime, letterSpacing:'1px', lineHeight:1.1 }}>{t.value}</span>
+          <span style={{ display:'block', ...FF.body, fontSize:13, color:'rgba(255,255,255,0.75)' }}>{t.label}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    MARQUEE STRIP
    ═══════════════════════════════════════════════════════════════════════════════ */
 const MarqueeStrip = () => {
-  const items = ['QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Live Map Analytics','·','Municipal Dashboard','·','Accra · Kumasi · Takoradi · Tamale','·',"Ghana's #1 Waste Platform",'·','QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Live Map Analytics','·','Municipal Dashboard','·'];
+  // Two identical halves, so the -50% scroll loops seamlessly
+  const half = ['QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Accra · Kumasi · Takoradi · Tamale','·'];
+  const items = [...half, ...half];
   return (
     <div style={{ background:TD.lime, overflow:'hidden', padding:'11px 0', position:'relative', zIndex:10 }}>
       <div style={{ display:'flex', animation:'td-marquee 28s linear infinite', whiteSpace:'nowrap' }}>
@@ -527,68 +584,36 @@ const MarqueeStrip = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    HOW IT WORKS
    ═══════════════════════════════════════════════════════════════════════════════ */
+const HOW_STEPS = [
+  { icon:'fa-shopping-bag',  title:'Get bags'          },
+  { icon:'fa-qrcode',        title:'Scan code'         },
+  { icon:'fa-trash-alt',     title:'Fill bag'          },
+  { icon:'fa-hand-pointer',  title:'Request pickup'    },
+  { icon:'fa-truck',         title:'Collector arrives' },
+  { icon:'fa-map-marker-alt', title:'Track it'         },
+];
+
 const HowItWorksSection = () => {
   const { ref, visible } = useReveal(0.1);
   const { lp } = useLpTheme();
-  const STEPS = [
-    { num:'01', icon:'fa-shopping-bag', title:'Buy Official Bags',    color:TD.lime,   bg:`${TD.lime}16`,              body:'Purchase TrashDrop QR-coded bags from any authorised vendor near you — available in 3 sizes and 3 waste types.' },
-    { num:'02', icon:'fa-qrcode',       title:'Scan to Activate',     color:TD.gold,   bg:`${TD.gold}16`,              body:'Each batch has a unique QR code. Scan with the TrashDrop app to activate and link the bags to your account.' },
-    { num:'03', icon:'fa-truck',        title:'Request Free Pickup',   color:'#4d9de0', bg:'rgba(77,157,224,0.15)',    body:'When your bag is full, tap one button to request free collection. A verified collector comes to your door.' },
-    { num:'04', icon:'fa-map-marked-alt',title:'Verified Disposal',   color:TD.lime,   bg:`${TD.lime}16`,              body:'Waste only reaches legally mapped landfills. You get confirmation your waste was properly handled, end to end.' },
-  ];
   return (
     <section id="how" style={{ background:lp.sectionAlt, position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, opacity:0.04, pointerEvents:'none', backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23t)' opacity='0.035'/%3E%3C/svg%3E")` }} />
-      <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'100px 24px' }}>
-        <div style={{ marginBottom:72 }}>
-          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
-            <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.howItWorksLabel, textTransform:'uppercase' }}>How It Works</span>
-          </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(40px,5vw,62px)', lineHeight:0.95, letterSpacing:'-2px', color:lp.ink2Heading, margin:0, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1)' }}>
-            What happens to your waste<br />after it <em style={{ color:TD.forest }}>leaves</em> your door?
-          </h2>
-          <div style={{ marginTop:20, display:'inline-block' }}>
-            <div style={{ background:TD.forest, color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'10px 24px', borderRadius:99, boxShadow:`0 8px 24px ${TD.forest}40` }}>
-              With TrashDrop, you don't have to guess.
-            </div>
-          </div>
-        </div>
-
-        <div className="td-steps-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-          {STEPS.map((s,i) => (
-            <div key={s.num} className="td-step-card" style={{ background:lp.cardBg, borderRadius:20, padding:28, border:`1px solid ${lp.cardBorder}`, boxShadow:'0 4px 24px rgba(0,0,0,0.05)', position:'relative', overflow:'hidden', transition:'all 0.3s ease', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transitionDelay:`${0.1+i*0.12}s` }}>
-              <span style={{ position:'absolute', top:-8, right:12, ...FF.data, fontSize:100, color:lp.stepNum, lineHeight:1, userSelect:'none' }}>{s.num}</span>
-              <div style={{ width:52, height:52, borderRadius:14, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
-                <i className={`fas ${s.icon}`} style={{ fontSize:22, color:s.color }}></i>
+      <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'80px 24px' }}>
+        <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 40px', textAlign:'center' }}>
+          How it works
+        </h2>
+        <ol className="td-steps6" style={{ listStyle:'none', padding:0, margin:0, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:16 }}>
+          {HOW_STEPS.map((s,i) => (
+            <li key={s.title} style={{ position:'relative', textAlign:'center', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:`all 0.7s cubic-bezier(.22,1,.36,1) ${i*0.08}s` }}>
+              <div style={{ width:64, height:64, borderRadius:18, background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, boxShadow:'0 4px 18px rgba(0,0,0,0.06)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+                <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.forest }}></i>
               </div>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:s.color, textTransform:'uppercase', display:'block', marginBottom:8 }}>Step {s.num}</span>
-              <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:'0 0 10px', letterSpacing:'-0.5px' }}>{s.title}</h3>
-              <p style={{ ...FF.body, fontSize:14, fontWeight:300, color:lp.sageText, lineHeight:1.7, margin:0 }}>{s.body}</p>
-              {i < STEPS.length-1 && <div className="td-connector" style={{ position:'absolute', top:'50%', right:-12, width:24, height:24, borderRadius:'50%', background:s.color, border:`3px solid ${lp.connectorBorder}`, zIndex:2, transform:'translateY(-50%)', boxShadow:`0 0 0 4px ${s.color}30` }} />}
-            </div>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2px', color:TD.forest, display:'block', marginBottom:4 }}>{i + 1}</span>
+              <h3 style={{ ...FF.body, fontSize:15, fontWeight:600, color:lp.ink2Heading, margin:0 }}>{s.title}</h3>
+              {i < HOW_STEPS.length - 1 && <i className="fas fa-chevron-right td-step-arrow" aria-hidden="true" style={{ position:'absolute', top:24, right:-12, fontSize:14, color:TD.lime }}></i>}
+            </li>
           ))}
-        </div>
-
-        <div style={{ marginTop:56, background:lp.darkBoxBg, borderRadius:20, padding:'36px 40px' }}>
-          {[
-            { b:'Every bag is tagged with a QR code', r:', tracked from your doorstep to verified disposal sites.' },
-            { b:'Our collectors are verified',         r:', and waste can only be disposed at legally mapped landfills.' },
-            { b:'No shortcuts. No dumping. No guesswork.', r:'' },
-          ].map((p,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:14, marginBottom:i<2?12:0 }}>
-              <div style={{ width:24, height:24, borderRadius:'50%', background:`${TD.lime}20`, border:`1px solid ${TD.lime}40`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', marginTop:1 }}>
-                <i className="fas fa-check" style={{ color:TD.lime, fontSize:10 }}></i>
-              </div>
-              <p style={{ ...FF.body, fontSize:15, color:lp.darkBoxText, lineHeight:1.7, margin:0 }}>
-                <strong style={{ color:lp.darkBoxStrong, fontWeight:600 }}>{p.b}</strong>{p.r}
-              </p>
-            </div>
-          ))}
-          <div style={{ borderTop:'1px solid rgba(255,255,255,0.07)', marginTop:20, paddingTop:20, textAlign:'center' }}>
-            <p style={{ ...FF.display, fontSize:24, color:lp.darkBoxFooter, margin:0, fontStyle:'italic' }}>TrashDrop — <span style={{ color:TD.lime }}>Waste you can track.</span></p>
-            <p style={{ ...FF.body, fontSize:15, color:lp.darkBoxSub, fontWeight:300, margin:'4px 0 0' }}>From doorstep to landfill.</p>
-          </div>
-        </div>
+        </ol>
       </div>
     </section>
   );
@@ -628,7 +653,7 @@ const ServicesSection = () => {
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[
                 ['1','Purchase Official Bags','Buy TrashDrop bags from any authorised vendor near you.'],
-                ['2','Scan the QR Code','Each bundle of bags has a unique batch QR code. Scan it to activate all bags in the bundle and link them to your account.'],
+                ['2','Scan the QR Code','Each pack of bags has its own code. Scan it once to add all the bags to your account.'],
                 ['3','Request Free Collection','When your bag is full, tap to request pickup — collection is completely free.']
               ].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
@@ -657,7 +682,7 @@ const ServicesSection = () => {
             <div style={{ width:36, height:2, background:'rgba(255,255,255,0.4)', borderRadius:99, marginBottom:28 }} />
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[['1','Request On-Demand Pickup','Open the app and submit a Request Bin Pickup (No Bag) anytime, anywhere.'],
-                ['2','Instant GPS Price Quote','Receive a transparent, GPS-based price quote instantly — no surprises.'],
+                ['2','Instant Price Quote','Get a clear price straight away — no surprises.'],
                 ['3','Real-Time Collector Tracking','Your request is matched to a nearby collector. Track arrival live on the map.']].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
@@ -670,7 +695,7 @@ const ServicesSection = () => {
                 </div>
               ))}
             </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>📍 Live GPS Tracking</div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>📍 Live Tracking</div>
           </div>
         </div>
       </div>
@@ -1084,16 +1109,38 @@ const SocialFeedOverlay = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   REPORT DUMPING (short, households)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const ReportDumpingSection = () => (
+  <section id="report" style={{ background:TD.ink, padding:'56px 24px' }}>
+    <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:20 }}>
+      <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.4vw,40px)', color:'#f0f5f0', margin:0, letterSpacing:'-0.5px', lineHeight:1.15 }}>
+        See a dump? Snap it, we'll get it cleared.
+      </h2>
+      <a href="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:10, height:52, padding:'0 26px', borderRadius:12, background:TD.orange, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', flexShrink:0 }}>
+        <i className="fas fa-camera" aria-hidden="true"></i> Report dumping
+      </a>
+    </div>
+  </section>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
-const MapPreviewSection = ({ isAuthenticated }) => {
+const MapPreviewSection = ({ isAuthenticated, dumpingData }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
-  // One load for the map and the stats row, so they always agree
-  const dumpingData = usePublicDumpingReports();
   const stats = computePublicStats(dumpingData.reports);
   const statsReady = dumpingData.status === 'ready';
+  // Cleanup rate and response time only show once they are good enough to stand behind
+  const show = statsReady ? publicStatVisibility(stats, PUBLIC_STAT_THRESHOLDS) : { cleanupRate: false, avgResponse: false };
+  const tiles = [
+    {label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
+    {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
+    show.cleanupRate && {label:'Cleanup Rate',value:`${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
+    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
+  ].filter(Boolean);
   // Logged-out visitors sign in first; logged-in users open the analytics map
   const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
@@ -1169,11 +1216,8 @@ const MapPreviewSection = ({ isAuthenticated }) => {
           </div>
         </div>
 
-        <div className="td-map-stats" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginTop:24 }}>
-          {[{label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
-            {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
-            {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
-            {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'}].map(s => (
+        <div className="td-map-stats" style={{ display:'grid', gridTemplateColumns:`repeat(${tiles.length},1fr)`, gap:16, marginTop:24 }}>
+          {tiles.map(s => (
             <div key={s.label} data-testid="map-stat" title={s.title} style={{ background:lp.mapStatBg, border:`1px solid ${lp.mapStatBorder}`, borderRadius:14, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
               <div style={{ width:44, height:44, borderRadius:12, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <i className={`fas ${s.icon}`} style={{ color:s.color, fontSize:16 }}></i>
@@ -1269,7 +1313,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
   );
 };
 
-const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
+const ImpactStatCard = ({ label, value, ready, icon, color, accent }) => {
   const { ref, visible } = useReveal(0.3);
   const { lp } = useLpTheme();
   const count = useCountUp(value, 2200, visible);
@@ -1281,15 +1325,14 @@ const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
         <i className={`fas ${icon}`} style={{ fontSize:24, color }}></i>
       </div>
       <div style={{ display:'flex', alignItems:'baseline', justifyContent:'center', gap:2 }}>
-        <span style={{ ...FF.data, fontSize:'clamp(44px,5vw,64px)', color:lp.impactCount, letterSpacing:'1px' }}>{count.toLocaleString()}</span>
-        {suffix && <span style={{ ...FF.data, fontSize:22, color:TD.lime }}>{suffix}</span>}
+        <span style={{ ...FF.data, fontSize:'clamp(44px,5vw,64px)', color:lp.impactCount, letterSpacing:'1px' }}>{ready ? count.toLocaleString() : '—'}</span>
       </div>
       <p style={{ ...FF.body, fontSize:13, color:lp.impactSub, fontWeight:400, margin:'6px 0 0' }}>{label}</p>
     </div>
   );
 };
 
-const ImpactSection = () => {
+const ImpactSection = ({ dumpingData }) => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const [lbIndex, setLbIndex] = useState(null);
@@ -1297,11 +1340,14 @@ const ImpactSection = () => {
   const lbClose = () => setLbIndex(null);
   const lbPrev  = () => setLbIndex(i => (i - 1 + DUMP_PHOTOS.length) % DUMP_PHOTOS.length);
   const lbNext  = () => setLbIndex(i => (i + 1) % DUMP_PHOTOS.length);
+  // Same reports as the live map above, so the two sections always agree
+  const stats = computePublicStats(dumpingData.reports);
+  const ready = dumpingData.status === 'ready';
   const STATS = [
-    { label:'Illegal Dumps Reported', value:12470, suffix:'+', icon:'fa-flag',         color:'#f87171', accent:'rgba(248,113,113,0.15)' },
-    { label:'Tonnes Waste Removed',   value:3850,  suffix:'+', icon:'fa-dumpster',     color:TD.lime,   accent:`${TD.lime}18`            },
-    { label:'CO₂ Prevented (tonnes)', value:940,   suffix:'t', icon:'fa-leaf',         color:'#34d399', accent:'rgba(52,211,153,0.15)'   },
-    { label:'Active Communities',     value:156,   suffix:'',  icon:'fa-users',        color:'#60a5fa', accent:'rgba(96,165,250,0.15)'   },
+    { label:'Dumps Reported',     value:stats.total,     icon:'fa-flag',          color:'#f87171', accent:'rgba(248,113,113,0.15)' },
+    { label:'Cleaned Up',         value:stats.cleanedUp, icon:'fa-broom',         color:TD.lime,   accent:`${TD.lime}18`            },
+    { label:'Waiting for Cleanup', value:stats.active,   icon:'fa-hourglass-half', color:TD.gold,  accent:`${TD.gold}18`            },
+    { label:'Areas Reported',     value:stats.areas,     icon:'fa-map-marker-alt', color:'#60a5fa', accent:'rgba(96,165,250,0.15)'   },
   ];
   return (
     <section id="impact" style={{ background:lp.sectionForest, position:'relative', overflow:'hidden' }}>
@@ -1371,7 +1417,7 @@ const ImpactSection = () => {
         <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
           {STATS.map((s,i) => (
             <div key={s.label} style={{ borderRight:'1px solid rgba(168,230,61,0.1)', borderBottom:'1px solid rgba(168,230,61,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
-              <ImpactStatCard {...s} />
+              <ImpactStatCard {...s} ready={ready} />
             </div>
           ))}
         </div>
@@ -1493,39 +1539,38 @@ const PartnershipsSection = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICE AREAS
    ═══════════════════════════════════════════════════════════════════════════════ */
-const SERVICE_AREA_BLURBS = {
-  accra:    'East Legon, Madina, Dome, Spintex, Achimota, Adenta, Tema and more',
-  kumasi:   'Adum, Asokwa, Bantama, Suame, Ahodwo, Nhyiaeso and more',
-  takoradi: 'Takoradi Central, Anaji, Effia, Kwesimintsim, Sekondi and more',
-  tamale:   'Tamale Central, Lamashegu, Kalpohin, Vittin, Sagnarigu and more',
-};
+// First few neighbourhoods from each city page, e.g. "East Legon, Madina, Adenta…"
+const cityAreas = (slug) => `${CITY_CONTENT[slug].areas.slice(0, 3).join(', ')}…`;
 
 const ServiceAreasSection = () => {
   const { lp } = useLpTheme();
   return (
-    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'88px 24px' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:44 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forest, textTransform:'uppercase' }}>Service Areas</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,48px)', color:lp.ink2Heading, margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
+    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'72px 0' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto' }}>
+        <div style={{ padding:'0 24px', marginBottom:24 }}>
+          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,44px)', color:lp.ink2Heading, margin:'0 0 6px', letterSpacing:'-1px', lineHeight:1.05 }}>
             Waste collection near you
           </h2>
-          <p style={{ ...FF.body, fontSize:16, color:lp.sageText, maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
-            TrashDrop collectors handle trash pickup and rubbish collection in four cities. Choose yours to see the neighbourhoods we cover.
-          </p>
+          <p style={{ ...FF.body, fontSize:16, color:lp.sageText, margin:0 }}>Pick your city to see the areas we cover.</p>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))', gap:16 }}>
+        <ul className="td-city-row" style={{ listStyle:'none', margin:0, padding:'4px 24px 16px', display:'grid', gridAutoFlow:'column', gridAutoColumns:'minmax(250px, 1fr)', gap:16, overflowX:'auto', scrollSnapType:'x mandatory', scrollPaddingInline:24, WebkitOverflowScrolling:'touch' }}>
           {CITY_PAGES.map(city => (
-            <Link key={city.slug} to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, padding:'24px 22px', textDecoration:'none' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                <i className="fas fa-map-marker-alt" style={{ color:TD.forest, fontSize:13 }}></i>
-                <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:0 }}>Waste collection in {city.name}</h3>
-              </div>
-              <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:'0 0 14px', lineHeight:1.6 }}>{SERVICE_AREA_BLURBS[city.slug]}</p>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, color:TD.forest }}>See {city.name} coverage →</span>
-            </Link>
+            <li key={city.slug} style={{ scrollSnapAlign:'start' }}>
+              <Link to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, overflow:'hidden', textDecoration:'none', height:'100%' }}>
+                {CITY_CARD_PHOTOS[city.slug]
+                  ? <img src={CITY_CARD_PHOTOS[city.slug]} alt={`TrashDrop waste pickup in ${city.name}`} width="640" height="420" loading="lazy" decoding="async"
+                      style={{ display:'block', width:'100%', height:'auto', aspectRatio:'640 / 420', objectFit:'cover', background:'#e5e7eb' }} />
+                  : <div aria-hidden="true" style={{ aspectRatio:'640 / 420', background:`linear-gradient(135deg, ${TD.forest}, #8FC638)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <span style={{ ...FF.display, fontSize:30, color:'#fff' }}><i className="fas fa-map-marker-alt" style={{ fontSize:22, marginRight:10 }}></i>{city.name}</span>
+                    </div>}
+                <div style={{ padding:'14px 16px 16px' }}>
+                  <h3 style={{ ...FF.display, fontSize:20, color:lp.ink2Heading, margin:'0 0 4px' }}>Waste collection in {city.name}</h3>
+                  <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:0, lineHeight:1.5 }}>{cityAreas(city.slug)}</p>
+                </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -1536,40 +1581,40 @@ const ServiceAreasSection = () => {
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HOME_FAQS = [
   {
-    q: 'How do I book trash pickup or rubbish collection in Ghana?',
-    a: 'Sign up at trashdrops.com or message TrashDrop on WhatsApp at +233 20 933 8885. Choose the QR Bag System for regular rubbish collection, where pickup is free once your bag is registered, or the Digital Bin service for an on-demand trash pickup with an instant GPS price quote. A verified collector accepts the request and you can track them live until your waste collection is complete.',
+    q: 'How do I book a waste pickup in Ghana?',
+    a: 'Sign up at trashdrops.com or WhatsApp us on +233 20 933 8885. Choose QR Bag pickup, which is free once your bags are registered, or Digital Bin for a one-off pickup with an instant price. A verified collector takes your request, and you can follow them until the job is done.',
   },
   {
     q: 'How does TrashDrop work?',
-    a: 'TrashDrop is a Progressive Web App at trashdrops.com that connects households and businesses with verified waste collectors in six steps. Sign up, set your location, choose the QR Bag System (buy official bags, scan to activate, request a free pickup) or the Digital Bin service (enter waste details, get an instant GPS quote, pay via MoMo or cash at collection). A collector accepts within 2 hours, tracks to your location via live GPS, scans the QR code to confirm collection, and delivers to an authorised disposal site. You receive confirmation and reward points.',
+    a: 'Six steps: get TrashDrop bags, scan the code on the pack, fill a bag, request a pickup, a verified collector arrives, and you track your waste until it reaches an approved disposal site. For a one-off pickup, choose Digital Bin, get a price and pay with MoMo or cash.',
   },
   {
     q: 'Do I need to download an app?',
-    a: 'No. TrashDrop runs as a Progressive Web App entirely in your browser at trashdrops.com — no app store download required on iOS or Android. It also works offline for core functions.',
+    a: "No. TrashDrop works in your phone's browser at trashdrops.com, on Android and iPhone.",
   },
   {
-    q: 'What is the QR Bag System and how is pickup free?',
-    a: 'You purchase official TrashDrop bags from authorised vendors. Each bundle has a printed QR code — scan it in the app to register the bags. Once registered, requesting a pickup is completely free. You only pay the one-time cost of the bag bundle.',
+    q: 'How are QR Bag pickups free?',
+    a: 'You buy official TrashDrop bags from an approved seller. Each pack has a code; scan it to register your bags. After that, every pickup is free. You only pay for the bags.',
   },
   {
-    q: 'How can I earn money collecting waste in Ghana?',
-    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your Ghana phone number, upload your Ghana Card and vehicle details, and submit for approval. Once approved, accept jobs near you on the map. Average earnings are ₵32.43 per completed pickup — paid instantly to MTN, Vodafone, or AirtelTigo mobile money. Full-time collectors earn ₵2,500–₵8,000/month.',
+    q: 'How can I earn money collecting waste?',
+    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your phone number, upload your Ghana Card and vehicle details, and wait for approval. Then accept pickup jobs near you. The app keeps working when you are offline. Collectors earn ₵32.43 a pickup on average, paid straight to mobile money. Full-time collectors earn ₵2,500–₵8,000 a month.',
   },
   {
-    q: 'How do I report illegal dumping in Ghana?',
-    a: 'Open the TrashDrop app, tap "Report Illegal Dumping," photograph the site (minimum one clear photo), allow GPS to capture the location, and submit. You immediately earn reward points. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews. You can track cleanup status directly in the app.',
+    q: 'How do I report illegal dumping?',
+    a: 'Tap Report dumping, take a clear photo, share your location and send. You earn reward points, and we send a cleanup crew and tell the local assembly. You can follow the cleanup in the app.',
   },
   {
-    q: 'Which cities does TrashDrop waste collection serve?',
-    a: 'TrashDrop offers waste collection and trash pickup in Accra (including East Legon, Dome, Madina, Spintex, Achimota and surrounding areas), Kumasi, Takoradi and Tamale. Coverage is expanding continuously across Ghana.',
+    q: 'Which cities do you serve?',
+    a: 'Accra (including East Legon, Dome, Madina, Spintex and Achimota), Kumasi, Takoradi and Tamale. More cities are coming.',
   },
   {
-    q: 'What payment methods does TrashDrop accept?',
-    a: 'For the Digital Bin on-demand service: MTN MoMo, Vodafone Cash, AirtelTigo Money, and debit/credit cards — paid at the point of collection. For the QR Bag System, pickups are always FREE. Only the bag purchase itself has a cost, payable at your local authorised vendor.',
+    q: 'How do I pay?',
+    a: 'Digital Bin pickups: MTN MoMo, Telecel Cash, AirtelTigo Money, card or cash, paid at pickup. QR Bag pickups are always free; you only pay for the bags.',
   },
   {
-    q: 'Are the waste collectors verified?',
-    a: 'Yes. Every TrashDrop collector is verified with a valid Ghana ID (Ghana Card, Passport, or Voters ID), vehicle registration, and operational licence before being approved. Collector profiles show their verification status, vehicle type, and star rating.',
+    q: 'Are the collectors verified?',
+    a: "Yes. Before we approve a collector, they show a valid Ghana ID (Ghana Card, passport or voter ID), their vehicle registration and an operating licence. You can see each collector's rating and vehicle in the app.",
   },
 ];
 
@@ -1679,7 +1724,7 @@ const HomeFooter = () => {
         {[
           { title:'Waste Collection', links:[...CITY_PAGES.map(c => [c.name, c.path]), ['On-demand waste pickup', WASTE_PICKUP_PATH]] },
           { title:'Platform', links:[['How It Works','/how-it-works/'],['FAQ','/faq/'],['For Households','/users/'],['Earn as a Collector','/collectors/'],['Report Dumping','/illegal-dumping/']] },
-          { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partnerships','#partners'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
+          { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partners','/partners/'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
             <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
@@ -1703,6 +1748,17 @@ const HomeFooter = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    APP DOWNLOAD BANNER
    ═══════════════════════════════════════════════════════════════════════════════ */
+const CollectorsLine = () => {
+  const { lp } = useLpTheme();
+  return (
+    <section style={{ background:lp.pageBg, padding:'40px 24px' }}>
+      <p style={{ ...FF.body, fontSize:17, lineHeight:1.6, color:lp.ink2Heading, textAlign:'center', maxWidth:720, margin:'0 auto' }}>
+        We work with existing collectors and aboboyaa crews, giving them better tools and steady jobs.
+      </p>
+    </section>
+  );
+};
+
 const AppDownloadBanner = () => {
   const { isDark } = useLpTheme();
   return (
@@ -1751,7 +1807,7 @@ const AppDownloadBanner = () => {
         <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
           <div style={{ background:'#fff', borderRadius:16, padding:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
             <img
-              src="/images/app-download-qr.jpeg"
+              src="/images/book-in-app-qr.png"
               alt="Scan to download TrashDrop"
               style={{ width:148, height:148, display:'block', borderRadius:8 }}
             />
@@ -1766,38 +1822,27 @@ const AppDownloadBanner = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    FLOATING FAB
    ═══════════════════════════════════════════════════════════════════════════════ */
-const FloatingActions = ({ isAuthenticated }) => {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+// Fixed, so it never moves the page. Shows once the top booking card has scrolled out of view.
+const StickyBookButton = () => {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const fn = () => setShow(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive:true });
-    return () => window.removeEventListener('scroll', fn);
+    const card = document.getElementById('book');
+    if (!card || !('IntersectionObserver' in window)) return undefined;
+    const obs = new IntersectionObserver(([e]) => setShow(!e.isIntersecting));
+    obs.observe(card);
+    return () => obs.disconnect();
   }, []);
-  if (!show) return null;
+  const goToCard = (e) => {
+    e.preventDefault();
+    document.getElementById('book').scrollIntoView({ behavior:'smooth', block:'center' });
+  };
   return (
-    <div style={{ position:'fixed', bottom:28, right:28, zIndex:2000, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:10 }}>
-      {open && (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {[{label:'Report Dump', icon:'fa-exclamation-triangle', color:'#ef4444', action:() => isAuthenticated?navigate('/illegal-dumping/reports'):navigate('/signup')},
-            {label:'View Map',   icon:'fa-map',                   color:'#4d9de0', href:'#map'},
-            {label:'Join Now',   icon:'fa-user-plus',             color:TD.lime,   to:'/signup'}].map(a => (
-            <div key={a.label} style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, background:TD.ink, color:'#fff', padding:'6px 12px', borderRadius:8, boxShadow:'0 4px 16px rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>{a.label}</span>
-              {a.action
-                ? <button onClick={a.action} style={{ width:44, height:44, borderRadius:'50%', background:a.color, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:'#fff', fontSize:16 }}><i className={`fas ${a.icon}`}></i></button>
-                : a.href
-                  ? <a href={a.href}  style={{ width:44, height:44, borderRadius:'50%', background:a.color, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:'#fff', fontSize:16, textDecoration:'none' }}><i className={`fas ${a.icon}`}></i></a>
-                  : <Link to={a.to}   style={{ width:44, height:44, borderRadius:'50%', background:a.color, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 4px 20px ${a.color}60`, color:TD.ink, fontSize:16, textDecoration:'none' }}><i className={`fas ${a.icon}`}></i></Link>
-              }
-            </div>
-          ))}
-        </div>
-      )}
-      <button onClick={() => setOpen(o=>!o)} style={{ width:56, height:56, borderRadius:'50%', background:open?'rgba(255,255,255,0.1)':TD.lime, border:open?'1px solid rgba(255,255,255,0.2)':'none', boxShadow:open?'none':`0 8px 32px ${TD.lime}50`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.25s ease' }}>
-        <i className={`fas ${open?'fa-times':'fa-plus'}`} style={{ fontSize:20, color:open?'#fff':TD.ink, transform:open?'rotate(45deg)':'rotate(0)', transition:'transform 0.25s ease' }}></i>
-      </button>
+    <div className="td-sticky-book" data-testid="sticky-book" aria-hidden={!show}
+      style={{ position:'fixed', zIndex:2000, transition:'transform 0.25s ease, opacity 0.25s ease', transform: show ? 'none' : 'translateY(140%)', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>
+      <a href="#book" onClick={goToCard} tabIndex={show ? 0 : -1}
+        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, padding:'0 26px', borderRadius:999, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', boxShadow:'0 8px 28px rgba(0,0,0,0.28)' }}>
+        <i className="fas fa-truck" aria-hidden="true"></i> Book a pickup
+      </a>
     </div>
   );
 };
@@ -1826,8 +1871,8 @@ const PricingGuideSection = () => {
       <div style={{ position:'relative', overflow:'hidden', minHeight:340, display:'flex', alignItems:'center', background:'#0a1a0a' }}>
         {/* 3-image row — right 50% of the banner, full height */}
         <div style={{ position:'absolute', top:0, right:0, height:'100%', display:'flex', alignItems:'stretch', gap:2, zIndex:1 }}>
-          <img src="/images/QR_code_trashbag.png"   alt="TrashDrop QR-coded waste bags for organic, general and recyclable waste"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
-          <img src="/images/QR_code_trashbag_2.png" alt="QR code label on a TrashDrop waste collection bag"     style={{ height:'100%', width:'auto', display:'block' }} />
+          <img src="/images/home/pricing-bags-1.jpg" width="1054" height="700" loading="lazy" decoding="async" alt="TrashDrop QR-coded waste bags for organic, general and recyclable waste"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
+          <img src="/images/home/pricing-bags-2.jpg" width="1086" height="578" loading="lazy" decoding="async" alt="QR code label on a TrashDrop waste collection bag"     style={{ height:'100%', width:'auto', display:'block' }} />
         </div>
         {/* Dark gradient — solid left, barely touches the image area on the right */}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, #0a1a0a 0%, #0a1a0a 40%, rgba(10,26,10,0.7) 52%, rgba(10,26,10,0.08) 68%, transparent 100%)', zIndex:2 }} />
@@ -1835,7 +1880,7 @@ const PricingGuideSection = () => {
         <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.03, backgroundImage:`linear-gradient(rgba(168,230,61,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(168,230,61,0.6) 1px,transparent 1px)`, backgroundSize:'40px 40px' }} />
         {/* Lime left-edge accent line */}
         <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime},transparent)`, zIndex:3 }} />
-        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2025 PRICING GUIDE</div>
+        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2026 PRICING</div>
         <div style={{ position:'relative', zIndex:3, padding:'60px 40px', maxWidth:'50%' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
             <div style={{ width:28, height:2, background:TD.lime }} />
@@ -1918,24 +1963,70 @@ const LpPageInner = ({ auth }) => {
   const { lp } = useLpTheme();
   useSeo({ ...HOME_SEO, jsonLd: [organizationJsonLd(), localBusinessJsonLd()] });
   return (
-    <div style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
+    <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
       <HomeNavbar         isAuthenticated={auth} />
       <HeroSection        isAuthenticated={auth} />
+      <TrustRow />
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} />
-      <ImpactSection />
+      <ReportDumpingSection />
       <PricingGuideSection />
-      <PathwaysSection />
-      <PartnershipsSection />
       <ServiceAreasSection />
       <FAQSection />
+      <CollectorsLine />
       <AppDownloadBanner />
       <HomeFooter />
-      <FloatingActions    isAuthenticated={auth} />
+      <StickyBookButton />
     </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   /partners — assemblies, operators, businesses and community groups
+   ═══════════════════════════════════════════════════════════════════════════════ */
+export const PARTNERS_SEO = {
+  title: 'Partner with TrashDrop | Assemblies, Operators & Businesses in Ghana',
+  description: 'For MMDAs, waste operators and businesses in Ghana: live illegal dumping map, hotspot and risk data, cleanup dispatch and municipal dashboards.',
+  path: '/partners/',
+};
+
+const PartnersPageInner = ({ auth }) => {
+  const { lp } = useLpTheme();
+  useSeo({ ...PARTNERS_SEO, jsonLd: [organizationJsonLd()] });
+  // One load for the map, its stats and the impact numbers, so they always agree
+  const dumpingData = usePublicDumpingReports();
+  return (
+    <div className="td-page td-partners-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body }}>
+      <GlobalStyles />
+      <HomeNavbar isAuthenticated={auth} />
+      <header style={{ background:TD.ink, padding:'136px 24px 64px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto' }}>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Partners</span>
+          <h1 style={{ ...FF.display, fontSize:'clamp(36px,4.6vw,58px)', lineHeight:1.05, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'12px 0 14px' }}>
+            TrashDrop for assemblies, operators and businesses
+          </h1>
+          <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.75)', maxWidth:640, margin:0 }}>
+            Live illegal dumping reports, hotspot and risk data, and cleanup crews you can dispatch, across Ghana.
+          </p>
+        </div>
+      </header>
+      <PathwaysSection />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
+      <ImpactSection      dumpingData={dumpingData} />
+      <PartnershipsSection />
+      <HomeFooter />
+    </div>
+  );
+};
+
+export const PartnersPage = () => {
+  const { isAuthenticated, authInitialized } = useAuth();
+  return (
+    <LpThemeProvider>
+      <PartnersPageInner auth={authInitialized ? isAuthenticated : false} />
+    </LpThemeProvider>
   );
 };
 
