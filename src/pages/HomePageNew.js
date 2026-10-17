@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_STAT_THRESHOLDS } from '../config/homepage';
+import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity } from '../config/homepage';
+import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
@@ -288,7 +289,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
   ];
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
-  const navLinkColor    = isDark ? 'rgba(255,255,255,0.75)'     : 'rgba(27,62,40,0.8)';
+  // Light links while the bar is see-through over the dark hero
+  const navLinkColor    = isDark || !scrolled ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
   const brandColor      = isDark ? '#fff'                        : TD.forest;
   const mobileMenuBg    = isDark ? TD.ink                        : '#fff';
   const mobileLinkColor = isDark ? 'rgba(255,255,255,0.8)'      : 'rgba(27,62,40,0.85)';
@@ -345,6 +347,89 @@ const HomeNavbar = ({ isAuthenticated }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   BOOKING CARD (top of the hero)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const SERVICES = {
+  bag: { label:'QR Bag pickup', note:'Free',      cta:'Request pickup' },
+  bin: { label:'Digital Bin',   note:'Get quote', cta:'Get quote'      },
+};
+
+const BookingCard = () => {
+  const [city, setCity] = useState(BOOKING_CITIES[0].name);
+  const [location, setLocation] = useState('');
+  const [service, setService] = useState('bag');
+  const [locStatus, setLocStatus] = useState('');
+  const [locating, setLocating] = useState(false);
+
+  // Location is only requested when the visitor taps the button, never on load
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { setLocStatus('Your browser cannot share your location. Type your area instead.'); return; }
+    setLocating(true);
+    setLocStatus('Finding you…');
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const near = nearestBookingCity(coords.latitude, coords.longitude);
+      if (near) setCity(near);
+      const address = await reverseGeocode(coords.latitude, coords.longitude);
+      setLocation(address || `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`);
+      setLocStatus(near ? '' : 'We are not in your area yet. We serve Accra, Kumasi, Takoradi and Tamale.');
+      setLocating(false);
+    }, () => {
+      setLocStatus('Location is off. Type your area instead.');
+      setLocating(false);
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  };
+
+  const field = { width:'100%', boxSizing:'border-box', height:48, border:'1px solid #d7dbe0', borderRadius:10, padding:'0 52px 0 14px', ...FF.body, fontSize:15, color:TD.ink, background:'#fff' };
+  return (
+    <div data-testid="booking-card" style={{ background:'#fff', borderRadius:18, padding:20, maxWidth:480, boxShadow:'0 18px 50px rgba(0,0,0,0.35)', color:TD.ink, minHeight:420, boxSizing:'border-box' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, ...FF.body, fontSize:15 }}>
+        <span>Pickup in <strong data-testid="booking-city">{city}</strong></span>
+        {/* A native picker under a "Change city" link: nothing on the page moves when it opens */}
+        <label style={{ position:'relative', color:TD.forest, fontWeight:600, fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
+          Change city
+          <select value={city} onChange={e => setCity(e.target.value)} aria-label="Change city"
+            style={{ position:'absolute', inset:0, opacity:0, cursor:'pointer', width:'100%' }}>
+            {BOOKING_CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <label htmlFor="booking-location" style={{ display:'block', ...FF.label, fontSize:12, fontWeight:700, color:'#4b5563', marginBottom:6 }}>Your location</label>
+      <div style={{ position:'relative' }}>
+        <input id="booking-location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Area, street or landmark" autoComplete="street-address" style={field} />
+        <button type="button" onClick={useMyLocation} disabled={locating} aria-label="Use my location" title="Use my location"
+          style={{ position:'absolute', right:4, top:4, width:40, height:40, border:'none', borderRadius:8, background:`${TD.lime}30`, color:TD.forest, cursor:'pointer', fontSize:16 }}>
+          <i className={`fas ${locating ? 'fa-spinner fa-spin' : 'fa-location-arrow'}`} aria-hidden="true"></i>
+        </button>
+      </div>
+      <p role="status" style={{ ...FF.body, fontSize:12, color:'#6b7280', minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
+
+      <div role="radiogroup" aria-label="Service" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, background:'#f1f3f5', borderRadius:12, padding:4, marginBottom:14 }}>
+        {Object.entries(SERVICES).map(([key, s]) => (
+          <button key={key} type="button" role="radio" aria-checked={service === key} onClick={() => setService(key)}
+            style={{ border:'none', borderRadius:9, padding:'9px 6px', cursor:'pointer', background: service === key ? '#fff' : 'transparent', boxShadow: service === key ? '0 1px 4px rgba(0,0,0,0.12)' : 'none', ...FF.body, color:TD.ink, lineHeight:1.25 }}>
+            <span style={{ display:'block', fontSize:14, fontWeight:600 }}>{s.label}</span>
+            <span style={{ display:'block', fontSize:12, color: key === 'bag' ? TD.forest : '#6b7280' }}>({s.note})</span>
+          </button>
+        ))}
+      </div>
+
+      <a href={HOUSEHOLD_APP_URL} data-testid="booking-submit"
+        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, borderRadius:12, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none' }}>
+        <i className="fas fa-truck" aria-hidden="true"></i> {SERVICES[service].cta}
+      </a>
+
+      <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
+        <img src="/images/book-in-app-qr.png" alt="QR code that opens the TrashDrop app" width="96" height="96" style={{ width:96, height:96, borderRadius:8, flexShrink:0 }} />
+        <p style={{ ...FF.body, fontSize:14, lineHeight:1.5, color:'#374151', margin:0 }}>
+          <strong>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    HERO
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HeroSection = ({ isAuthenticated }) => {
@@ -380,35 +465,26 @@ const HeroSection = ({ isAuthenticated }) => {
       <div style={{ position:'absolute', inset:0, opacity:0.04, pointerEvents:'none', backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', zIndex:2 }} />
       <div style={{ position:'absolute', top:0, right:'22%', width:1, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime}28,transparent)`, pointerEvents:'none', zIndex:2 }} />
 
-      <div style={{ position:'relative', zIndex:3, maxWidth:1280, margin:'0 auto', padding:'110px 24px 80px', width:'100%' }}>
+      <div style={{ position:'relative', zIndex:3, maxWidth:1280, margin:'0 auto', padding:'96px 24px 64px', width:'100%' }}>
         <div className="td-hero-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:64, alignItems:'center' }}>
 
           {/* Left */}
           <div style={{ position:'relative', zIndex:3 }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:28 }}>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:20 }}>
               <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
               <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
             </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(40px,5vw,66px)', lineHeight:1.02, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
+            <h1 style={{ ...FF.display, fontSize:'clamp(38px,4.4vw,56px)', lineHeight:1.04, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
               Waste pickup in Ghana, booked in minutes
             </h1>
             <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
               A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:40 }}>
-              <Link to={isAuthenticated ? '/dashboard' : '/signup'}
-                style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.lime, color:TD.ink, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, transition:'all 0.25s cubic-bezier(.34,1.56,.64,1)' }}
-                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.03)';e.currentTarget.style.boxShadow=`0 16px 40px ${TD.lime}55`;}}
-                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 8px 32px ${TD.lime}45`;}}>
-                <i className="fas fa-truck"></i> Book a Pickup
-              </Link>
-              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)`, transition:'all 0.25s ease' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}55`;e.currentTarget.style.background=`${TD.lime}0D`;}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';e.currentTarget.style.background='transparent';}}>
-                <i className="fab fa-whatsapp" style={{ color:'#25D366' }}></i> WhatsApp {BUSINESS.phoneDisplay}
-              </a>
-            </div>
+            <BookingCard />
+            <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, color:'rgba(255,255,255,0.82)', ...FF.label, fontSize:14, fontWeight:600, textDecoration:'none', margin:'16px 0 36px' }}>
+              <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
+            </a>
             <div style={{ display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
               {[{v:'FREE',l:'Pickup with QR Bags'},{v:'90–240L',l:'Bag Sizes'},{v:'MoMo',l:'Or Cash on Pickup'}].map(s => (
                 <div key={s.l}>
