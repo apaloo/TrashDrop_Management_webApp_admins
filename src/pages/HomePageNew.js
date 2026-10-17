@@ -455,7 +455,7 @@ const HeroSection = ({ isAuthenticated }) => {
       <div style={{ 
         position:'absolute', 
         inset:0, 
-        backgroundImage:'url(/images/auth-bg.jpg)', 
+        backgroundImage:'url(/images/home/hero-bg.jpg)', 
         backgroundSize:'cover', 
         backgroundPosition:'center',
         backgroundRepeat:'no-repeat',
@@ -1807,7 +1807,7 @@ const AppDownloadBanner = () => {
         <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
           <div style={{ background:'#fff', borderRadius:16, padding:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
             <img
-              src="/images/app-download-qr.jpeg"
+              src="/images/book-in-app-qr.png"
               alt="Scan to download TrashDrop"
               style={{ width:148, height:148, display:'block', borderRadius:8 }}
             />
@@ -1871,8 +1871,8 @@ const PricingGuideSection = () => {
       <div style={{ position:'relative', overflow:'hidden', minHeight:340, display:'flex', alignItems:'center', background:'#0a1a0a' }}>
         {/* 3-image row — right 50% of the banner, full height */}
         <div style={{ position:'absolute', top:0, right:0, height:'100%', display:'flex', alignItems:'stretch', gap:2, zIndex:1 }}>
-          <img src="/images/QR_code_trashbag.png"   alt="TrashDrop QR-coded waste bags for organic, general and recyclable waste"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
-          <img src="/images/QR_code_trashbag_2.png" alt="QR code label on a TrashDrop waste collection bag"     style={{ height:'100%', width:'auto', display:'block' }} />
+          <img src="/images/home/pricing-bags-1.jpg" width="1054" height="700" loading="lazy" decoding="async" alt="TrashDrop QR-coded waste bags for organic, general and recyclable waste"     style={{ height:'100%', width:'auto', display:'block', opacity:0.85 }} />
+          <img src="/images/home/pricing-bags-2.jpg" width="1086" height="578" loading="lazy" decoding="async" alt="QR code label on a TrashDrop waste collection bag"     style={{ height:'100%', width:'auto', display:'block' }} />
         </div>
         {/* Dark gradient — solid left, barely touches the image area on the right */}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, #0a1a0a 0%, #0a1a0a 40%, rgba(10,26,10,0.7) 52%, rgba(10,26,10,0.08) 68%, transparent 100%)', zIndex:2 }} />
