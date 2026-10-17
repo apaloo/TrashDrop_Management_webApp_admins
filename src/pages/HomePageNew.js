@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity } from '../config/homepage';
+import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
+import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
@@ -268,6 +269,8 @@ const GlobalStyles = () => (
       .td-sticky-book a { border-radius:12px !important; box-shadow:none !important; }
       .td-page { padding-bottom:76px; }
     }
+    @media(max-width:600px) { .td-trust{grid-template-columns:repeat(2,1fr)!important; row-gap:18px!important} .td-city-row{grid-auto-columns:78%!important} }
+    .td-city-row { scrollbar-width:thin; }
     .td-lp-toggle { transition: background 0.2s, color 0.2s, border-color 0.2s; }
     .td-lp-toggle:hover { opacity: 0.85; }
   `}</style>
@@ -491,19 +494,6 @@ const HeroSection = ({ isAuthenticated }) => {
               style={{ display:'inline-flex', alignItems:'center', gap:8, color:'rgba(255,255,255,0.82)', ...FF.label, fontSize:14, fontWeight:600, textDecoration:'none', margin:'16px 0 36px' }}>
               <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
             </a>
-            <div style={{ display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
-              {[{v:'FREE',l:'Pickup with QR Bags'},{v:'90–240L',l:'Bag Sizes'},{v:'MoMo',l:'Or Cash on Pickup'}].map(s => (
-                <div key={s.l}>
-                  <div style={{ ...FF.data, fontSize:22, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-                  <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
-                </div>
-              ))}
-              <div style={{ width:1, height:36, background:'rgba(255,255,255,0.08)' }} />
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <span style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>Live collector tracking</span>
-              </div>
-            </div>
           </div>
 
           {/* Right — floating cards */}
@@ -557,6 +547,22 @@ const HeroSection = ({ isAuthenticated }) => {
     </section>
   );
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TRUST ROW (values in src/config/homepage.js)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const TrustRow = () => (
+  <section aria-label="Why households trust TrashDrop" style={{ background:TD.ink, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+    <ul className="td-trust" style={{ listStyle:'none', margin:'0 auto', maxWidth:1100, padding:'22px 24px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+      {TRUST_STATS.map(t => (
+        <li key={t.label} style={{ textAlign:'center' }}>
+          <span style={{ display:'block', ...FF.data, fontSize:30, color:TD.lime, letterSpacing:'1px', lineHeight:1.1 }}>{t.value}</span>
+          <span style={{ display:'block', ...FF.body, fontSize:13, color:'rgba(255,255,255,0.75)' }}>{t.label}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+);
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MARQUEE STRIP
@@ -1514,39 +1520,34 @@ const PartnershipsSection = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICE AREAS
    ═══════════════════════════════════════════════════════════════════════════════ */
-const SERVICE_AREA_BLURBS = {
-  accra:    'East Legon, Madina, Dome, Spintex, Achimota, Adenta, Tema and more',
-  kumasi:   'Adum, Asokwa, Bantama, Suame, Ahodwo, Nhyiaeso and more',
-  takoradi: 'Takoradi Central, Anaji, Effia, Kwesimintsim, Sekondi and more',
-  tamale:   'Tamale Central, Lamashegu, Kalpohin, Vittin, Sagnarigu and more',
-};
+// First few neighbourhoods from each city page, e.g. "East Legon, Madina, Adenta…"
+const cityAreas = (slug) => `${CITY_CONTENT[slug].areas.slice(0, 3).join(', ')}…`;
 
 const ServiceAreasSection = () => {
   const { lp } = useLpTheme();
   return (
-    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'88px 24px' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:44 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forest, textTransform:'uppercase' }}>Service Areas</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,48px)', color:lp.ink2Heading, margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
+    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'72px 0' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto' }}>
+        <div style={{ padding:'0 24px', marginBottom:24 }}>
+          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,44px)', color:lp.ink2Heading, margin:'0 0 6px', letterSpacing:'-1px', lineHeight:1.05 }}>
             Waste collection near you
           </h2>
-          <p style={{ ...FF.body, fontSize:16, color:lp.sageText, maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
-            TrashDrop collectors handle trash pickup and rubbish collection in four cities. Choose yours to see the neighbourhoods we cover.
-          </p>
+          <p style={{ ...FF.body, fontSize:16, color:lp.sageText, margin:0 }}>Pick your city to see the areas we cover.</p>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))', gap:16 }}>
+        <ul className="td-city-row" style={{ listStyle:'none', margin:0, padding:'4px 24px 16px', display:'grid', gridAutoFlow:'column', gridAutoColumns:'minmax(250px, 1fr)', gap:16, overflowX:'auto', scrollSnapType:'x mandatory', scrollPaddingInline:24, WebkitOverflowScrolling:'touch' }}>
           {CITY_PAGES.map(city => (
-            <Link key={city.slug} to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, padding:'24px 22px', textDecoration:'none' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                <i className="fas fa-map-marker-alt" style={{ color:TD.forest, fontSize:13 }}></i>
-                <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:0 }}>Waste collection in {city.name}</h3>
-              </div>
-              <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:'0 0 14px', lineHeight:1.6 }}>{SERVICE_AREA_BLURBS[city.slug]}</p>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, color:TD.forest }}>See {city.name} coverage →</span>
-            </Link>
+            <li key={city.slug} style={{ scrollSnapAlign:'start' }}>
+              <Link to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, overflow:'hidden', textDecoration:'none', height:'100%' }}>
+                <img src={CITY_CARD_PHOTOS[city.slug]} alt={`TrashDrop waste pickup in ${city.name}`} width="640" height="420" loading="lazy" decoding="async"
+                  style={{ display:'block', width:'100%', height:'auto', aspectRatio:'640 / 420', objectFit:'cover', background:'#e5e7eb' }} />
+                <div style={{ padding:'14px 16px 16px' }}>
+                  <h3 style={{ ...FF.display, fontSize:20, color:lp.ink2Heading, margin:'0 0 4px' }}>Waste collection in {city.name}</h3>
+                  <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:0, lineHeight:1.5 }}>{cityAreas(city.slug)}</p>
+                </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -1945,6 +1946,7 @@ const LpPageInner = ({ auth }) => {
       <GlobalStyles />
       <HomeNavbar         isAuthenticated={auth} />
       <HeroSection        isAuthenticated={auth} />
+      <TrustRow />
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />

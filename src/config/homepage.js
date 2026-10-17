@@ -34,3 +34,19 @@ export const nearestBookingCity = (lat, lng, maxKm = 60) => {
   }
   return best && best.name;
 };
+
+// Trust row under the top of the homepage. Update these when the numbers change.
+export const TRUST_STATS = [
+  { value: '480+', label: 'ID-verified collectors' },
+  { value: '4.8★', label: 'rating' },
+  { value: '98%',  label: 'pickups completed' },
+  { value: String(BOOKING_CITIES.length), label: 'cities' },
+];
+
+// Photo on each city card (swap for real photos of each city when we have them)
+export const CITY_CARD_PHOTOS = {
+  accra:    '/images/cities/accra.jpg',
+  kumasi:   '/images/cities/kumasi.jpg',
+  takoradi: '/images/cities/takoradi.jpg',
+  tamale:   '/images/cities/tamale.jpg',
+};
