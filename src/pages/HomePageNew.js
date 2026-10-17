@@ -1538,8 +1538,12 @@ const ServiceAreasSection = () => {
           {CITY_PAGES.map(city => (
             <li key={city.slug} style={{ scrollSnapAlign:'start' }}>
               <Link to={city.path} style={{ display:'block', background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, borderRadius:16, overflow:'hidden', textDecoration:'none', height:'100%' }}>
-                <img src={CITY_CARD_PHOTOS[city.slug]} alt={`TrashDrop waste pickup in ${city.name}`} width="640" height="420" loading="lazy" decoding="async"
-                  style={{ display:'block', width:'100%', height:'auto', aspectRatio:'640 / 420', objectFit:'cover', background:'#e5e7eb' }} />
+                {CITY_CARD_PHOTOS[city.slug]
+                  ? <img src={CITY_CARD_PHOTOS[city.slug]} alt={`TrashDrop waste pickup in ${city.name}`} width="640" height="420" loading="lazy" decoding="async"
+                      style={{ display:'block', width:'100%', height:'auto', aspectRatio:'640 / 420', objectFit:'cover', background:'#e5e7eb' }} />
+                  : <div aria-hidden="true" style={{ aspectRatio:'640 / 420', background:`linear-gradient(135deg, ${TD.forest}, #8FC638)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <span style={{ ...FF.display, fontSize:30, color:'#fff' }}><i className="fas fa-map-marker-alt" style={{ fontSize:22, marginRight:10 }}></i>{city.name}</span>
+                    </div>}
                 <div style={{ padding:'14px 16px 16px' }}>
                   <h3 style={{ ...FF.display, fontSize:20, color:lp.ink2Heading, margin:'0 0 4px' }}>Waste collection in {city.name}</h3>
                   <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:0, lineHeight:1.5 }}>{cityAreas(city.slug)}</p>

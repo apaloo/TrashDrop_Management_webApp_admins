@@ -43,10 +43,10 @@ export const TRUST_STATS = [
   { value: String(BOOKING_CITIES.length), label: 'cities' },
 ];
 
-// Photo on each city card (swap for real photos of each city when we have them)
+// Photo on each city card; null shows a plain brand panel until we have a photo
 export const CITY_CARD_PHOTOS = {
   accra:    '/images/cities/accra.jpg',
   kumasi:   '/images/cities/kumasi.jpg',
-  takoradi: '/images/cities/takoradi.jpg',
+  takoradi: null,
   tamale:   '/images/cities/tamale.jpg',
 };
