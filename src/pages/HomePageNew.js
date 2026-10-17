@@ -1109,22 +1109,6 @@ const SocialFeedOverlay = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   REPORT DUMPING (short, households)
-   ═══════════════════════════════════════════════════════════════════════════════ */
-const ReportDumpingSection = () => (
-  <section id="report" style={{ background:TD.ink, padding:'56px 24px' }}>
-    <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:20 }}>
-      <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.4vw,40px)', color:'#f0f5f0', margin:0, letterSpacing:'-0.5px', lineHeight:1.15 }}>
-        See a dump? Snap it, we'll get it cleared.
-      </h2>
-      <a href="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:10, height:52, padding:'0 26px', borderRadius:12, background:TD.orange, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', flexShrink:0 }}>
-        <i className="fas fa-camera" aria-hidden="true"></i> Report dumping
-      </a>
-    </div>
-  </section>
-);
-
-/* ═══════════════════════════════════════════════════════════════════════════════
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
 const MapPreviewSection = ({ isAuthenticated, dumpingData }) => {
@@ -1962,6 +1946,8 @@ export const HOME_SEO = {
 const LpPageInner = ({ auth }) => {
   const { lp } = useLpTheme();
   useSeo({ ...HOME_SEO, jsonLd: [organizationJsonLd(), localBusinessJsonLd()] });
+  // One load for the map, its stats and the impact numbers, so they always agree
+  const dumpingData = usePublicDumpingReports();
   return (
     <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
@@ -1971,7 +1957,8 @@ const LpPageInner = ({ auth }) => {
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />
-      <ReportDumpingSection />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
+      <ImpactSection      dumpingData={dumpingData} />
       <PricingGuideSection />
       <ServiceAreasSection />
       <FAQSection />
