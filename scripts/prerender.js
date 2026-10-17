@@ -18,6 +18,7 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const { ROUTE_SOURCES, applyLastmod } = require('./sitemap-lastmod');
 
 const SITE = 'https://trashdrops.com';
 const BUILD_DIR = path.resolve(__dirname, '..', 'build');
@@ -57,7 +58,7 @@ function checkSitemap() {
   const xml = fs.readFileSync(path.join(BUILD_DIR, 'sitemap.xml'), 'utf8');
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
   const want = ROUTES.map(r => SITE + slashed(r));
-  const problems = [];
+  const problems = ROUTES.filter(r => !ROUTE_SOURCES[r]).map(r => `scripts/sitemap-lastmod.js: no source files listed for ${r}`);
   want.filter(u => !locs.includes(u)).forEach(u => problems.push(`sitemap.xml: missing ${u}`));
   locs.filter(u => !want.includes(u)).forEach(u => problems.push(`sitemap.xml: unexpected ${u}`));
   return problems;
@@ -183,6 +184,10 @@ async function main() {
 
   const shellJsonLdCount = (shellHtml.match(/application\/ld\+json/g) || []).length;
   const problems = checkSitemap();
+  // <lastmod> follows the last commit to each page's sources
+  const lastmod = applyLastmod(path.join(BUILD_DIR, 'sitemap.xml'), SITE);
+  console.log(`[prerender] sitemap lastmod: ${lastmod.changed.join(', ') || 'no changes'}`);
+  if (lastmod.kept.length) console.warn(`[prerender] sitemap lastmod kept (no git history): ${lastmod.kept.join(', ')}`);
   const titles = new Map();
   const descriptions = new Map();
   try {

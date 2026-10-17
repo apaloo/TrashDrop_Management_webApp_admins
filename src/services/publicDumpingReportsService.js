@@ -121,6 +121,12 @@ export const computePublicStats = (reports = []) => {
   };
 };
 
+/** Which threshold-gated stats are good enough to show publicly */
+export const publicStatVisibility = (stats, { minCleanupRatePct, maxAvgResponseDays }) => ({
+  cleanupRate: stats.cleanupRate !== null && stats.cleanupRate >= minCleanupRatePct,
+  avgResponse: stats.avgResponseHours !== null && stats.avgResponseHours < maxAvgResponseDays * 24,
+});
+
 /** "5.9h" under two days, otherwise "3.2 days"; "—" when unknown */
 export const formatDuration = (hours) => {
   if (hours === null || hours === undefined) return '—';

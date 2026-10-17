@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,6 +24,8 @@ export const FF = {
 export const PublicNavbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
+  const [moreOpen, setMoreOpen]     = useState(false);
+  const moreRef = useRef(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -32,13 +34,23 @@ export const PublicNavbar = () => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+  }, [moreOpen]);
+
+  // `more: true` items move into the "More" menu below 1280px so the bar stays on one line
   const NAV = [
     { to: '/how-it-works/',     label: 'How It Works' },
     { to: '/users/',            label: 'For Households' },
-    { to: '/collectors/',       label: 'Earn as Carter' },
+    { to: '/collectors/',       label: 'Earn as Carter', more: true },
     { to: '/illegal-dumping/',  label: 'Report Dumping' },
-    { to: '/blog/',             label: 'Blog' },
-    { to: '/about/',            label: 'About' },
+    { to: '/blog/',             label: 'Blog', more: true },
+    { to: '/about/',            label: 'About', more: true },
     { to: '/partners/',         label: 'Partners' },
   ];
 
@@ -49,29 +61,43 @@ export const PublicNavbar = () => {
 
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:navBg, backdropFilter:scrolled?'blur(22px)':'none', borderBottom:navBorder }}>
-      <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', height:68 }}>
-        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
+        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} onError={e=>{e.target.style.display='none'}} />
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
-        <div className="td-nav-links" style={{ display:'flex', alignItems:'center', gap:28 }}>
+        <div className="td-nav-links td-pub-main" style={{ display:'flex', alignItems:'center', gap:28 }}>
           {NAV.map(l => (
-            <Link key={l.to} to={l.to} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:linkColor, textDecoration:'none', transition:'color 0.2s' }}
+            <Link key={l.to} to={l.to} className={`td-pub-link${l.more ? ' td-pub-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:linkColor, textDecoration:'none', transition:'color 0.2s' }}
               onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
               onMouseLeave={e=>e.currentTarget.style.color=linkColor}>
               {l.label}
             </Link>
           ))}
+          <div ref={moreRef} className="td-pub-more" style={{ position:'relative' }}>
+            <button type="button" className="td-pub-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
+              style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:linkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
+              More <span aria-hidden="true" style={{ fontSize:9, transform:moreOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▼</span>
+            </button>
+            {moreOpen && (
+              <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:190, background:TD.ink, border:'1px solid rgba(168,230,61,0.15)', borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.3)', padding:6 }}>
+                {NAV.filter(l => l.more).map(l => (
+                  <Link key={l.to} to={l.to} role="menuitem" onClick={() => setMoreOpen(false)}
+                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)', textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center' }}>
+        <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {isAuthenticated
-            ? <Link to="/dashboard" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none' }}>Dashboard →</Link>
+            ? <Link to="/dashboard" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none' }}>Dashboard →</Link>
             : <>
-                <Link to="/login"  style={{ ...FF.label, fontSize:13, fontWeight:600, color:linkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/signup" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link>
+                <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:linkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
+                <Link to="/signup" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link>
               </>}
         </div>
-        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:'#fff' }}>
+        <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:'#fff' }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
         </button>
       </div>
@@ -196,8 +222,16 @@ const PublicPageLayout = ({ children, title, description }) => {
   return (
     <div style={{ background: TD.ink, minHeight:'100vh', ...FF.body }}>
       <style>{`
-        @media(max-width:768px) { .td-nav-links{display:none!important} .td-mobile-btn{display:block!important} }
-        @media(min-width:769px) { .td-mobile-btn{display:none!important} }
+        .td-pub-link, .td-pub-btn { white-space:nowrap; }
+        .td-pub-more { display:none; }
+        @media(max-width:1279px) {
+          .td-pub-main { gap:20px!important; }
+          .td-pub-link { font-size:12.5px!important; letter-spacing:0!important; }
+          .td-pub-wide { display:none!important; }
+          .td-pub-more { display:block; }
+        }
+        @media(max-width:1023px) { .td-nav-links{display:none!important} .td-mobile-btn{display:block!important} }
+        @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
         .td-nav-link:hover { color:#a8e63d !important; }
         @keyframes td-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
         @keyframes td-pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(168,230,61,0.4)} 70%{box-shadow:0 0 0 8px rgba(168,230,61,0)} }
