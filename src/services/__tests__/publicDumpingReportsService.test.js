@@ -1,6 +1,6 @@
 import {
   mapPublicReport, isPublicMapReport, timeAgo, cleanupDurationText, PUBLIC_REPORT_COLUMNS,
-  computePublicStats, countHotspots, formatDuration, describeArea, cleanAreaName, nearestTown,
+  computePublicStats, publicStatVisibility, countHotspots, formatDuration, describeArea, cleanAreaName, nearestTown,
 } from '../publicDumpingReportsService';
 
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
@@ -61,6 +61,20 @@ describe('public map stats', () => {
     expect(formatDuration(72)).toBe('3.0 days');
     expect(formatDuration(null)).toBe('—');
     expect(computePublicStats([]).cleanupRate).toBeNull();
+  });
+
+  it('counts distinct areas, ignoring case and reports with no area', () => {
+    const reports = [row({ area_name: 'Osu, Accra' }), row({ id: 'b', area_name: 'osu, accra' }), row({ id: 'c', area_name: 'Madina' }), row({ id: 'd', area_name: null })]
+      .map(mapPublicReport);
+    expect(computePublicStats(reports).areas).toBe(2);
+  });
+
+  it('hides cleanup rate and response time until they pass the thresholds', () => {
+    const t = { minCleanupRatePct: 50, maxAvgResponseDays: 7 };
+    expect(publicStatVisibility({ cleanupRate: 6, avgResponseHours: 79.7 * 24 }, t)).toEqual({ cleanupRate: false, avgResponse: false });
+    expect(publicStatVisibility({ cleanupRate: 50, avgResponseHours: 6.9 * 24 }, t)).toEqual({ cleanupRate: true, avgResponse: true });
+    expect(publicStatVisibility({ cleanupRate: 80, avgResponseHours: 7 * 24 }, t)).toEqual({ cleanupRate: true, avgResponse: false });
+    expect(publicStatVisibility({ cleanupRate: null, avgResponseHours: null }, t)).toEqual({ cleanupRate: false, avgResponse: false });
   });
 
   it('counts hotspots as 3+ active reports chained within 500 m', () => {

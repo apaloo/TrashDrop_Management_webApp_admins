@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
-import { computePublicStats, formatDuration, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { computePublicStats, formatDuration, publicStatVisibility, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { PUBLIC_STAT_THRESHOLDS } from '../config/homepage';
 import { useAuth } from '../context/AuthContext';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 import { subscribeSocialFeed, PLATFORM_META } from '../services/socialFeedService';
@@ -221,13 +222,15 @@ const useCountUp = (end, duration = 2200, shouldStart = false) => {
   useEffect(() => {
     if (!shouldStart) return;
     let t = null;
+    let id;
     const step = (ts) => {
       if (!t) t = ts;
       const p = Math.min((ts - t) / duration, 1);
       setCount(Math.floor(p * end));
-      if (p < 1) requestAnimationFrame(step);
+      if (p < 1) id = requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
+    id = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(id);
   }, [end, duration, shouldStart]);
   return count;
 };
@@ -1086,14 +1089,20 @@ const SocialFeedOverlay = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
-const MapPreviewSection = ({ isAuthenticated }) => {
+const MapPreviewSection = ({ isAuthenticated, dumpingData }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
-  // One load for the map and the stats row, so they always agree
-  const dumpingData = usePublicDumpingReports();
   const stats = computePublicStats(dumpingData.reports);
   const statsReady = dumpingData.status === 'ready';
+  // Cleanup rate and response time only show once they are good enough to stand behind
+  const show = statsReady ? publicStatVisibility(stats, PUBLIC_STAT_THRESHOLDS) : { cleanupRate: false, avgResponse: false };
+  const tiles = [
+    {label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
+    {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
+    show.cleanupRate && {label:'Cleanup Rate',value:`${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
+    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
+  ].filter(Boolean);
   // Logged-out visitors sign in first; logged-in users open the analytics map
   const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
   return (
@@ -1169,11 +1178,8 @@ const MapPreviewSection = ({ isAuthenticated }) => {
           </div>
         </div>
 
-        <div className="td-map-stats" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginTop:24 }}>
-          {[{label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
-            {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
-            {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
-            {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'}].map(s => (
+        <div className="td-map-stats" style={{ display:'grid', gridTemplateColumns:`repeat(${tiles.length},1fr)`, gap:16, marginTop:24 }}>
+          {tiles.map(s => (
             <div key={s.label} data-testid="map-stat" title={s.title} style={{ background:lp.mapStatBg, border:`1px solid ${lp.mapStatBorder}`, borderRadius:14, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
               <div style={{ width:44, height:44, borderRadius:12, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <i className={`fas ${s.icon}`} style={{ color:s.color, fontSize:16 }}></i>
@@ -1269,7 +1275,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
   );
 };
 
-const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
+const ImpactStatCard = ({ label, value, ready, icon, color, accent }) => {
   const { ref, visible } = useReveal(0.3);
   const { lp } = useLpTheme();
   const count = useCountUp(value, 2200, visible);
@@ -1281,15 +1287,14 @@ const ImpactStatCard = ({ label, value, suffix, icon, color, accent }) => {
         <i className={`fas ${icon}`} style={{ fontSize:24, color }}></i>
       </div>
       <div style={{ display:'flex', alignItems:'baseline', justifyContent:'center', gap:2 }}>
-        <span style={{ ...FF.data, fontSize:'clamp(44px,5vw,64px)', color:lp.impactCount, letterSpacing:'1px' }}>{count.toLocaleString()}</span>
-        {suffix && <span style={{ ...FF.data, fontSize:22, color:TD.lime }}>{suffix}</span>}
+        <span style={{ ...FF.data, fontSize:'clamp(44px,5vw,64px)', color:lp.impactCount, letterSpacing:'1px' }}>{ready ? count.toLocaleString() : '—'}</span>
       </div>
       <p style={{ ...FF.body, fontSize:13, color:lp.impactSub, fontWeight:400, margin:'6px 0 0' }}>{label}</p>
     </div>
   );
 };
 
-const ImpactSection = () => {
+const ImpactSection = ({ dumpingData }) => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const [lbIndex, setLbIndex] = useState(null);
@@ -1297,11 +1302,14 @@ const ImpactSection = () => {
   const lbClose = () => setLbIndex(null);
   const lbPrev  = () => setLbIndex(i => (i - 1 + DUMP_PHOTOS.length) % DUMP_PHOTOS.length);
   const lbNext  = () => setLbIndex(i => (i + 1) % DUMP_PHOTOS.length);
+  // Same reports as the live map above, so the two sections always agree
+  const stats = computePublicStats(dumpingData.reports);
+  const ready = dumpingData.status === 'ready';
   const STATS = [
-    { label:'Illegal Dumps Reported', value:12470, suffix:'+', icon:'fa-flag',         color:'#f87171', accent:'rgba(248,113,113,0.15)' },
-    { label:'Tonnes Waste Removed',   value:3850,  suffix:'+', icon:'fa-dumpster',     color:TD.lime,   accent:`${TD.lime}18`            },
-    { label:'CO₂ Prevented (tonnes)', value:940,   suffix:'t', icon:'fa-leaf',         color:'#34d399', accent:'rgba(52,211,153,0.15)'   },
-    { label:'Active Communities',     value:156,   suffix:'',  icon:'fa-users',        color:'#60a5fa', accent:'rgba(96,165,250,0.15)'   },
+    { label:'Dumps Reported',     value:stats.total,     icon:'fa-flag',          color:'#f87171', accent:'rgba(248,113,113,0.15)' },
+    { label:'Cleaned Up',         value:stats.cleanedUp, icon:'fa-broom',         color:TD.lime,   accent:`${TD.lime}18`            },
+    { label:'Waiting for Cleanup', value:stats.active,   icon:'fa-hourglass-half', color:TD.gold,  accent:`${TD.gold}18`            },
+    { label:'Areas Reported',     value:stats.areas,     icon:'fa-map-marker-alt', color:'#60a5fa', accent:'rgba(96,165,250,0.15)'   },
   ];
   return (
     <section id="impact" style={{ background:lp.sectionForest, position:'relative', overflow:'hidden' }}>
@@ -1371,7 +1379,7 @@ const ImpactSection = () => {
         <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
           {STATS.map((s,i) => (
             <div key={s.label} style={{ borderRight:'1px solid rgba(168,230,61,0.1)', borderBottom:'1px solid rgba(168,230,61,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
-              <ImpactStatCard {...s} />
+              <ImpactStatCard {...s} ready={ready} />
             </div>
           ))}
         </div>
@@ -1917,6 +1925,8 @@ export const HOME_SEO = {
 const LpPageInner = ({ auth }) => {
   const { lp } = useLpTheme();
   useSeo({ ...HOME_SEO, jsonLd: [organizationJsonLd(), localBusinessJsonLd()] });
+  // One load for the map, its stats and the impact numbers, so they always agree
+  const dumpingData = usePublicDumpingReports();
   return (
     <div style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
@@ -1925,8 +1935,8 @@ const LpPageInner = ({ auth }) => {
       <MarqueeStrip />
       <HowItWorksSection />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} />
-      <ImpactSection />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
+      <ImpactSection      dumpingData={dumpingData} />
       <PricingGuideSection />
       <PathwaysSection />
       <PartnershipsSection />
