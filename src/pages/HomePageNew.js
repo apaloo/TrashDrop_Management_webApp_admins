@@ -235,28 +235,6 @@ const useCountUp = (end, duration = 2200, shouldStart = false) => {
   return count;
 };
 
-const TW_PHRASES = ['Household Trash.', 'Business Waste.', 'Recyclables.', 'Organic Waste.'];
-const useTypewriter = () => {
-  const [text, setText] = useState('');
-  const st = useRef({ pi: 0, ci: 0, typing: true, locked: false });
-  useEffect(() => {
-    const s = st.current;
-    if (s.locked) return;
-    const phrase = TW_PHRASES[s.pi];
-    const timer = setTimeout(() => {
-      if (s.typing) {
-        if (s.ci < phrase.length) { s.ci++; setText(phrase.slice(0, s.ci)); }
-        else { s.locked = true; setTimeout(() => { s.locked = false; s.typing = false; setText(t => t); }, 1800); }
-      } else {
-        if (s.ci > 0) { s.ci--; setText(phrase.slice(0, s.ci)); }
-        else { s.pi = (s.pi + 1) % TW_PHRASES.length; s.typing = true; }
-      }
-    }, s.typing ? 72 : 36);
-    return () => clearTimeout(timer);
-  });
-  return text;
-};
-
 /* ═══════════════════════════════════════════════════════════════════════════════
    GLOBAL STYLES
    ═══════════════════════════════════════════════════════════════════════════════ */
@@ -269,7 +247,6 @@ const GlobalStyles = () => (
     @keyframes td-fadeup     { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
     @keyframes td-pulse-dot  { 0%,100%{box-shadow:0 0 0 0 rgba(168,230,61,0.4)} 70%{box-shadow:0 0 0 8px rgba(168,230,61,0)} }
     .td-nav-link:hover { color:#a8e63d !important; }
-    .td-step-card:hover { transform:translateY(-6px) !important; box-shadow:0 20px 48px rgba(0,0,0,0.14) !important; }
     .td-pathway-card:hover { transform:translateY(-8px) !important; }
     .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
     .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
@@ -277,8 +254,7 @@ const GlobalStyles = () => (
     @media(max-width:768px) { .td-nav-links{display:none!important} }
     @media(min-width:769px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
-    @media(max-width:1024px){ .td-steps-grid{grid-template-columns:repeat(2,1fr)!important} .td-connector{display:none!important} }
-    @media(max-width:640px) { .td-steps-grid{grid-template-columns:1fr!important} }
+    @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pathways-grid{grid-template-columns:1fr!important} .td-partners-grid{grid-template-columns:1fr!important} }
@@ -304,11 +280,11 @@ const HomeNavbar = ({ isAuthenticated }) => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
   const NAV = [
-    { href:'#how',      label:'How It Works' },
-    { href:'#map',      label:'Live Map'      },
-    { href:'#pricing',  label:'Pricing'       },
-    { href:'#impact',   label:'Impact'        },
-    { href:'#partners', label:'Partners'      },
+    { href:'#how',              label:'How it works'        },
+    { href:'#pricing',          label:'Prices'              },
+    { href:'/illegal-dumping/', label:'Report dumping'      },
+    { href:'/collectors/',      label:'Earn as a collector' },
+    { href:'#partners',         label:'Partners'            },
   ];
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
@@ -372,7 +348,6 @@ const HomeNavbar = ({ isAuthenticated }) => {
    HERO
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HeroSection = ({ isAuthenticated }) => {
-  const headline  = useTypewriter();
   const ORBS = [
     { s:420, t:'10%', l:'2%',  c:TD.lime,   d:0   },
     { s:300, t:'65%', l:'68%', c:TD.forest, d:1.5 },
@@ -412,25 +387,13 @@ const HeroSection = ({ isAuthenticated }) => {
           <div style={{ position:'relative', zIndex:3 }}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:28 }}>
               <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Accra · Kumasi · Takoradi · Tamale</span>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
             </div>
             <h1 style={{ ...FF.display, fontSize:'clamp(40px,5vw,66px)', lineHeight:1.02, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Waste Collection &amp; Trash Pickup in Ghana{' '}
-              <span style={{ display:'block', fontStyle:'italic', color:'transparent', WebkitTextStroke:`1.5px ${TD.lime}`, marginTop:6 }}>— Book in Minutes</span>
+              Waste pickup in Ghana, booked in minutes
             </h1>
-            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 18px', maxWidth:540 }}>
-              Fast, tracked waste pickup for homes and businesses in Accra, Kumasi, Takoradi and Tamale.
-            </p>
-            <div style={{ display:'flex', alignItems:'center', gap:10, minHeight:52, marginBottom:28 }}>
-              <span style={{ ...FF.label, fontSize:14, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase' }}>We collect</span>
-              <span style={{ ...FF.data, fontSize:'clamp(28px,3.5vw,44px)', color:TD.gold, letterSpacing:'1px' }}>{headline}</span>
-              <span style={{ display:'inline-block', width:3, height:38, background:TD.lime, borderRadius:2, animation:'td-blink 1s step-end infinite' }} />
-            </div>
-            <p style={{ ...FF.body, fontSize:17, lineHeight:1.75, fontWeight:300, color:'rgba(255,255,255,0.62)', maxWidth:540, marginBottom:40 }}>
-              TrashDrop is fast, tracked <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>waste collection</strong> for
-              homes and businesses in Accra, Kumasi, Takoradi and Tamale. Book a <strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>trash pickup</strong> from
-              your phone, follow your verified collector live on the map, and pay with MoMo or cash. Use QR Bags for regular
-              {' '}<strong style={{ color:'rgba(255,255,255,0.86)', fontWeight:500 }}>rubbish collection</strong>, or request a Digital Bin pickup when you need waste gone today.
+            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
+              A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:40 }}>
               <Link to={isAuthenticated ? '/dashboard' : '/signup'}
@@ -482,7 +445,7 @@ const HeroSection = ({ isAuthenticated }) => {
                 <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>Digital Bin</span>
               </div>
               <div style={{ ...FF.data, fontSize:36, color:'#fff' }}>ON DEMAND</div>
-              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant GPS price quote</div>
+              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant price quote</div>
             </div>
             <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.gold}18,${TD.gold}08)`, border:`1px solid ${TD.gold}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
               <div style={{ ...FF.label, fontSize:10, color:TD.gold, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
@@ -530,68 +493,36 @@ const MarqueeStrip = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    HOW IT WORKS
    ═══════════════════════════════════════════════════════════════════════════════ */
+const HOW_STEPS = [
+  { icon:'fa-shopping-bag',  title:'Get bags'          },
+  { icon:'fa-qrcode',        title:'Scan code'         },
+  { icon:'fa-trash-alt',     title:'Fill bag'          },
+  { icon:'fa-hand-pointer',  title:'Request pickup'    },
+  { icon:'fa-truck',         title:'Collector arrives' },
+  { icon:'fa-map-marker-alt', title:'Track it'         },
+];
+
 const HowItWorksSection = () => {
   const { ref, visible } = useReveal(0.1);
   const { lp } = useLpTheme();
-  const STEPS = [
-    { num:'01', icon:'fa-shopping-bag', title:'Buy Official Bags',    color:TD.lime,   bg:`${TD.lime}16`,              body:'Purchase TrashDrop QR-coded bags from any authorised vendor near you — available in 3 sizes and 3 waste types.' },
-    { num:'02', icon:'fa-qrcode',       title:'Scan to Activate',     color:TD.gold,   bg:`${TD.gold}16`,              body:'Each batch has a unique QR code. Scan with the TrashDrop app to activate and link the bags to your account.' },
-    { num:'03', icon:'fa-truck',        title:'Request Free Pickup',   color:'#4d9de0', bg:'rgba(77,157,224,0.15)',    body:'When your bag is full, tap one button to request free collection. A verified collector comes to your door.' },
-    { num:'04', icon:'fa-map-marked-alt',title:'Verified Disposal',   color:TD.lime,   bg:`${TD.lime}16`,              body:'Waste only reaches legally mapped landfills. You get confirmation your waste was properly handled, end to end.' },
-  ];
   return (
     <section id="how" style={{ background:lp.sectionAlt, position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, opacity:0.04, pointerEvents:'none', backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23t)' opacity='0.035'/%3E%3C/svg%3E")` }} />
-      <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'100px 24px' }}>
-        <div style={{ marginBottom:72 }}>
-          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
-            <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.howItWorksLabel, textTransform:'uppercase' }}>How It Works</span>
-          </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(40px,5vw,62px)', lineHeight:0.95, letterSpacing:'-2px', color:lp.ink2Heading, margin:0, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1)' }}>
-            What happens to your waste<br />after it <em style={{ color:TD.forest }}>leaves</em> your door?
-          </h2>
-          <div style={{ marginTop:20, display:'inline-block' }}>
-            <div style={{ background:TD.forest, color:'#fff', ...FF.label, fontSize:14, fontWeight:700, padding:'10px 24px', borderRadius:99, boxShadow:`0 8px 24px ${TD.forest}40` }}>
-              With TrashDrop, you don't have to guess.
-            </div>
-          </div>
-        </div>
-
-        <div className="td-steps-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-          {STEPS.map((s,i) => (
-            <div key={s.num} className="td-step-card" style={{ background:lp.cardBg, borderRadius:20, padding:28, border:`1px solid ${lp.cardBorder}`, boxShadow:'0 4px 24px rgba(0,0,0,0.05)', position:'relative', overflow:'hidden', transition:'all 0.3s ease', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transitionDelay:`${0.1+i*0.12}s` }}>
-              <span style={{ position:'absolute', top:-8, right:12, ...FF.data, fontSize:100, color:lp.stepNum, lineHeight:1, userSelect:'none' }}>{s.num}</span>
-              <div style={{ width:52, height:52, borderRadius:14, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
-                <i className={`fas ${s.icon}`} style={{ fontSize:22, color:s.color }}></i>
+      <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'80px 24px' }}>
+        <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 40px', textAlign:'center' }}>
+          How it works
+        </h2>
+        <ol className="td-steps6" style={{ listStyle:'none', padding:0, margin:0, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:16 }}>
+          {HOW_STEPS.map((s,i) => (
+            <li key={s.title} style={{ position:'relative', textAlign:'center', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:`all 0.7s cubic-bezier(.22,1,.36,1) ${i*0.08}s` }}>
+              <div style={{ width:64, height:64, borderRadius:18, background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, boxShadow:'0 4px 18px rgba(0,0,0,0.06)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+                <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.forest }}></i>
               </div>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:s.color, textTransform:'uppercase', display:'block', marginBottom:8 }}>Step {s.num}</span>
-              <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:'0 0 10px', letterSpacing:'-0.5px' }}>{s.title}</h3>
-              <p style={{ ...FF.body, fontSize:14, fontWeight:300, color:lp.sageText, lineHeight:1.7, margin:0 }}>{s.body}</p>
-              {i < STEPS.length-1 && <div className="td-connector" style={{ position:'absolute', top:'50%', right:-12, width:24, height:24, borderRadius:'50%', background:s.color, border:`3px solid ${lp.connectorBorder}`, zIndex:2, transform:'translateY(-50%)', boxShadow:`0 0 0 4px ${s.color}30` }} />}
-            </div>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2px', color:TD.forest, display:'block', marginBottom:4 }}>{i + 1}</span>
+              <h3 style={{ ...FF.body, fontSize:15, fontWeight:600, color:lp.ink2Heading, margin:0 }}>{s.title}</h3>
+              {i < HOW_STEPS.length - 1 && <i className="fas fa-chevron-right td-step-arrow" aria-hidden="true" style={{ position:'absolute', top:24, right:-12, fontSize:14, color:TD.lime }}></i>}
+            </li>
           ))}
-        </div>
-
-        <div style={{ marginTop:56, background:lp.darkBoxBg, borderRadius:20, padding:'36px 40px' }}>
-          {[
-            { b:'Every bag is tagged with a QR code', r:', tracked from your doorstep to verified disposal sites.' },
-            { b:'Our collectors are verified',         r:', and waste can only be disposed at legally mapped landfills.' },
-            { b:'No shortcuts. No dumping. No guesswork.', r:'' },
-          ].map((p,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:14, marginBottom:i<2?12:0 }}>
-              <div style={{ width:24, height:24, borderRadius:'50%', background:`${TD.lime}20`, border:`1px solid ${TD.lime}40`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', marginTop:1 }}>
-                <i className="fas fa-check" style={{ color:TD.lime, fontSize:10 }}></i>
-              </div>
-              <p style={{ ...FF.body, fontSize:15, color:lp.darkBoxText, lineHeight:1.7, margin:0 }}>
-                <strong style={{ color:lp.darkBoxStrong, fontWeight:600 }}>{p.b}</strong>{p.r}
-              </p>
-            </div>
-          ))}
-          <div style={{ borderTop:'1px solid rgba(255,255,255,0.07)', marginTop:20, paddingTop:20, textAlign:'center' }}>
-            <p style={{ ...FF.display, fontSize:24, color:lp.darkBoxFooter, margin:0, fontStyle:'italic' }}>TrashDrop — <span style={{ color:TD.lime }}>Waste you can track.</span></p>
-            <p style={{ ...FF.body, fontSize:15, color:lp.darkBoxSub, fontWeight:300, margin:'4px 0 0' }}>From doorstep to landfill.</p>
-          </div>
-        </div>
+        </ol>
       </div>
     </section>
   );
@@ -660,7 +591,7 @@ const ServicesSection = () => {
             <div style={{ width:36, height:2, background:'rgba(255,255,255,0.4)', borderRadius:99, marginBottom:28 }} />
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[['1','Request On-Demand Pickup','Open the app and submit a Request Bin Pickup (No Bag) anytime, anywhere.'],
-                ['2','Instant GPS Price Quote','Receive a transparent, GPS-based price quote instantly — no surprises.'],
+                ['2','Instant Price Quote','Get a clear price straight away — no surprises.'],
                 ['3','Real-Time Collector Tracking','Your request is matched to a nearby collector. Track arrival live on the map.']].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
@@ -1544,40 +1475,40 @@ const ServiceAreasSection = () => {
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HOME_FAQS = [
   {
-    q: 'How do I book trash pickup or rubbish collection in Ghana?',
-    a: 'Sign up at trashdrops.com or message TrashDrop on WhatsApp at +233 20 933 8885. Choose the QR Bag System for regular rubbish collection, where pickup is free once your bag is registered, or the Digital Bin service for an on-demand trash pickup with an instant GPS price quote. A verified collector accepts the request and you can track them live until your waste collection is complete.',
+    q: 'How do I book a waste pickup in Ghana?',
+    a: 'Sign up at trashdrops.com or WhatsApp us on +233 20 933 8885. Choose QR Bag pickup, which is free once your bags are registered, or Digital Bin for a one-off pickup with an instant price. A verified collector takes your request, and you can follow them until the job is done.',
   },
   {
     q: 'How does TrashDrop work?',
-    a: 'TrashDrop is a Progressive Web App at trashdrops.com that connects households and businesses with verified waste collectors in six steps. Sign up, set your location, choose the QR Bag System (buy official bags, scan to activate, request a free pickup) or the Digital Bin service (enter waste details, get an instant GPS quote, pay via MoMo or cash at collection). A collector accepts within 2 hours, tracks to your location via live GPS, scans the QR code to confirm collection, and delivers to an authorised disposal site. You receive confirmation and reward points.',
+    a: 'Six steps: get TrashDrop bags, scan the code on the pack, fill a bag, request a pickup, a verified collector arrives, and you track your waste until it reaches an approved disposal site. For a one-off pickup, choose Digital Bin, get a price and pay with MoMo or cash.',
   },
   {
     q: 'Do I need to download an app?',
-    a: 'No. TrashDrop runs as a Progressive Web App entirely in your browser at trashdrops.com — no app store download required on iOS or Android. It also works offline for core functions.',
+    a: "No. TrashDrop works in your phone's browser at trashdrops.com, on Android and iPhone.",
   },
   {
-    q: 'What is the QR Bag System and how is pickup free?',
-    a: 'You purchase official TrashDrop bags from authorised vendors. Each bundle has a printed QR code — scan it in the app to register the bags. Once registered, requesting a pickup is completely free. You only pay the one-time cost of the bag bundle.',
+    q: 'How are QR Bag pickups free?',
+    a: 'You buy official TrashDrop bags from an approved seller. Each pack has a code; scan it to register your bags. After that, every pickup is free. You only pay for the bags.',
   },
   {
-    q: 'How can I earn money collecting waste in Ghana?',
-    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your Ghana phone number, upload your Ghana Card and vehicle details, and submit for approval. Once approved, accept jobs near you on the map. Average earnings are ₵32.43 per completed pickup — paid instantly to MTN, Vodafone, or AirtelTigo mobile money. Full-time collectors earn ₵2,500–₵8,000/month.',
+    q: 'How can I earn money collecting waste?',
+    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your phone number, upload your Ghana Card and vehicle details, and wait for approval. Then accept pickup jobs near you. The app keeps working when you are offline. Collectors earn ₵32.43 a pickup on average, paid straight to mobile money. Full-time collectors earn ₵2,500–₵8,000 a month.',
   },
   {
-    q: 'How do I report illegal dumping in Ghana?',
-    a: 'Open the TrashDrop app, tap "Report Illegal Dumping," photograph the site (minimum one clear photo), allow GPS to capture the location, and submit. You immediately earn reward points. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews. You can track cleanup status directly in the app.',
+    q: 'How do I report illegal dumping?',
+    a: 'Tap Report dumping, take a clear photo, share your location and send. You earn reward points, and we send a cleanup crew and tell the local assembly. You can follow the cleanup in the app.',
   },
   {
-    q: 'Which cities does TrashDrop waste collection serve?',
-    a: 'TrashDrop offers waste collection and trash pickup in Accra (including East Legon, Dome, Madina, Spintex, Achimota and surrounding areas), Kumasi, Takoradi and Tamale. Coverage is expanding continuously across Ghana.',
+    q: 'Which cities do you serve?',
+    a: 'Accra (including East Legon, Dome, Madina, Spintex and Achimota), Kumasi, Takoradi and Tamale. More cities are coming.',
   },
   {
-    q: 'What payment methods does TrashDrop accept?',
-    a: 'For the Digital Bin on-demand service: MTN MoMo, Vodafone Cash, AirtelTigo Money, and debit/credit cards — paid at the point of collection. For the QR Bag System, pickups are always FREE. Only the bag purchase itself has a cost, payable at your local authorised vendor.',
+    q: 'How do I pay?',
+    a: 'Digital Bin pickups: MTN MoMo, Telecel Cash, AirtelTigo Money, card or cash, paid at pickup. QR Bag pickups are always free; you only pay for the bags.',
   },
   {
-    q: 'Are the waste collectors verified?',
-    a: 'Yes. Every TrashDrop collector is verified with a valid Ghana ID (Ghana Card, Passport, or Voters ID), vehicle registration, and operational licence before being approved. Collector profiles show their verification status, vehicle type, and star rating.',
+    q: 'Are the collectors verified?',
+    a: "Yes. Before we approve a collector, they show a valid Ghana ID (Ghana Card, passport or voter ID), their vehicle registration and an operating licence. You can see each collector's rating and vehicle in the app.",
   },
 ];
 
@@ -1711,6 +1642,17 @@ const HomeFooter = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    APP DOWNLOAD BANNER
    ═══════════════════════════════════════════════════════════════════════════════ */
+const CollectorsLine = () => {
+  const { lp } = useLpTheme();
+  return (
+    <section style={{ background:lp.pageBg, padding:'40px 24px' }}>
+      <p style={{ ...FF.body, fontSize:17, lineHeight:1.6, color:lp.ink2Heading, textAlign:'center', maxWidth:720, margin:'0 auto' }}>
+        We work with existing collectors and aboboyaa crews, giving them better tools and steady jobs.
+      </p>
+    </section>
+  );
+};
+
 const AppDownloadBanner = () => {
   const { isDark } = useLpTheme();
   return (
@@ -1942,6 +1884,7 @@ const LpPageInner = ({ auth }) => {
       <PartnershipsSection />
       <ServiceAreasSection />
       <FAQSection />
+      <CollectorsLine />
       <AppDownloadBanner />
       <HomeFooter />
       <FloatingActions    isAuthenticated={auth} />
