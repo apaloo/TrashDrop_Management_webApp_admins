@@ -65,10 +65,14 @@ class SafeDatabaseService {
         return exists;
       }
 
-      // Regular table check - use count(*) which works regardless of columns
+      // Regular table check: a GET that returns no rows, which works regardless
+      // of columns. Not a HEAD request (HEAD on notifications got a body-less
+      // 503 from Supabase while GETs worked) and no count (an exact count
+      // scans the whole table on every check).
       const { error } = await supabase
         .from(tableName)
-        .select('*', { count: 'exact', head: true });
+        .select('*')
+        .limit(0);
 
       // Evaluate response error to determine existence
       if (error) {

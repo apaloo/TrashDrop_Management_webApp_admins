@@ -62,6 +62,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
     const subscription = subscribeToNotifications((event) => {
       if (event?.eventType === 'SYNC' && Array.isArray(event.new)) {
         setNotifications(event.new);
+        setNotificationError(null); // a poll that worked clears an earlier failed load
         return;
       }
       const n = event?.new;

@@ -344,7 +344,7 @@ export const fetchPickupRequests = async ({
           // Log any user_ids that had no matching profile
           const missingIds = allUserIds.filter(uid => !profileMap[uid]);
           if (missingIds.length > 0) {
-            console.warn('⚠️ No profiles found for user_ids:', missingIds);
+            console.warn(`⚠️ No profiles found for ${missingIds.length} user(s)`);
           }
         }
 
