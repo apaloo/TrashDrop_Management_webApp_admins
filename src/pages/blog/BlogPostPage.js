@@ -282,12 +282,9 @@ const BlogPostPage = () => {
             <span style={{ color:TD.sage }}>·</span>
             <span style={{ ...FF.label, fontSize:12, color:TD.sage }}>{post.readTime}</span>
           </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(32px,5vw,58px)', color:'#f0f5f0', lineHeight:1.08, letterSpacing:'-1.5px', margin:'0 0 16px' }}>
+          <h1 style={{ ...FF.display, fontSize:'clamp(32px,5vw,58px)', color:'#f0f5f0', lineHeight:1.08, letterSpacing:'-1.5px', margin:0 }}>
             {content.title}
           </h1>
-          <p style={{ ...FF.label, fontSize:12, color:TD.sage, margin:0, fontWeight:600 }}>
-            Target keyword: <em style={{ fontStyle:'normal', color:`${TD.lime}99` }}>{content.keyword}</em>
-          </p>
         </div>
       </section>
 
