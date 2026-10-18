@@ -6,6 +6,7 @@
  * verification, assignment, and resolution tracking.
  */
 
+import logger from '../utils/logger';
 import { supabase, supabaseAdmin } from '../utils/supabase';
 import { safeDatabaseService } from '../utils/safeDatabaseService';
 import { realtimeManager } from './realtimeManager';
@@ -405,7 +406,7 @@ class IllegalDumpingService {
 
         // resolution_images table doesn't exist in database schema
         // Store image metadata in the main illegal_dumping record instead
-        console.log('Image uploaded successfully:', data.path);
+        logger.log('Image uploaded successfully:', data.path);
 
         return {
           id: `img_${Date.now()}`,

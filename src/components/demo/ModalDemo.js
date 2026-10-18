@@ -1,3 +1,4 @@
+import logger from '../../utils/logger';
 import React from 'react';
 import { useModal } from '../../context/ModalContext';
 
@@ -96,12 +97,12 @@ const ModalDemo = () => {
 
   // Handler functions
   const handleSaveCollector = (updatedCollector) => {
-    console.log('Collector saved:', updatedCollector);
+    logger.log('Collector saved:', updatedCollector);
     // In a real app, this would update the backend
   };
 
   const handleConfirmDelete = () => {
-    console.log('Confirmed deletion');
+    logger.log('Confirmed deletion');
     // In a real app, this would delete the item
   };
 

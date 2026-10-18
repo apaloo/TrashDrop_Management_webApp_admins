@@ -1,3 +1,4 @@
+import logger from './logger';
 import { supabase } from './supabase';
 import { isDevMode, devModeSignIn, getDevModeUser, clearDevModeUser } from './devAuth';
 import { logAudit } from '../services/auditLogService';
@@ -6,11 +7,11 @@ import { logAudit } from '../services/auditLogService';
 export const signIn = async ({ email, password }) => {
   // Use dev mode authentication if enabled
   if (isDevMode()) {
-    console.log('Using development mode authentication');
+    logger.log('Using development mode authentication');
     const result = devModeSignIn();
     // Save this for debugging
     window.lastAuthResult = result;
-    console.log('Dev mode auth result:', result);
+    logger.log('Dev mode auth result:', result);
     return result;
   }
   
@@ -34,7 +35,7 @@ export const signIn = async ({ email, password }) => {
 
 export const signUp = async ({ email, password, name, role = 'user', metadata = {} }) => {
   try {
-    console.log('Starting signup process for:', email);
+    logger.log('Starting signup process for:', email);
     
     // Create the user in Supabase auth
     const { data, error } = await supabase.auth.signUp({
@@ -50,16 +51,16 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
       }
     });
     
-    console.log('Signup response:', { data, error: error?.message });
+    logger.log('Signup response:', { data, error: error?.message });
     
     // Check if this is a duplicate email scenario
     if (data?.user && !data.user.email_confirmed_at) {
-      console.log('User created but email not confirmed - checking if this is duplicate');
+      logger.log('User created but email not confirmed - checking if this is duplicate');
       
       // For existing users, Supabase often returns success but doesn't send confirmation
       // Let's check if there's any indication this is an existing user
       if (data.user.identities?.length === 0) {
-        console.log('No identities found - likely existing user');
+        logger.log('No identities found - likely existing user');
         const duplicateError = { 
           message: 'An account with this email already exists. Please try logging in or reset your password.',
           status: 400
@@ -69,7 +70,7 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
     }
     
     if (error) {
-      console.log('Signup error:', error.message);
+      logger.log('Signup error:', error.message);
       
       // Check for specific error patterns that indicate duplicate email
       if (error.message.includes('already registered') || 
@@ -86,7 +87,7 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
       throw error;
     }
     
-    console.log('Signup successful for new user');
+    logger.log('Signup successful for new user');
     return { data, error: null };
   } catch (error) {
     console.error('Error signing up:', error.message);
@@ -231,7 +232,7 @@ export const updateUserMetadata = async (metadata) => {
     
     // If no session exists and we're in dev mode, use local storage only
     if (!sessionData?.session && isDevMode()) {
-      console.log('Dev mode: Storing metadata in localStorage only');
+      logger.log('Dev mode: Storing metadata in localStorage only');
       
       // Update localStorage for development mode
       if (metadata.onboardingCompleted !== undefined) {

@@ -1,9 +1,10 @@
+import logger from '../../utils/logger';
 import React from 'react';
 import { Polygon, Tooltip } from 'react-leaflet';
 
 // Component to display service area boundaries on the map
 const ServiceAreaLayer = ({ area }) => {
-  console.log('ServiceAreaLayer rendering:', { 
+  logger.log('ServiceAreaLayer rendering:', { 
     name: area?.name, 
     hasCoords: !!area?.coordinates,
     coordsLength: area?.coordinates?.length,

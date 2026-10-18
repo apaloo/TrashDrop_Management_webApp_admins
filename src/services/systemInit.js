@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { checkConnection } from '../utils/supabase';
 import { performanceMonitor } from './performanceMonitor';
 import { realtimeManager } from './realtimeManager';
@@ -32,7 +33,7 @@ class SystemInitService {
    * Initialize all system components
    */
   async initialize() {
-    console.log('🚀 Initializing TrashDrop Admin Portal...');
+    logger.log('🚀 Initializing TrashDrop Admin Portal...');
     
     try {
       // Reset status
@@ -72,7 +73,7 @@ class SystemInitService {
       this.initializationStatus.complete = true;
       this.isInitialized = true;
       
-      console.log('✅ System initialization complete');
+      logger.log('✅ System initialization complete');
       return {
         success: true,
         status: this.initializationStatus,
@@ -99,7 +100,7 @@ class SystemInitService {
    * Initialize database connection and verify health
    */
   async initializeDatabase() {
-    console.log('📊 Initializing database connection...');
+    logger.log('📊 Initializing database connection...');
     
     try {
       // Check basic connection
@@ -109,7 +110,7 @@ class SystemInitService {
         throw new Error(`Database connection failed: ${connectionResult.error?.message}`);
       }
 
-      console.log('✅ Database connection established');
+      logger.log('✅ Database connection established');
       this.initializationStatus.database = true;
 
       // Verify required tables exist (basic sanity check)
@@ -140,18 +141,18 @@ class SystemInitService {
     ];
 
     // This is a basic check - in production you might want more comprehensive schema validation
-    console.log('🔍 Verifying database schema...');
+    logger.log('🔍 Verifying database schema...');
     
     // We'll just do a simple query to check if core tables are accessible
     // More sophisticated schema validation can be added later
-    console.log('✅ Database schema verification passed');
+    logger.log('✅ Database schema verification passed');
   }
 
   /**
    * Initialize performance monitoring
    */
   async initializePerformanceMonitoring() {
-    console.log('📈 Initializing performance monitoring...');
+    logger.log('📈 Initializing performance monitoring...');
     
     try {
       // Start performance monitoring
@@ -164,7 +165,7 @@ class SystemInitService {
         throw new Error('Performance monitor failed to start');
       }
 
-      console.log('✅ Performance monitoring started');
+      logger.log('✅ Performance monitoring started');
       this.initializationStatus.performance = true;
 
       return true;
@@ -184,7 +185,7 @@ class SystemInitService {
    * Initialize realtime subscriptions
    */
   async initializeRealtime() {
-    console.log('⚡ Initializing realtime subscriptions...');
+    logger.log('⚡ Initializing realtime subscriptions...');
     
     try {
       // Check if realtime manager is ready
@@ -194,7 +195,7 @@ class SystemInitService {
         console.warn('⚠️  Realtime connection not established, will retry later');
         // Don't fail initialization for realtime - it will auto-reconnect
       } else {
-        console.log('✅ Realtime connection ready');
+        logger.log('✅ Realtime connection ready');
       }
 
       this.initializationStatus.realtime = true;
@@ -215,7 +216,7 @@ class SystemInitService {
    * Initialize core business services
    */
   async initializeCoreServices() {
-    console.log('🚀 Initializing core business services...');
+    logger.log('🚀 Initializing core business services...');
     
     const services = [
       {
@@ -270,12 +271,12 @@ class SystemInitService {
 
     for (const { name, instance, critical, dependencies } of services) {
       try {
-        console.log(`  📦 Initializing ${name} service...`);
+        logger.log(`  📦 Initializing ${name} service...`);
         
         await instance.initialize();
         
         this.initializationStatus[name] = true;
-        console.log(`  ✅ ${name} service initialized`);
+        logger.log(`  ✅ ${name} service initialized`);
         
       } catch (error) {
         console.error(`  ❌ ${name} service initialization failed:`, error);
@@ -296,7 +297,7 @@ class SystemInitService {
       }
     }
     
-    console.log('✅ Core business services initialization complete');
+    logger.log('✅ Core business services initialization complete');
   }
 
   /**
@@ -352,7 +353,7 @@ class SystemInitService {
     }
 
     this.retryCount++;
-    console.log(`🔄 Retrying initialization (attempt ${this.retryCount}/${this.maxRetries})...`);
+    logger.log(`🔄 Retrying initialization (attempt ${this.retryCount}/${this.maxRetries})...`);
     
     // Wait with exponential backoff
     const delay = Math.min(1000 * Math.pow(2, this.retryCount - 1), 10000);
@@ -365,13 +366,13 @@ class SystemInitService {
    * Graceful shutdown
    */
   async shutdown() {
-    console.log('🛑 Shutting down system...');
+    logger.log('🛑 Shutting down system...');
     
     try {
       // Stop performance monitoring
       if (performanceMonitor.isMonitoring) {
         performanceMonitor.stopMonitoring();
-        console.log('✅ Performance monitoring stopped');
+        logger.log('✅ Performance monitoring stopped');
       }
 
       // Clean up core services
@@ -386,7 +387,7 @@ class SystemInitService {
         try {
           if (service.cleanup) {
             service.cleanup();
-            console.log(`✅ ${name} service cleaned up`);
+            logger.log(`✅ ${name} service cleaned up`);
           }
         } catch (error) {
           console.error(`❌ Error cleaning up ${name} service:`, error);
@@ -395,10 +396,10 @@ class SystemInitService {
 
       // Clean up realtime subscriptions
       realtimeManager.cleanup();
-      console.log('✅ Realtime subscriptions cleaned up');
+      logger.log('✅ Realtime subscriptions cleaned up');
 
       this.isInitialized = false;
-      console.log('✅ System shutdown complete');
+      logger.log('✅ System shutdown complete');
     } catch (error) {
       console.error('❌ Error during shutdown:', error);
     }

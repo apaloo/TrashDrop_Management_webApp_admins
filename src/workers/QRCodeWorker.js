@@ -4,6 +4,7 @@
 // VERSION: 2.2 - Large Nested SVG QR Code (450x450px on 600x700 canvas)
 
 // Import JSZip and QRCode libraries directly
+import { log } from '../utils/logger';
 import JSZip from 'jszip';
 import QRCode from 'qrcode';
 
@@ -22,7 +23,7 @@ const FLYER_QR_RENDER_WIDTH = 540;
 const FLYER_PLACEHOLDER_RADIUS = 44;
 
 // Log version on worker initialization
-console.log('QR Code Worker v2.2 initialized - Nested QR graphic (474x561px) embedded on 600x700 canvas');
+log('QR Code Worker v2.2 initialized - Nested QR graphic (474x561px) embedded on 600x700 canvas');
 
 // Track the current operation for cancellation
 let currentOperation = null;
@@ -459,7 +460,7 @@ async function processMessage(e, JSZip, operation) {
         // Use the computed batchId from above
         const filename = `QR_Codes_${batchId}.zip`;
         
-        console.log('Starting ZIP generation for batch:', batchId);
+        log('Starting ZIP generation for batch:', batchId);
         const startTime = performance.now();
         
         // Generate ZIP as a Blob for maximum compatibility with unzip tools
@@ -474,8 +475,8 @@ async function processMessage(e, JSZip, operation) {
         });
         
         const endTime = performance.now();
-        console.log(`ZIP generation completed in ${(endTime - startTime).toFixed(2)}ms`);
-        console.log(`ZIP size: ${content.size} bytes`);
+        log(`ZIP generation completed in ${(endTime - startTime).toFixed(2)}ms`);
+        log(`ZIP size: ${content.size} bytes`);
         
         // Send the final message with the ZIP content
         self.postMessage({ 
@@ -508,7 +509,7 @@ async function generateQRCodeSVG(qrData) {
   
   try {
     // Generate actual QR code SVG using qrcode library
-    console.log(`Generating large QR code: 450x450px for ${bagNumber !== null ? `Bag #${bagNumber}` : 'Batch'}`);
+    log(`Generating large QR code: 450x450px for ${bagNumber !== null ? `Bag #${bagNumber}` : 'Batch'}`);
     const qrSvgString = await QRCode.toString(url, {
       type: 'svg',
       width: QR_GRAPHIC_WIDTH,

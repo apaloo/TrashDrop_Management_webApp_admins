@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 /* ─────────────────────────────────────────────────────────────────────────────
  * socialFeedService.js
  * ─────────────────────────────────────────────────────────────────────────────
@@ -272,7 +273,7 @@ export async function fetchSocialPosts(count = 15) {
     .slice(0, count);
 
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[socialFeedService] Fetched ${livePosts.length} live, ${needed} simulated (${count} total)`);
+    logger.log(`[socialFeedService] Fetched ${livePosts.length} live, ${needed} simulated (${count} total)`);
   }
 
   return all;
