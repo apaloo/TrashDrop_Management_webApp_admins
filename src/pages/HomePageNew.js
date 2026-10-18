@@ -313,8 +313,9 @@ const HomeNavbar = ({ isAuthenticated }) => {
   const NAV = PUBLIC_NAV;
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
-  // Light links while the bar is see-through over the dark hero
-  const navLinkColor    = isDark || !scrolled ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
+  // Light links and theme switch while the bar is see-through over the dark hero
+  const overDark        = isDark || !scrolled;
+  const navLinkColor    = overDark ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
   const brandColor      = isDark ? '#fff'                        : TD.forest;
   const mobileMenuBg    = isDark ? TD.ink                        : '#fff';
   const mobileLinkColor = isDark ? 'rgba(255,255,255,0.8)'      : 'rgba(27,62,40,0.85)';
@@ -353,7 +354,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             onClick={toggleLp}
             title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
             aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
-            style={{ display:'inline-flex', alignItems:'center', gap:6, background:isDark?'rgba(168,230,61,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, color:isDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
+            style={{ display:'inline-flex', alignItems:'center', gap:6, background:overDark?'rgba(168,230,61,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${overDark?'rgba(168,230,61,0.35)':'rgba(22,101,52,0.2)'}`, color:overDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
           >
             <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} style={{ fontSize:13 }}></i>
             <span className="td-lp-toggle-label">{isDark ? 'Light' : 'Dark'}</span>
