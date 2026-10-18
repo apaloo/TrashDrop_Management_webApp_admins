@@ -19,6 +19,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const { ROUTE_SOURCES, applyLastmod } = require('./sitemap-lastmod');
+const { blogPostRoutes } = require('./blog-slugs');
 
 const SITE = 'https://trashdrops.com';
 const BUILD_DIR = path.resolve(__dirname, '..', 'build');
@@ -41,6 +42,8 @@ const ROUTES = [
   '/waste-collection-tamale',
   '/waste-pickup',
   '/partners',
+  // Each blog post gets its own HTML (title, canonical, Article JSON-LD) instead of the blog shell
+  ...blogPostRoutes(),
 ];
 
 const slashed = (route) => (route.endsWith('/') ? route : `${route}/`);

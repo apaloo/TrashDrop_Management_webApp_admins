@@ -41,7 +41,7 @@ const SIGNUP_STEPS = [
   { n:'03', icon:'fa-id-card',       title:'Upload Ghana ID',         body:'Upload front and back photos of your Ghana Card, Passport, or Voters ID for identity verification.' },
   { n:'04', icon:'fa-truck',         title:'Add Vehicle Details',     body:'Enter your vehicle type, licence plate number, colour, and upload a vehicle photo.' },
   { n:'05', icon:'fa-clock',         title:'Submit for Approval',     body:'Submit your profile. Verification typically completes within 24 hours — you\'ll receive an SMS when approved.' },
-  { n:'06', icon:'fa-money-bill-wave','title':'Start Earning',        body:'Browse pickup requests on the map, accept jobs near you, navigate, scan QR codes, and earn. Cash out to MoMo anytime.' },
+  { n:'06', icon:'fa-money-bill-wave','title':'Start Earning',        body:'Browse pickup requests on the map and accept jobs near you. At each pickup, scan the QR code to confirm collection, take three photos as evidence and submit.' },
 ];
 
 const EARNINGS = [
@@ -125,8 +125,8 @@ const CollectorsPage = () => {
       {/* ── Hero ── */}
       <section style={{ background:TD.ink, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
         {/* TrashDrop-branded tricycle behind a dark overlay so the text stays readable */}
-        <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/collectors/hero-tricycle.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', opacity:0.7 }} />
-        <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(180deg, rgba(9,21,9,0.8) 0%, rgba(9,21,9,0.68) 45%, ${TD.ink} 100%)` }} />
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/collectors/hero-tricycle.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', opacity:0.6 }} />
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(180deg, rgba(9,21,9,0.88) 0%, rgba(9,21,9,0.8) 45%, ${TD.ink} 100%)` }} />
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
             <i className="fas fa-truck" style={{ color:TD.lime, fontSize:11 }}></i>
@@ -135,9 +135,8 @@ const CollectorsPage = () => {
           <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,64px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
             How can I earn money collecting waste in Ghana?
           </h1>
-          {/* ── AI ANSWER PARAGRAPH ── */}
-          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:740, margin:'0 auto 40px' }}>
-            TrashDrop is a free platform that pays waste collectors — known as carters or aboboyaa riders — in Ghana to complete household and business trash pickups, with earnings paid directly to MTN, Vodafone, or AirtelTigo mobile money wallets. To join, open the TrashDrop Carter App at trashdrops.com, verify your Ghana phone number via SMS OTP, upload your Ghana Card or Passport, add your vehicle details, and submit your profile for approval. Once approved, you browse pickup requests on a map, accept jobs near you, navigate to the location, scan the QR code to confirm collection, take three photos as evidence, and submit. The average earnings per pickup are ₵32.43, made up of a core collection fee, urgent request bonuses, 100% of customer tips, and 60% of recyclable material revenue. Collectors can cash out to MoMo at any time with a minimum withdrawal of ₵10 and a daily maximum of ₵5,000.
+          <p style={{ ...FF.body, fontSize:19, color:'rgba(255,255,255,0.9)', lineHeight:1.7, maxWidth:620, margin:'0 auto 40px' }}>
+            Earn with your aboboyaa or tricycle. Accept pickups near you and get paid to MoMo — ₵32.43 a pickup on average.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
@@ -149,7 +148,7 @@ const CollectorsPage = () => {
           </div>
           {/* ── Stat bar ── */}
           <div style={{ display:'flex', gap:40, justifyContent:'center', flexWrap:'wrap', marginTop:56 }}>
-            {[{v:'₵32.43', l:'Avg Per Pickup'},{v:'480+',l:'Active Collectors'},{v:'₵5,000',l:'Max Daily Cashout'},{v:'₵10',l:'Min Withdrawal'}].map(s => (
+            {[{v:'₵32.43', l:'Avg Per Pickup'},{v:'480+',l:'Active Collectors'}].map(s => (
               <div key={s.l} style={{ textAlign:'center' }}>
                 <div style={{ ...FF.data, fontSize:28, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
                 <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
@@ -238,6 +237,13 @@ const CollectorsPage = () => {
             <div>
               <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, marginBottom:4 }}>Example: 10 pickups/day × 5 days/week</div>
               <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.7 }}>10 pickups × ₵32.43 avg × 20 working days = <strong style={{ color:'#fff' }}>₵6,486/month</strong> before bonuses, tips, and recyclables.</div>
+            </div>
+          </div>
+          <div style={{ marginTop:16, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'28px 32px', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
+            <i className="fas fa-wallet" style={{ color:TD.lime, fontSize:28 }} aria-hidden="true"></i>
+            <div>
+              <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, marginBottom:4 }}>Cash out to MoMo any time</div>
+              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.7 }}>Earnings reach your balance as soon as the disposal step is confirmed. Withdraw to MTN, Telecel or AirtelTigo mobile money: <strong style={{ color:'#fff' }}>minimum ₵10, up to ₵5,000 a day</strong>.</div>
             </div>
           </div>
         </div>
