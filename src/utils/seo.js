@@ -10,11 +10,12 @@ export const BUSINESS = {
   phoneDisplay: '+233 20 933 8885',
   phoneE164: '+233209338885',
   whatsappUrl: 'https://wa.me/233209338885',
+  facebookUrl: 'https://www.facebook.com/61590201371573/',
   email: 'hello@trashdrops.com',
   logo: `${SITE_URL}/icon-512x512.png`,
   cities: ['Accra', 'Kumasi', 'Takoradi', 'Tamale'],
   sameAs: [
-    'https://web.facebook.com/profile.php?id=61590201371573',
+    'https://www.facebook.com/61590201371573/',
     // Add the Google Business Profile "Share" link here
   ],
 };

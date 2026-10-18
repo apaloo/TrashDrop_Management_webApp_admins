@@ -44,7 +44,7 @@ const ROUTE_SOURCES = {
   '/collectors': ['src/pages/CollectorsPage.js', ...PUBLIC_LAYOUT],
   '/illegal-dumping': ['src/pages/IllegalDumpingPublicPage.js', ...PUBLIC_LAYOUT],
   '/about': ['src/pages/AboutPage.js', ...PUBLIC_LAYOUT],
-  '/blog': ['src/pages/BlogPage.js', ...PUBLIC_LAYOUT],
+  '/blog': ['src/pages/BlogPage.js', 'public/images/blog', ...PUBLIC_LAYOUT],
   '/waste-collection-accra': CITY,
   '/waste-collection-kumasi': CITY,
   '/waste-collection-takoradi': CITY,
