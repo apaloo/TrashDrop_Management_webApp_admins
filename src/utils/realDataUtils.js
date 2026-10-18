@@ -1,3 +1,4 @@
+import logger from './logger';
 import { supabase } from './supabase';
 import { secureUrl, secureUrls } from './secureUrl';
 
@@ -414,7 +415,7 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
   if (area?.level === 'none') return { data: [], totalCount: 0, page, limit, totalPages: 0 };
 
   // DEPRECATED: RPC function removed, using direct table queries only
-  console.log('Using direct table query for illegal dumping reports (RPC deprecated)');
+  logger.log('Using direct table query for illegal dumping reports (RPC deprecated)');
   
   try {
     const offset = (page - 1) * limit;

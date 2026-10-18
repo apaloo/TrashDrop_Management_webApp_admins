@@ -1,3 +1,4 @@
+import logger from './logger';
 import { supabase } from './supabase';
 import { appConfig, APP_CONSTANTS } from '../config';
 import { STATUS, LOG_LEVEL, LOG_SOURCE, ID_PREFIX } from '../config/constants';
@@ -641,7 +642,7 @@ export const createBagBatch = async (batchData) => {
     throw batchError;
   }
   
-  console.log('✅ Batch created successfully:', batch);
+  logger.log('✅ Batch created successfully:', batch);
   
   // IMPORTANT: Mobile app scans the BATCH ID (UUID), not individual bag QR codes
   // The QR code contains just the batch UUID
@@ -678,7 +679,7 @@ export const createBagBatch = async (batchData) => {
         console.warn(`Warning: Batch ${batch.id} created but some bags failed to insert`);
       }
     }
-    console.log(`✅ ${bags.length} individual bags created for tracking`);
+    logger.log(`✅ ${bags.length} individual bags created for tracking`);
   }
   
   return { 
@@ -969,7 +970,7 @@ export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 
  */
 export const updateIllegalDumpingStatus = async (reportId, status, notes = '') => {
   // DEPRECATED: RPC function removed, using direct table update only
-  console.log('Using direct table update for illegal dumping status (RPC deprecated)');
+  logger.log('Using direct table update for illegal dumping status (RPC deprecated)');
 
   // DB constraint: status IN ('pending', 'verified', 'in_progress', 'completed', 'cancelled')
   const DB_ALLOWED_STATUSES = ['pending', 'verified', 'in_progress', 'completed', 'cancelled'];
@@ -1006,7 +1007,7 @@ export const updateIllegalDumpingStatus = async (reportId, status, notes = '') =
  * @returns {Promise<Object>} Assignment result
  */
 export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fee) => {
-  console.log('Assigning collector to illegal dumping report:', { reportId, collectorId, scheduledDate, fee });
+  logger.log('Assigning collector to illegal dumping report:', { reportId, collectorId, scheduledDate, fee });
   
   return await safeDatabaseService.safeQuery({
     tableName: 'illegal_dumping_mobile',
@@ -1038,7 +1039,7 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fe
       if (error) {
         console.error('Error assigning cleanup team:', error);
       } else {
-        console.log('Successfully assigned collector:', collectorId, 'to report:', reportId);
+        logger.log('Successfully assigned collector:', collectorId, 'to report:', reportId);
       }
       
       return { data, error };

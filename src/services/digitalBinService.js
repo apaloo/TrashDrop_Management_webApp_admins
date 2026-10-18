@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { supabase, handleDatabaseError } from '../utils/supabase';
 import { realtimeManager } from './realtimeManager';
 import { trackDatabaseOperation } from './performanceMonitor';
@@ -42,7 +43,7 @@ class DigitalBinService {
       this.processBatchQueue();
 
       this.isInitialized = true;
-      console.log('✅ Digital Bin Service initialized with caching and batch processing');
+      logger.log('✅ Digital Bin Service initialized with caching and batch processing');
     } catch (error) {
       console.error('❌ Failed to initialize Digital Bin Service:', error);
       throw error;
@@ -349,7 +350,7 @@ class DigitalBinService {
 
         for (let i = 0; i < chunks.length; i++) {
           const chunk = chunks[i];
-          console.log(`Processing digital bin batch ${i + 1}/${chunks.length} (${chunk.length} items)`);
+          logger.log(`Processing digital bin batch ${i + 1}/${chunks.length} (${chunk.length} items)`);
 
           try {
             // Prepare data for insertion
@@ -519,7 +520,7 @@ class DigitalBinService {
         // Clear cache
         this.clearCacheByPattern(['fetchDigitalBins', 'stats_']);
 
-        console.log(`Cleaned up ${cleanedCount} expired digital bins`);
+        logger.log(`Cleaned up ${cleanedCount} expired digital bins`);
         
         return {
           success: true,
@@ -799,7 +800,7 @@ class DigitalBinService {
       keysToDelete.forEach(key => this.cache.delete(key));
       
       if (keysToDelete.length > 0) {
-        console.log(`Cleaned up ${keysToDelete.length} expired cache entries`);
+        logger.log(`Cleaned up ${keysToDelete.length} expired cache entries`);
       }
     }, 60000); // Clean up every minute
   }
@@ -886,7 +887,7 @@ class DigitalBinService {
       clearTimeout(this.batchTimeout);
     }
     this.isInitialized = false;
-    console.log('✅ Digital Bin Service cleaned up');
+    logger.log('✅ Digital Bin Service cleaned up');
   }
 }
 

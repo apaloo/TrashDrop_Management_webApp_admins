@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { supabase, handleDatabaseError } from '../utils/supabase';
 import { realtimeManager } from './realtimeManager';
 import { trackDatabaseOperation } from './performanceMonitor';
@@ -31,7 +32,7 @@ class QRCodeService {
       this.startScanHistoryCleanup();
 
       this.isInitialized = true;
-      console.log('✅ QR Code Service initialized with atomic scanning');
+      logger.log('✅ QR Code Service initialized with atomic scanning');
     } catch (error) {
       console.error('❌ Failed to initialize QR Code Service:', error);
       throw error;
@@ -85,7 +86,7 @@ class QRCodeService {
       // Remove from pending scans
       this.pendingScans.delete(`${bagId}_${newRecord.scanned_by}`);
 
-      console.log(`Bag ${bagId} successfully scanned by collector ${newRecord.scanned_by}`);
+      logger.log(`Bag ${bagId} successfully scanned by collector ${newRecord.scanned_by}`);
       
       this.notifySubscribers('scan_completed', {
         bagId,
@@ -101,7 +102,7 @@ class QRCodeService {
    */
   handleBagChange(eventType, newRecord, oldRecord) {
     if (eventType === 'UPDATE' && newRecord.scanned !== oldRecord?.scanned) {
-      console.log(`Bag ${newRecord.bag_id} scan status changed: ${oldRecord?.scanned} → ${newRecord.scanned}`);
+      logger.log(`Bag ${newRecord.bag_id} scan status changed: ${oldRecord?.scanned} → ${newRecord.scanned}`);
     }
   }
 
@@ -110,7 +111,7 @@ class QRCodeService {
    */
   handleBatchChange(eventType, newRecord, oldRecord) {
     if (eventType === 'UPDATE' && newRecord.scanned !== oldRecord?.scanned) {
-      console.log(`Batch ${newRecord.batch_id} scan count updated: ${oldRecord?.scanned} → ${newRecord.scanned}`);
+      logger.log(`Batch ${newRecord.batch_id} scan count updated: ${oldRecord?.scanned} → ${newRecord.scanned}`);
     }
   }
 
@@ -220,7 +221,7 @@ class QRCodeService {
         const results = [];
         const errors = [];
 
-        console.log(`Starting batch scan of ${scans.length} QR codes`);
+        logger.log(`Starting batch scan of ${scans.length} QR codes`);
 
         // Process scans with controlled concurrency to prevent overwhelming the database
         const concurrencyLimit = 5;
@@ -228,7 +229,7 @@ class QRCodeService {
 
         for (let i = 0; i < chunks.length; i++) {
           const chunk = chunks[i];
-          console.log(`Processing scan batch ${i + 1}/${chunks.length} (${chunk.length} items)`);
+          logger.log(`Processing scan batch ${i + 1}/${chunks.length} (${chunk.length} items)`);
 
           // Process chunk in parallel
           const chunkPromises = chunk.map(async (scan) => {
@@ -272,7 +273,7 @@ class QRCodeService {
           errors
         };
 
-        console.log(`Batch scan complete: ${response.successful}/${response.total} successful`);
+        logger.log(`Batch scan complete: ${response.successful}/${response.total} successful`);
         
         // Notify subscribers of batch completion
         this.notifySubscribers('batch_scan_completed', response);
@@ -555,7 +556,7 @@ class QRCodeService {
       keysToDelete.forEach(key => this.scanHistory.delete(key));
 
       if (keysToDelete.length > 0) {
-        console.log(`Cleaned up ${keysToDelete.length} old scan history entries`);
+        logger.log(`Cleaned up ${keysToDelete.length} old scan history entries`);
       }
     }, 5 * 60 * 1000);
   }
@@ -602,7 +603,7 @@ class QRCodeService {
     this.pendingScans.clear();
     this.subscribers.clear();
     this.isInitialized = false;
-    console.log('✅ QR Code Service cleaned up');
+    logger.log('✅ QR Code Service cleaned up');
   }
 }
 

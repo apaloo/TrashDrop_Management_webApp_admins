@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { supabase, checkConnection } from '../utils/supabase';
 
 /**
@@ -27,7 +28,7 @@ class PerformanceMonitor {
       return;
     }
 
-    console.log('Starting performance monitoring...');
+    logger.log('Starting performance monitoring...');
     this.isMonitoring = true;
 
     this.monitoringInterval = setInterval(async () => {
@@ -53,7 +54,7 @@ class PerformanceMonitor {
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
-    console.log('Performance monitoring stopped');
+    logger.log('Performance monitoring stopped');
   }
 
   /**
@@ -113,7 +114,7 @@ class PerformanceMonitor {
           dbHealth = data;
         }
       } catch (err) {
-        console.log('Database health function not available:', err.message);
+        logger.log('Database health function not available:', err.message);
       }
 
       const metrics = {
@@ -344,7 +345,7 @@ class PerformanceMonitor {
    */
   logToConsole(eventType, data) {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[PERF_MONITOR] ${eventType}:`, data);
+      logger.log(`[PERF_MONITOR] ${eventType}:`, data);
     }
   }
 
@@ -367,7 +368,7 @@ class PerformanceMonitor {
   clearMetrics() {
     this.metrics.clear();
     this.healthChecks = [];
-    console.log('Performance metrics cleared');
+    logger.log('Performance metrics cleared');
   }
 
   /**
@@ -375,7 +376,7 @@ class PerformanceMonitor {
    */
   updateThresholds(newThresholds) {
     this.alertThresholds = { ...this.alertThresholds, ...newThresholds };
-    console.log('Alert thresholds updated:', this.alertThresholds);
+    logger.log('Alert thresholds updated:', this.alertThresholds);
   }
 
   /**

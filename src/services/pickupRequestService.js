@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { supabase, handleDatabaseError } from '../utils/supabase';
 import { realtimeManager } from './realtimeManager';
 import { trackDatabaseOperation } from './performanceMonitor';
@@ -26,7 +27,7 @@ class PickupRequestService {
       });
 
       this.isInitialized = true;
-      console.log('✅ Pickup Request Service initialized with real-time sync');
+      logger.log('✅ Pickup Request Service initialized with real-time sync');
     } catch (error) {
       console.error('❌ Failed to initialize Pickup Request Service:', error);
       throw error;
@@ -48,7 +49,7 @@ class PickupRequestService {
         this.handleCollectorSessionChange(eventType, newRecord, oldRecord);
         break;
       default:
-        console.log(`Unhandled realtime change for table: ${tableName}`);
+        logger.log(`Unhandled realtime change for table: ${tableName}`);
     }
 
     // Notify subscribers
@@ -67,13 +68,13 @@ class PickupRequestService {
   handlePickupRequestChange(eventType, newRecord, oldRecord) {
     switch (eventType) {
       case 'INSERT':
-        console.log('New pickup request created:', newRecord.id);
+        logger.log('New pickup request created:', newRecord.id);
         break;
       case 'UPDATE':
         this.handlePickupRequestUpdate(newRecord, oldRecord);
         break;
       case 'DELETE':
-        console.log('Pickup request deleted:', oldRecord.id);
+        logger.log('Pickup request deleted:', oldRecord.id);
         this.reservationCache.delete(oldRecord.id);
         break;
     }
@@ -87,20 +88,20 @@ class PickupRequestService {
 
     // Check for status changes
     if (newRecord.status !== oldRecord.status) {
-      console.log(`Pickup request ${requestId} status changed: ${oldRecord.status} → ${newRecord.status}`);
+      logger.log(`Pickup request ${requestId} status changed: ${oldRecord.status} → ${newRecord.status}`);
     }
 
     // Check for reservation changes
     if (newRecord.reserved_by !== oldRecord.reserved_by) {
       if (newRecord.reserved_by) {
-        console.log(`Pickup request ${requestId} reserved by collector: ${newRecord.reserved_by}`);
+        logger.log(`Pickup request ${requestId} reserved by collector: ${newRecord.reserved_by}`);
         this.reservationCache.set(requestId, {
           collectorId: newRecord.reserved_by,
           reservedAt: newRecord.reserved_at,
           reservedUntil: newRecord.reserved_until
         });
       } else {
-        console.log(`Pickup request ${requestId} reservation released`);
+        logger.log(`Pickup request ${requestId} reservation released`);
         this.reservationCache.delete(requestId);
       }
     }
@@ -111,7 +112,7 @@ class PickupRequestService {
    */
   handleCollectorSessionChange(eventType, newRecord, oldRecord) {
     if (eventType === 'UPDATE' && newRecord.reserved_requests !== oldRecord.reserved_requests) {
-      console.log(`Collector ${newRecord.collector_id} reservation list updated`);
+      logger.log(`Collector ${newRecord.collector_id} reservation list updated`);
     }
   }
 
@@ -574,7 +575,7 @@ class PickupRequestService {
         if (error) throw error;
 
         if (data.success && data.released_count > 0) {
-          console.log(`Released ${data.released_count} expired reservations`);
+          logger.log(`Released ${data.released_count} expired reservations`);
           
           // Clear local cache for expired reservations
           const now = new Date();
@@ -621,7 +622,7 @@ class PickupRequestService {
     this.subscribers.clear();
     this.reservationCache.clear();
     this.isInitialized = false;
-    console.log('✅ Pickup Request Service cleaned up');
+    logger.log('✅ Pickup Request Service cleaned up');
   }
 }
 

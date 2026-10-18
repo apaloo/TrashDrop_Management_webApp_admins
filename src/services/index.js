@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 /**
  * Services Index - Central export for all services
  * Provides easy access to all TrashDrop Management System services
@@ -45,13 +46,13 @@ export const getServicesHealthStatus = async () => {
 
 // Service initialization helper
 export const initializeAllServices = async () => {
-  console.log('🚀 Starting TrashDrop Management System...');
+  logger.log('🚀 Starting TrashDrop Management System...');
   
   try {
     const result = await systemInit.initialize();
     
     if (result.success) {
-      console.log('✅ All services initialized successfully');
+      logger.log('✅ All services initialized successfully');
       
       // Optional: Start periodic health checks
       if (process.env.REACT_APP_ENABLE_HEALTH_CHECKS === 'true') {
@@ -77,7 +78,7 @@ export const startHealthChecks = (intervalMs = 60000) => { // Default 1 minute
     return;
   }
 
-  console.log('🏥 Starting periodic health checks...');
+  logger.log('🏥 Starting periodic health checks...');
   
   healthCheckInterval = setInterval(async () => {
     try {
@@ -103,13 +104,13 @@ export const stopHealthChecks = () => {
   if (healthCheckInterval) {
     clearInterval(healthCheckInterval);
     healthCheckInterval = null;
-    console.log('🏥 Health checks stopped');
+    logger.log('🏥 Health checks stopped');
   }
 };
 
 // Graceful system shutdown
 export const shutdownAllServices = async () => {
-  console.log('🛑 Shutting down TrashDrop Management System...');
+  logger.log('🛑 Shutting down TrashDrop Management System...');
   
   try {
     // Stop health checks
@@ -118,7 +119,7 @@ export const shutdownAllServices = async () => {
     // Shutdown system
     await systemInit.shutdown();
     
-    console.log('✅ System shutdown complete');
+    logger.log('✅ System shutdown complete');
   } catch (error) {
     console.error('❌ Error during system shutdown:', error);
   }
@@ -152,14 +153,14 @@ export const devTools = process.env.NODE_ENV === 'development' ? {
   // Clear all caches
   clearCaches: () => {
     digitalBinService.cache?.clear();
-    console.log('🧹 All service caches cleared');
+    logger.log('🧹 All service caches cleared');
   }
 } : {};
 
 // Make dev tools available globally in development
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   window.trashDropDevTools = devTools;
-  console.log('🛠️ TrashDrop dev tools available at window.trashDropDevTools');
+  logger.log('🛠️ TrashDrop dev tools available at window.trashDropDevTools');
 }
 
 export default {

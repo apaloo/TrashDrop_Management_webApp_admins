@@ -1,3 +1,4 @@
+import logger from './logger';
 import { supabase } from './supabase';
 import { fetchDashboardStats, fetchChartData, fetchBagRequestStatsReal, fetchCollectorStatsReal, fetchPerformanceStatsReal } from './databaseUtils';
 import { fetchDashboardChartData } from './realDataUtils';
@@ -302,7 +303,7 @@ export const fetchDashboardMetrics = async () => {
         activeCollectorPercent
       };
     } catch (realDataError) {
-      console.log('Real data fetch failed, falling back to safe database service:', realDataError);
+      logger.log('Real data fetch failed, falling back to safe database service:', realDataError);
     }
     
     // Fallback to safe database service for basic stats
@@ -776,7 +777,7 @@ export const fetchWasteDistributionChartData = async () => {
         return chartData;
       }
     } catch (realDataError) {
-      console.log('Real data fetch failed for waste distribution chart:', realDataError);
+      logger.log('Real data fetch failed for waste distribution chart:', realDataError);
     }
     
     // Fallback to direct Supabase query
@@ -868,7 +869,7 @@ export const fetchBagUtilizationTrendData = async () => {
         return chartData;
       }
     } catch (realDataError) {
-      console.log('Real data fetch failed for bag utilization chart:', realDataError);
+      logger.log('Real data fetch failed for bag utilization chart:', realDataError);
     }
     
     // Fallback to direct Supabase query
@@ -1018,13 +1019,13 @@ export const subscribeToDashboardUpdates = (callback) => {
     Promise.all([
       safeDatabaseService.safeSubscription('pickup_requests', {
         callback: handleDataChange
-      }, () => console.log('Pickup requests polling fallback')),
+      }, () => logger.log('Pickup requests polling fallback')),
       safeDatabaseService.safeSubscription('collector_profiles', {
         callback: handleDataChange  
-      }, () => console.log('Collector profiles polling fallback')),
+      }, () => logger.log('Collector profiles polling fallback')),
       safeDatabaseService.safeSubscription('alerts', {
         callback: handleDataChange
-      }, () => console.log('Alerts polling fallback'))
+      }, () => logger.log('Alerts polling fallback'))
     ]).then(([pickup, collectors, alerts]) => {
       pickupSubscription = pickup;
       collectorsSubscription = collectors;

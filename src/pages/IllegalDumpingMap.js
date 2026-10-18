@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -184,9 +185,9 @@ const IllegalDumpingMap = () => {
         };
       });
 
-      console.log('📍 Illegal Dumping Map - Fetched reports:', transformedData.length);
-      console.log('📍 Sample report:', JSON.stringify(transformedData[0] || null));
-      console.log('📍 Reports with valid coordinates:', transformedData.filter(hasCoordinates).length);
+      logger.log('📍 Illegal Dumping Map - Fetched reports:', transformedData.length);
+      logger.log('📍 Sample report:', JSON.stringify(transformedData[0] || null));
+      logger.log('📍 Reports with valid coordinates:', transformedData.filter(hasCoordinates).length);
       const outside = transformedData.filter(isOutsideGhana);
       if (outside.length) {
         console.warn(`📍 ${outside.length} report(s) plotted outside Ghana:`,

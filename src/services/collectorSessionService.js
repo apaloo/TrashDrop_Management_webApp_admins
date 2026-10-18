@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import { supabase, handleDatabaseError } from '../utils/supabase';
 import { realtimeManager } from './realtimeManager';
 import { trackDatabaseOperation } from './performanceMonitor';
@@ -35,7 +36,7 @@ class CollectorSessionService {
       await this.loadActiveSessions();
 
       this.isInitialized = true;
-      console.log('✅ Collector Session Service initialized with real-time tracking');
+      logger.log('✅ Collector Session Service initialized with real-time tracking');
     } catch (error) {
       console.error('❌ Failed to initialize Collector Session Service:', error);
       throw error;
@@ -82,7 +83,7 @@ class CollectorSessionService {
           ...newRecord,
           localActivity: new Date()
         });
-        console.log(`Collector session started: ${collectorId}`);
+        logger.log(`Collector session started: ${collectorId}`);
         this.notifySubscribers('session_started', newRecord);
         break;
         
@@ -98,7 +99,7 @@ class CollectorSessionService {
         
         // Check for reservation changes
         if (JSON.stringify(newRecord.reserved_requests) !== JSON.stringify(oldRecord?.reserved_requests)) {
-          console.log(`Collector ${collectorId} reservations updated`);
+          logger.log(`Collector ${collectorId} reservations updated`);
           this.notifySubscribers('reservations_updated', {
             collectorId,
             newReservations: newRecord.reserved_requests,
@@ -109,7 +110,7 @@ class CollectorSessionService {
         
       case 'DELETE':
         this.activeSessions.delete(collectorId);
-        console.log(`Collector session ended: ${collectorId}`);
+        logger.log(`Collector session ended: ${collectorId}`);
         this.notifySubscribers('session_ended', oldRecord);
         break;
     }
@@ -121,7 +122,7 @@ class CollectorSessionService {
   handleCollectorChange(eventType, newRecord, oldRecord) {
     if (eventType === 'UPDATE' && newRecord.status !== oldRecord?.status) {
       const collectorId = newRecord.id;
-      console.log(`Collector ${collectorId} status changed: ${oldRecord?.status} → ${newRecord.status}`);
+      logger.log(`Collector ${collectorId} status changed: ${oldRecord?.status} → ${newRecord.status}`);
       
       // If collector becomes inactive, end their session
       if (newRecord.status === 'inactive') {
@@ -589,7 +590,7 @@ class CollectorSessionService {
         });
       });
 
-      console.log(`Loaded ${data.length} active collector sessions`);
+      logger.log(`Loaded ${data.length} active collector sessions`);
     } catch (error) {
       console.error('Error loading active sessions:', error);
     }
@@ -619,7 +620,7 @@ class CollectorSessionService {
 
       // End inactive sessions
       if (inactiveSessions.length > 0) {
-        console.log(`Cleaning up ${inactiveSessions.length} inactive sessions`);
+        logger.log(`Cleaning up ${inactiveSessions.length} inactive sessions`);
         
         for (const collectorId of inactiveSessions) {
           await this.endSession(collectorId);
@@ -700,7 +701,7 @@ class CollectorSessionService {
     this.sessionSubscriptions.clear();
     this.subscribers.clear();
     this.isInitialized = false;
-    console.log('✅ Collector Session Service cleaned up');
+    logger.log('✅ Collector Session Service cleaned up');
   }
 }
 

@@ -1,3 +1,4 @@
+import logger from '../../utils/logger';
 import React from 'react';
 
 /**
@@ -165,7 +166,7 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
           <button
             onClick={() => {
               // This would trigger an export function in a real app
-              console.log('Exporting scan history');
+              logger.log('Exporting scan history');
             }}
             className="px-4 py-2 text-blue-600 hover:text-blue-800 flex items-center"
           >
