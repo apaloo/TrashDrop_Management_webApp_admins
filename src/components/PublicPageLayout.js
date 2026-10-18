@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
+import { PUBLIC_NAV } from '../config/publicNav';
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────────── */
 export const TD = {
@@ -44,16 +45,7 @@ export const PublicNavbar = () => {
     return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
   }, [moreOpen]);
 
-  // `more: true` items move into the "More" menu below 1280px so the bar stays on one line
-  const NAV = [
-    { to: '/how-it-works/',     label: 'How It Works' },
-    { to: '/users/',            label: 'For Households' },
-    { to: '/collectors/',       label: 'Earn as Carter', more: true },
-    { to: '/illegal-dumping/',  label: 'Report Dumping' },
-    { to: '/blog/',             label: 'Blog', more: true },
-    { to: '/about/',            label: 'About', more: true },
-    { to: '/partners/',         label: 'Partners' },
-  ];
+  const NAV = PUBLIC_NAV;
 
   const navBg     = scrolled ? 'rgba(10,15,10,0.97)' : 'transparent';
   const navBorder = scrolled ? `1px solid rgba(168,230,61,0.12)` : '1px solid transparent';

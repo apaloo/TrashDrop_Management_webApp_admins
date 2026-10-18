@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
+import { PUBLIC_NAV } from '../config/publicNav';
 import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
@@ -308,14 +309,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
   }, [moreOpen]);
-  // `more: true` items move into the "More" menu below 1280px so the bar stays on one line
-  const NAV = [
-    { href:'/#how',             label:'How it works'        },
-    { href:'/#pricing',         label:'Prices'              },
-    { href:'/illegal-dumping/', label:'Report dumping'      },
-    { href:'/collectors/',      label:'Earn as a collector', more:true },
-    { href:'/partners/',        label:'Partners'            },
-  ];
+  // Same links as every other public page (src/config/publicNav.js)
+  const NAV = PUBLIC_NAV;
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
   // Light links while the bar is see-through over the dark hero
@@ -335,7 +330,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
         <div className="td-nav-links td-nav-main" style={{ display:'flex', alignItems:'center', gap:32 }}>
-          {NAV.map(l => <a key={l.href} href={l.href} className={`td-nav-link${l.more ? ' td-nav-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</a>)}
+          {NAV.map(l => <Link key={l.to} to={l.to} className={`td-nav-link${l.more ? ' td-nav-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</Link>)}
           <div ref={moreRef} className="td-nav-more" style={{ position:'relative' }}>
             <button type="button" className="td-nav-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
               style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
@@ -344,8 +339,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
             {moreOpen && (
               <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:200, background:mobileMenuBg, border:`1px solid ${isDark ? 'rgba(168,230,61,0.15)' : 'rgba(22,101,52,0.12)'}`, borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.18)', padding:6 }}>
                 {NAV.filter(l => l.more).map(l => (
-                  <a key={l.href} href={l.href} role="menuitem" onClick={() => setMoreOpen(false)}
-                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</a>
+                  <Link key={l.to} to={l.to} role="menuitem" onClick={() => setMoreOpen(false)}
+                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</Link>
                 ))}
               </div>
             )}
@@ -374,7 +369,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
       </div>
       {mobileOpen && (
         <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'16px 24px 24px' }}>
-          {NAV.map(l => <a key={l.href} href={l.href} onClick={()=>setMobileOpen(false)} style={{ display:'block', ...FF.label, fontSize:14, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 0', borderBottom:`1px solid ${mobileLinkBorder}` }}>{l.label}</a>)}
+          {NAV.map(l => <Link key={l.to} to={l.to} onClick={()=>setMobileOpen(false)} style={{ display:'block', ...FF.label, fontSize:14, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 0', borderBottom:`1px solid ${mobileLinkBorder}` }}>{l.label}</Link>)}
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
             <button onClick={toggleLp} style={{ ...FF.label, fontWeight:600, color:isDark?TD.lime:TD.forest, background:'transparent', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, textAlign:'center', padding:12, borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               <i className={`fas ${isDark?'fa-sun':'fa-moon'}`}></i> Switch to {isDark?'Light':'Dark'} Mode
@@ -1738,7 +1733,7 @@ const HomeFooter = () => {
         </div>
         {[
           { title:'Waste Collection', links:[...CITY_PAGES.map(c => [c.name, c.path]), ['On-demand waste pickup', WASTE_PICKUP_PATH]] },
-          { title:'Platform', links:[['How It Works','/how-it-works/'],['FAQ','/faq/'],['For Households','/users/'],['Earn as a Collector','/collectors/'],['Report Dumping','/illegal-dumping/']] },
+          { title:'Platform', links:[['How It Works','/how-it-works/'],['FAQ','/faq/'],['For Households','/users/'],['Earn as Carter','/collectors/'],['Report Dumping','/illegal-dumping/']] },
           { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partners','/partners/'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
