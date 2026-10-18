@@ -19,9 +19,9 @@ const { safeDatabaseService } = require('../safeDatabaseService');
 describe('checkTableExists', () => {
   beforeEach(() => { mockCalls.length = 0; mockNextError = null; });
 
-  it('asks for one row with no count', async () => {
+  it('asks for no rows with a plain GET (no HEAD, no count)', async () => {
     expect(await safeDatabaseService.checkTableExists('notifications')).toBe(true);
-    expect(mockCalls).toEqual([{ table: 'notifications', columns: '*', options: { head: true }, limit: 1 }]);
+    expect(mockCalls).toEqual([{ table: 'notifications', columns: '*', options: undefined, limit: 0 }]);
   });
 
   it('treats a body-less server error (e.g. a 503) as "exists", so the real query still runs', async () => {
