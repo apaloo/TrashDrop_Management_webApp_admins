@@ -3,6 +3,7 @@ import { safeDatabaseService } from './safeDatabaseService';
 import { STATUS } from '../config/constants';
 import { cleanEmail, zoneOf } from './collectorAdminUtils';
 import { logFailure } from '../services/auditLogService';
+import { secureUrl } from './secureUrl';
 
 /**
  * Transform collector profile rows into the structure expected by the UI
@@ -34,7 +35,7 @@ const transformCollectorData = (profile) => {
     last_active: profile.updated_at,
     lastUpdated: profile.updated_at ?? profile.last_active_at ?? profile.last_active ?? null,
     joined_date: profile.created_at,
-    profilePic: profile.profile_image_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'Collector')}&background=random`,
+    profilePic: secureUrl(profile.profile_image_url) ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'Collector')}&background=random`,
     vehicle: {
       type: profile.vehicle_type ?? 'Truck',
       plate: profile.vehicle_plate ?? profile.license_plate ?? 'N/A',
@@ -286,7 +287,7 @@ export const toAdminCollector = (profile) => {
     vehicleType: blankToNull(profile.vehicle_type),
     vehicleRegistration: blankToNull(profile.license_plate) ?? blankToNull(profile.vehicle_plate),
     vehicleCapacityBags: capacity,
-    avatar: profile.profile_image_url || null,
+    avatar: secureUrl(profile.profile_image_url) || null,
     joinDate: profile.created_at || null,
     locationUpdatedAt: profile.location_updated_at || null,
     lastActive,

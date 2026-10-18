@@ -10,6 +10,7 @@
 
 import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
+import logger from './logger';
 
 // Configuration constants - Read from environment variables
 export const FORCE_REAL_DATA_ONLY = process.env.REACT_APP_FORCE_LIVE_DATA === 'true';
@@ -45,7 +46,7 @@ export async function initializeRealDataOnly() {
   const isStrictMode = FORCE_REAL_DATA_ONLY && DISABLE_MOCK_DATA && REQUIRE_DATABASE;
   
   if (isStrictMode) {
-    console.log('🔒 STRICT MODE: Enforcing real Supabase data only, no mock data fallbacks');
+    logger.log('🔒 STRICT MODE: Enforcing real Supabase data only, no mock data fallbacks');
     
     // Completely disable all mock data options
     safeDatabaseService.mockDataMode = false;
@@ -53,7 +54,7 @@ export async function initializeRealDataOnly() {
     safeDatabaseService.forceRealDataOnly = true;
     safeDatabaseService.enableMockFallback = false;
   } else {
-    console.log('🔧 DEVELOPMENT MODE: Using environment configuration for data sources');
+    logger.log('🔧 DEVELOPMENT MODE: Using environment configuration for data sources');
     
     // Use environment variable configuration
     safeDatabaseService.mockDataMode = !DISABLE_MOCK_DATA;
@@ -151,7 +152,7 @@ export async function initializeRealDataOnly() {
   // the checks run again on the next load once someone is signed in.
   const { data: { session } = {} } = await supabase.auth.getSession();
   if (!session) {
-    console.log('Skipping database verification for anonymous visitor');
+    logger.log('Skipping database verification for anonymous visitor');
     return true;
   }
 
@@ -166,16 +167,16 @@ export async function initializeRealDataOnly() {
       // In development mode, just log database status without enforcing
       try {
         await verifyDatabaseConnection();
-        console.log('✅ Database connection available - using real data where possible');
+        logger.log('✅ Database connection available - using real data where possible');
       } catch (error) {
-        console.warn('⚠️ Database connection unavailable - using mock data fallbacks');
+        logger.warn('⚠️ Database connection unavailable - using mock data fallbacks');
       }
       
       try {
         await verifyRequiredSchema(true); // true = report only mode, don't throw errors
       } catch (error) {
         // Just log the schema issues without failing
-        console.warn('⚠️ Some database schema elements are missing - using mock data fallbacks');
+        logger.warn('⚠️ Some database schema elements are missing - using mock data fallbacks');
       }
     }
     
@@ -185,7 +186,7 @@ export async function initializeRealDataOnly() {
       console.error('❌ INITIALIZATION FAILED:', error.message);
       throw error; // Re-throw to prevent app startup only in strict mode
     } else {
-      console.warn('⚠️ Using mock data fallbacks due to:', error.message);
+      logger.warn('⚠️ Using mock data fallbacks due to:', error.message);
       return false; // Allow startup with warnings in development mode
     }
   }
@@ -197,7 +198,7 @@ export async function initializeRealDataOnly() {
  */
 async function verifyDatabaseConnection() {
   try {
-    console.log('🔄 Verifying Supabase database connection...');
+    logger.log('🔄 Verifying Supabase database connection...');
     
     // Simple query to verify connection
     const { data, error } = await supabase.from('batches').select('count').limit(1);
@@ -210,7 +211,7 @@ async function verifyDatabaseConnection() {
       }
     }
     
-    console.log('✅ Supabase database connection verified successfully');
+    logger.log('✅ Supabase database connection verified successfully');
     return true;
   } catch (error) {
     console.error('❌ DATABASE CONNECTION ERROR:', error.message);
@@ -224,7 +225,7 @@ async function verifyDatabaseConnection() {
  * @returns {Promise<boolean>} - True if all required elements exist, throws error otherwise
  */
 async function verifyRequiredSchema(reportOnly = false) {
-  console.log('🔄 Verifying required database schema elements...');
+  logger.log('🔄 Verifying required database schema elements...');
   
   const missingTables = [];
   const missingFunctions = [];
@@ -249,7 +250,7 @@ async function verifyRequiredSchema(reportOnly = false) {
   const tablesFound = REQUIRED_TABLES.length - missingTables.length;
   const functionsFound = REQUIRED_FUNCTIONS.length - missingFunctions.length;
   
-  console.log(`📊 Database schema validation: ${tablesFound}/${REQUIRED_TABLES.length} tables found, ` + 
+  logger.log(`📊 Database schema validation: ${tablesFound}/${REQUIRED_TABLES.length} tables found, ` + 
               `${functionsFound}/${REQUIRED_FUNCTIONS.length} functions found`);
   
   // In strict mode (or report only mode), handle missing elements
@@ -271,11 +272,11 @@ async function verifyRequiredSchema(reportOnly = false) {
       console.error('❌', errorMessage);
       throw new Error(errorMessage);
     } else {
-      console.warn('⚠️', errorMessage, 'Using mock data fallbacks where needed.');
+      logger.warn('⚠️', errorMessage, 'Using mock data fallbacks where needed.');
     }
   }
   
-  console.log('✅ All required database schema elements verified successfully');
+  logger.log('✅ All required database schema elements verified successfully');
   return true;
 }
 

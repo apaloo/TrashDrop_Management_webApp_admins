@@ -45,6 +45,13 @@ describe('photos', () => {
     expect(viewable).toEqual(['https://x/p.jpg', 'data:image/jpeg;base64,AAAA']);
     expect(lost).toBe(1);
   });
+
+  it('upgrades http links so they load on the https site', () => {
+    expect(splitReportPhotos(['http://x/p.jpg']).viewable).toEqual(['https://x/p.jpg']);
+    const vm = toReportViewModel({ id: 1, images: ['HTTP://x/a.jpg'], cleanup_photos: ['http://x/b.jpg'] });
+    expect(vm.images).toEqual(['https://x/a.jpg']);
+    expect(vm.cleanupPhotos).toEqual(['https://x/b.jpg']);
+  });
 });
 
 describe('row mapping', () => {

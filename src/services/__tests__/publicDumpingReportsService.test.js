@@ -25,6 +25,10 @@ describe('public dumping reports', () => {
     expect(mapPublicReport(row({ status: 'Completed' })).isCleanedUp).toBe(true);
   });
 
+  it('upgrades http photo links to https', () => {
+    expect(mapPublicReport(row({ photo_urls: ['http://x/a.jpg', 'blob:x'] })).photos).toEqual(['https://x/a.jpg']);
+  });
+
   it('drops cancelled, out-of-Ghana and unlocated reports', () => {
     expect(isPublicMapReport(mapPublicReport(row()))).toBe(true);
     expect(isPublicMapReport(mapPublicReport(row({ status: 'cancelled' })))).toBe(false);
