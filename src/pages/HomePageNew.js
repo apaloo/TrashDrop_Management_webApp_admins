@@ -1729,7 +1729,7 @@ const HomeFooter = () => {
             Trash and waste collection in Accra, Kumasi, Takoradi and Tamale, plus illegal dumping reporting across Ghana. Call or WhatsApp {BUSINESS.phoneDisplay}.
           </p>
           <div style={{ display:'flex', gap:10 }}>
-            {[['fab fa-twitter','#'],['fab fa-facebook-f','#'],['fab fa-linkedin-in','#'],['fab fa-instagram','#']].map(([ic,href]) => (
+            {[['fab fa-twitter','#'],['fab fa-facebook-f',BUSINESS.facebookUrl],['fab fa-linkedin-in','#'],['fab fa-instagram','#']].map(([ic,href]) => (
               <a key={ic} href={href} className="td-social-btn" style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)', textDecoration:'none', transition:'all 0.2s ease', fontSize:13 }}>
                 <i className={ic}></i>
               </a>

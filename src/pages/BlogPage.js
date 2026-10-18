@@ -3,6 +3,59 @@ import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
 
 export const BLOG_POSTS = [
+  /* From the TrashDrop Facebook page (image = the post's flyer) */
+  {
+    slug:    'accra-flooded-again-prevent-the-next-one',
+    title:   'Accra Flooded Again. What If We Could Prevent the Next One?',
+    date:    'From our Facebook page',
+    readTime:'3 min read',
+    keyword: 'Accra flooding blocked drains',
+    excerpt: 'Flooding doesn\'t start when it rains. It starts when drains are blocked, waste is dumped illegally and hazards go unreported. Every day we see the problems. Now, let\'s be part of the solution.',
+    tag:     'Environment',
+    tagColor:'#f87171',
+    image:   '/images/blog/accra-flooded-again.jpg',
+    imageSize: [1000, 1250],
+    imageAlt:'TrashDrop flyer: "Accra flooded again. But what if we could prevent the next one?" Cars driving through a flooded Accra road, with the TrashDrop report screen and live reports map, and how TrashDrop works in six steps.',
+  },
+  {
+    slug:    'one-photo-can-change-a-community',
+    title:   'One Photo Can Change a Community',
+    date:    'From our Facebook page',
+    readTime:'3 min read',
+    keyword: 'report blocked drain Ghana',
+    excerpt: 'You\'re driving to work and you see rubbish blocking a drain. Normally, you keep driving. Now imagine taking one photo instead, and the drain gets cleared.',
+    tag:     'Community',
+    tagColor:'#a8e63d',
+    image:   '/images/blog/one-photo-can-change-a-community.jpg',
+    imageSize: [1000, 1416],
+    imageAlt:'TrashDrop flyer: "One photo can change a community." A drain blocked with plastic bottles, a phone showing a TrashDrop report from photo to problem solved, and before and after photos of the cleared drain.',
+  },
+  {
+    slug:    'pilot-demonstration-monrovia-liberia',
+    title:   'Pilot Demonstration: Monrovia, Liberia',
+    date:    'From our Facebook page',
+    readTime:'4 min read',
+    keyword: 'illegal dumping cleanup Monrovia',
+    excerpt: 'From citizen report to clean environment. This pilot in Monrovia, Liberia shows the complete life of a report, and how technology can turn community action into cleaner, healthier, more livable streets.',
+    tag:     'Pilot',
+    tagColor:'#60a5fa',
+    image:   '/images/blog/pilot-monrovia-liberia.jpg',
+    imageSize: [1000, 1500],
+    imageAlt:'TrashDrop flyer: "Pilot demonstration, Monrovia, Liberia." Before and after photos of a roadside cleared of illegally dumped waste, and the 13-step journey of a report from citizen report to citizen notified.',
+  },
+  {
+    slug:    'citizens-see-the-problems-first',
+    title:   'Citizens See the Problems First',
+    date:    'From our Facebook page',
+    readTime:'3 min read',
+    keyword: 'report environmental hazards Ghana',
+    excerpt: 'Every day, thousands of residents walk or drive past environmental hazards. Most people notice them. Very few know where, or how, to report them.',
+    tag:     'Community',
+    tagColor:'#a8e63d',
+    image:   '/images/blog/citizens-see-the-problems-first.jpg',
+    imageSize: [1000, 1500],
+    imageAlt:'TrashDrop flyer: "Citizens see the problems first." Photos of blocked drains, dumping sites, overflowing gutters, waste in streams, choked culverts and construction debris, with how a TrashDrop report reaches a cleanup crew.',
+  },
   {
     slug:    'how-much-can-a-waste-collector-earn-accra',
     title:   'How Much Can a Waste Collector Earn in Accra?',
@@ -131,6 +184,10 @@ const BlogPage = () => {
                 <article style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px', height:'100%', transition:'all 0.25s', display:'flex', flexDirection:'column', boxSizing:'border-box' }}
                   onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;e.currentTarget.style.transform='translateY(-4px)';}}
                   onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';e.currentTarget.style.transform='translateY(0)';}}>
+                  {post.image && (
+                    <img src={post.image} alt="" width={post.imageSize[0]} height={post.imageSize[1]} loading="lazy" decoding="async"
+                      style={{ display:'block', width:'100%', height:'auto', aspectRatio:'4 / 3', objectFit:'cover', objectPosition:'top', borderRadius:12, marginBottom:20, background:'rgba(255,255,255,0.04)' }} />
+                  )}
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
                     <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'1.5px', color:post.tagColor, background:`${post.tagColor}15`, border:`1px solid ${post.tagColor}25`, borderRadius:99, padding:'4px 12px', textTransform:'uppercase' }}>{post.tag}</span>
                     <span style={{ ...FF.label, fontSize:11, color:TD.sage, fontWeight:600 }}>{post.readTime}</span>

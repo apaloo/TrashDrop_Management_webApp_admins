@@ -2,12 +2,68 @@ import React, { useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../../components/PublicPageLayout';
 import { BLOG_POSTS } from '../BlogPage';
+import { BUSINESS } from '../../utils/seo';
 
 /* ────────────────────────────────────────────────────────────────────────────
    All 8 blog post contents
 ─────────────────────────────────────────────────────────────────────────────*/
 
 const POST_CONTENT = {
+
+  /* ── From the TrashDrop Facebook page ── */
+  'accra-flooded-again-prevent-the-next-one': {
+    title:    'Accra Flooded Again. What If We Could Prevent the Next One?',
+    keyword:  'Accra flooding blocked drains',
+    description: 'Flooding in Accra starts when drains are blocked, waste is dumped illegally and hazards go unreported. How reporting with TrashDrop helps prevent the next flood.',
+    fromFacebook: true,
+    sections: [
+      { h2:'Flooding starts before the rain', body:'Flooding doesn\'t start when it rains. It starts when drains are blocked, waste is dumped illegally and hazards go unreported. Every day, we see the problems: illegal dumping, blocked drains, choked waterways and overflowing waste.' },
+      { h2:'How TrashDrop works', body:'1. You report: take a photo, and we capture the location. 2. It\'s mapped: your report appears on a live map instantly. 3. Authorities act: issues are reviewed and cleanup tasks are assigned. 4. Cleanup happens: teams navigate to the location and get the job done. 5. Work verified: before and after photos confirm the cleanup was completed. 6. Problem solved: cleaner communities, safer streets, fewer floods.' },
+      { h2:'Why it matters', body:'Reporting helps prevent floods before they happen, gets a faster response from authorities, and builds cleaner neighbourhoods and stronger, more resilient communities.' },
+      { h2:'We all have a role to play', body:'Dispose of waste responsibly. Keep drains clear. Report hazards. Protect waterways. Together, we can build a cleaner, safer and flood-resilient Accra. See it. Report it. Let\'s prevent it.' },
+    ],
+  },
+
+  'one-photo-can-change-a-community': {
+    title:    'One Photo Can Change a Community',
+    keyword:  'report blocked drain Ghana',
+    description: 'You see rubbish blocking a drain. One photo sent through TrashDrop reaches the municipality and a cleanup team, and the drain gets cleared.',
+    fromFacebook: true,
+    sections: [
+      { h2:'Imagine this', body:'You\'re driving to work. You see rubbish blocking a drain. Normally, you keep driving.' },
+      { h2:'Now imagine instead', body:'1. You take a photo. 2. The GPS location is captured automatically. 3. The report is sent instantly. 4. The municipality receives it. 5. A cleanup team is assigned. 6. The drain is cleared.' },
+      { h2:'Problem solved', body:'One photo. One report. One cleaner community. Small action today, big impact tomorrow.' },
+      { h2:'Proven since 2021', body:'This isn\'t the future. TrashDrop has been demonstrating this workflow since 2021: real reports, real action, real impact. Technology doesn\'t replace responsibility. It makes responsibility easier.' },
+      { h2:'See it. Report it. Solve it.', body:'Together, we can prevent floods and build cleaner, safer communities. Report a dump or blocked drain with TrashDrop.' },
+    ],
+  },
+
+  'pilot-demonstration-monrovia-liberia': {
+    title:    'Pilot Demonstration: Monrovia, Liberia',
+    keyword:  'illegal dumping cleanup Monrovia',
+    description: 'A TrashDrop pilot in Monrovia, Liberia: a citizen report of illegally dumped waste, followed through assignment, cleanup, verification and closure.',
+    fromFacebook: true,
+    sections: [
+      { h2:'Before and after', body:'Before: a citizen reports a large pile of illegally dumped waste blocking a public roadside. After: the cleanup team removes the waste, restoring the area to a clean and accessible condition.' },
+      { h2:'What the pilot shows', body:'The pilot validates the operational workflow, from citizen reporting through assignment, navigation, cleanup, verification and closure, and shows how digital coordination can produce measurable environmental improvements.' },
+      { h2:'The journey of a report', body:'1. A citizen reports illegal dumping with a photo and GPS. 2. The location is captured automatically. 3. The report reaches the TrashDrop platform. 4. It appears on the municipal dashboard in real time. 5. An environmental officer reviews and validates it. 6. The officer assigns the cleanup to a team. 7. The cleaner receives the job in their app. 8. The cleaner navigates to the location. 9. The cleanup team removes the waste. 10. After-cleanup photos are uploaded as proof. 11. The officer reviews the photos and verifies the work. 12. The report is closed and archived. 13. The citizen is notified that the issue is resolved.' },
+      { h2:'Why it matters', body:'Faster response: issues are reported and addressed quickly. Real-time visibility: authorities see problems as they happen. Accountability and transparency: every action is tracked, verified and recorded. Better data, better decisions: insights help prioritise and prevent. Cleaner, safer, resilient cities: working together for a healthier Monrovia.' },
+    ],
+  },
+
+  'citizens-see-the-problems-first': {
+    title:    'Citizens See the Problems First',
+    keyword:  'report environmental hazards Ghana',
+    description: 'Residents see blocked drains, dumping sites and choked culverts every day. TrashDrop turns those sightings into reports that reach the people who can clear them.',
+    fromFacebook: true,
+    sections: [
+      { h2:'What residents see every day', body:'Blocked drains, illegal dumping sites, overflowing gutters, waste dumped into streams, choked culverts and construction debris blocking waterways. Without a simple way to report them, these issues stay unresolved until they contribute to the next flood.' },
+      { h2:'Imagine a different approach', body:'What if every smartphone became a tool for protecting the city? You see a blocked drain on your morning commute. Instead of walking past it, you open the app, take a photo and submit a report.' },
+      { h2:'Within seconds', body:'The GPS location is captured automatically. The issue appears on a live map. The relevant MMDAs are notified. Environmental officers assign a cleanup team. The crew navigates directly to the location, clears the blockage and uploads photos as proof. The report is verified and closed. This is not just reporting: it\'s accountability from detection to resolution.' },
+      { h2:'Turning citizens into partners', body:'Residents shouldn\'t only live with the results of poor waste management. They should also have the tools to help solve it. Technology bridges the gap between communities and local authorities by making environmental reporting fast, transparent and actionable. Every verified report adds to a citywide map that helps authorities find recurring hotspots and act before problems escalate.' },
+    ],
+  },
+
 
   /* ── POST 1 ── */
   'how-much-can-a-waste-collector-earn-accra': {
@@ -243,6 +299,18 @@ const BlogPostPage = () => {
           <p style={{ ...FF.body, fontSize:18, color:'rgba(255,255,255,0.82)', lineHeight:1.85, margin:'0 0 48px', fontWeight:400, borderLeft:`3px solid ${TD.lime}`, paddingLeft:24 }}>
             {post.excerpt}
           </p>
+
+          {post.image && (
+            <figure style={{ margin:'0 0 48px' }}>
+              <img src={post.image} alt={post.imageAlt} width={post.imageSize[0]} height={post.imageSize[1]} decoding="async"
+                style={{ display:'block', width:'100%', height:'auto', borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }} />
+              {content.fromFacebook && (
+                <figcaption style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:12 }}>
+                  First shared on the <a href={BUSINESS.facebookUrl} target="_blank" rel="noopener noreferrer" style={{ color:TD.lime }}>TrashDrop Facebook page</a>.
+                </figcaption>
+              )}
+            </figure>
+          )}
 
           {/* H2 sections */}
           {content.sections.map((sec, i) => (

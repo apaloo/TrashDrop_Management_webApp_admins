@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { BUSINESS } from '../utils/seo';
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────────── */
 export const TD = {
@@ -136,7 +137,7 @@ export const PublicFooter = () => (
             Ghana's leading mobile waste management platform. Connecting households with verified collectors across Accra, Kumasi, Takoradi and Tamale.
           </p>
           <div style={{ display:'flex', gap:10, marginTop:20 }}>
-            {[['fa-twitter','https://twitter.com'],['fa-linkedin','https://linkedin.com'],['fa-instagram','https://instagram.com'],['fa-facebook','https://web.facebook.com/profile.php?id=61590201371573']].map(([icon, href]) => (
+            {[['fa-twitter','https://twitter.com'],['fa-linkedin','https://linkedin.com'],['fa-instagram','https://instagram.com'],['fa-facebook',BUSINESS.facebookUrl]].map(([icon, href]) => (
               <a key={icon} href={href} target="_blank" rel="noopener noreferrer"
                 style={{ width:34, height:34, borderRadius:8, border:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)', textDecoration:'none', transition:'all 0.2s' }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}60`;e.currentTarget.style.color=TD.lime;}}
