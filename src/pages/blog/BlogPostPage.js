@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../../components/PublicPageLayout';
 import { BLOG_POSTS } from '../BlogPage';
-import { BUSINESS } from '../../utils/seo';
+import { BUSINESS, SITE_URL, useSeo, withSlash } from '../../utils/seo';
 
 /* ────────────────────────────────────────────────────────────────────────────
    All 8 blog post contents
@@ -86,7 +86,7 @@ const POST_CONTENT = {
       { h2:'Recyclables revenue (60% yours)', body:'When recyclable materials (plastic, metal, glass, paper) are identified in your collected waste and sold to licensed recycling facilities, you receive 60% of the materials revenue. You keep more of the value you create.' },
       { h2:'Real example: full earnings breakdown', body:'Example calculation for a full working day in Accra: 10 pickups × ₵32.43 average = ₵324.30 base. Add 2 urgent bonuses (₵12), 3 tips (₵18), and recyclables share (₵9) = ₵363.30 for the day, or approximately ₵7,266/month working 5 days/week.' },
       { h2:'Best hours for surge pricing', body:'Based on platform data across Accra, the highest surge frequencies occur: weekday mornings (07:00–10:00), Friday afternoons (14:00–18:00), and Saturday mornings. Positioning near high-density residential areas like East Legon, Madina, and Spintex during these windows maximises earnings.' },
-      { h2:'How to cash out to MoMo', body:'Open the Carter App wallet section, enter the amount (minimum ₵10, maximum ₵5,000 per day), select your MoMo provider (MTN, Vodafone, or AirtelTigo), and confirm. Funds arrive instantly. There is no fee for standard cashouts.' },
+      { h2:'How to cash out to MoMo', body:'Open the Carter App wallet section, enter the amount (minimum ₵10, maximum ₵5,000 per day), select your MoMo provider (MTN, Telecel, or AirtelTigo), and confirm. Funds arrive instantly. There is no fee for standard cashouts.' },
     ],
   },
 
@@ -251,17 +251,55 @@ const POST_CONTENT = {
 /* ────────────────────────────────────────────────────────────────────────────
    BlogPostPage component
 ─────────────────────────────────────────────────────────────────────────────*/
+const articleJsonLd = ({ post, content, url, image }) => {
+  const org = { '@type': 'Organization', name: BUSINESS.name, url: `${SITE_URL}/` };
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: content.title,
+    description: content.description,
+    image: [image],
+    datePublished: post.published,
+    dateModified: post.updated || post.published,
+    author: org,
+    publisher: { ...org, logo: { '@type': 'ImageObject', url: BUSINESS.logo } },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+  };
+};
+
 const BlogPostPage = () => {
   const { slug } = useParams();
   const post = BLOG_POSTS.find(p => p.slug === slug);
   const content = POST_CONTENT[slug];
 
+  const path = `/blog/${slug}`;
+  const image = SITE_URL + (post?.image || '/icon-512x512.png');
+  // An unknown slug redirects to /blog/ below; its tags are never indexed
+  useSeo({
+    title: content ? `${content.title} | TrashDrop Blog` : 'Blog | TrashDrop',
+    description: content?.description || '',
+    path,
+    jsonLd: post && content ? articleJsonLd({ post, content, url: SITE_URL + withSlash(path), image }) : null,
+  });
+  // Share previews show the post's flyer and read as an article
   useEffect(() => {
-    if (!content) return;
-    document.title = `${content.title} | TrashDrop Blog`;
-    const el = document.querySelector('meta[name="description"]');
-    if (el && content.description) el.setAttribute('content', content.description);
-  }, [content]);
+    if (!post?.image) return undefined;
+    const tags = [
+      ['property', 'og:type', 'article'],
+      ['property', 'og:image', image],
+      ['property', 'og:image:width', String(post.imageSize[0])],
+      ['property', 'og:image:height', String(post.imageSize[1])],
+      ['name', 'twitter:image', image],
+    ];
+    const previous = tags.map(([attr, key, value]) => {
+      const el = document.head.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) return null;
+      const old = el.getAttribute('content');
+      el.setAttribute('content', value);
+      return [el, old];
+    });
+    return () => previous.forEach(p => p && p[0].setAttribute('content', p[1]));
+  }, [post, image]);
 
   if (!post || !content) return <Navigate to="/blog/" replace />;
 

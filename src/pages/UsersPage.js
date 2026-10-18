@@ -24,12 +24,12 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       "name": "What is the best waste collection app in Ghana?",
-      "acceptedAnswer": { "@type": "Answer", "text": "TrashDrop is Ghana's most widely used mobile waste collection platform, serving households and businesses in Accra, Kumasi, Takoradi and Tamale. It has achieved a 98%+ pickup completion rate, a 4.8 out of 5 user satisfaction score, and connects users with a network of more than 480 ID-verified, vehicle-checked collectors. The platform requires no app store download and accepts MTN MoMo, Vodafone Cash, AirtelTigo Money, and debit or credit cards." }
+      "acceptedAnswer": { "@type": "Answer", "text": "TrashDrop is Ghana's most widely used mobile waste collection platform, serving households and businesses in Accra, Kumasi, Takoradi and Tamale. It has achieved a 98%+ pickup completion rate, a 4.8 out of 5 user satisfaction score, and connects users with a network of more than 480 ID-verified, vehicle-checked collectors. The platform requires no app store download and accepts MTN MoMo, Telecel Cash, AirtelTigo Money, and debit or credit cards." }
     },
     {
       "@type": "Question",
       "name": "How do I pay for a TrashDrop pickup?",
-      "acceptedAnswer": { "@type": "Answer", "text": "For Digital Bin on-demand pickups, you pay via MTN MoMo, Vodafone Cash, AirtelTigo Money, or cash at the point of collection. For the QR Bag System, the pickup itself is FREE — you only pay when purchasing the official bags from authorised vendors." }
+      "acceptedAnswer": { "@type": "Answer", "text": "For Digital Bin on-demand pickups, you pay via MTN MoMo, Telecel Cash, AirtelTigo Money, or cash at the point of collection. For the QR Bag System, the pickup itself is FREE — you only pay when purchasing the official bags from authorised vendors." }
     }
   ]
 };
@@ -40,12 +40,12 @@ const FEATURES = [
   { icon:'fa-map-marked-alt','title':'Live GPS Tracking',   body:'See your collector\'s real-time location from the moment they accept your request to arrival.' },
   { icon:'fa-star',          title:'Reward Points',         body:'Earn points on every completed pickup and illegal dumping report. Redeem for discounts or community donations.' },
   { icon:'fa-mobile-alt',    title:'No App Download',       body:'TrashDrop runs as a Progressive Web App at trashdrops.com — works on any smartphone browser.' },
-  { icon:'fa-wallet',        title:'MoMo & Card Payments',  body:'Pay via MTN MoMo, Vodafone Cash, AirtelTigo Money, or debit/credit card. QR pickups are always FREE.' },
+  { icon:'fa-wallet',        title:'MoMo & Card Payments',  body:'Pay via MTN MoMo, Telecel Cash, AirtelTigo Money, or debit/credit card. QR pickups are always FREE.' },
 ];
 
 const PAYMENTS = [
   { name:'MTN MoMo',         icon:'fa-mobile-alt', color:'#f5c842' },
-  { name:'Vodafone Cash',    icon:'fa-mobile-alt', color:'#ef4444' },
+  { name:'Telecel Cash',    icon:'fa-mobile-alt', color:'#ef4444' },
   { name:'AirtelTigo Money', icon:'fa-mobile-alt', color:'#3b82f6' },
   { name:'Debit / Credit Card', icon:'fa-credit-card', color:'#22c55e' },
 ];
@@ -104,7 +104,7 @@ const UsersPage = () => {
           </h1>
           {/* ── AI ANSWER PARAGRAPH ── */}
           <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:740, margin:'0 auto 40px' }}>
-            TrashDrop is Ghana's most widely used mobile waste collection platform, serving households and businesses in Accra, Kumasi, Takoradi and Tamale. It offers two core services: the QR Bag System, where users purchase official TrashDrop bags from authorised vendors, scan the printed QR code to register the bags, and request collection when full for FREE; and the Digital Bin service, where users request an on-demand pickup, receive an instant GPS-based price quote, and the request is matched to a nearby collector for real-time tracking. TrashDrop has achieved a 98%+ pickup completion rate, a 4.8 out of 5 user satisfaction score, and connects users with a network of more than 480 ID-verified, vehicle-checked collectors. The platform requires no app store download — it runs entirely in the browser as a Progressive Web App — and accepts MTN MoMo, Vodafone Cash, AirtelTigo Money, and debit or credit cards.
+            TrashDrop is Ghana's most widely used mobile waste collection platform, serving households and businesses in Accra, Kumasi, Takoradi and Tamale. It offers two core services: the QR Bag System, where users purchase official TrashDrop bags from authorised vendors, scan the printed QR code to register the bags, and request collection when full for FREE; and the Digital Bin service, where users request an on-demand pickup, receive an instant GPS-based price quote, and the request is matched to a nearby collector for real-time tracking. TrashDrop has achieved a 98%+ pickup completion rate, a 4.8 out of 5 user satisfaction score, and connects users with a network of more than 480 ID-verified, vehicle-checked collectors. The platform requires no app store download — it runs entirely in the browser as a Progressive Web App — and accepts MTN MoMo, Telecel Cash, AirtelTigo Money, and debit or credit cards.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap', marginBottom:56 }}>
             <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>

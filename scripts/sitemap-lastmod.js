@@ -16,6 +16,8 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const { blogPostRoutes } = require('./blog-slugs');
+
 const ROOT = path.resolve(__dirname, '..');
 
 // Header, footer and SEO tags shared by every PublicPageLayout page
@@ -33,6 +35,8 @@ const HOME = [
   'public/images/book-in-app-qr.png',
 ];
 const CITY = ['src/pages/CityWasteCollectionPage.js', 'src/pages/cityContent.js', ...PUBLIC_LAYOUT];
+// A post's text lives in BlogPostPage.js, its card and dates in BlogPage.js
+const BLOG_POST = ['src/pages/blog/BlogPostPage.js', 'src/pages/BlogPage.js', 'public/images/blog', ...PUBLIC_LAYOUT];
 
 // Keep in step with ROUTES in prerender.js (the build fails if a route is missing here)
 const ROUTE_SOURCES = {
@@ -50,6 +54,7 @@ const ROUTE_SOURCES = {
   '/waste-collection-takoradi': CITY,
   '/waste-collection-tamale': CITY,
   '/waste-pickup': ['src/pages/WastePickupPage.js', ...PUBLIC_LAYOUT],
+  ...Object.fromEntries(blogPostRoutes().map(route => [route, BLOG_POST])),
 };
 
 const git = (args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', env: { ...process.env, TZ: 'UTC' }, stdio: ['ignore', 'pipe', 'ignore'] }).trim();

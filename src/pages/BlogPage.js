@@ -2,10 +2,13 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
 
+// published: date the post first went up on trashdrops.com (from git); add
+// updated: 'YYYY-MM-DD' when a post's text changes. Both feed the Article JSON-LD.
 export const BLOG_POSTS = [
   /* From the TrashDrop Facebook page (image = the post's flyer) */
   {
     slug:    'accra-flooded-again-prevent-the-next-one',
+    published: '2026-10-18',
     title:   'Accra Flooded Again. What If We Could Prevent the Next One?',
     date:    'From our Facebook page',
     readTime:'3 min read',
@@ -19,6 +22,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'one-photo-can-change-a-community',
+    published: '2026-10-18',
     title:   'One Photo Can Change a Community',
     date:    'From our Facebook page',
     readTime:'3 min read',
@@ -32,6 +36,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'pilot-demonstration-monrovia-liberia',
+    published: '2026-10-18',
     title:   'Pilot Demonstration: Monrovia, Liberia',
     date:    'From our Facebook page',
     readTime:'4 min read',
@@ -45,6 +50,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'citizens-see-the-problems-first',
+    published: '2026-10-18',
     title:   'Citizens See the Problems First',
     date:    'From our Facebook page',
     readTime:'3 min read',
@@ -58,6 +64,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'how-much-can-a-waste-collector-earn-accra',
+    published: '2026-04-12',
     title:   'How Much Can a Waste Collector Earn in Accra?',
     date:    'Week 1',
     readTime:'10 min read',
@@ -68,6 +75,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'how-to-report-illegal-dumping-ghana',
+    published: '2026-04-12',
     title:   'How to Report Illegal Dumping in Ghana',
     date:    'Week 1',
     readTime:'8 min read',
@@ -78,6 +86,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'complete-guide-waste-segregation-ghana',
+    published: '2026-04-12',
     title:   'The Complete Guide to Waste Segregation in Ghana',
     date:    'Week 2',
     readTime:'12 min read',
@@ -88,6 +97,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'how-trashdrop-qr-bag-system-works',
+    published: '2026-04-12',
     title:   'How the TrashDrop QR Bag System Works',
     date:    'Week 2',
     readTime:'9 min read',
@@ -98,6 +108,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'comparing-waste-collection-options-accra-2026',
+    published: '2026-04-12',
     title:   'Comparing Waste Collection Options in Accra — 2026',
     date:    'Week 3',
     readTime:'11 min read',
@@ -108,6 +119,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'ghana-waste-management-laws-explained',
+    published: '2026-04-12',
     title:   "Ghana's Waste Management Laws Explained",
     date:    'Week 3',
     readTime:'10 min read',
@@ -118,6 +130,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'what-happens-to-waste-after-trashdrop-picks-it-up',
+    published: '2026-04-12',
     title:   'What Happens to Waste After TrashDrop Picks It Up?',
     date:    'Week 4',
     readTime:'9 min read',
@@ -128,6 +141,7 @@ export const BLOG_POSTS = [
   },
   {
     slug:    'trashdrop-expands-kumasi',
+    published: '2026-04-12',
     title:   'TrashDrop Expands to Kumasi: What You Need to Know',
     date:    'Week 4',
     readTime:'8 min read',
