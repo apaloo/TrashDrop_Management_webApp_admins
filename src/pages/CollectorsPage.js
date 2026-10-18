@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import { BUSINESS } from '../utils/seo';
 
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
@@ -122,8 +123,10 @@ const CollectorsPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,#0a2010 0%,#091509 50%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.05, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
+      <section style={{ background:TD.ink, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+        {/* TrashDrop-branded tricycle behind a dark overlay so the text stays readable */}
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/collectors/hero-tricycle.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', opacity:0.7 }} />
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(180deg, rgba(9,21,9,0.8) 0%, rgba(9,21,9,0.68) 45%, ${TD.ink} 100%)` }} />
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
             <i className="fas fa-truck" style={{ color:TD.lime, fontSize:11 }}></i>
@@ -152,6 +155,39 @@ const CollectorsPage = () => {
                 <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Join flyer ── */}
+      <style>{`@media(max-width:820px){ .td-carter-flyer{grid-template-columns:1fr!important; gap:32px!important} .td-carter-flyer > img{max-width:420px; margin:0 auto} }`}</style>
+      <section style={{ background:TD.ink, padding:'88px 24px' }}>
+        <div className="td-carter-flyer" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'minmax(0,420px) minmax(0,1fr)', gap:48, alignItems:'center' }}>
+          <img src="/images/collectors/earn-flyer.jpg" alt="TrashDrop carter flyer: a rider on a TrashDrop tricycle. What you'll earn: steady pay, your tricycle, ID verified. Collector gets free GHC 250 worth of PPE. WhatsApp +233 20 933 8885."
+            width="760" height="1048" loading="lazy" decoding="async"
+            style={{ width:'100%', height:'auto', aspectRatio:'760 / 1048', borderRadius:18, boxShadow:'0 24px 60px rgba(0,0,0,0.45)', display:'block' }} />
+          <div style={{ minWidth:0 }}>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Join as a carter</span>
+            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 16px', letterSpacing:'-1px', lineHeight:1.1 }}>Earn more on every pickup with your own tricycle</h2>
+            <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.75, margin:'0 0 24px', maxWidth:520 }}>
+              Bring your aboboyaa or tricycle. We send you pickup jobs near you and pay you to mobile money.
+            </p>
+            <ul style={{ listStyle:'none', padding:0, margin:'0 0 32px', display:'grid', gap:14 }}>
+              {[['fa-hand-holding-usd','Steady pay','Jobs near you every day, paid straight to MoMo.'],
+                ['fa-truck','Your tricycle','Use the vehicle you already ride.'],
+                ['fa-id-card','ID verified','Every carter is checked, so households trust you at the door.']].map(([icon, t, d]) => (
+                <li key={t} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
+                  <span style={{ width:40, height:40, borderRadius:12, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className={`fas ${icon}`} style={{ color:TD.lime, fontSize:16 }} aria-hidden="true"></i></span>
+                  <span><strong style={{ ...FF.label, fontSize:14, color:'#f0f5f0', display:'block', marginBottom:2 }}>{t}</strong><span style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)' }}>{d}</span></span>
+                </li>
+              ))}
+            </ul>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+              <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none' }}>Join as a Collector</Link>
+              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 22px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.18)', display:'inline-flex', alignItems:'center', gap:8 }}>
+                <i className="fab fa-whatsapp" style={{ color:'#25D366' }} aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -204,6 +240,22 @@ const CollectorsPage = () => {
               <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.7 }}>10 pickups × ₵32.43 avg × 20 working days = <strong style={{ color:'#fff' }}>₵6,486/month</strong> before bonuses, tips, and recyclables.</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── Electric tricycles (partnership) ── */}
+      <section style={{ background:TD.ink, padding:'88px 24px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:36 }}>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Coming for TrashDrop carters</span>
+            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.1 }}>From manual lifting to electric bin-lifter tricycles</h2>
+            <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.62)', lineHeight:1.75, maxWidth:640, margin:'0 auto' }}>
+              TrashDrop is working with a partner provider to help carters move to electric tricycles with automatic hydraulic bin lifters: less heavy lifting, safer work and faster pickups.
+            </p>
+          </div>
+          <img src="/images/collectors/ev-bin-lifter.jpg" alt="Left: TrashDrop carters lifting a bin by hand onto a motor tricycle. Right: an electric TrashDrop tricycle with an automatic hydraulic bin lifter. Manual lifting, labour intensive; automated lifting, smarter, safer, faster."
+            width="1600" height="900" loading="lazy" decoding="async"
+            style={{ width:'100%', height:'auto', aspectRatio:'16 / 9', objectFit:'cover', borderRadius:20, display:'block', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }} />
         </div>
       </section>
 
