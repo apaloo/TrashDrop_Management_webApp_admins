@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { safeDatabaseService } from './safeDatabaseService';
 import { parsePoint, assertSavableCoordinates } from './mapCoordinates';
+import logger from './logger';
 
 /**
  * Generate mock pickup requests data for development
@@ -150,7 +151,7 @@ export const fetchPickupRequests = async ({
   try {
     // Normalize status to lowercase to match database values
     const normalizedStatus = status ? status.toLowerCase() : null;
-    console.log('fetchPickupRequests called with:', { status, normalizedStatus, collectorId, limit });
+    logger.log('fetchPickupRequests called with:', { status, normalizedStatus, collectorId, limit });
 
     // PostGIS points are (x y) = (lng lat). Swapped data is detected and
     // reported by the Live Map's coordinate check, not guessed here.
@@ -161,7 +162,7 @@ export const fetchPickupRequests = async ({
     const profilesTableExists = await safeDatabaseService.checkTableExists('profiles');
     const collectorsTableExists = await safeDatabaseService.checkTableExists('collector_profiles');
     
-    console.log('Table existence check:', { 
+    logger.log('Table existence check:', { 
       pickupTableExists, 
       profilesTableExists, 
       collectorsTableExists 
@@ -171,11 +172,11 @@ export const fetchPickupRequests = async ({
       if (strict) throw new Error('pickup_requests table is not available');
       console.warn('Pickup requests table does not exist, using mock data');
       let mockData = generateMockPickupRequests();
-      console.log('Generated mock data:', mockData.length, 'items');
+      logger.log('Generated mock data:', mockData.length, 'items');
       
       // Apply filters to mock data with comprehensive null safety
       if (status) {
-        console.log('Filtering mock data by status:', status);
+        logger.log('Filtering mock data by status:', status);
         mockData = mockData.filter(request => {
           if (!request) {
             console.warn('Found null/undefined request in mock data');
@@ -191,7 +192,7 @@ export const fetchPickupRequests = async ({
           }
           return request.status.toLowerCase() === normalizedStatus;
         });
-        console.log('Filtered mock data result:', mockData.length, 'items');
+        logger.log('Filtered mock data result:', mockData.length, 'items');
       }
       
       if (collectorId) {
@@ -257,7 +258,7 @@ export const fetchPickupRequests = async ({
         }
         const dbResult = await dbQuery;
         if (dbResult.data && dbResult.data.length > 0) {
-          console.log(`✅ Found ${dbResult.data.length} rows in 'digital_bins'`);
+          logger.log(`✅ Found ${dbResult.data.length} rows in 'digital_bins'`);
           // Tag each row with its source table for the transformer
           const tagged = dbResult.data.map(r => ({ ...r, _source: 'digital_bins' }));
           result.data = [...(result.data || []), ...tagged];
@@ -277,7 +278,7 @@ export const fetchPickupRequests = async ({
         }
         const spResult = await spQuery;
         if (spResult.data && spResult.data.length > 0) {
-          console.log(`✅ Found ${spResult.data.length} rows in 'scheduled_pickups'`);
+          logger.log(`✅ Found ${spResult.data.length} rows in 'scheduled_pickups'`);
           const tagged = spResult.data.map(r => ({ ...r, _source: 'scheduled_pickups' }));
           result.data = [...(result.data || []), ...tagged];
         }
@@ -292,7 +293,7 @@ export const fetchPickupRequests = async ({
       
       // Apply filters to mock data with comprehensive null safety
       if (status) {
-        console.log('Filtering fallback data by status:', status);
+        logger.log('Filtering fallback data by status:', status);
         mockData = mockData.filter(request => {
           if (!request) {
             console.warn('Found null/undefined request in fallback data');
@@ -308,7 +309,7 @@ export const fetchPickupRequests = async ({
           }
           return request.status.toLowerCase() === normalizedStatus;
         });
-        console.log('Filtered fallback data result:', mockData.length, 'items');
+        logger.log('Filtered fallback data result:', mockData.length, 'items');
       }
       
       return mockData.slice(0, limit);
@@ -320,7 +321,7 @@ export const fetchPickupRequests = async ({
         // 1. Fetch requester profiles from 'profiles' table
         // profiles.id = auth.users.id = digital_bins.user_id = pickup_requests.user_id
         const allUserIds = [...new Set(result.data.map(r => r.user_id).filter(Boolean))];
-        console.log('📋 Fetching profiles for user IDs:', allUserIds);
+        logger.log('📋 Fetching profiles for user IDs:', allUserIds);
         const profileMap = {};
 
         if (profilesTableExists && allUserIds.length > 0) {
@@ -332,7 +333,7 @@ export const fetchPickupRequests = async ({
           if (profileError) {
             console.warn('❌ Error fetching profiles:', profileError);
           } else {
-            console.log('✅ Fetched profiles:', profiles?.length || 0);
+            logger.log('✅ Fetched profiles:', profiles?.length || 0);
             if (profiles) {
               profiles.forEach(profile => {
                 profileMap[profile.id] = profile;
@@ -361,7 +362,7 @@ export const fetchPickupRequests = async ({
               .in('user_id', missingProfileIds)
               .eq('primary_contact', true);
             if (contacts && contacts.length > 0) {
-              console.log('✅ Found contacts fallback:', contacts.length);
+              logger.log('✅ Found contacts fallback:', contacts.length);
               contacts.forEach(c => {
                 if (!profileMap[c.user_id]) {
                   profileMap[c.user_id] = {
@@ -375,7 +376,7 @@ export const fetchPickupRequests = async ({
               });
             }
           } catch (contactErr) {
-            console.log('ℹ️ Contacts fallback skipped:', contactErr.message);
+            logger.log('ℹ️ Contacts fallback skipped:', contactErr.message);
           }
 
           // Try get_user_emails RPC for remaining missing profiles
@@ -385,7 +386,7 @@ export const fetchPickupRequests = async ({
               const { data: authUsers, error: rpcErr } = await supabase
                 .rpc('get_user_emails', { user_ids: missingProfileIds });
               if (!rpcErr && authUsers && authUsers.length > 0) {
-                console.log('✅ Found auth emails via RPC:', authUsers.length);
+                logger.log('✅ Found auth emails via RPC:', authUsers.length);
                 authUsers.forEach(u => {
                   if (!profileMap[u.id]) {
                     profileMap[u.id] = {
@@ -399,7 +400,7 @@ export const fetchPickupRequests = async ({
                 });
               }
             } catch (rpcErr) {
-              console.log('ℹ️ get_user_emails RPC not available:', rpcErr.message);
+              logger.log('ℹ️ get_user_emails RPC not available:', rpcErr.message);
             }
           }
         }
@@ -418,7 +419,7 @@ export const fetchPickupRequests = async ({
         const digitalBinRows = result.data.filter(r => r._source === 'digital_bins' && r.collector_id);
         if (digitalBinRows.length > 0 && collectorsTableExists) {
           const collectorUserIds = [...new Set(digitalBinRows.map(r => r.collector_id).filter(Boolean))];
-          console.log('� Resolving collector names for user_ids:', collectorUserIds);
+          logger.log('� Resolving collector names for user_ids:', collectorUserIds);
           const { data: collectorProfiles } = await supabase
             .from('collector_profiles')
             .select('id, user_id, first_name, last_name, phone, email')
@@ -469,10 +470,10 @@ export const fetchPickupRequests = async ({
                 });
                 if (!rpcErr && rpcResult) {
                   binLocs = rpcResult;
-                  console.log('✅ Got bin_locations via RPC:', binLocs.length);
+                  logger.log('✅ Got bin_locations via RPC:', binLocs.length);
                 }
               } catch (rpcErr) {
-                console.log('ℹ️ RPC exec_sql not available, falling back to standard query');
+                logger.log('ℹ️ RPC exec_sql not available, falling back to standard query');
               }
 
               // Fallback: standard query (coordinates may be PostGIS blob)
@@ -482,7 +483,7 @@ export const fetchPickupRequests = async ({
                   .select('id, location_name, address, coordinates')
                   .in('id', binLocIds);
                 binLocs = stdResult;
-                console.log('ℹ️ Got bin_locations via standard query:', binLocs?.length, 'coords type:', binLocs?.[0]?.coordinates ? typeof binLocs[0].coordinates : 'N/A');
+                logger.log('ℹ️ Got bin_locations via standard query:', binLocs?.length, 'coords type:', binLocs?.[0]?.coordinates ? typeof binLocs[0].coordinates : 'N/A');
               }
               if (binLocs) {
                 binLocs.forEach(loc => { locationMap[loc.id] = loc; });
@@ -535,7 +536,7 @@ export const fetchPickupRequests = async ({
                 let parsedLat = loc.latitude ?? null;
                 let parsedLng = loc.longitude ?? null;
                 if (parsedLat == null && loc.coordinates != null) {
-                  console.log('🔍 bin_locations coordinates type:', typeof loc.coordinates, loc.coordinates);
+                  logger.log('🔍 bin_locations coordinates type:', typeof loc.coordinates, loc.coordinates);
                   const coords = loc.coordinates;
                   if (typeof coords === 'object' && coords !== null) {
                     // GeoJSON: { type: "Point", coordinates: [lng, lat] }
@@ -576,7 +577,7 @@ export const fetchPickupRequests = async ({
                           parsedLng = hexToDouble(coords.substring(off, off + 16), isLE);
                           off += 16;
                           parsedLat = hexToDouble(coords.substring(off, off + 16), isLE);
-                          console.log('✅ Parsed WKB hex → lat:', parsedLat, 'lng:', parsedLng);
+                          logger.log('✅ Parsed WKB hex → lat:', parsedLat, 'lng:', parsedLng);
                         }
                       } catch (wkbErr) {
                         console.warn('⚠️ Failed to parse WKB hex:', wkbErr);
@@ -584,7 +585,7 @@ export const fetchPickupRequests = async ({
                     }
                   }
                   if (parsedLat != null) {
-                    console.log(`✅ Parsed location: lat=${parsedLat}, lng=${parsedLng}`);
+                    logger.log(`✅ Parsed location: lat=${parsedLat}, lng=${parsedLng}`);
                   } else {
                     console.warn('⚠️ Could not parse bin_locations coordinates:', coords);
                   }
@@ -606,7 +607,7 @@ export const fetchPickupRequests = async ({
         console.warn('❌ Failed to enrich data with profiles/locations:', enrichError);
       }
     } else {
-      console.log('ℹ️ No data to enrich');
+      logger.log('ℹ️ No data to enrich');
     }
 
     if (result.error) {
@@ -616,7 +617,7 @@ export const fetchPickupRequests = async ({
       
       // Apply filters to mock data with comprehensive null safety
       if (status) {
-        console.log('Filtering error fallback data by status:', status);
+        logger.log('Filtering error fallback data by status:', status);
         mockData = mockData.filter(request => {
           if (!request) {
             console.warn('Found null/undefined request in error fallback data');
@@ -632,7 +633,7 @@ export const fetchPickupRequests = async ({
           }
           return request.status.toLowerCase() === normalizedStatus;
         });
-        console.log('Filtered error fallback data result:', mockData.length, 'items');
+        logger.log('Filtered error fallback data result:', mockData.length, 'items');
       }
       
       return mockData.slice(0, limit);
@@ -640,7 +641,7 @@ export const fetchPickupRequests = async ({
 
     // Transform the data to match the expected format with comprehensive null safety
     const rawData = result.data || [];
-    console.log('Processing raw data:', rawData.length, 'items');
+    logger.log('Processing raw data:', rawData.length, 'items');
     
     const filteredData = rawData.filter(request => {
       if (request == null) {
@@ -762,7 +763,7 @@ export const fetchPickupRequests = async ({
       }
     }).filter(transformed => transformed !== null);
     
-    console.log('Final transformed data:', transformedData.length, 'items');
+    logger.log('Final transformed data:', transformedData.length, 'items');
     return transformedData;
     
   } catch (error) {
@@ -772,7 +773,7 @@ export const fetchPickupRequests = async ({
     
     // Apply filters to mock data with comprehensive null safety
     if (status) {
-      console.log('Filtering catch block data by status:', status);
+      logger.log('Filtering catch block data by status:', status);
       mockData = mockData.filter(request => {
         if (!request) {
           console.warn('Found null/undefined request in catch block data');
@@ -788,7 +789,7 @@ export const fetchPickupRequests = async ({
         }
         return (request.status || '').toLowerCase() === (status || '').toLowerCase();
       });
-      console.log('Filtered catch block data result:', mockData.length, 'items');
+      logger.log('Filtered catch block data result:', mockData.length, 'items');
     }
     
     return mockData.slice(0, limit);
@@ -829,7 +830,7 @@ export const updatePickupStatus = async (requestId, updateData = {}) => {
     };
   }
   
-  console.log(`Updating pickup request ${requestId} with data:`, updateData);
+  logger.log(`Updating pickup request ${requestId} with data:`, updateData);
 
   // Never save a location at 0,0 or outside Ghana
   assertSavableCoordinates(updateData);
@@ -958,7 +959,7 @@ export const subscribeToPickupUpdates = async (callback, options = {}) => {
     console.warn('Pickup requests table does not exist, returning mock subscription');
     // Return a mock subscription that does nothing
     return {
-      unsubscribe: () => console.log('Unsubscribing from mock pickup updates subscription'),
+      unsubscribe: () => logger.log('Unsubscribing from mock pickup updates subscription'),
       mock: true
     };
   }
@@ -998,7 +999,7 @@ export const subscribeToPickupUpdates = async (callback, options = {}) => {
     console.warn('Error setting up real-time subscription:', error);
     // Return a mock subscription that does nothing
     return {
-      unsubscribe: () => console.log('Unsubscribing from failed pickup updates subscription')
+      unsubscribe: () => logger.log('Unsubscribing from failed pickup updates subscription')
     };
   }
 };

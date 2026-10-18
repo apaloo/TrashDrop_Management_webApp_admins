@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signIn } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -49,7 +50,7 @@ const Login = () => {
     setLoading(true);
     
     try {
-      console.log('Attempting to sign in with:', { email });
+      logger.log('Attempting to sign in');
       const { data, error } = await signIn({ email, password });
       
       if (error) {
@@ -57,7 +58,7 @@ const Login = () => {
         throw error;
       }
       
-      console.log('Sign in successful:', data ? 'User authenticated' : 'No data returned');
+      logger.log('Sign in successful:', data ? 'User authenticated' : 'No data returned');
       
       // Handle remember me functionality
       if (rememberMe) {
@@ -76,12 +77,12 @@ const Login = () => {
         const onboardingCompleted = data.user?.user_metadata?.onboardingCompleted || false;
         localStorage.setItem('trashdrop_onboarding_completed', onboardingCompleted.toString());
         
-        console.log('Authentication data stored');
+        logger.log('Authentication data stored');
         
         // Explicitly refresh the auth context state
         await refreshAuthState();
         
-        console.log('Auth state refreshed, redirecting to dashboard...');
+        logger.log('Auth state refreshed, redirecting to dashboard...');
         // Use a slightly longer timeout to ensure state updates are processed
         // and context values have propagated to components
         setTimeout(() => {
@@ -89,7 +90,7 @@ const Login = () => {
         }, 300);
       } else {
         // If no session token but auth succeeded, still try to redirect
-        console.log('No session token found, but auth succeeded. Redirecting anyway.');
+        logger.log('No session token found, but auth succeeded. Redirecting anyway.');
         navigate('/dashboard');
       }
       

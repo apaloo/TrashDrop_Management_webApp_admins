@@ -1,4 +1,5 @@
 import { supabase } from '../utils/supabase';
+import logger from '../utils/logger';
 
 /**
  * Centralized Real-time Subscription Manager
@@ -27,12 +28,12 @@ class RealtimeManager {
     channel
       .on('broadcast', { event: 'status' }, (payload) => {
         if (payload.event === 'connected') {
-          console.log('Realtime connection established');
+          logger.log('Realtime connection established');
           this.isConnected = true;
           this.reconnectAttempts = 0;
           this.reconnectInterval = 1000; // Reset interval
         } else if (payload.event === 'disconnected') {
-          console.log('Realtime connection closed');
+          logger.log('Realtime connection closed');
           this.isConnected = false;
           this.handleReconnection();
         } else if (payload.event === 'error') {
@@ -69,7 +70,7 @@ class RealtimeManager {
     this.reconnectAttempts++;
     
     setTimeout(() => {
-      console.log(`Attempting to reconnect... (attempt ${this.reconnectAttempts})`);
+      logger.log(`Attempting to reconnect... (attempt ${this.reconnectAttempts})`);
       // Resubscribe to all active channels
       this.resubscribeAll();
     }, this.reconnectInterval);
@@ -114,7 +115,7 @@ class RealtimeManager {
       // Forcefully clean up any existing subscription before creating a new one
       // This is more aggressive than just checking if it exists
       if (this.subscriptions.has(subscriptionKey)) {
-        console.log(`Cleaning up existing subscription for ${subscriptionKey} before resubscribing`);
+        logger.log(`Cleaning up existing subscription for ${subscriptionKey} before resubscribing`);
         this.unsubscribe(subscriptionKey);
         
         // Add a small delay to ensure proper cleanup before resubscribing
@@ -195,9 +196,9 @@ class RealtimeManager {
           // Add more error type handling here if needed
         }
         
-        console.log(`Subscription ${subscriptionKey} status:`, status);
+        logger.log(`Subscription ${subscriptionKey} status:`, status);
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Successfully subscribed to ${subscriptionKey}`);
+          logger.log(`✅ Successfully subscribed to ${subscriptionKey}`);
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Channel error for ${subscriptionKey}`);
           this.unsubscribe(subscriptionKey);
@@ -378,7 +379,7 @@ class RealtimeManager {
         // Clean up stored references
         this.subscriptions.delete(subscriptionKey);
         this.channels.delete(subscriptionKey);
-        console.log(`✅ Unsubscribed from ${subscriptionKey}`);
+        logger.log(`✅ Unsubscribed from ${subscriptionKey}`);
       } catch (error) {
         console.error(`Error during unsubscribe process for ${subscriptionKey}:`, error);
         // Force cleanup even on error
@@ -386,7 +387,7 @@ class RealtimeManager {
         this.channels.delete(subscriptionKey);
       }
     } else {
-      console.log(`No active subscription found for ${subscriptionKey}`);
+      logger.log(`No active subscription found for ${subscriptionKey}`);
     }
   }
 
@@ -431,7 +432,7 @@ class RealtimeManager {
    * Clean up all subscriptions
    */
   cleanup() {
-    console.log('Cleaning up all realtime subscriptions...');
+    logger.log('Cleaning up all realtime subscriptions...');
     
     // Get a copy of all keys to avoid mutation during iteration
     const subscriptionKeys = Array.from(this.subscriptions.keys());
@@ -475,7 +476,7 @@ class RealtimeManager {
     // Clear all timers
     this.clearAllTimers();
     
-    console.log('✅ All realtime subscriptions cleaned up');
+    logger.log('✅ All realtime subscriptions cleaned up');
   }
 
   /**

@@ -4,6 +4,7 @@ import { hasCompletedOnboarding } from '../utils/auth';
 import { getDevModeUser, isDevMode } from '../utils/devAuth';
 import { getEffectiveRole, areaScopeFor, ROLES } from '../constants/accessControl';
 import { fetchMyAccess } from '../services/accountRoleService';
+import logger from '../utils/logger';
 
 const AuthContext = createContext();
 
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('trashdrop_user_data', JSON.stringify(session.user));
       }
       
-      console.log('AuthContext: User authenticated, state updated');
+      logger.log('AuthContext: User authenticated, state updated');
     } else {
       // Clear user data
       setUser(null);
@@ -72,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('trashdrop_onboarding_completed');
       localStorage.removeItem('trashdrop_user_data');
       
-      console.log('AuthContext: User deauthenticated, state updated');
+      logger.log('AuthContext: User deauthenticated, state updated');
     }
     
     // Mark auth as initialized and not loading
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     if (isDevMode()) {
       const devModeUser = getDevModeUser();
       if (devModeUser) {
-        console.log('AuthContext: Setting dev auth state from stored user');
+        logger.log('AuthContext: Setting dev auth state from stored user');
         setUser(devModeUser);
         setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
         setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || false);
@@ -119,17 +120,17 @@ export const AuthProvider = ({ children }) => {
     // Get initial session and user
     const initializeAuth = async () => {
       try {
-        console.log('AuthContext: Checking for existing user session');
+        logger.log('AuthContext: Checking for existing user session');
         
         // Force check for development mode flag and update state immediately if in dev mode
         if (isDevMode()) {
-          console.log('AuthContext: Development mode detected, forcing dev auth');
+          logger.log('AuthContext: Development mode detected, forcing dev auth');
           // Force dev auth even if localStorage doesn't have the user yet
           const devModeUser = getDevModeUser();
           
           // If no dev user in storage, simulate a sign-in to create one
           if (!devModeUser) {
-            console.log('AuthContext: No dev user found, creating one');
+            logger.log('AuthContext: No dev user found, creating one');
             const { devModeSignIn } = await import('../utils/devAuth').then(module => module);
             const signInResult = devModeSignIn();
             
@@ -140,20 +141,20 @@ export const AuthProvider = ({ children }) => {
               setIsAuthenticated(true); // Explicitly set authenticated state
               setAuthInitialized(true);
               setLoading(false);
-              console.log('AuthContext: Created new dev user and authenticated');
+              logger.log('AuthContext: Created new dev user and authenticated');
               return;
             }
           } 
           // Use existing dev user data
           else if (isMounted) {
-            console.log('AuthContext: Using existing dev user');
+            logger.log('AuthContext: Using existing dev user');
             setUser(devModeUser);
             setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
             setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || true);
             setIsAuthenticated(true); // Explicitly set authenticated state
             setAuthInitialized(true);
             setLoading(false);
-            console.log('AuthContext: Using dev user - isAuthenticated set to true');
+            logger.log('AuthContext: Using dev user - isAuthenticated set to true');
             return;
           }
         }
@@ -161,17 +162,17 @@ export const AuthProvider = ({ children }) => {
         // Check for existing session from Supabase
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log("AuthContext: Session check:", session ? "Active session" : "No active session");
+        logger.log("AuthContext: Session check:", session ? "Active session" : "No active session");
         
         if (session) {
           // We have a valid session, use it
-          console.log('AuthContext: Using active session data');
+          logger.log('AuthContext: Using active session data');
           if (isMounted) {
             setAuthData(session);
           }
         } else if (isDevMode() && localStorage.getItem('trashdrop_authenticated') === 'true') {
           // Only use localStorage fallback in dev mode
-          console.log('AuthContext: Dev mode - Using localStorage auth state');
+          logger.log('AuthContext: Dev mode - Using localStorage auth state');
           const localUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
           
           if (localUser) {
@@ -194,7 +195,7 @@ export const AuthProvider = ({ children }) => {
           }
         } else {
           // No session - in production mode, this means not authenticated
-          console.log('AuthContext: No active Supabase session found');
+          logger.log('AuthContext: No active Supabase session found');
           if (isMounted) {
             setAuthData(null); // Clear any stale state
           }
@@ -221,10 +222,10 @@ export const AuthProvider = ({ children }) => {
     // Subscribe to auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log("Auth state changed:", event, session ? "Session exists" : "No session");
+        logger.log("Auth state changed:", event, session ? "Session exists" : "No session");
 
         if (event === 'PASSWORD_RECOVERY') {
-          console.log('AuthContext: Password recovery flow detected');
+          logger.log('AuthContext: Password recovery flow detected');
           setForceResetMode(true);
         }
 
@@ -234,7 +235,7 @@ export const AuthProvider = ({ children }) => {
             // In dev mode, if we get INITIAL_SESSION with no session but localStorage indicates auth
             // this is likely because we're using mock auth that Supabase doesn't know about
             if (localStorage.getItem('trashdrop_authenticated') === 'true') {
-              console.log('AuthContext: Dev mode override for INITIAL_SESSION with no session');
+              logger.log('AuthContext: Dev mode override for INITIAL_SESSION with no session');
               const devUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
               if (devUser) {
                 setUser(devUser);
@@ -265,16 +266,16 @@ export const AuthProvider = ({ children }) => {
 
   // Function to refresh auth state (called after login/signup)
   const refreshAuthState = async () => {
-    console.log('AuthContext: Refreshing auth state');
+    logger.log('AuthContext: Refreshing auth state');
     setLoading(true);
     
     // Force development mode check on refresh
     if (isDevMode()) {
-      console.log('AuthContext: Development mode detected during refresh');
+      logger.log('AuthContext: Development mode detected during refresh');
       const devModeUser = getDevModeUser();
       
       if (devModeUser) {
-        console.log('AuthContext: Dev user found during refresh');
+        logger.log('AuthContext: Dev user found during refresh');
         setUser(devModeUser);
         setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
         setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || true);
@@ -283,7 +284,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('trashdrop_session_active', 'true');
         setAuthInitialized(true);
         setLoading(false);
-        console.log('AuthContext: Dev mode authentication complete - isAuthenticated=true');
+        logger.log('AuthContext: Dev mode authentication complete - isAuthenticated=true');
         return;
       }
     }
@@ -293,7 +294,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
       
       if (session) {
-        console.log('AuthContext: Session refreshed successfully');
+        logger.log('AuthContext: Session refreshed successfully');
         setAuthData(session);
         
         // Also check onboarding status
@@ -302,7 +303,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Before clearing auth state, check if we're in dev mode and should use local storage
         if (isDevMode() && localStorage.getItem('trashdrop_authenticated') === 'true') {
-          console.log('AuthContext: No session but dev mode active, using localStorage');
+          logger.log('AuthContext: No session but dev mode active, using localStorage');
           const localUser = JSON.parse(localStorage.getItem('trashdrop_user_data') || 'null');
           if (localUser) {
             setUser(localUser);
@@ -311,12 +312,12 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             setAuthInitialized(true);
             setLoading(false);
-            console.log('AuthContext: Dev mode local auth restored - isAuthenticated=true');
+            logger.log('AuthContext: Dev mode local auth restored - isAuthenticated=true');
             return;
           }
         }
         
-        console.log('AuthContext: No session found during refresh');
+        logger.log('AuthContext: No session found during refresh');
         setAuthData(null);
       }
     } catch (error) {

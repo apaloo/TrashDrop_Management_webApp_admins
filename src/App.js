@@ -11,6 +11,7 @@ import Layout from './components/Layout';
 import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { supabase } from './utils/supabase';
+import logger from './utils/logger';
 import { SECTIONS, ROLES, canAccessSection } from './constants/accessControl';
 import HomePage from './pages/HomePage';
 
@@ -59,7 +60,7 @@ const ProtectedRoute = ({ children, section }) => {
   const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading } = useAuth();
   const currentPath = window.location.pathname;
   
-  console.log('ProtectedRoute check:', { 
+  logger.log('ProtectedRoute check:', { 
     path: currentPath,
     isAuthenticated,
     loading,
@@ -72,7 +73,7 @@ const ProtectedRoute = ({ children, section }) => {
   // Don't try to redirect or refresh until auth is fully initialized
   // This prevents premature redirects that could cause loops
   if (loading || !authInitialized) {
-    console.log('ProtectedRoute: Auth not initialized or loading, showing spinner');
+    logger.log('ProtectedRoute: Auth not initialized or loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -82,7 +83,7 @@ const ProtectedRoute = ({ children, section }) => {
   
   // Only attempt refresh if auth is initialized but user is not authenticated
   if (authInitialized && !isAuthenticated) {
-    console.log('ProtectedRoute: Not authenticated, redirecting to login');
+    logger.log('ProtectedRoute: Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
@@ -92,7 +93,7 @@ const ProtectedRoute = ({ children, section }) => {
   
   // Redirect to onboarding if needed, but only if we're not already there
   if (!effectiveOnboardingStatus && currentPath !== '/onboarding') {
-    console.log('ProtectedRoute: Onboarding not completed, redirecting to onboarding');
+    logger.log('ProtectedRoute: Onboarding not completed, redirecting to onboarding');
     return <Navigate to="/onboarding" replace />;
   }
   
@@ -110,7 +111,7 @@ const ProtectedRoute = ({ children, section }) => {
     return <Navigate to="/dashboard" replace />;
   }
   
-  console.log('ProtectedRoute: All checks passed, rendering children');
+  logger.log('ProtectedRoute: All checks passed, rendering children');
   return children;
 };
 
@@ -119,7 +120,7 @@ const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading, authInitialized, forceResetMode } = useAuth();
   const currentPath = window.location.pathname;
   
-  console.log('PublicRoute check:', { 
+  logger.log('PublicRoute check:', { 
     path: currentPath,
     isAuthenticated,
     loading,
@@ -128,7 +129,7 @@ const PublicRoute = ({ children }) => {
   
   // Don't redirect until auth is fully initialized
   if (loading || !authInitialized) {
-    console.log('PublicRoute: Auth not initialized or loading, showing spinner');
+    logger.log('PublicRoute: Auth not initialized or loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -137,14 +138,14 @@ const PublicRoute = ({ children }) => {
   }
   
   if (isAuthenticated && !forceResetMode) {
-    console.log('PublicRoute: Already authenticated, redirecting to dashboard');
+    logger.log('PublicRoute: Already authenticated, redirecting to dashboard');
     // Make sure we only redirect once after authenticated state is confirmed
     if (currentPath !== '/dashboard') {
       return <Navigate to="/dashboard" replace />;
     }
   }
   
-  console.log('PublicRoute: User not authenticated, rendering public content');
+  logger.log('PublicRoute: User not authenticated, rendering public content');
   return children;
 };
 
@@ -175,9 +176,9 @@ function App() {
         // Only for signed-in users: anonymous visitors must not probe internal tables
         const { data: { session } = {} } = await supabase.auth.getSession();
         if (!session) return;
-        console.log('Initializing database schema check...');
+        logger.log('Initializing database schema check...');
         await safeDatabaseService.initializeSchemaCheck();
-        console.log('Database schema check completed');
+        logger.log('Database schema check completed');
       } catch (error) {
         console.warn('Database schema check failed:', error.message);
       }
