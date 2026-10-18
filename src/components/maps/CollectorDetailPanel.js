@@ -1,5 +1,6 @@
 import React from 'react';
 import { relativeTime, collectorLastSeen } from '../../utils/liveMapUtils';
+import { secureUrl } from '../../utils/secureUrl';
 
 const CollectorDetailPanel = ({ collector, onClose }) => {
   const lastUpdateTime = relativeTime(collectorLastSeen(collector));
@@ -13,7 +14,7 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
         <div className="flex items-center">
           <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden mr-3">
             <img 
-              src={collector.profilePic} 
+              src={secureUrl(collector.profilePic)} 
               alt={collector.name}
               onError={(e) => {
                 e.target.onerror = null;

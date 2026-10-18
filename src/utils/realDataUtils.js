@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { secureUrl, secureUrls } from './secureUrl';
 
 /**
  * Fetch real bag statistics from Supabase
@@ -314,7 +315,7 @@ export const fetchCollectors = async (status = null) => {
       const fullName = `${collector.first_name ?? ''} ${collector.last_name ?? ''}`.trim() || collector.email || 'Unknown Collector';
       const completedToday = collector.completed_today ?? Math.floor(Math.random() * 10);
       const activeRequests = collector.active_requests ?? Math.floor(Math.random() * 5);
-      const profilePic = collector.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2563eb`;
+      const profilePic = secureUrl(collector.profile_image_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2563eb`;
 
       const currentLocation = {
         lat: collector.current_latitude ?? 5.5800,
@@ -477,7 +478,7 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         hazardous_materials: details?.hazardous_materials ?? null,
         description: userDescription || `${wasteType} dumping - ${severity} severity`,
         description_is_generated: !userDescription,
-        images: Array.isArray(report.photos) ? report.photos : [],
+        images: secureUrls(report.photos),
         reported_at: report.created_at,
         updated_at: report.updated_at,
         // completed_at is stamped by a trigger when the report is completed
@@ -493,7 +494,7 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
         assigned_to: report.assigned_to || null,
         // 'claim' = taken by a volunteer group in the collector app (20261028)
         assigned_via: report.assigned_via || null,
-        cleanup_photos: Array.isArray(report.cleanup_photos) ? report.cleanup_photos : [],
+        cleanup_photos: secureUrls(report.cleanup_photos),
         assignee: report.assignee || null,
         team_name: report.assignee ? [report.assignee.first_name, report.assignee.last_name].filter(Boolean).join(' ') || null : null,
       };

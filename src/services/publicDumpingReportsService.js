@@ -7,6 +7,7 @@
  */
 import { supabase } from '../utils/supabase';
 import { normalizeEnum, isOutsideGhana } from '../utils/illegalDumpingReportUtils';
+import { secureUrls } from '../utils/secureUrl';
 
 export const PUBLIC_REPORTS_VIEW = 'public_illegal_dumping_reports';
 export const PUBLIC_REPORT_COLUMNS = 'id, latitude, longitude, severity, waste_type, status, created_at, completed_at, area_name, photo_urls';
@@ -27,7 +28,7 @@ export const mapPublicReport = (row) => {
     createdAt: row.created_at,
     completedAt: row.completed_at || null,
     areaName: cleanAreaName(row.area_name),
-    photos: (Array.isArray(row.photo_urls) ? row.photo_urls : []).filter(u => typeof u === 'string' && u.startsWith('https://')),
+    photos: secureUrls(row.photo_urls).filter(u => typeof u === 'string' && u.startsWith('https://')),
   };
 };
 

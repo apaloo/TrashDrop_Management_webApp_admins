@@ -19,6 +19,7 @@ import {
   matchesFilters, computeReportStats, statusLabel, statusBadgeClass, severityBadgeClass, formatDuration,
 } from '../utils/illegalDumpingReportUtils';
 import EnhancedImage from '../components/common/EnhancedImage';
+import { secureUrls } from '../utils/secureUrl';
 import { supabase } from '../utils/supabase';
 
 // Enough for every report; the fetch defaults to 10 per page.
@@ -172,7 +173,7 @@ const IllegalDumpingMap = () => {
             address: item.location?.address || item.address || item.location_address || 'Unknown Location'
           },
           description: item.description_is_generated ? null : item.description,
-          images: item.images || [],
+          images: secureUrls(item.images),
           severity: normalizeEnum(item.severity ?? item.severity_level) || 'medium',
           wasteType: normalizeEnum(item.waste_type ?? item.type) || 'mixed',
           size: item.size || null,

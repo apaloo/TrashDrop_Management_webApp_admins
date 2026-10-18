@@ -5,6 +5,7 @@
  * lowercase enum values (severity: low|medium|high, waste_type: mixed|household|...),
  * so every comparison here is case-insensitive.
  */
+import { secureUrls } from './secureUrl';
 
 // Ghana's bounding box, used to flag reports plotted outside the country.
 export const GHANA_BOUNDS = { minLat: 4.5, maxLat: 11.2, minLng: -3.3, maxLng: 1.3 };
@@ -202,7 +203,7 @@ export const getReportLocation = (report) => {
  * existed on the reporter's phone (legacy upload bug) and can't be recovered.
  */
 export const splitReportPhotos = (photos) => {
-  const list = Array.isArray(photos) ? photos.filter(p => typeof p === 'string' && p.trim()) : [];
+  const list = secureUrls(photos).filter(p => typeof p === 'string' && p);
   const viewable = list.filter(p => /^https?:\/\//i.test(p) || /^data:image\//i.test(p));
   return { viewable, lost: list.length - viewable.length };
 };
@@ -228,14 +229,14 @@ export const toReportViewModel = (item) => {
     },
     areaName: item.area_name || null,
     description: item.description_is_generated ? null : item.description,
-    images: Array.isArray(item.images) ? item.images : [],
+    images: secureUrls(item.images),
     severity: normalizeEnum(item.severity) || 'medium',
     wasteType: normalizeEnum(item.waste_type) || 'mixed',
     size: item.size || null,
     status,
     assignedTo: item.assigned_to || null,
     claimedByVolunteers: item.assigned_via === 'claim',
-    cleanupPhotos: Array.isArray(item.cleanup_photos) ? item.cleanup_photos : [],
+    cleanupPhotos: secureUrls(item.cleanup_photos),
     cleanupTeam: item.team_name || null,
     cleanupFee: item.cleanup_fee ?? null,
     notes: item.notes || null,

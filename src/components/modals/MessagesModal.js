@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchContacts, fetchConversation, sendMessage as sendMessageToDb } from '../../utils/messageService';
+import { secureUrl } from '../../utils/secureUrl';
 
 const MessagesModal = ({ isOpen, onClose }) => {
   const [activeContact, setActiveContact] = useState(null);
@@ -124,7 +125,7 @@ const MessagesModal = ({ isOpen, onClose }) => {
                   <div className="relative">
                     <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
                       <img 
-                        src={contact.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=random`}
+                        src={secureUrl(contact.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=random`}
                         alt={contact.name}
                         onError={(e) => {
                           e.target.onerror = null;
@@ -163,7 +164,7 @@ const MessagesModal = ({ isOpen, onClose }) => {
                   <div className="relative">
                     <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
                       <img 
-                        src={activeContact.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(activeContact.name)}&background=random`}
+                        src={secureUrl(activeContact.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(activeContact.name)}&background=random`}
                         alt={activeContact.name}
                         onError={(e) => {
                           e.target.onerror = null;

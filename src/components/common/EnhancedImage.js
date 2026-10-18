@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useImageEnhancer } from '../../hooks/useImageEnhancer';
+import { secureUrl } from '../../utils/secureUrl';
 
 /**
  * EnhancedImage
@@ -11,7 +12,8 @@ import { useImageEnhancer } from '../../hooks/useImageEnhancer';
  * @param {string}   className    - Classes applied to both img and canvas
  * @param {object}   enhanceOpts  - Options forwarded to useImageEnhancer
  */
-const EnhancedImage = ({ src, alt = 'Evidence photo', className = '', enhanceOpts = {}, style }) => {
+const EnhancedImage = ({ src: rawSrc, alt = 'Evidence photo', className = '', enhanceOpts = {}, style }) => {
+  const src = secureUrl(rawSrc);
   const [showEnhanced, setShowEnhanced] = useState(true);
   const { canvasRef, enhanced, processing } = useImageEnhancer(src, enhanceOpts);
 

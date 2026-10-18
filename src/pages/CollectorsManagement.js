@@ -7,6 +7,7 @@ import {
 import { fetchServiceZones } from '../services/serviceZoneService';
 import { fetchSummaryRows, fetchUnassignedPending, assignCollector } from '../services/pickupAdminService';
 import { withCollectorPosition } from '../utils/liveMapUtils';
+import { secureUrl } from '../utils/secureUrl';
 import { collectorJobCounts, shortId, formatGhs } from '../utils/pickupRequestUtils';
 import { IN_PROGRESS_STATUSES, canonicalStatus } from '../constants/pickupStatus';
 import {
@@ -51,7 +52,7 @@ const Avatar = ({ c }) => {
   return (
     <div className="relative flex-shrink-0">
       {c.avatar
-        ? <img src={c.avatar} alt="" className="w-12 h-12 rounded-full object-cover border" style={border} />
+        ? <img src={secureUrl(c.avatar)} alt="" className="w-12 h-12 rounded-full object-cover border" style={border} />
         : <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold bg-green-100 text-green-800" aria-hidden="true">{initials}</div>}
       <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white" style={{ background: c.presence.color }} aria-hidden="true"></span>
     </div>

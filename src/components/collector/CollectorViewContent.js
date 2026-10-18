@@ -1,4 +1,5 @@
 import React from 'react';
+import { secureUrl } from '../../utils/secureUrl';
 
 /**
  * CollectorViewContent - Displays collector information in view mode
@@ -21,7 +22,7 @@ const CollectorViewContent = ({ collector }) => {
           <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center mb-3 overflow-hidden">
             {collector.avatar ? (
               <img 
-                src={collector.avatar} 
+                src={secureUrl(collector.avatar)} 
                 alt={collector.name} 
                 className="w-full h-full object-cover"
               />

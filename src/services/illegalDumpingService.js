@@ -11,6 +11,7 @@ import { safeDatabaseService } from '../utils/safeDatabaseService';
 import { realtimeManager } from './realtimeManager';
 import { performanceMonitor } from './performanceMonitor';
 import { assignCleanupTeam, updateIllegalDumpingStatus } from '../utils/databaseUtils';
+import { secureUrl, secureUrls } from '../utils/secureUrl';
 
 class IllegalDumpingService {
   constructor() {
@@ -315,7 +316,7 @@ class IllegalDumpingService {
           try {
             images = typeof r.photos_text === 'string' ? JSON.parse(r.photos_text) : r.photos_text;
             // Filter out blob URLs as they're invalid when retrieved from database
-            images = Array.isArray(images) ? images.filter(url => !url.startsWith('blob:')) : [];
+            images = Array.isArray(images) ? secureUrls(images.filter(url => !url.startsWith('blob:'))) : [];
           } catch (e) {
             console.warn('Failed to parse photos_text for report', r.id, e);
             images = [];
@@ -409,7 +410,7 @@ class IllegalDumpingService {
         return {
           id: `img_${Date.now()}`,
           path: data.path,
-          url: supabaseAdmin.storage.from('images').getPublicUrl(data.path).data.publicUrl
+          url: secureUrl(supabaseAdmin.storage.from('images').getPublicUrl(data.path).data.publicUrl)
         };
       });
 

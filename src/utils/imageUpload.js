@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { secureUrl } from './secureUrl';
 
 /**
  * Upload images to Supabase Storage and return permanent URLs
@@ -31,7 +32,7 @@ export const uploadIllegalDumpingImages = async (files, reportId) => {
         .from('illegal-dumping-photos')
         .getPublicUrl(filename);
 
-      return publicUrl;
+      return secureUrl(publicUrl);
     });
 
     const urls = await Promise.all(uploadPromises);
