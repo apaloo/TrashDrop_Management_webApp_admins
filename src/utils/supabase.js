@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import logger from './logger';
 
 // Read environment configuration
 const FORCE_REAL_DATA_ONLY = process.env.REACT_APP_FORCE_LIVE_DATA === 'true';
@@ -24,9 +25,9 @@ if (REQUIRE_DATABASE) {
     throw new Error('ERROR: Missing REACT_APP_SUPABASE_ANON_KEY environment variable. Real data mode requires valid Supabase configuration.');
   }
   
-  console.log('🔒 STRICT MODE: Real Supabase data only, no mock data fallbacks');
+  logger.log('🔒 STRICT MODE: Real Supabase data only, no mock data fallbacks');
 } else {
-  console.log(`📊 DATABASE CONFIG: Force live data: ${FORCE_REAL_DATA_ONLY}, Disable mock: ${DISABLE_MOCK_DATA}, Require DB: ${REQUIRE_DATABASE}`);
+  logger.log(`📊 DATABASE CONFIG: Force live data: ${FORCE_REAL_DATA_ONLY}, Disable mock: ${DISABLE_MOCK_DATA}, Require DB: ${REQUIRE_DATABASE}`);
 }
 
 // Client configuration with performance optimizations
@@ -62,12 +63,12 @@ const SUPABASE_ADMIN_KEY = '__trashdrop_supabase_admin__';
 const getSupabaseClient = () => {
   // Check if client already exists in global scope
   if (typeof window !== 'undefined' && window[SUPABASE_CLIENT_KEY]) {
-    console.log('♻️ Reusing existing Supabase main client from global cache');
+    logger.log('♻️ Reusing existing Supabase main client from global cache');
     return window[SUPABASE_CLIENT_KEY];
   }
   
   // Create new client
-  console.log('🔧 Creating Supabase main client singleton...');
+  logger.log('🔧 Creating Supabase main client singleton...');
   const client = createClient(supabaseUrl, supabaseAnonKey, supabaseConfig);
   
   // Store in global scope to persist across hot reloads
@@ -75,7 +76,7 @@ const getSupabaseClient = () => {
     window[SUPABASE_CLIENT_KEY] = client;
   }
   
-  console.log('✅ Supabase main client initialized and cached globally');
+  logger.log('✅ Supabase main client initialized and cached globally');
   return client;
 };
 
@@ -86,7 +87,7 @@ const getSupabaseClient = () => {
 // 2. A separate backend API with proper authentication
 // 3. Supabase RLS policies that grant admin access to specific roles
 const getSupabaseAdminClient = () => {
-  console.warn('⚠️ Admin client is disabled for security. Use Edge Functions for admin operations.');
+  logger.warn('⚠️ Admin client is disabled for security. Use Edge Functions for admin operations.');
   return null;
 };
 
@@ -116,12 +117,12 @@ export const checkConnection = async () => {
       if (REQUIRE_DATABASE) {
         throw new Error(`Database connection failed: ${error.message}`);
       } else {
-        console.warn('Database connection issues detected - will use mock data fallbacks');
+        logger.warn('Database connection issues detected - will use mock data fallbacks');
         return { connected: false, error };
       }
     }
     
-    console.log('✅ Supabase connection verified successfully');
+    logger.log('✅ Supabase connection verified successfully');
     return { connected: true, error: null };
   } catch (error) {
     console.error('❌ Supabase connection failed:', error);
@@ -130,7 +131,7 @@ export const checkConnection = async () => {
     if (REQUIRE_DATABASE) {
       throw new Error(`Database connection failed: ${error.message}`);
     } else {
-      console.warn('Database connection issues detected - will use mock data fallbacks');
+      logger.warn('Database connection issues detected - will use mock data fallbacks');
       return { connected: false, error };
     }
   }
@@ -175,7 +176,7 @@ export const withPerformanceMonitoring = (fn, operationName) => {
       const duration = Date.now() - startTime;
       
       if (duration > 5000) { // Log slow queries (> 5 seconds)
-        console.warn(`Slow database operation detected: ${operationName} took ${duration}ms`);
+        logger.warn(`Slow database operation detected: ${operationName} took ${duration}ms`);
       }
       
       return result;
@@ -198,16 +199,16 @@ if (!REQUIRE_DATABASE) {
   checkConnection()
     .then(result => {
       if (result.connected) {
-        console.log('✅ Initial database connection validated');
+        logger.log('✅ Initial database connection validated');
       } else {
-        console.warn('⚠️ Database connection issues - will use mock data fallbacks');
+        logger.warn('⚠️ Database connection issues - will use mock data fallbacks');
       }
     })
-    .catch(error => console.warn('⚠️ Database connection issues - will use mock data fallbacks:', error));
+    .catch(error => logger.warn('⚠️ Database connection issues - will use mock data fallbacks:', error));
 } else {
   // In strict mode, log validation results but still allow errors to propagate
   checkConnection()
-    .then(() => console.log('✅ Initial database connection validated'))
+    .then(() => logger.log('✅ Initial database connection validated'))
     .catch(error => console.error('❌ Initial database validation failed:', error));
 }
 };
