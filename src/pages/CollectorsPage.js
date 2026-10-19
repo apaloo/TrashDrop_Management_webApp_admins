@@ -140,7 +140,8 @@ const CollectorsPage = () => {
             Earn with your aboboyaa or tricycle. Accept pickups near you and get paid to MoMo — ₵32.43 a pickup on average.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
+            {/* Collectors join in the Carter app: scroll to its QR code at the bottom of the page */}
+            <Link to="/collectors/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
               Join as a Collector
             </Link>
             <a href="#earnings" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
@@ -183,7 +184,7 @@ const CollectorsPage = () => {
               ))}
             </ul>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none' }}>Join as a Collector</Link>
+              <Link to="/collectors/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none' }}>Join as a Collector</Link>
               <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 22px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.18)', display:'inline-flex', alignItems:'center', gap:8 }}>
                 <i className="fab fa-whatsapp" style={{ color:'#25D366' }} aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
               </a>
@@ -311,8 +312,8 @@ const CollectorsPage = () => {
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Start earning today</h2>
         <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
         
-        {/* ── QR Code Placeholder ── */}
-        <div style={{ margin:'0 auto 32px', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
+        {/* ── Carter app QR code (the "Join as a Collector" buttons scroll here) ── */}
+        <div id="download-app" data-scroll-align="center" style={{ margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
           <div style={{ 
             width:200, 
             height:200, 
@@ -341,10 +342,6 @@ const CollectorsPage = () => {
             SCAN TO DOWNLOAD
           </div>
         </div>
-
-        <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
-          Join as a Collector →
-        </Link>
       </section>
     </PublicPageLayout>
   );
