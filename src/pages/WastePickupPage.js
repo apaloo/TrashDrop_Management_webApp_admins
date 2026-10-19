@@ -127,7 +127,7 @@ const WastePickupPage = () => {
         <P>
           If you need regular rubbish collection, the QR Bag System is cheaper over time: buy a batch of official TrashDrop bags
           (90L, 120L or 240L, from ₵115 for five), scan to activate them, and every pickup is free.
-          Read <Link to="/how-it-works/" style={linkStyle}>how TrashDrop works</Link> or see <Link to="/#pricing" style={linkStyle}>bag prices</Link>.
+          Read <Link to="/how-it-works/" style={linkStyle}>how TrashDrop works</Link> or see <Link to="/how-it-works/#pricing" style={linkStyle}>bag prices</Link>.
         </P>
       </Section>
 

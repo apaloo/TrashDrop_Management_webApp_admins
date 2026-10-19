@@ -42,6 +42,8 @@ const ROUTES = [
   '/waste-collection-tamale',
   '/waste-pickup',
   '/partners',
+  '/volunteers',
+  '/media',
   // Each blog post gets its own HTML (title, canonical, Article JSON-LD) instead of the blog shell
   ...blogPostRoutes(),
 ];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { signUp } from '../utils/auth';
 import { deriveRoleForUser, COMPANY_TYPES, ROLES } from '../constants/accessControl';
 import { validateAccountDetails } from '../constants/accountTypeFields';
@@ -7,13 +7,16 @@ import AccountDetailsFields from '../components/AccountDetailsFields';
 import { Fragment } from 'react';
 
 const SignUp = () => {
+  // /signup?type=volunteer_group (links on /volunteers/, /media/) picks the account type
+  const [searchParams] = useSearchParams();
+  const typeFromLink = searchParams.get('type');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [companyType, setCompanyType] = useState('');
+  const [companyType, setCompanyType] = useState(() => (COMPANY_TYPES.some(t => t.value === typeFromLink) ? typeFromLink : ''));
   const [accountDetails, setAccountDetails] = useState({ region: '', district: '', details: {} });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);

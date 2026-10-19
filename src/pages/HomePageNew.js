@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_NAV } from '../config/publicNav';
+import { PublicMenuDesktop, PublicMenuMobile } from '../components/PublicMenu';
 import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
@@ -189,8 +189,9 @@ const LP = {
 /* ─── Landing-page local theme context ─────────────────────────────────────── */
 const LpThemeContext = createContext();
 const useLpTheme = () => useContext(LpThemeContext);
-const LpThemeProvider = ({ children }) => {
-  const [lpMode, setLpMode] = useState(() => localStorage.getItem('td_lp_theme') || 'light');
+// `mode` fixes the theme (no toggle on that page); otherwise the visitor's choice is used
+const LpThemeProvider = ({ children, mode }) => {
+  const [lpMode, setLpMode] = useState(() => mode || localStorage.getItem('td_lp_theme') || 'light');
   const toggleLp = () => setLpMode(m => {
     const next = m === 'dark' ? 'light' : 'dark';
     localStorage.setItem('td_lp_theme', next);
@@ -254,21 +255,16 @@ const GlobalStyles = () => (
     .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
     .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
     .td-footer-link:hover { color:#a8e63d !important; }
-    .td-nav-link, .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
-    .td-nav-more { display:none; }
-    @media(max-width:1279px) {
-      .td-nav-main { gap:20px!important; }
-      .td-nav-link { font-size:12.5px!important; letter-spacing:0!important; }
-      .td-nav-wide { display:none!important; }
-      .td-nav-more { display:block; }
-      .td-lp-toggle-label { display:none; }
-    }
+    .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
+    @media(max-width:1279px) { .td-lp-toggle-label { display:none; } }
     @media(max-width:1023px) { .td-nav-links{display:none!important} }
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
     @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
+    @media(max-width:800px) { .td-trashwalk{grid-template-columns:1fr!important; gap:28px!important} .td-trashwalk img{max-width:420px; margin:0 auto} }
+    @media(max-width:1180px) { .td-pathways-grid{grid-template-columns:repeat(2,1fr)!important; row-gap:32px!important} }
     @media(max-width:900px) { .td-pathways-grid{grid-template-columns:1fr!important} .td-partners-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pricing-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-footer-grid{grid-template-columns:1fr 1fr!important} }
@@ -292,8 +288,6 @@ const GlobalStyles = () => (
 const HomeNavbar = ({ isAuthenticated }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
-  const [moreOpen, setMoreOpen]     = useState(false);
-  const moreRef = useRef(null);
   const { lpMode, toggleLp } = useLpTheme();
   const isDark = lpMode === 'dark';
   useEffect(() => {
@@ -301,16 +295,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
     window.addEventListener('scroll', fn, { passive:true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
-  useEffect(() => {
-    if (!moreOpen) return undefined;
-    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
-    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
-  }, [moreOpen]);
-  // Same links as every other public page (src/config/publicNav.js)
-  const NAV = PUBLIC_NAV;
+  // Same menu as every other public page (components/PublicMenu.js)
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
   // Light links and theme switch while the bar is see-through over the dark hero
@@ -323,6 +308,9 @@ const HomeNavbar = ({ isAuthenticated }) => {
   const mobileSignInStyle = isDark
     ? { ...FF.label, fontWeight:600, color:'#fff', textAlign:'center', padding:12, borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', textDecoration:'none' }
     : { ...FF.label, fontWeight:600, color:TD.forest, textAlign:'center', padding:12, borderRadius:8, border:`1px solid ${TD.forest}40`, textDecoration:'none' };
+  const menuColors = isDark
+    ? { link:navLinkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(168,230,61,0.15)', panelText:mobileLinkColor, panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:mobileLinkBorder }
+    : { link:navLinkColor, linkHover:overDark ? TD.lime : TD.forest, panelBg:'#fff', panelBorder:'rgba(22,101,52,0.14)', panelText:mobileLinkColor, panelMuted:'rgba(27,62,40,0.5)', accent:TD.forest, divider:mobileLinkBorder };
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:scrolled?navScrollBg:'transparent', backdropFilter:scrolled?'blur(22px)':'none', borderBottom:scrolled?`1px solid ${navScrollBorder}`:'1px solid transparent' }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
@@ -330,23 +318,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} />
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
-        <div className="td-nav-links td-nav-main" style={{ display:'flex', alignItems:'center', gap:32 }}>
-          {NAV.map(l => <Link key={l.to} to={l.to} className={`td-nav-link${l.more ? ' td-nav-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</Link>)}
-          <div ref={moreRef} className="td-nav-more" style={{ position:'relative' }}>
-            <button type="button" className="td-nav-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
-              style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
-              More <span aria-hidden="true" style={{ fontSize:9, transform:moreOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▼</span>
-            </button>
-            {moreOpen && (
-              <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:200, background:mobileMenuBg, border:`1px solid ${isDark ? 'rgba(168,230,61,0.15)' : 'rgba(22,101,52,0.12)'}`, borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.18)', padding:6 }}>
-                {NAV.filter(l => l.more).map(l => (
-                  <Link key={l.to} to={l.to} role="menuitem" onClick={() => setMoreOpen(false)}
-                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <PublicMenuDesktop className="td-nav-links" colors={menuColors} />
         <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {/* Theme toggle */}
           <button
@@ -369,8 +341,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'16px 24px 24px' }}>
-          {NAV.map(l => <Link key={l.to} to={l.to} onClick={()=>setMobileOpen(false)} style={{ display:'block', ...FF.label, fontSize:14, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 0', borderBottom:`1px solid ${mobileLinkBorder}` }}>{l.label}</Link>)}
+        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
+          <PublicMenuMobile colors={menuColors} onNavigate={() => setMobileOpen(false)} />
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
             <button onClick={toggleLp} style={{ ...FF.label, fontWeight:600, color:isDark?TD.lime:TD.forest, background:'transparent', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, textAlign:'center', padding:12, borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               <i className={`fas ${isDark?'fa-sun':'fa-moon'}`}></i> Switch to {isDark?'Light':'Dark'} Mode
@@ -459,7 +431,7 @@ const BookingCard = () => {
         <i className="fas fa-truck" aria-hidden="true"></i> {SERVICES[service].cta}
       </a>
 
-      <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
+      <div id="book-app" data-scroll-align="center" style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
         <img src="/images/book-in-app-qr.png" alt="QR code that opens the TrashDrop app" width="96" height="96" style={{ width:96, height:96, borderRadius:8, flexShrink:0 }} />
         <p style={{ ...FF.body, fontSize:14, lineHeight:1.5, color:'#374151', margin:0 }}>
           <strong>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
@@ -652,11 +624,12 @@ const HowItWorksSection = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICES
    ═══════════════════════════════════════════════════════════════════════════════ */
-const ServicesSection = () => {
+// `afterSteps`: sits right under HowItWorksSection, which supplies the space above it
+const ServicesSection = ({ afterSteps = false }) => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   return (
-    <section id="services" style={{ background:lp.sectionAlt, paddingBottom:100 }}>
+    <section id="services" style={{ background:lp.sectionAlt, paddingTop:afterSteps ? 0 : 80, paddingBottom:100 }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
@@ -1444,11 +1417,13 @@ const PathwaysSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const PATHWAYS = [
-    { title:'Citizens & Communities',       icon:'fa-users',        color:TD.lime,   bg:`${TD.lime}15`,           border:`${TD.lime}25`,           cta:'Join as Community Reporter',         link:'/signup',
-      features:['Report illegal dumping in real-time','Track environmental impact in your area','Participate in community cleanup events','Earn recognition for contributions'] },
-    { title:'Municipal Authorities (MMDA)', icon:'fa-landmark',     color:'#4d9de0', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup', popular:true,
+    { title:'Local Authorities (MMDA)',     icon:'fa-landmark',     color:'#4d9de0', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup?type=municipality', popular:true,
       features:['Monitor illegal dumping hotspots','Assign and dispatch cleanup teams','Track enforcement actions & outcomes','Generate compliance reports'] },
-    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.gold,   bg:`${TD.gold}15`,           border:`${TD.gold}25`,           cta:'Register as Waste Operator',         link:'/signup',
+    { title:'Volunteers',                   icon:'fa-hands-helping', color:TD.lime,  bg:`${TD.lime}15`,           border:`${TD.lime}25`,           cta:'Volunteer with your group',          link:'/volunteers/',
+      features:['Claim verified dumping reports in your region','Up to 3 open cleanups at a time','One shared login for the whole group','Before-and-after cleanup photos'] },
+    { title:'Media & Journalists',          icon:'fa-newspaper',    color:'#e07a5f', bg:'rgba(224,122,95,0.15)', border:'rgba(224,122,95,0.25)', cta:'Get Media access',                  link:'/media/',
+      features:['National view of reports and cleanups','No reporter details shared','Filter by date, region, district and status','CSV download, up to 5,000 reports'] },
+    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.gold,   bg:`${TD.gold}15`,           border:`${TD.gold}25`,           cta:'Register as Waste Operator',         link:'/signup?type=waste_management',
       features:['Manage bins and collection points','Optimize waste collection routes','Track operational performance KPIs','Real-time fleet and schedule management'] },
   ];
   return (
@@ -1461,18 +1436,18 @@ const PathwaysSection = () => {
             Choose Your <em style={{ color:TD.forest }}>Pathway</em>
           </h2>
           <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.sageText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>
-            Whether you're a citizen, government official, or waste operator — TrashDrop has tools designed specifically for you.
+            Whether you're a local authority, a volunteer group, a journalist or a waste operator — TrashDrop has tools designed specifically for you.
           </p>
         </div>
-        <div className="td-pathways-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24 }}>
+        <div className="td-pathways-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
           {PATHWAYS.map((p,i) => (
-            <div key={p.title} className="td-pathway-card" style={{ position:'relative', background:lp.pathwayCardBg, border:`1.5px solid ${p.popular?p.color:'rgba(0,0,0,0.07)'}`, borderRadius:22, padding:'36px 28px', boxShadow:p.popular?`0 20px 60px ${p.color}18`:'0 4px 24px rgba(0,0,0,0.05)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:`all 0.9s cubic-bezier(.22,1,.36,1) ${i*0.15}s`, cursor:'default' }}>
+            <div key={p.title} className="td-pathway-card" style={{ position:'relative', background:lp.pathwayCardBg, border:`1.5px solid ${p.popular?p.color:'rgba(0,0,0,0.07)'}`, borderRadius:22, padding:'36px 24px', display:'flex', flexDirection:'column', boxShadow:p.popular?`0 20px 60px ${p.color}18`:'0 4px 24px rgba(0,0,0,0.05)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:`all 0.9s cubic-bezier(.22,1,.36,1) ${i*0.15}s`, cursor:'default' }}>
               {p.popular && <div style={{ position:'absolute', top:-14, left:'50%', transform:'translateX(-50%)', background:p.color, color:'#fff', ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 16px', borderRadius:99, whiteSpace:'nowrap', textTransform:'uppercase', boxShadow:`0 4px 16px ${p.color}60` }}>MOST POPULAR</div>}
               <div style={{ width:56, height:56, borderRadius:16, background:p.bg, border:`1px solid ${p.border}`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20 }}>
                 <i className={`fas ${p.icon}`} style={{ fontSize:22, color:p.color }}></i>
               </div>
               <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:'0 0 20px', letterSpacing:'-0.3px' }}>{p.title}</h3>
-              <ul style={{ margin:'0 0 28px', padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:10 }}>
+              <ul style={{ margin:'0 0 28px', padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
                 {p.features.map(f => (
                   <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                     <i className="fas fa-check-circle" style={{ color:p.color, fontSize:14, marginTop:2, flexShrink:0 }}></i>
@@ -1582,126 +1557,6 @@ const ServiceAreasSection = () => {
             </li>
           ))}
         </ul>
-      </div>
-    </section>
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════════
-   FAQ
-   ═══════════════════════════════════════════════════════════════════════════════ */
-const HOME_FAQS = [
-  {
-    q: 'How do I book a waste pickup in Ghana?',
-    a: 'Sign up at trashdrops.com or WhatsApp us on +233 20 933 8885. Choose QR Bag pickup, which is free once your bags are registered, or Digital Bin for a one-off pickup with an instant price. A verified collector takes your request, and you can follow them until the job is done.',
-  },
-  {
-    q: 'How does TrashDrop work?',
-    a: 'Six steps: get TrashDrop bags, scan the code on the pack, fill a bag, request a pickup, a verified collector arrives, and you track your waste until it reaches an approved disposal site. For a one-off pickup, choose Digital Bin, get a price and pay with MoMo or cash.',
-  },
-  {
-    q: 'Do I need to download an app?',
-    a: "No. TrashDrop works in your phone's browser at trashdrops.com, on Android and iPhone.",
-  },
-  {
-    q: 'How are QR Bag pickups free?',
-    a: 'You buy official TrashDrop bags from an approved seller. Each pack has a code; scan it to register your bags. After that, every pickup is free. You only pay for the bags.',
-  },
-  {
-    q: 'How can I earn money collecting waste?',
-    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your phone number, upload your Ghana Card and vehicle details, and wait for approval. Then accept pickup jobs near you. The app keeps working when you are offline. Collectors earn ₵32.43 a pickup on average, paid straight to mobile money. Full-time collectors earn ₵2,500–₵8,000 a month.',
-  },
-  {
-    q: 'How do I report illegal dumping?',
-    a: 'Tap Report dumping, take a clear photo, share your location and send. You earn reward points, and we send a cleanup crew and tell the local assembly. You can follow the cleanup in the app.',
-  },
-  {
-    q: 'Which cities do you serve?',
-    a: 'Accra (including East Legon, Dome, Madina, Spintex and Achimota), Kumasi, Takoradi and Tamale. More cities are coming.',
-  },
-  {
-    q: 'How do I pay?',
-    a: 'Digital Bin pickups: MTN MoMo, Telecel Cash, AirtelTigo Money, card or cash, paid at pickup. QR Bag pickups are always free; you only pay for the bags.',
-  },
-  {
-    q: 'Are the collectors verified?',
-    a: "Yes. Before we approve a collector, they show a valid Ghana ID (Ghana Card, passport or voter ID), their vehicle registration and an operating licence. You can see each collector's rating and vehicle in the app.",
-  },
-];
-
-const FAQSection = () => {
-  const { ref, visible } = useReveal(0.08);
-  const { lp, lpMode } = useLpTheme();
-  const isDark = lpMode === 'dark';
-  const [openIdx, setOpenIdx] = useState(null);
-
-  const sectionBg     = isDark ? '#0e1a0e'                    : '#f0f9f0';
-  const borderColor   = isDark ? 'rgba(255,255,255,0.14)'      : 'rgba(22,101,52,0.18)';
-  const headingColor  = isDark ? '#f0f5f0'                     : '#1b3a28';
-  const subColor      = isDark ? 'rgba(255,255,255,0.60)'      : '#4a7060';
-  const answerColor   = isDark ? 'rgba(255,255,255,0.72)'      : '#2d4a38';
-  const questionColor = isDark ? '#e8f5e8'                     : '#1b3a28';
-  const badgeBg       = isDark ? `${TD.lime}18`                : `${TD.forest}12`;
-  const badgeBorder   = isDark ? `${TD.lime}35`                : `${TD.forest}25`;
-  const badgeColor    = isDark ? TD.lime                       : TD.forest;
-  const sectionBorder = isDark ? 'rgba(168,230,61,0.08)'       : 'rgba(22,101,52,0.08)';
-  const chevronColor  = isDark ? TD.lime                       : TD.forest;
-  const chevronBorder = isDark ? `${TD.lime}55`                : `${TD.forest}40`;
-  const chevronBg     = isDark ? `${TD.lime}20`                : `${TD.forest}12`;
-  const linkColor     = isDark ? TD.lime                       : TD.forest;
-
-  return (
-    <section style={{ background: sectionBg, padding:'96px 24px', borderTop:`1px solid ${sectionBorder}` }}>
-      {/* FAQPage JSON-LD */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": HOME_FAQS.map(f => ({
-            "@type": "Question",
-            "name": f.q,
-            "acceptedAnswer": { "@type": "Answer", "text": f.a }
-          }))
-        })}}
-      />
-      <div ref={ref} style={{ maxWidth:860, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:56, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:'all 0.8s cubic-bezier(.22,1,.36,1)' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:badgeBg, border:`1px solid ${badgeBorder}`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
-            <i className="fas fa-question-circle" style={{ color:badgeColor, fontSize:11 }}></i>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:badgeColor, textTransform:'uppercase' }}>FAQ</span>
-          </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:headingColor, margin:'0 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
-            Frequently asked questions
-          </h2>
-          <p style={{ ...FF.body, fontSize:16, color:subColor, maxWidth:520, margin:'0 auto' }}>
-            Everything you need to know about TrashDrop waste collection in Ghana.
-          </p>
-        </div>
-
-        <div style={{ opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
-          {HOME_FAQS.map((item, i) => (
-            <div key={i} style={{ borderBottom:`1px solid ${borderColor}`, overflow:'hidden' }}>
-              <button
-                onClick={() => setOpenIdx(openIdx === i ? null : i)}
-                style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'22px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }}>
-                <span style={{ ...FF.body, fontSize:16, fontWeight:600, color:questionColor, lineHeight:1.5 }}>{item.q}</span>
-                <span style={{ width:30, height:30, borderRadius:'50%', border:`1.5px solid ${chevronBorder}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: openIdx===i ? chevronBg : 'transparent' }}>
-                  <i className={`fas fa-chevron-${openIdx===i?'up':'down'}`} style={{ fontSize:11, color:chevronColor }}></i>
-                </span>
-              </button>
-              <div style={{ maxHeight: openIdx===i ? 400 : 0, overflow:'hidden', transition:'max-height 0.38s cubic-bezier(.22,1,.36,1)' }}>
-                <p style={{ ...FF.body, fontSize:15, color:answerColor, lineHeight:1.78, paddingBottom:22, margin:0 }}>{item.a}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ textAlign:'center', marginTop:48 }}>
-          <a href="/how-it-works/" style={{ ...FF.label, fontSize:13, fontWeight:700, color:linkColor, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
-            See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11, color:linkColor }}></i>
-          </a>
-        </div>
       </div>
     </section>
   );
@@ -1985,13 +1840,9 @@ const LpPageInner = ({ auth }) => {
       <HeroSection        isAuthenticated={auth} />
       <TrustRow />
       <MarqueeStrip />
-      <HowItWorksSection />
       <ServicesSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds />
-      <ImpactSection      dumpingData={dumpingData} applyThresholds />
-      <PricingGuideSection />
       <ServiceAreasSection />
-      <FAQSection />
       <CollectorsLine />
       <AppDownloadBanner />
       <HomeFooter />
@@ -2029,6 +1880,22 @@ const PartnersPageInner = ({ auth }) => {
           </p>
         </div>
       </header>
+      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'56px 24px' }}>
+        <div className="td-trashwalk" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'0.8fr 1.2fr', alignItems:'center', gap:48 }}>
+          <img src="/images/partners/trashwalk.jpg" width="720" height="770" loading="lazy" decoding="async"
+            alt="A resident on a trash walk holds up the TrashDrop app, with map pins over dump sites along the street"
+            style={{ width:'100%', height:'auto', aspectRatio:'720 / 770', objectFit:'cover', borderRadius:20, boxShadow:'0 24px 60px rgba(10,15,10,0.35)', border:`3px solid ${TD.ink}`, display:'block' }} />
+          <div>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forestDk, textTransform:'uppercase', display:'block', marginBottom:14 }}>Trashwalk</span>
+            <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(30px,3.8vw,50px)', lineHeight:1.08, letterSpacing:'-0.8px', color:TD.ink, margin:'0 0 28px' }}>
+              Trash walk is a health walk — one photo, cleaner community.
+            </p>
+            <Link to="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:8, background:TD.ink, color:TD.lime, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 24px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
+              <i className="fas fa-camera" aria-hidden="true"></i> Report illegal dumping
+            </Link>
+          </div>
+        </div>
+      </section>
       <PathwaysSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
       <ImpactSection      dumpingData={dumpingData} />
@@ -2037,6 +1904,18 @@ const PartnersPageInner = ({ auth }) => {
     </div>
   );
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   /how-it-works — the household sections: steps, the two services and bag pricing
+   ═══════════════════════════════════════════════════════════════════════════════ */
+export const HouseholdSections = () => (
+  <LpThemeProvider mode="dark">
+    <GlobalStyles />
+    <HowItWorksSection />
+    <ServicesSection afterSteps />
+    <PricingGuideSection />
+  </LpThemeProvider>
+);
 
 export const PartnersPage = () => {
   const { isAuthenticated, authInitialized } = useAuth();
