@@ -102,7 +102,7 @@ export const PublicFooter = () => (
           </div>
         </div>
         {[
-          { title:'Platform', links:[['How It Works','/how-it-works/'],['For Households','/users/'],['QR Bag System','/how-it-works/#qr'],['Digital Bin Service','/how-it-works/'],['Pricing','/']] },
+          { title:'Platform', links:[['How It Works','/how-it-works/'],['For Households','/users/'],['QR Bag System','/how-it-works/#qr'],['Digital Bin Service','/how-it-works/'],['Pricing','/how-it-works/#pricing']] },
           { title:'Collectors', links:[['Earn as Carter','/collectors/'],['Carter App','/collectors/'],['Authority Assignments','/collectors/'],['Earnings Calculator','/collectors/'],['Sign Up Free','/signup']] },
           { title:'Waste Collection', links:[['Accra','/waste-collection-accra/'],['Kumasi','/waste-collection-kumasi/'],['Takoradi','/waste-collection-takoradi/'],['Tamale','/waste-collection-tamale/'],['On-demand waste pickup','/waste-pickup/']] },
           { title:'Resources', links:[['FAQ','/faq/'],['Blog','/blog/'],['About Us','/about/'],['Partners','/partners/'],['Report Illegal Dump','/illegal-dumping/'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },

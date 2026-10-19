@@ -12,10 +12,10 @@ export const PUBLIC_NAV = [
     label: 'Households',
     groups: [{
       items: [
-        { to: '/how-it-works/', label: 'How it works',                  icon: 'fa-route' },
-        { to: '/#services',     label: 'Two ways to drop your waste',   icon: 'fa-recycle' },
-        { to: '/#pricing',      label: 'Smart waste. Fair price',       icon: 'fa-tags' },
-        { to: '/#book-app',     label: 'Get started today — it’s free', icon: 'fa-qrcode' },
+        { to: '/how-it-works/',          label: 'How it works',                  icon: 'fa-route' },
+        { to: '/how-it-works/#services', label: 'Two ways to drop your waste',   icon: 'fa-recycle' },
+        { to: '/how-it-works/#pricing',  label: 'Smart waste. Fair price',       icon: 'fa-tags' },
+        { to: '/#book-app',              label: 'Get started today — it’s free', icon: 'fa-qrcode' },
       ],
     }],
   },

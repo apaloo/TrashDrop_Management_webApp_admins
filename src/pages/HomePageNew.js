@@ -189,8 +189,9 @@ const LP = {
 /* ─── Landing-page local theme context ─────────────────────────────────────── */
 const LpThemeContext = createContext();
 const useLpTheme = () => useContext(LpThemeContext);
-const LpThemeProvider = ({ children }) => {
-  const [lpMode, setLpMode] = useState(() => localStorage.getItem('td_lp_theme') || 'light');
+// `mode` fixes the theme (no toggle on that page); otherwise the visitor's choice is used
+const LpThemeProvider = ({ children, mode }) => {
+  const [lpMode, setLpMode] = useState(() => mode || localStorage.getItem('td_lp_theme') || 'light');
   const toggleLp = () => setLpMode(m => {
     const next = m === 'dark' ? 'light' : 'dark';
     localStorage.setItem('td_lp_theme', next);
@@ -485,10 +486,10 @@ const HeroSection = ({ isAuthenticated }) => {
               <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
             </div>
             <h1 style={{ ...FF.display, fontSize:'clamp(38px,4.4vw,56px)', lineHeight:1.04, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Bin full? Request pickup.
+              Waste pickup in Ghana, booked in minutes
             </h1>
             <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
-              <strong style={{ color:'#f0f5f0', fontWeight:600 }}>Waste pickup in Ghana, booked in minutes.</strong> A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
+              A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
             <div id="book" style={{ scrollMarginTop:80 }}><BookingCard /></div>
             <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
@@ -622,11 +623,12 @@ const HowItWorksSection = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICES
    ═══════════════════════════════════════════════════════════════════════════════ */
-const ServicesSection = () => {
+// `afterSteps`: sits right under HowItWorksSection, which supplies the space above it
+const ServicesSection = ({ afterSteps = false }) => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   return (
-    <section id="services" style={{ background:lp.sectionAlt, paddingBottom:100 }}>
+    <section id="services" style={{ background:lp.sectionAlt, paddingTop:afterSteps ? 0 : 80, paddingBottom:100 }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
@@ -1560,126 +1562,6 @@ const ServiceAreasSection = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   FAQ
-   ═══════════════════════════════════════════════════════════════════════════════ */
-const HOME_FAQS = [
-  {
-    q: 'How do I book a waste pickup in Ghana?',
-    a: 'Sign up at trashdrops.com or WhatsApp us on +233 20 933 8885. Choose QR Bag pickup, which is free once your bags are registered, or Digital Bin for a one-off pickup with an instant price. A verified collector takes your request, and you can follow them until the job is done.',
-  },
-  {
-    q: 'How does TrashDrop work?',
-    a: 'Six steps: get TrashDrop bags, scan the code on the pack, fill a bag, request a pickup, a verified collector arrives, and you track your waste until it reaches an approved disposal site. For a one-off pickup, choose Digital Bin, get a price and pay with MoMo or cash.',
-  },
-  {
-    q: 'Do I need to download an app?',
-    a: "No. TrashDrop works in your phone's browser at trashdrops.com, on Android and iPhone.",
-  },
-  {
-    q: 'How are QR Bag pickups free?',
-    a: 'You buy official TrashDrop bags from an approved seller. Each pack has a code; scan it to register your bags. After that, every pickup is free. You only pay for the bags.',
-  },
-  {
-    q: 'How can I earn money collecting waste?',
-    a: 'Open the TrashDrop Carter App at trashdrops.com, verify your phone number, upload your Ghana Card and vehicle details, and wait for approval. Then accept pickup jobs near you. The app keeps working when you are offline. Collectors earn ₵32.43 a pickup on average, paid straight to mobile money. Full-time collectors earn ₵2,500–₵8,000 a month.',
-  },
-  {
-    q: 'How do I report illegal dumping?',
-    a: 'Tap Report dumping, take a clear photo, share your location and send. You earn reward points, and we send a cleanup crew and tell the local assembly. You can follow the cleanup in the app.',
-  },
-  {
-    q: 'Which cities do you serve?',
-    a: 'Accra (including East Legon, Dome, Madina, Spintex and Achimota), Kumasi, Takoradi and Tamale. More cities are coming.',
-  },
-  {
-    q: 'How do I pay?',
-    a: 'Digital Bin pickups: MTN MoMo, Telecel Cash, AirtelTigo Money, card or cash, paid at pickup. QR Bag pickups are always free; you only pay for the bags.',
-  },
-  {
-    q: 'Are the collectors verified?',
-    a: "Yes. Before we approve a collector, they show a valid Ghana ID (Ghana Card, passport or voter ID), their vehicle registration and an operating licence. You can see each collector's rating and vehicle in the app.",
-  },
-];
-
-const FAQSection = () => {
-  const { ref, visible } = useReveal(0.08);
-  const { lp, lpMode } = useLpTheme();
-  const isDark = lpMode === 'dark';
-  const [openIdx, setOpenIdx] = useState(null);
-
-  const sectionBg     = isDark ? '#0e1a0e'                    : '#f0f9f0';
-  const borderColor   = isDark ? 'rgba(255,255,255,0.14)'      : 'rgba(22,101,52,0.18)';
-  const headingColor  = isDark ? '#f0f5f0'                     : '#1b3a28';
-  const subColor      = isDark ? 'rgba(255,255,255,0.60)'      : '#4a7060';
-  const answerColor   = isDark ? 'rgba(255,255,255,0.72)'      : '#2d4a38';
-  const questionColor = isDark ? '#e8f5e8'                     : '#1b3a28';
-  const badgeBg       = isDark ? `${TD.lime}18`                : `${TD.forest}12`;
-  const badgeBorder   = isDark ? `${TD.lime}35`                : `${TD.forest}25`;
-  const badgeColor    = isDark ? TD.lime                       : TD.forest;
-  const sectionBorder = isDark ? 'rgba(168,230,61,0.08)'       : 'rgba(22,101,52,0.08)';
-  const chevronColor  = isDark ? TD.lime                       : TD.forest;
-  const chevronBorder = isDark ? `${TD.lime}55`                : `${TD.forest}40`;
-  const chevronBg     = isDark ? `${TD.lime}20`                : `${TD.forest}12`;
-  const linkColor     = isDark ? TD.lime                       : TD.forest;
-
-  return (
-    <section style={{ background: sectionBg, padding:'96px 24px', borderTop:`1px solid ${sectionBorder}` }}>
-      {/* FAQPage JSON-LD */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": HOME_FAQS.map(f => ({
-            "@type": "Question",
-            "name": f.q,
-            "acceptedAnswer": { "@type": "Answer", "text": f.a }
-          }))
-        })}}
-      />
-      <div ref={ref} style={{ maxWidth:860, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:56, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:'all 0.8s cubic-bezier(.22,1,.36,1)' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:badgeBg, border:`1px solid ${badgeBorder}`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
-            <i className="fas fa-question-circle" style={{ color:badgeColor, fontSize:11 }}></i>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:badgeColor, textTransform:'uppercase' }}>FAQ</span>
-          </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:headingColor, margin:'0 0 12px', letterSpacing:'-1px', lineHeight:1.05 }}>
-            Frequently asked questions
-          </h2>
-          <p style={{ ...FF.body, fontSize:16, color:subColor, maxWidth:520, margin:'0 auto' }}>
-            Everything you need to know about TrashDrop waste collection in Ghana.
-          </p>
-        </div>
-
-        <div style={{ opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
-          {HOME_FAQS.map((item, i) => (
-            <div key={i} style={{ borderBottom:`1px solid ${borderColor}`, overflow:'hidden' }}>
-              <button
-                onClick={() => setOpenIdx(openIdx === i ? null : i)}
-                style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'22px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }}>
-                <span style={{ ...FF.body, fontSize:16, fontWeight:600, color:questionColor, lineHeight:1.5 }}>{item.q}</span>
-                <span style={{ width:30, height:30, borderRadius:'50%', border:`1.5px solid ${chevronBorder}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: openIdx===i ? chevronBg : 'transparent' }}>
-                  <i className={`fas fa-chevron-${openIdx===i?'up':'down'}`} style={{ fontSize:11, color:chevronColor }}></i>
-                </span>
-              </button>
-              <div style={{ maxHeight: openIdx===i ? 400 : 0, overflow:'hidden', transition:'max-height 0.38s cubic-bezier(.22,1,.36,1)' }}>
-                <p style={{ ...FF.body, fontSize:15, color:answerColor, lineHeight:1.78, paddingBottom:22, margin:0 }}>{item.a}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ textAlign:'center', marginTop:48 }}>
-          <a href="/how-it-works/" style={{ ...FF.label, fontSize:13, fontWeight:700, color:linkColor, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
-            See full How It Works guide <i className="fas fa-arrow-right" style={{ fontSize:11, color:linkColor }}></i>
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════════
    FOOTER
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HomeFooter = () => {
@@ -1957,12 +1839,9 @@ const LpPageInner = ({ auth }) => {
       <HeroSection        isAuthenticated={auth} />
       <TrustRow />
       <MarqueeStrip />
-      <HowItWorksSection />
       <ServicesSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds />
-      <PricingGuideSection />
       <ServiceAreasSection />
-      <FAQSection />
       <CollectorsLine />
       <AppDownloadBanner />
       <HomeFooter />
@@ -2018,6 +1897,18 @@ const PartnersPageInner = ({ auth }) => {
     </div>
   );
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   /how-it-works — the household sections: steps, the two services and bag pricing
+   ═══════════════════════════════════════════════════════════════════════════════ */
+export const HouseholdSections = () => (
+  <LpThemeProvider mode="dark">
+    <GlobalStyles />
+    <HowItWorksSection />
+    <ServicesSection afterSteps />
+    <PricingGuideSection />
+  </LpThemeProvider>
+);
 
 export const PartnersPage = () => {
   const { isAuthenticated, authInitialized } = useAuth();

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import { HouseholdSections } from './HomePageNew';
 
 /* ─── FAQPage JSON-LD schema ────────────────────────────────────────────────── */
 /* All questions here MUST be visible on the page — Google Rich Results requirement */
@@ -175,9 +176,12 @@ const HowItWorksPage = () => {
             <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>How It Works</span>
           </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,64px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            How does TrashDrop work?
+          <h1 style={{ ...FF.display, fontSize:'clamp(44px,7vw,88px)', color:'#f0f5f0', lineHeight:1, letterSpacing:'-2px', margin:'0 0 28px' }}>
+            Bin full? <em style={{ color:TD.lime, textShadow:`0 0 40px ${TD.lime}55` }}>Request pickup.</em>
           </h1>
+          <h2 style={{ ...FF.label, fontSize:'clamp(16px,2vw,20px)', fontWeight:700, color:'#f0f5f0', margin:'0 0 14px' }}>
+            How does TrashDrop work?
+          </h2>
           {/* ── AI ANSWER PARAGRAPH — first 100–150 words extracted by AI ── */}
           <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.8, maxWidth:720, margin:'0 auto 40px', fontWeight:400 }}>
             TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup.
@@ -193,8 +197,11 @@ const HowItWorksPage = () => {
         </div>
       </section>
 
+      {/* ── From the homepage: steps, the two services, bag pricing ──────── */}
+      <HouseholdSections />
+
       {/* ── 6 Steps ──────────────────────────────────────────────────────── */}
-      <section id="how" style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section id="steps" style={{ background:TD.ink2, padding:'96px 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:64 }}>
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>The Process</span>
