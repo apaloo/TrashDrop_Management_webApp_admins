@@ -263,6 +263,7 @@ const GlobalStyles = () => (
     @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
+    @media(max-width:800px) { .td-trashwalk{grid-template-columns:1fr!important; gap:28px!important} .td-trashwalk img{max-width:420px; margin:0 auto} }
     @media(max-width:1180px) { .td-pathways-grid{grid-template-columns:repeat(2,1fr)!important; row-gap:32px!important} }
     @media(max-width:900px) { .td-pathways-grid{grid-template-columns:1fr!important} .td-partners-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pricing-grid{grid-template-columns:1fr!important} }
@@ -1879,14 +1880,20 @@ const PartnersPageInner = ({ auth }) => {
           </p>
         </div>
       </header>
-      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'44px 24px' }}>
-        <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:24 }}>
-          <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(28px,3.6vw,46px)', lineHeight:1.1, letterSpacing:'-0.8px', color:TD.ink, margin:0, maxWidth:780 }}>
-            Trash walk is a health walk — one photo, cleaner community.
-          </p>
-          <Link to="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:8, background:TD.ink, color:TD.lime, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 24px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
-            <i className="fas fa-camera" aria-hidden="true"></i> Report illegal dumping
-          </Link>
+      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'56px 24px' }}>
+        <div className="td-trashwalk" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'0.8fr 1.2fr', alignItems:'center', gap:48 }}>
+          <img src="/images/partners/trashwalk.jpg" width="720" height="770" loading="lazy" decoding="async"
+            alt="A resident on a trash walk holds up the TrashDrop app, with map pins over dump sites along the street"
+            style={{ width:'100%', height:'auto', aspectRatio:'720 / 770', objectFit:'cover', borderRadius:20, boxShadow:'0 24px 60px rgba(10,15,10,0.35)', border:`3px solid ${TD.ink}`, display:'block' }} />
+          <div>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forestDk, textTransform:'uppercase', display:'block', marginBottom:14 }}>Trashwalk</span>
+            <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(30px,3.8vw,50px)', lineHeight:1.08, letterSpacing:'-0.8px', color:TD.ink, margin:'0 0 28px' }}>
+              Trash walk is a health walk — one photo, cleaner community.
+            </p>
+            <Link to="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:8, background:TD.ink, color:TD.lime, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 24px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
+              <i className="fas fa-camera" aria-hidden="true"></i> Report illegal dumping
+            </Link>
+          </div>
         </div>
       </section>
       <PathwaysSection />

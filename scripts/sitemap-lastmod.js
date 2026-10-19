@@ -44,13 +44,13 @@ const BLOG_POST = ['src/pages/blog/BlogPostPage.js', 'src/pages/BlogPage.js', 'p
 // Keep in step with ROUTES in prerender.js (the build fails if a route is missing here)
 const ROUTE_SOURCES = {
   '/': HOME,
-  '/partners': [...HOME, 'src/pages/PartnersPage.js'],
+  '/partners': [...HOME, 'src/pages/PartnersPage.js', 'public/images/partners'],
   '/faq': ['src/pages/FAQPage.js', ...PUBLIC_LAYOUT],
   // Also shows the homepage's steps, services and pricing sections
   '/how-it-works': ['src/pages/HowItWorksPage.js', 'public/images/how-it-works', ...HOME, ...PUBLIC_LAYOUT],
   '/users': ['src/pages/UsersPage.js', ...PUBLIC_LAYOUT],
-  '/collectors': ['src/pages/CollectorsPage.js', ...PUBLIC_LAYOUT],
-  '/illegal-dumping': ['src/pages/IllegalDumpingPublicPage.js', ...PUBLIC_LAYOUT],
+  '/collectors': ['src/pages/CollectorsPage.js', 'public/images/collectors', ...PUBLIC_LAYOUT],
+  '/illegal-dumping': ['src/pages/IllegalDumpingPublicPage.js', 'public/images/illegal-dumping', ...PUBLIC_LAYOUT],
   '/about': ['src/pages/AboutPage.js', ...PUBLIC_LAYOUT],
   '/blog': ['src/pages/BlogPage.js', 'public/images/blog', ...PUBLIC_LAYOUT],
   '/waste-collection-accra': CITY,

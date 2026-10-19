@@ -84,10 +84,12 @@ const IllegalDumpingPublicPage = () => {
 
   return (
     <PublicPageLayout>
+      <style>{`@media(max-width:900px){ .td-idp-hero{grid-template-columns:1fr!important; gap:40px!important} .td-idp-photo{max-width:440px; width:100%; margin:0 auto!important} .td-idp-photo img{height:440px!important} }`}</style>
       {/* ── Hero ── */}
       <section style={{ background:`linear-gradient(160deg,#1a0a0a 0%,#120808 50%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(rgba(220,38,38,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(220,38,38,0.3) 1px,transparent 1px)`, backgroundSize:'52px 52px', pointerEvents:'none' }} />
-        <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
+        <div className="td-idp-hero" style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1, display:'grid', gridTemplateColumns:'1.2fr 0.8fr', gap:56, alignItems:'center' }}>
+        <div>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(220,38,38,0.12)', border:'1px solid rgba(220,38,38,0.3)', borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
             <i className="fas fa-exclamation-triangle" style={{ color:'#ef4444', fontSize:11 }}></i>
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:'#f87171', textTransform:'uppercase' }}>Report Illegal Dumping</span>
@@ -96,10 +98,10 @@ const IllegalDumpingPublicPage = () => {
             How do I report illegal dumping in Ghana?
           </h1>
           {/* ── AI ANSWER PARAGRAPH ── */}
-          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:740, margin:'0 auto 40px' }}>
+          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:680, margin:'0 0 40px' }}>
             Illegal dumping — the disposal of waste in unauthorised locations — can be reported quickly and easily through the TrashDrop app at trashdrops.com. Open the app, tap "Report Illegal Dumping," photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews, and you can track the cleanup status directly in the app. Ghana's Environmental Sanitation Law (Act 490) makes illegal dumping a fineable offence — reporting through TrashDrop is the fastest way to trigger enforcement action in Accra, Kumasi, Takoradi or Tamale.
           </p>
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
             <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'#ef4444', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:'0 8px 32px rgba(239,68,68,0.4)' }}>
               Report a Dump Site
             </Link>
@@ -107,6 +109,16 @@ const IllegalDumpingPublicPage = () => {
               See How It Works ↓
             </a>
           </div>
+        </div>
+        {/* One photo is all a report needs */}
+        <figure className="td-idp-photo" style={{ position:'relative', margin:0 }}>
+          <img src="/images/illegal-dumping/report-with-phone.jpg" width="720" height="1073" decoding="async"
+            alt="A young man on a busy street photographs a pile of dumped rubbish with his phone to report it"
+            style={{ width:'100%', height:540, objectFit:'cover', borderRadius:22, border:'2px solid rgba(239,68,68,0.55)', boxShadow:'0 28px 70px rgba(0,0,0,0.55), 0 0 50px rgba(239,68,68,0.18)', display:'block' }} />
+          <figcaption style={{ position:'absolute', left:16, bottom:16, display:'inline-flex', alignItems:'center', gap:8, ...FF.label, fontSize:13, fontWeight:700, color:'#fff', background:'#ef4444', padding:'8px 14px', borderRadius:99 }}>
+            <i className="fas fa-camera" aria-hidden="true"></i> Snap it. Report it.
+          </figcaption>
+        </figure>
         </div>
       </section>
 

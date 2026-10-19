@@ -122,6 +122,7 @@ const CollectorsPage = () => {
 
   return (
     <PublicPageLayout>
+      <style>{`@media(max-width:1000px){ .td-steps-poster{grid-template-columns:1fr!important} .td-steps-poster figure{position:static!important; max-width:440px; width:100%; margin:0 auto!important} }`}</style>
       {/* ── Hero ── */}
       <section style={{ background:TD.ink, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
         {/* TrashDrop-branded tricycle behind a dark overlay so the text stays readable */}
@@ -198,7 +199,8 @@ const CollectorsPage = () => {
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Getting Started</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Six steps to your first pickup</h2>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
+          <div className="td-steps-poster" style={{ display:'grid', gridTemplateColumns:'1fr 380px', gap:32, alignItems:'start' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:20 }}>
             {SIGNUP_STEPS.map((s,i) => (
               <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'28px 24px', position:'relative', overflow:'hidden' }}>
                 <div style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:`${TD.lime}08` }}>{s.n}</div>
@@ -209,6 +211,13 @@ const CollectorsPage = () => {
                 <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{s.body}</p>
               </div>
             ))}
+          </div>
+          {/* The TrashDrop network poster: every region, one network */}
+          <figure style={{ margin:0, position:'sticky', top:96 }}>
+            <img src="/images/collectors/trashdrop-network-poster.jpg" width="800" height="1132" loading="lazy" decoding="async"
+              alt="TrashDrop poster: Ghana's on-demand waste collection network linking collectors in every region, from Accra and Kumasi to Takoradi and Tamale. One network. Every street. Zero waste."
+              style={{ width:'100%', height:'auto', borderRadius:16, border:`1px solid ${TD.lime}30`, boxShadow:`0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${TD.lime}18`, display:'block' }} />
+          </figure>
           </div>
         </div>
       </section>
