@@ -20,8 +20,10 @@ const { blogPostRoutes } = require('./blog-slugs');
 
 const ROOT = path.resolve(__dirname, '..');
 
+// The menu every public page shows
+const MENU = ['src/components/PublicMenu.js', 'src/config/publicNav.js'];
 // Header, footer and SEO tags shared by every PublicPageLayout page
-const PUBLIC_LAYOUT = ['src/components/PublicPageLayout.js', 'src/utils/seo.js'];
+const PUBLIC_LAYOUT = ['src/components/PublicPageLayout.js', 'src/utils/seo.js', ...MENU];
 // The homepage sections, which /partners reuses
 const HOME = [
   'src/pages/HomePageNew.js',
@@ -33,6 +35,7 @@ const HOME = [
   'public/images/home',
   'public/images/cities',
   'public/images/book-in-app-qr.png',
+  ...MENU,
 ];
 const CITY = ['src/pages/CityWasteCollectionPage.js', 'src/pages/cityContent.js', ...PUBLIC_LAYOUT];
 // A post's text lives in BlogPostPage.js, its card and dates in BlogPage.js
@@ -54,6 +57,8 @@ const ROUTE_SOURCES = {
   '/waste-collection-takoradi': CITY,
   '/waste-collection-tamale': CITY,
   '/waste-pickup': ['src/pages/WastePickupPage.js', ...PUBLIC_LAYOUT],
+  '/volunteers': ['src/pages/VolunteersPage.js', ...PUBLIC_LAYOUT],
+  '/media': ['src/pages/MediaPage.js', ...PUBLIC_LAYOUT],
   ...Object.fromEntries(blogPostRoutes().map(route => [route, BLOG_POST])),
 };
 

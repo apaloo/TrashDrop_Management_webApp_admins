@@ -40,6 +40,18 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://trashdrops.com/volunteers/</loc>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/media/</loc>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://trashdrops.com/waste-collection-tamale/</loc>
     <lastmod>2026-10-18</lastmod>
     <changefreq>monthly</changefreq>

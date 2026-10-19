@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, createContext, useContext } from 'r
 import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
-import { PUBLIC_NAV } from '../config/publicNav';
+import { PublicMenuDesktop, PublicMenuMobile } from '../components/PublicMenu';
 import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
@@ -254,15 +254,8 @@ const GlobalStyles = () => (
     .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
     .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
     .td-footer-link:hover { color:#a8e63d !important; }
-    .td-nav-link, .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
-    .td-nav-more { display:none; }
-    @media(max-width:1279px) {
-      .td-nav-main { gap:20px!important; }
-      .td-nav-link { font-size:12.5px!important; letter-spacing:0!important; }
-      .td-nav-wide { display:none!important; }
-      .td-nav-more { display:block; }
-      .td-lp-toggle-label { display:none; }
-    }
+    .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
+    @media(max-width:1279px) { .td-lp-toggle-label { display:none; } }
     @media(max-width:1023px) { .td-nav-links{display:none!important} }
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
@@ -292,8 +285,6 @@ const GlobalStyles = () => (
 const HomeNavbar = ({ isAuthenticated }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
-  const [moreOpen, setMoreOpen]     = useState(false);
-  const moreRef = useRef(null);
   const { lpMode, toggleLp } = useLpTheme();
   const isDark = lpMode === 'dark';
   useEffect(() => {
@@ -301,16 +292,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
     window.addEventListener('scroll', fn, { passive:true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
-  useEffect(() => {
-    if (!moreOpen) return undefined;
-    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
-    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
-  }, [moreOpen]);
-  // Same links as every other public page (src/config/publicNav.js)
-  const NAV = PUBLIC_NAV;
+  // Same menu as every other public page (components/PublicMenu.js)
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
   const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
   // Light links and theme switch while the bar is see-through over the dark hero
@@ -323,6 +305,9 @@ const HomeNavbar = ({ isAuthenticated }) => {
   const mobileSignInStyle = isDark
     ? { ...FF.label, fontWeight:600, color:'#fff', textAlign:'center', padding:12, borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', textDecoration:'none' }
     : { ...FF.label, fontWeight:600, color:TD.forest, textAlign:'center', padding:12, borderRadius:8, border:`1px solid ${TD.forest}40`, textDecoration:'none' };
+  const menuColors = isDark
+    ? { link:navLinkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(168,230,61,0.15)', panelText:mobileLinkColor, panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:mobileLinkBorder }
+    : { link:navLinkColor, linkHover:overDark ? TD.lime : TD.forest, panelBg:'#fff', panelBorder:'rgba(22,101,52,0.14)', panelText:mobileLinkColor, panelMuted:'rgba(27,62,40,0.5)', accent:TD.forest, divider:mobileLinkBorder };
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:scrolled?navScrollBg:'transparent', backdropFilter:scrolled?'blur(22px)':'none', borderBottom:scrolled?`1px solid ${navScrollBorder}`:'1px solid transparent' }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
@@ -330,23 +315,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} />
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
-        <div className="td-nav-links td-nav-main" style={{ display:'flex', alignItems:'center', gap:32 }}>
-          {NAV.map(l => <Link key={l.to} to={l.to} className={`td-nav-link${l.more ? ' td-nav-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, textDecoration:'none', transition:'color 0.2s' }}>{l.label}</Link>)}
-          <div ref={moreRef} className="td-nav-more" style={{ position:'relative' }}>
-            <button type="button" className="td-nav-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
-              style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:navLinkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
-              More <span aria-hidden="true" style={{ fontSize:9, transform:moreOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▼</span>
-            </button>
-            {moreOpen && (
-              <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:200, background:mobileMenuBg, border:`1px solid ${isDark ? 'rgba(168,230,61,0.15)' : 'rgba(22,101,52,0.12)'}`, borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.18)', padding:6 }}>
-                {NAV.filter(l => l.more).map(l => (
-                  <Link key={l.to} to={l.to} role="menuitem" onClick={() => setMoreOpen(false)}
-                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <PublicMenuDesktop className="td-nav-links" colors={menuColors} />
         <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {/* Theme toggle */}
           <button
@@ -369,8 +338,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'16px 24px 24px' }}>
-          {NAV.map(l => <Link key={l.to} to={l.to} onClick={()=>setMobileOpen(false)} style={{ display:'block', ...FF.label, fontSize:14, fontWeight:600, color:mobileLinkColor, textDecoration:'none', padding:'10px 0', borderBottom:`1px solid ${mobileLinkBorder}` }}>{l.label}</Link>)}
+        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
+          <PublicMenuMobile colors={menuColors} onNavigate={() => setMobileOpen(false)} />
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
             <button onClick={toggleLp} style={{ ...FF.label, fontWeight:600, color:isDark?TD.lime:TD.forest, background:'transparent', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, textAlign:'center', padding:12, borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               <i className={`fas ${isDark?'fa-sun':'fa-moon'}`}></i> Switch to {isDark?'Light':'Dark'} Mode

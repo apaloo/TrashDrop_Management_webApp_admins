@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
-import { PUBLIC_NAV } from '../config/publicNav';
+import { PublicMenuDesktop, PublicMenuMobile } from './PublicMenu';
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────────── */
 export const TD = {
@@ -26,8 +26,6 @@ export const FF = {
 export const PublicNavbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
-  const [moreOpen, setMoreOpen]     = useState(false);
-  const moreRef = useRef(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -36,21 +34,11 @@ export const PublicNavbar = () => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  useEffect(() => {
-    if (!moreOpen) return undefined;
-    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
-    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
-  }, [moreOpen]);
-
-  const NAV = PUBLIC_NAV;
-
   const navBg     = scrolled ? 'rgba(10,15,10,0.97)' : 'transparent';
   const navBorder = scrolled ? `1px solid rgba(168,230,61,0.12)` : '1px solid transparent';
   const linkColor = 'rgba(255,255,255,0.78)';
   const brandColor = '#fff';
+  const menuColors = { link:linkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(168,230,61,0.15)', panelText:'rgba(255,255,255,0.88)', panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:'rgba(255,255,255,0.07)' };
 
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:navBg, backdropFilter:scrolled?'blur(22px)':'none', borderBottom:navBorder }}>
@@ -59,29 +47,7 @@ export const PublicNavbar = () => {
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} onError={e=>{e.target.style.display='none'}} />
           <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
-        <div className="td-nav-links td-pub-main" style={{ display:'flex', alignItems:'center', gap:28 }}>
-          {NAV.map(l => (
-            <Link key={l.to} to={l.to} className={`td-pub-link${l.more ? ' td-pub-wide' : ''}`} style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:linkColor, textDecoration:'none', transition:'color 0.2s' }}
-              onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
-              onMouseLeave={e=>e.currentTarget.style.color=linkColor}>
-              {l.label}
-            </Link>
-          ))}
-          <div ref={moreRef} className="td-pub-more" style={{ position:'relative' }}>
-            <button type="button" className="td-pub-link" onClick={() => setMoreOpen(o => !o)} aria-haspopup="true" aria-expanded={moreOpen}
-              style={{ ...FF.label, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:linkColor, background:'none', border:'none', padding:0, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
-              More <span aria-hidden="true" style={{ fontSize:9, transform:moreOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▼</span>
-            </button>
-            {moreOpen && (
-              <div data-more-menu role="menu" style={{ position:'absolute', top:'calc(100% + 14px)', right:0, minWidth:190, background:TD.ink, border:'1px solid rgba(168,230,61,0.15)', borderRadius:10, boxShadow:'0 12px 32px rgba(0,0,0,0.3)', padding:6 }}>
-                {NAV.filter(l => l.more).map(l => (
-                  <Link key={l.to} to={l.to} role="menuitem" onClick={() => setMoreOpen(false)}
-                    style={{ display:'block', ...FF.label, fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)', textDecoration:'none', padding:'10px 12px', borderRadius:6, whiteSpace:'nowrap' }}>{l.label}</Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <PublicMenuDesktop className="td-nav-links" colors={menuColors} />
         <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {isAuthenticated
             ? <Link to="/dashboard" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none' }}>Dashboard →</Link>
@@ -95,12 +61,8 @@ export const PublicNavbar = () => {
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background:TD.ink, borderTop:`1px solid rgba(168,230,61,0.12)`, padding:'16px 24px 24px' }}>
-          {NAV.map(l => (
-            <Link key={l.to} to={l.to} onClick={()=>setMobileOpen(false)} style={{ display:'block', ...FF.label, fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.8)', textDecoration:'none', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-              {l.label}
-            </Link>
-          ))}
+        <div style={{ background:TD.ink, borderTop:`1px solid rgba(168,230,61,0.12)`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
+          <PublicMenuMobile colors={menuColors} onNavigate={() => setMobileOpen(false)} />
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
             {isAuthenticated
               ? <Link to="/dashboard" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Go to Dashboard</Link>
@@ -215,14 +177,7 @@ const PublicPageLayout = ({ children, title, description }) => {
   return (
     <div style={{ background: TD.ink, minHeight:'100vh', ...FF.body }}>
       <style>{`
-        .td-pub-link, .td-pub-btn { white-space:nowrap; }
-        .td-pub-more { display:none; }
-        @media(max-width:1279px) {
-          .td-pub-main { gap:20px!important; }
-          .td-pub-link { font-size:12.5px!important; letter-spacing:0!important; }
-          .td-pub-wide { display:none!important; }
-          .td-pub-more { display:block; }
-        }
+        .td-pub-btn { white-space:nowrap; }
         @media(max-width:1023px) { .td-nav-links{display:none!important} .td-mobile-btn{display:block!important} }
         @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
         .td-nav-link:hover { color:#a8e63d !important; }
