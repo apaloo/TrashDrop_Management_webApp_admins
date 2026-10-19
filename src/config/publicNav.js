@@ -4,19 +4,18 @@
  * components/PublicMenu.js, so every page shows the same menu.
  *
  * An entry is either a plain link ({ to, label }) or a dropdown
- * ({ label, groups }). A group has items and, optionally, a short title or a
- * tagline shown above them. `to` values with a '#' scroll to that section.
+ * ({ label, groups }). A group has items and, optionally, a short title shown
+ * above them (a link when it has `titleTo`). `to` values with a '#' scroll to that section.
  */
 export const PUBLIC_NAV = [
   {
     label: 'Households',
     groups: [{
-      tagline: 'Bin full? Request pickup.',
       items: [
         { to: '/how-it-works/', label: 'How it works',                  icon: 'fa-route' },
         { to: '/#services',     label: 'Two ways to drop your waste',   icon: 'fa-recycle' },
         { to: '/#pricing',      label: 'Smart waste. Fair price',       icon: 'fa-tags' },
-        { to: '/signup',        label: 'Get started today — it’s free', icon: 'fa-arrow-right' },
+        { to: '/#book-app',     label: 'Get started today — it’s free', icon: 'fa-qrcode' },
       ],
     }],
   },
@@ -25,7 +24,7 @@ export const PUBLIC_NAV = [
     label: 'Environment',
     groups: [
       {
-        title: 'Who it’s for',
+        title: 'Partners', titleTo: '/partners/',
         items: [
           { to: '/partners/#pathways', label: 'Local Authorities',   icon: 'fa-landmark' },
           { to: '/volunteers/',        label: 'Volunteers',          icon: 'fa-hands-helping' },
@@ -33,9 +32,8 @@ export const PUBLIC_NAV = [
         ],
       },
       {
-        tagline: 'Trash walk is a health walk — one photo, cleaner community.',
+        title: 'Take action',
         items: [
-          { to: '/partners/',          label: 'Partners',                                  icon: 'fa-handshake' },
           { to: '/partners/#map',      label: 'Track. Report. Eliminate illegal dumping', icon: 'fa-map-marked-alt' },
           { to: '/partners/#impact',   label: 'Environmental impact',                      icon: 'fa-leaf' },
           { to: '/illegal-dumping/',   label: 'Report illegal dumping',                    icon: 'fa-camera' },

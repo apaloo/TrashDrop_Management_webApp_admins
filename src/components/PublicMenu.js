@@ -11,7 +11,6 @@ import { PUBLIC_NAV } from '../config/publicNav';
  */
 
 const FONT_LABEL = "'Syne', sans-serif";
-const FONT_DISPLAY = "'DM Serif Display', Georgia, serif";
 
 const pathOf = (to) => to.split('#')[0];
 
@@ -32,7 +31,8 @@ const useScrollToHash = () => {
       const el = document.getElementById(decodeURIComponent(hash.slice(1)));
       if (el || ++tries > 40) {
         clearInterval(timer);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // data-scroll-align="center" puts a small target mid-screen instead of under the header
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: el.dataset.scrollAlign || 'start' });
       }
     }, 100);
     return () => clearInterval(timer);
@@ -44,6 +44,7 @@ const MenuStyles = () => (
     [id] { scroll-margin-top: 80px; }
     .td-menu-top { white-space:nowrap; }
     .td-menu-item:hover, .td-menu-item:focus-visible { background:rgba(168,230,61,0.10); }
+    .td-menu-heading:hover { text-decoration:underline!important; }
     .td-menu-item:hover .td-menu-label, .td-menu-item:focus-visible .td-menu-label { color:#a8e63d; }
     .td-menu-panel { animation: td-menu-in 0.16s ease-out both; }
     @keyframes td-menu-in { from{opacity:0;transform:translate(-50%,-6px)} to{opacity:1;transform:translate(-50%,0)} }
@@ -62,14 +63,17 @@ const MenuItem = ({ item, colors, onPick, pathname }) => (
   </Link>
 );
 
-const GroupHeading = ({ group, colors }) => {
-  if (group.tagline) {
-    return <p style={{ fontFamily:FONT_DISPLAY, fontStyle:'italic', fontSize:16, lineHeight:1.35, color:colors.accent, margin:'4px 10px 10px' }}>{group.tagline}</p>;
+const GroupHeading = ({ group, colors, onPick }) => {
+  if (!group.title) return null;
+  const style = { display:'block', fontFamily:FONT_LABEL, fontSize:10.5, fontWeight:700, letterSpacing:'1.8px', textTransform:'uppercase', color:colors.panelMuted, margin:'6px 10px 8px', textDecoration:'none' };
+  if (group.titleTo) {
+    return (
+      <Link to={group.titleTo} onClick={onPick} className="td-menu-heading" style={{ ...style, color:colors.accent }}>
+        {group.title} <i aria-hidden="true" className="fas fa-arrow-right" style={{ fontSize:9, marginLeft:4 }}></i>
+      </Link>
+    );
   }
-  if (group.title) {
-    return <p style={{ fontFamily:FONT_LABEL, fontSize:10.5, fontWeight:700, letterSpacing:'1.8px', textTransform:'uppercase', color:colors.panelMuted, margin:'6px 10px 8px' }}>{group.title}</p>;
-  }
-  return null;
+  return <p style={style}>{group.title}</p>;
 };
 
 /** The desktop bar: plain links and dropdown buttons, one dropdown open at a time */
@@ -128,7 +132,8 @@ export const PublicMenuDesktop = ({ colors, className = '' }) => {
             onMouseLeave={() => canHover() && hoverClose()}>
             <button type="button" data-menu={entry.label} className="td-menu-top"
               aria-haspopup="true" aria-expanded={isOpen} aria-controls={panelId}
-              onClick={() => setOpen(o => (o === entry.label ? null : entry.label))}
+              // With a mouse, hover already opened it: a click must not close it again
+              onClick={() => setOpen(o => (o === entry.label && !canHover() ? null : entry.label))}
               style={{ ...topStyle, color:isOpen || active ? colors.linkHover : colors.link, background:'none', border:'none', padding:'8px 0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
               {entry.label}
               <i aria-hidden="true" className="fas fa-chevron-down" style={{ fontSize:9, transform:isOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}></i>
@@ -140,7 +145,7 @@ export const PublicMenuDesktop = ({ colors, className = '' }) => {
                 <span aria-hidden="true" style={{ position:'absolute', top:-14, left:0, right:0, height:14 }} />
                 {entry.groups.map((g, gi) => (
                   <div key={gi} style={{ borderLeft:wide && gi > 0 ? `1px solid ${colors.divider}` : 'none', paddingLeft:wide && gi > 0 ? 10 : 0 }}>
-                    <GroupHeading group={g} colors={colors} />
+                    <GroupHeading group={g} colors={colors} onPick={() => setOpen(null)} />
                     {g.items.map(item => <MenuItem key={item.to} item={item} colors={colors} pathname={pathname} onPick={() => setOpen(null)} />)}
                   </div>
                 ))}
@@ -176,7 +181,7 @@ export const PublicMenuMobile = ({ colors, onNavigate }) => {
               <div id={panelId} style={{ padding:'8px 0 10px', borderBottom:`1px solid ${colors.divider}` }}>
                 {entry.groups.map((g, gi) => (
                   <div key={gi} style={{ marginTop:gi > 0 ? 8 : 0 }}>
-                    <GroupHeading group={g} colors={colors} />
+                    <GroupHeading group={g} colors={colors} onPick={onNavigate} />
                     {g.items.map(item => <MenuItem key={item.to} item={item} colors={colors} pathname={pathname} onPick={onNavigate} />)}
                   </div>
                 ))}

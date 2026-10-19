@@ -262,6 +262,7 @@ const GlobalStyles = () => (
     @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
+    @media(max-width:1180px) { .td-pathways-grid{grid-template-columns:repeat(2,1fr)!important; row-gap:32px!important} }
     @media(max-width:900px) { .td-pathways-grid{grid-template-columns:1fr!important} .td-partners-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-pricing-grid{grid-template-columns:1fr!important} }
     @media(max-width:900px) { .td-footer-grid{grid-template-columns:1fr 1fr!important} }
@@ -428,7 +429,7 @@ const BookingCard = () => {
         <i className="fas fa-truck" aria-hidden="true"></i> {SERVICES[service].cta}
       </a>
 
-      <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
+      <div id="book-app" data-scroll-align="center" style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
         <img src="/images/book-in-app-qr.png" alt="QR code that opens the TrashDrop app" width="96" height="96" style={{ width:96, height:96, borderRadius:8, flexShrink:0 }} />
         <p style={{ ...FF.body, fontSize:14, lineHeight:1.5, color:'#374151', margin:0 }}>
           <strong>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
@@ -484,10 +485,10 @@ const HeroSection = ({ isAuthenticated }) => {
               <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
             </div>
             <h1 style={{ ...FF.display, fontSize:'clamp(38px,4.4vw,56px)', lineHeight:1.04, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Waste pickup in Ghana, booked in minutes
+              Bin full? Request pickup.
             </h1>
             <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
-              A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
+              <strong style={{ color:'#f0f5f0', fontWeight:600 }}>Waste pickup in Ghana, booked in minutes.</strong> A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
             </p>
             <div id="book" style={{ scrollMarginTop:80 }}><BookingCard /></div>
             <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
@@ -1413,11 +1414,13 @@ const PathwaysSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const PATHWAYS = [
-    { title:'Citizens & Communities',       icon:'fa-users',        color:TD.lime,   bg:`${TD.lime}15`,           border:`${TD.lime}25`,           cta:'Join as Community Reporter',         link:'/signup',
-      features:['Report illegal dumping in real-time','Track environmental impact in your area','Participate in community cleanup events','Earn recognition for contributions'] },
-    { title:'Municipal Authorities (MMDA)', icon:'fa-landmark',     color:'#4d9de0', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup', popular:true,
+    { title:'Local Authorities (MMDA)',     icon:'fa-landmark',     color:'#4d9de0', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup?type=municipality', popular:true,
       features:['Monitor illegal dumping hotspots','Assign and dispatch cleanup teams','Track enforcement actions & outcomes','Generate compliance reports'] },
-    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.gold,   bg:`${TD.gold}15`,           border:`${TD.gold}25`,           cta:'Register as Waste Operator',         link:'/signup',
+    { title:'Volunteers',                   icon:'fa-hands-helping', color:TD.lime,  bg:`${TD.lime}15`,           border:`${TD.lime}25`,           cta:'Volunteer with your group',          link:'/volunteers/',
+      features:['Claim verified dumping reports in your region','Up to 3 open cleanups at a time','One shared login for the whole group','Before-and-after cleanup photos'] },
+    { title:'Media & Journalists',          icon:'fa-newspaper',    color:'#e07a5f', bg:'rgba(224,122,95,0.15)', border:'rgba(224,122,95,0.25)', cta:'Get Media access',                  link:'/media/',
+      features:['National view of reports and cleanups','No reporter details shared','Filter by date, region, district and status','CSV download, up to 5,000 reports'] },
+    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.gold,   bg:`${TD.gold}15`,           border:`${TD.gold}25`,           cta:'Register as Waste Operator',         link:'/signup?type=waste_management',
       features:['Manage bins and collection points','Optimize waste collection routes','Track operational performance KPIs','Real-time fleet and schedule management'] },
   ];
   return (
@@ -1430,18 +1433,18 @@ const PathwaysSection = () => {
             Choose Your <em style={{ color:TD.forest }}>Pathway</em>
           </h2>
           <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.sageText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>
-            Whether you're a citizen, government official, or waste operator — TrashDrop has tools designed specifically for you.
+            Whether you're a local authority, a volunteer group, a journalist or a waste operator — TrashDrop has tools designed specifically for you.
           </p>
         </div>
-        <div className="td-pathways-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24 }}>
+        <div className="td-pathways-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
           {PATHWAYS.map((p,i) => (
-            <div key={p.title} className="td-pathway-card" style={{ position:'relative', background:lp.pathwayCardBg, border:`1.5px solid ${p.popular?p.color:'rgba(0,0,0,0.07)'}`, borderRadius:22, padding:'36px 28px', boxShadow:p.popular?`0 20px 60px ${p.color}18`:'0 4px 24px rgba(0,0,0,0.05)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:`all 0.9s cubic-bezier(.22,1,.36,1) ${i*0.15}s`, cursor:'default' }}>
+            <div key={p.title} className="td-pathway-card" style={{ position:'relative', background:lp.pathwayCardBg, border:`1.5px solid ${p.popular?p.color:'rgba(0,0,0,0.07)'}`, borderRadius:22, padding:'36px 24px', display:'flex', flexDirection:'column', boxShadow:p.popular?`0 20px 60px ${p.color}18`:'0 4px 24px rgba(0,0,0,0.05)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:`all 0.9s cubic-bezier(.22,1,.36,1) ${i*0.15}s`, cursor:'default' }}>
               {p.popular && <div style={{ position:'absolute', top:-14, left:'50%', transform:'translateX(-50%)', background:p.color, color:'#fff', ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 16px', borderRadius:99, whiteSpace:'nowrap', textTransform:'uppercase', boxShadow:`0 4px 16px ${p.color}60` }}>MOST POPULAR</div>}
               <div style={{ width:56, height:56, borderRadius:16, background:p.bg, border:`1px solid ${p.border}`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20 }}>
                 <i className={`fas ${p.icon}`} style={{ fontSize:22, color:p.color }}></i>
               </div>
               <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:'0 0 20px', letterSpacing:'-0.3px' }}>{p.title}</h3>
-              <ul style={{ margin:'0 0 28px', padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:10 }}>
+              <ul style={{ margin:'0 0 28px', padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
                 {p.features.map(f => (
                   <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                     <i className="fas fa-check-circle" style={{ color:p.color, fontSize:14, marginTop:2, flexShrink:0 }}></i>
@@ -1957,7 +1960,6 @@ const LpPageInner = ({ auth }) => {
       <HowItWorksSection />
       <ServicesSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds />
-      <ImpactSection      dumpingData={dumpingData} applyThresholds />
       <PricingGuideSection />
       <ServiceAreasSection />
       <FAQSection />
@@ -1998,6 +2000,16 @@ const PartnersPageInner = ({ auth }) => {
           </p>
         </div>
       </header>
+      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'44px 24px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:24 }}>
+          <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(28px,3.6vw,46px)', lineHeight:1.1, letterSpacing:'-0.8px', color:TD.ink, margin:0, maxWidth:780 }}>
+            Trash walk is a health walk — one photo, cleaner community.
+          </p>
+          <Link to="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:8, background:TD.ink, color:TD.lime, ...FF.label, fontSize:14, fontWeight:700, padding:'14px 24px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
+            <i className="fas fa-camera" aria-hidden="true"></i> Report illegal dumping
+          </Link>
+        </div>
+      </section>
       <PathwaysSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} />
       <ImpactSection      dumpingData={dumpingData} />
