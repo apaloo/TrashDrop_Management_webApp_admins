@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
 
 const FAQ_SCHEMA = {
@@ -102,9 +101,6 @@ const IllegalDumpingPublicPage = () => {
             Illegal dumping — the disposal of waste in unauthorised locations — can be reported quickly and easily through the TrashDrop app at trashdrops.com. Open the app, tap "Report Illegal Dumping," photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews, and you can track the cleanup status directly in the app. Ghana's Environmental Sanitation Law (Act 490) makes illegal dumping a fineable offence — reporting through TrashDrop is the fastest way to trigger enforcement action in Accra, Kumasi, Takoradi or Tamale.
           </p>
           <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-            <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'#ef4444', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:'0 8px 32px rgba(239,68,68,0.4)' }}>
-              Report a Dump Site
-            </Link>
             <a href="#how-to-report" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
               See How It Works ↓
             </a>
@@ -204,16 +200,6 @@ const IllegalDumpingPublicPage = () => {
           </div>
           <FAQAccordion items={FAQ_ITEMS} accentColor="#f87171" />
         </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section style={{ background:`linear-gradient(135deg,#1a0808 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
-        <i className="fas fa-exclamation-triangle" style={{ color:'#ef4444', fontSize:32, marginBottom:16, display:'block' }}></i>
-        <h2 style={{ ...FF.display, fontSize:'clamp(26px,4vw,44px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>See an illegal dump site?</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.5)', margin:'0 auto 36px', maxWidth:480 }}>Report it in under 2 minutes. Earn reward points. Help keep your community clean.</p>
-        <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:'#ef4444', color:'#fff', padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:'0 8px 32px rgba(239,68,68,0.4)', display:'inline-block' }}>
-          Report a Dump Site Now
-        </Link>
       </section>
     </PublicPageLayout>
   );
