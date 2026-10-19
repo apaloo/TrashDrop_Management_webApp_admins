@@ -1109,7 +1109,8 @@ const LatestReportsOverlay = ({ data }) => {
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
 // applyThresholds (homepage): hide Cleanup Rate / Avg Response until they pass PUBLIC_STAT_THRESHOLDS
-const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = false }) => {
+// showIntro: the paragraph and "Report Illegal Dump" button under the heading (off on the homepage)
+const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = false, showIntro = true }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
@@ -1130,9 +1131,10 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:52 }}>
           <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:'0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+          <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:showIntro ? '0 0 14px' : 0, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             Track. Report. <em style={{ color:TD.lime }}>Eliminate</em> Illegal Dumping.
           </h2>
+          {showIntro && <>
           <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.bodyText, maxWidth:620, margin:'0 auto 24px', lineHeight:1.75 }}>
             Beyond waste collection, TrashDrop helps communities, cities and environmental agencies across Ghana detect, report and clean up
             illegal dumping. Explore reported dumping sites across Ghana in real time.
@@ -1142,6 +1144,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
             style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:lp.sectionHeading, ...FF.label, fontSize:14, fontWeight:700, padding:'12px 24px', borderRadius:10, cursor:'pointer', border:`1.5px solid ${TD.lime}55` }}>
             <i className="fas fa-exclamation-triangle" style={{ color:TD.gold }}></i> Report Illegal Dump
           </button>
+          </>}
         </div>
         
         {/* Two Column Layout: Mobile on Left, Map on Right */}
@@ -1841,7 +1844,7 @@ const LpPageInner = ({ auth }) => {
       <TrustRow />
       <MarqueeStrip />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds showIntro={false} />
       <ServiceAreasSection />
       <CollectorsLine />
       <AppDownloadBanner />
