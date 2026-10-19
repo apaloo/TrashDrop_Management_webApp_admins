@@ -195,7 +195,7 @@ const HowItWorksPage = () => {
               TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup.
             </p>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
+              <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
                 Get Started Free
               </Link>
               <a href="#qr" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
@@ -310,7 +310,7 @@ const HowItWorksPage = () => {
             ))}
           </div>
           <div style={{ textAlign:'center', marginTop:56 }}>
-            <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 36px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
+            <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 36px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
               Get Started — It's Free
             </Link>
           </div>
@@ -331,8 +331,16 @@ const HowItWorksPage = () => {
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
       <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Ready to clean up your community?</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. No download required.</p>
-        <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
+        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. Scan the code to get the app.</p>
+        {/* Household app QR code: the page's "Get Started" buttons scroll here */}
+        <div id="download-app" data-scroll-align="center" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14, margin:'0 auto 32px' }}>
+          <div style={{ background:'#fff', borderRadius:18, padding:12, boxShadow:`0 16px 48px rgba(0,0,0,0.35), 0 0 0 4px ${TD.lime}40` }}>
+            <img src="/images/how-it-works/household-app-qr.png" width="640" height="640" alt="QR code: scan to download the TrashDrop app"
+              style={{ width:200, height:200, display:'block', borderRadius:10 }} />
+          </div>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, letterSpacing:'2.5px', textTransform:'uppercase' }}>Scan to download</span>
+        </div>
+        <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
           Create Free Account
         </Link>
       </section>

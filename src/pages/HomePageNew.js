@@ -260,7 +260,13 @@ const GlobalStyles = () => (
     @media(max-width:1023px) { .td-nav-links{display:none!important} }
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
-    @media(max-width:768px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important;row-gap:28px!important} .td-step-arrow{display:none!important} }
+    .td-step-card:hover { transform:translateY(-6px)!important; border-color:rgba(168,230,61,0.55)!important; background:rgba(168,230,61,0.06)!important; }
+    @media(max-width:1100px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important} .td-steps-line{display:none} }
+    @media(max-width:640px) {
+      .td-steps6{grid-template-columns:1fr!important; gap:12px!important}
+      .td-step-card{display:flex; align-items:center; gap:16px; text-align:left!important; padding:18px!important}
+      .td-step-icon{margin:0!important; flex-shrink:0; width:54px!important; height:54px!important}
+    }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
     @media(max-width:800px) { .td-trashwalk{grid-template-columns:1fr!important; gap:28px!important} .td-trashwalk img{max-width:420px; margin:0 auto} }
@@ -587,35 +593,52 @@ const MarqueeStrip = () => {
    HOW IT WORKS
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HOW_STEPS = [
-  { icon:'fa-shopping-bag',  title:'Get bags'          },
-  { icon:'fa-qrcode',        title:'Scan code'         },
-  { icon:'fa-trash-alt',     title:'Fill bag'          },
-  { icon:'fa-hand-pointer',  title:'Request pickup'    },
-  { icon:'fa-truck',         title:'Collector arrives' },
-  { icon:'fa-map-marker-alt', title:'Track it'         },
+  { icon:'fa-shopping-bag',   title:'Get bags',          text:'Buy official TrashDrop QR bags from an authorised vendor near you.' },
+  { icon:'fa-qrcode',         title:'Scan code',         text:'Scan the pack’s QR code once to add every bag to your account.' },
+  { icon:'fa-trash-alt',      title:'Fill bag',          text:'Fill your bags with recyclable, general or organic waste.' },
+  { icon:'fa-hand-pointer',   title:'Request pickup',    text:'Bag full? Tap to request a pickup — collection is free.' },
+  { icon:'fa-truck',          title:'Collector arrives', text:'A verified collector near you accepts and comes to your door.' },
+  { icon:'fa-map-marker-alt', title:'Track it',          text:'Follow your collector live on the map until the job is done.' },
 ];
 
 const HowItWorksSection = () => {
   const { ref, visible } = useReveal(0.1);
-  const { lp } = useLpTheme();
   return (
-    <section id="how" style={{ background:lp.sectionAlt, position:'relative', overflow:'hidden' }}>
-      <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'80px 24px' }}>
-        <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 40px', textAlign:'center' }}>
-          How it works
-        </h2>
-        <ol className="td-steps6" style={{ listStyle:'none', padding:0, margin:0, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:16 }}>
-          {HOW_STEPS.map((s,i) => (
-            <li key={s.title} style={{ position:'relative', textAlign:'center', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(24px)', transition:`all 0.7s cubic-bezier(.22,1,.36,1) ${i*0.08}s` }}>
-              <div style={{ width:64, height:64, borderRadius:18, background:lp.cardBg, border:`1px solid ${lp.cardBorder}`, boxShadow:'0 4px 18px rgba(0,0,0,0.06)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-                <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.forest }}></i>
-              </div>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2px', color:TD.forest, display:'block', marginBottom:4 }}>{i + 1}</span>
-              <h3 style={{ ...FF.body, fontSize:15, fontWeight:600, color:lp.ink2Heading, margin:0 }}>{s.title}</h3>
-              {i < HOW_STEPS.length - 1 && <i className="fas fa-chevron-right td-step-arrow" aria-hidden="true" style={{ position:'absolute', top:24, right:-12, fontSize:14, color:TD.lime }}></i>}
-            </li>
-          ))}
-        </ol>
+    <section id="how" style={{ position:'relative', overflow:'hidden', background:`linear-gradient(180deg, #0c1f10 0%, ${TD.ink} 100%)` }}>
+      {/* grid texture and a soft lime glow behind the steps */}
+      <div aria-hidden="true" style={{ position:'absolute', inset:0, opacity:0.05, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'48px 48px', pointerEvents:'none' }} />
+      <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:'55%', width:900, height:420, transform:'translate(-50%,-50%)', background:`radial-gradient(ellipse at center, ${TD.lime}22 0%, transparent 70%)`, filter:'blur(30px)', pointerEvents:'none' }} />
+      <div ref={ref} style={{ position:'relative', maxWidth:1280, margin:'0 auto', padding:'96px 24px 104px' }}>
+        <div style={{ textAlign:'center', marginBottom:56 }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}35`, borderRadius:99, padding:'6px 16px', ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime }} /> 6 simple steps
+          </span>
+          <h2 style={{ ...FF.display, fontSize:'clamp(40px,5.5vw,68px)', lineHeight:1, letterSpacing:'-2px', color:'#f0f5f0', margin:'18px 0 14px' }}>
+            How it <em style={{ color:TD.lime }}>works</em>
+          </h2>
+          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.65)', maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
+            From an empty bag to a clean street — free collection, tracked every step of the way.
+          </p>
+        </div>
+        <div style={{ position:'relative' }}>
+          {/* the line that links the six steps (wide screens) */}
+          <div aria-hidden="true" className="td-steps-line" style={{ position:'absolute', top:58, left:'8%', right:'8%', height:2, background:`linear-gradient(90deg, transparent, ${TD.lime}80 12%, ${TD.lime}80 88%, transparent)` }} />
+          <ol className="td-steps6" style={{ position:'relative', listStyle:'none', padding:0, margin:0, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:18 }}>
+            {HOW_STEPS.map((s,i) => (
+              <li key={s.title} className="td-step-card" style={{ position:'relative', textAlign:'center', background:'rgba(255,255,255,0.035)', border:`1px solid ${TD.lime}22`, borderRadius:20, padding:'26px 18px 24px', backdropFilter:'blur(6px)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:`opacity 0.7s ease ${i*0.09}s, transform 0.7s cubic-bezier(.22,1,.36,1) ${i*0.09}s, border-color 0.25s, background 0.25s` }}>
+                <span aria-hidden="true" style={{ position:'absolute', top:10, right:14, ...FF.data, fontSize:34, lineHeight:1, color:'transparent', WebkitTextStroke:`1px ${TD.lime}55` }}>{String(i + 1).padStart(2, '0')}</span>
+                <div className="td-step-icon" style={{ width:64, height:64, borderRadius:'50%', background:TD.lime, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px', boxShadow:`0 0 0 6px ${TD.lime}1f, 0 10px 30px ${TD.lime}45` }}>
+                  <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.ink }}></i>
+                </div>
+                <div className="td-step-body">
+                  <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:6 }}>Step {i + 1}</span>
+                  <h3 style={{ ...FF.label, fontSize:16, fontWeight:700, color:'#f0f5f0', margin:'0 0 8px' }}>{s.title}</h3>
+                  <p style={{ ...FF.body, fontSize:13.5, color:'rgba(255,255,255,0.6)', lineHeight:1.6, margin:0 }}>{s.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   );
@@ -624,12 +647,11 @@ const HowItWorksSection = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICES
    ═══════════════════════════════════════════════════════════════════════════════ */
-// `afterSteps`: sits right under HowItWorksSection, which supplies the space above it
-const ServicesSection = ({ afterSteps = false }) => {
+const ServicesSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   return (
-    <section id="services" style={{ background:lp.sectionAlt, paddingTop:afterSteps ? 0 : 80, paddingBottom:100 }}>
+    <section id="services" style={{ background:lp.sectionAlt, paddingTop:80, paddingBottom:100 }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
@@ -1904,7 +1926,7 @@ export const HouseholdSections = () => (
   <LpThemeProvider mode="dark">
     <GlobalStyles />
     <HowItWorksSection />
-    <ServicesSection afterSteps />
+    <ServicesSection />
     <PricingGuideSection />
   </LpThemeProvider>
 );
