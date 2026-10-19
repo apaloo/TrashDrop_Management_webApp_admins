@@ -1109,8 +1109,8 @@ const LatestReportsOverlay = ({ data }) => {
    LIVE MAP
    ═══════════════════════════════════════════════════════════════════════════════ */
 // applyThresholds (homepage): hide Cleanup Rate / Avg Response until they pass PUBLIC_STAT_THRESHOLDS
-// showIntro: the paragraph and "Report Illegal Dump" button under the heading (off on the homepage)
-const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = false, showIntro = true }) => {
+// home: the homepage's shorter version — "Trash Map" heading, map only (no intro, button or phone mockup)
+const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = false, home = false }) => {
   const navigate = useNavigate();
   const { ref, visible } = useReveal(0.05);
   const { lp, lpMode } = useLpTheme();
@@ -1131,10 +1131,12 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:52 }}>
           <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:showIntro ? '0 0 14px' : 0, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
-            Track. Report. <em style={{ color:TD.lime }}>Eliminate</em> Illegal Dumping.
+          <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:home ? 0 : '0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+            {home
+              ? <>Trash Map — <em style={{ color:TD.lime }}>illegal dumping</em> hotspot</>
+              : <>Track. Report. <em style={{ color:TD.lime }}>Eliminate</em> Illegal Dumping.</>}
           </h2>
-          {showIntro && <>
+          {!home && <>
           <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.bodyText, maxWidth:620, margin:'0 auto 24px', lineHeight:1.75 }}>
             Beyond waste collection, TrashDrop helps communities, cities and environmental agencies across Ghana detect, report and clean up
             illegal dumping. Explore reported dumping sites across Ghana in real time.
@@ -1147,10 +1149,10 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
           </>}
         </div>
         
-        {/* Two Column Layout: Mobile on Left, Map on Right */}
+        {/* Two Column Layout: Mobile on Left, Map on Right (map only on the homepage) */}
         <div style={{ display:'flex', gap:32, alignItems:'stretch', flexWrap:'wrap' }}>
           {/* Left: Mobile Report Mockup */}
-          <div style={{ 
+          {!home && <div style={{ 
             display:'flex', 
             flexDirection:'column',
             gap:20,
@@ -1185,7 +1187,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
               ))}
             </div>
             
-          </div>
+          </div>}
 
           {/* Right: Map (real reports, read-only) */}
           <div style={{ flex:2, minWidth:300 }}>
@@ -1655,28 +1657,14 @@ const AppDownloadBanner = () => {
         {/* Left: text */}
         <div style={{ position:'relative', zIndex:1, flex:1, minWidth:260 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:`${TD.ink}80`, textTransform:'uppercase', display:'block', marginBottom:12 }}>GET STARTED TODAY — IT&rsquo;S FREE</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,50px)', color:TD.ink, lineHeight:1.05, letterSpacing:'-1px', margin:'0 0 28px' }}>
+          <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,50px)', color:TD.ink, lineHeight:1.05, letterSpacing:'-1px', margin:'0 0 16px' }}>
             Book your first pickup.<br />Or report an illegal dump.
           </h2>
-          <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-            <a href="/signup" style={{ display:'inline-flex', alignItems:'center', gap:10, background:TD.ink, color:'#fff', ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', boxShadow:`0 6px 24px rgba(0,0,0,0.25)`, transition:'transform 0.2s ease' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
-              onMouseLeave={e=>e.currentTarget.style.transform=''}>
-              <i className="fas fa-leaf" style={{ fontSize:14 }}></i> Book a Pickup
-            </a>
-            <a href="/illegal-dumping/" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(0,0,0,0.12)', color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 24px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(0,0,0,0.18)`, transition:'transform 0.2s ease' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
-              onMouseLeave={e=>e.currentTarget.style.transform=''}>
-              <i className="fas fa-exclamation-triangle" style={{ fontSize:13 }}></i> Report a Dump
-            </a>
-            <a href="/partners/#map" style={{ display:'inline-flex', alignItems:'center', gap:8, color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, padding:'13px 4px', textDecoration:'underline', textUnderlineOffset:3 }}>
-              <i className="fas fa-map-marked-alt" style={{ fontSize:13 }} aria-hidden="true"></i> See the live map
-            </a>
-          </div>
+          <p style={{ ...FF.body, fontSize:16, color:`${TD.ink}b3`, margin:0 }}>Scan the code to download the TrashDrop app.</p>
         </div>
 
         {/* Right: QR code */}
-        <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
+        <div id="download-app" data-scroll-align="center" style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
           <div style={{ background:'#fff', borderRadius:16, padding:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
             <img
               src="/images/book-in-app-qr.png"
@@ -1704,14 +1692,15 @@ const StickyBookButton = () => {
     obs.observe(card);
     return () => obs.disconnect();
   }, []);
+  // Booking happens in the app: go to the card's "Scan to book" QR code
   const goToCard = (e) => {
     e.preventDefault();
-    document.getElementById('book').scrollIntoView({ behavior:'smooth', block:'center' });
+    document.getElementById('book-app').scrollIntoView({ behavior:'smooth', block:'center' });
   };
   return (
     <div className="td-sticky-book" data-testid="sticky-book" aria-hidden={!show}
       style={{ position:'fixed', zIndex:2000, transition:'transform 0.25s ease, opacity 0.25s ease', transform: show ? 'none' : 'translateY(140%)', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>
-      <a href="#book" onClick={goToCard} tabIndex={show ? 0 : -1}
+      <a href="#book-app" onClick={goToCard} tabIndex={show ? 0 : -1}
         style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, padding:'0 26px', borderRadius:999, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', boxShadow:'0 8px 28px rgba(0,0,0,0.28)' }}>
         <i className="fas fa-truck" aria-hidden="true"></i> Book a pickup
       </a>
@@ -1844,7 +1833,7 @@ const LpPageInner = ({ auth }) => {
       <TrustRow />
       <MarqueeStrip />
       <ServicesSection />
-      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds showIntro={false} />
+      <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds home />
       <ServiceAreasSection />
       <CollectorsLine />
       <AppDownloadBanner />
