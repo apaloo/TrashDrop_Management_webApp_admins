@@ -58,8 +58,8 @@ const ROUTE_SOURCES = {
   '/waste-collection-takoradi': CITY,
   '/waste-collection-tamale': CITY,
   '/waste-pickup': ['src/pages/WastePickupPage.js', ...PUBLIC_LAYOUT],
-  '/volunteers': ['src/pages/VolunteersPage.js', ...PUBLIC_LAYOUT],
-  '/media': ['src/pages/MediaPage.js', ...PUBLIC_LAYOUT],
+  '/volunteers': ['src/pages/VolunteersPage.js', 'public/images/volunteers', ...PUBLIC_LAYOUT],
+  '/media': ['src/pages/MediaPage.js', 'public/images/media', ...PUBLIC_LAYOUT],
   ...Object.fromEntries(blogPostRoutes().map(route => [route, BLOG_POST])),
 };
 

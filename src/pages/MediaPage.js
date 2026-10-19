@@ -33,6 +33,12 @@ const FAQ = [
   { q: 'Is there public data without an account?', a: 'Yes. The live illegal dumping map and environmental impact figures on the Partners page are open to everyone.' },
 ];
 
+// Report photos from TrashDrop users for the hero's press wall (file in public/images/media, place)
+const PRESS_PHOTOS = [
+  ['chocked_bridge', 'Accra'], ['chocked_drainage_1', 'Drain'], ['ksi_central_market', 'Kumasi'],
+  ['chocked_pavement_1', 'Pavement'], ['chocked_drainage_2', 'Drain'], ['chocked_pavement_3', 'Roadside'],
+];
+
 const H2 = ({ children }) => (
   <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,40px)', color:'#f0f5f0', margin:'0 0 18px', letterSpacing:'-0.8px', lineHeight:1.1 }}>{children}</h2>
 );
@@ -64,19 +70,47 @@ const MediaPage = () => {
 
   return (
     <PublicPageLayout>
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'140px 24px 72px' }}>
-        <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
-            <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Media &amp; Journalists
-          </nav>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            Illegal Dumping Data for Journalists and Media in Ghana
-          </h1>
-          <P>
-            Every illegal dumping report on TrashDrop starts with a resident’s photo. Media accounts get a national,
-            read-only view of those reports and their cleanups, filtered the way your story needs, with a CSV download.
-          </P>
-          <div style={{ marginTop:28 }}><CtaButtons /></div>
+      <style>{`
+        .td-press-print { transition: transform 0.3s ease; }
+        @media(max-width:900px) {
+          .td-press-wall { width:100%!important; opacity:0.28; }
+          .td-press-fade { background:linear-gradient(180deg, rgba(10,15,10,0.75) 0%, ${TD.ink} 100%)!important; }
+        }
+      `}</style>
+      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'140px 24px 88px' }}>
+        {/* Press wall: real reports from TrashDrop users, pinned like prints under a camera viewfinder */}
+        <div className="td-press-wall" aria-hidden="true" style={{ position:'absolute', top:0, right:0, bottom:0, width:'58%' }}>
+          <div style={{ position:'absolute', inset:'-40px -60px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:18, transform:'rotate(-6deg)', alignContent:'center' }}>
+            {PRESS_PHOTOS.map(([file, place], i) => (
+              <div key={file} className="td-press-print" style={{ background:'#f4f1ea', padding:'8px 8px 26px', borderRadius:3, boxShadow:'0 14px 30px rgba(0,0,0,0.55)', transform:`rotate(${[2,-3,4,-2,3,-4][i]}deg) translateY(${i % 2 ? 26 : 0}px)`, position:'relative' }}>
+                <img src={`/images/media/${file}.jpg`} alt="" loading="eager" style={{ width:'100%', height:200, objectFit:'cover', display:'block', filter:'contrast(1.05) saturate(0.85)' }} />
+                <span style={{ position:'absolute', left:10, bottom:7, fontFamily:"'Courier New', monospace", fontSize:10, fontWeight:700, letterSpacing:'1px', color:'#333', textTransform:'uppercase' }}>Report · {place}</span>
+              </div>
+            ))}
+          </div>
+          {/* Viewfinder corners and a recording dot */}
+          {[{ top:120, left:40 }, { top:120, right:40 }, { bottom:40, left:40 }, { bottom:40, right:40 }].map((pos, i) => (
+            <span key={i} style={{ position:'absolute', ...pos, width:34, height:34, borderColor:TD.lime, borderStyle:'solid', borderWidth:`${pos.top !== undefined ? 3 : 0}px ${pos.right !== undefined ? 3 : 0}px ${pos.bottom !== undefined ? 3 : 0}px ${pos.left !== undefined ? 3 : 0}px` }} />
+          ))}
+          <span style={{ position:'absolute', top:128, right:90, display:'inline-flex', alignItems:'center', gap:6, ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2px', color:'#fff', background:'rgba(10,15,10,0.7)', padding:'5px 10px', borderRadius:6 }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 10px #ef4444' }} /> REC
+          </span>
+        </div>
+        <div className="td-press-fade" aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(90deg, ${TD.ink} 0%, ${TD.ink} 38%, rgba(10,15,10,0.82) 55%, rgba(10,15,10,0.15) 100%)` }} />
+        <div style={{ position:'relative', maxWidth:1200, margin:'0 auto' }}>
+          <div style={{ maxWidth:640 }}>
+            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
+              <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Media &amp; Journalists
+            </nav>
+            <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
+              Illegal Dumping Data for Journalists and Media in Ghana
+            </h1>
+            <P>
+              Every illegal dumping report on TrashDrop starts with a resident’s photo. Media accounts get a national,
+              read-only view of those reports and their cleanups, filtered the way your story needs, with a CSV download.
+            </P>
+            <div style={{ marginTop:28 }}><CtaButtons /></div>
+          </div>
         </div>
       </section>
 

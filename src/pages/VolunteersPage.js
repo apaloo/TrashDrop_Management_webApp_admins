@@ -58,22 +58,46 @@ const VolunteersPage = () => {
 
   return (
     <PublicPageLayout>
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'140px 24px 72px' }}>
-        <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
-            <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Volunteers
-          </nav>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            Volunteer Cleanups for Community Groups in Ghana
-          </h1>
-          <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(18px,2.2vw,22px)', color:TD.lime, margin:'0 0 20px' }}>
-            Trash walk is a health walk — one photo, cleaner community.
-          </p>
-          <P>
-            Residents report illegal dumping with a photo. The TrashDrop team verifies each report, and approved volunteer
-            groups can claim the sites near them, clean them up and show the result with before-and-after photos.
-          </P>
-          <div style={{ marginTop:28 }}><CtaButtons /></div>
+      <style>{`
+        @media(max-width:900px) {
+          .td-vol-hero { grid-template-columns:1fr!important; gap:36px!important; }
+          .td-vol-photos { max-width:480px; width:100%; margin:0 auto; }
+        }
+      `}</style>
+      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'140px 24px 80px' }}>
+        {/* The reported dump, faint behind everything */}
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/volunteers/reported-dump.jpg)', backgroundSize:'cover', backgroundPosition:'center', opacity:0.16, filter:'blur(3px) saturate(0.8)', transform:'scale(1.05)' }} />
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(160deg,${TD.forestDk}e6 0%,#0d1a0de0 50%,${TD.ink} 100%)` }} />
+        <div className="td-vol-hero" style={{ position:'relative', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1.1fr 0.9fr', gap:56, alignItems:'center' }}>
+          <div>
+            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
+              <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Volunteers
+            </nav>
+            <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
+              Volunteer Cleanups for Community Groups in Ghana
+            </h1>
+            <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(18px,2.2vw,22px)', color:TD.lime, margin:'0 0 20px' }}>
+              Trash walk is a health walk — one photo, cleaner community.
+            </p>
+            <P>
+              Residents report illegal dumping with a photo. The TrashDrop team verifies each report, and approved volunteer
+              groups can claim the sites near them, clean them up and show the result with before-and-after photos.
+            </P>
+            <div style={{ marginTop:28 }}><CtaButtons /></div>
+          </div>
+          {/* From TrashDrop's own posts: a reported dump, then a cleaned street */}
+          <div className="td-vol-photos" style={{ display:'grid', gridTemplateColumns:'1.35fr 1fr', gap:14, alignItems:'end' }}>
+            <figure style={{ position:'relative', margin:0 }}>
+              <img src="/images/volunteers/reported-dump.jpg" width="644" height="446" alt="Rubbish dumped on a pavement beside a road, reported with the TrashDrop app"
+                style={{ width:'100%', height:300, objectFit:'cover', borderRadius:18, border:'1px solid rgba(255,255,255,0.14)', boxShadow:'0 20px 50px rgba(0,0,0,0.5)', display:'block' }} />
+              <figcaption style={{ position:'absolute', top:12, left:12, ...FF.label, fontSize:12, fontWeight:700, color:'#fff', background:'rgba(10,15,10,0.8)', padding:'6px 12px', borderRadius:99 }}>Seen trash? Report it.</figcaption>
+            </figure>
+            <figure style={{ position:'relative', margin:0 }}>
+              <img src="/images/volunteers/after-cleanup.jpg" width="338" height="718" alt="The same kind of street after a cleanup, with the pavement and gutter cleared"
+                style={{ width:'100%', height:380, objectFit:'cover', borderRadius:18, border:`2px solid ${TD.lime}`, boxShadow:`0 20px 50px rgba(0,0,0,0.5), 0 0 36px ${TD.lime}30`, display:'block' }} />
+              <figcaption style={{ position:'absolute', bottom:12, left:12, right:12, ...FF.label, fontSize:12, fontWeight:700, color:TD.ink, background:TD.lime, padding:'6px 12px', borderRadius:99, textAlign:'center' }}>From dirty to clean.</figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
