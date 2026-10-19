@@ -168,31 +168,53 @@ const HowItWorksPage = () => {
 
   return (
     <PublicPageLayout>
+      <style>{`
+        @media(max-width:900px) {
+          .td-hiw-hero { grid-template-columns:1fr!important; gap:40px!important; }
+          .td-hiw-photos { height:440px!important; max-width:480px; width:100%; margin:0 auto; }
+          .td-hiw-photos img { height:330px!important; }
+        }
+      `}</style>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 40%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', pointerEvents:'none' }} />
-        <div style={{ maxWidth:800, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:24 }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>How It Works</span>
+        <div className="td-hiw-hero" style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1, display:'grid', gridTemplateColumns:'1.15fr 0.85fr', gap:56, alignItems:'center' }}>
+          <div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:24 }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>How It Works</span>
+            </div>
+            <h1 style={{ ...FF.display, fontSize:'clamp(44px,6vw,80px)', color:'#f0f5f0', lineHeight:1, letterSpacing:'-2px', margin:'0 0 28px' }}>
+              Bin full? <em style={{ color:TD.lime, textShadow:`0 0 40px ${TD.lime}55` }}>Request pickup.</em>
+            </h1>
+            <h2 style={{ ...FF.label, fontSize:'clamp(16px,2vw,20px)', fontWeight:700, color:'#f0f5f0', margin:'0 0 14px' }}>
+              How does TrashDrop work?
+            </h2>
+            {/* ── AI ANSWER PARAGRAPH — first 100–150 words extracted by AI ── */}
+            <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.8, maxWidth:620, margin:'0 0 36px', fontWeight:400 }}>
+              TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup.
+            </p>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+              <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
+                Get Started Free
+              </Link>
+              <a href="#qr" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
+                QR Bag System ↓
+              </a>
+            </div>
           </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(44px,7vw,88px)', color:'#f0f5f0', lineHeight:1, letterSpacing:'-2px', margin:'0 0 28px' }}>
-            Bin full? <em style={{ color:TD.lime, textShadow:`0 0 40px ${TD.lime}55` }}>Request pickup.</em>
-          </h1>
-          <h2 style={{ ...FF.label, fontSize:'clamp(16px,2vw,20px)', fontWeight:700, color:'#f0f5f0', margin:'0 0 14px' }}>
-            How does TrashDrop work?
-          </h2>
-          {/* ── AI ANSWER PARAGRAPH — first 100–150 words extracted by AI ── */}
-          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.8, maxWidth:720, margin:'0 auto 40px', fontWeight:400 }}>
-            TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup.
-          </p>
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
-              Get Started Free
-            </Link>
-            <a href="#qr" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
-              QR Bag System ↓
-            </a>
+          {/* Bin full -> collector at the gate */}
+          <div className="td-hiw-photos" style={{ position:'relative', height:560 }}>
+            <figure style={{ position:'absolute', top:0, left:0, width:'64%', margin:0 }}>
+              <img src="/images/how-it-works/bin-full.jpg" width="608" height="1080" alt="An overflowing household wheelie bin with rubbish piled beside it"
+                style={{ width:'100%', height:420, objectFit:'cover', borderRadius:20, border:'1px solid rgba(255,255,255,0.12)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)', display:'block' }} />
+              <figcaption style={{ position:'absolute', top:16, left:16, ...FF.label, fontSize:13, fontWeight:700, color:'#fff', background:'rgba(10,15,10,0.78)', padding:'7px 14px', borderRadius:99 }}>Bin full?</figcaption>
+            </figure>
+            <figure style={{ position:'absolute', bottom:0, right:0, width:'58%', margin:0 }}>
+              <img src="/images/how-it-works/pickup-at-gate.jpg" width="720" height="1073" alt="A TrashDrop collector in a hi-vis vest meets a resident at his gate to collect bagged waste"
+                style={{ width:'100%', height:380, objectFit:'cover', objectPosition:'center top', borderRadius:20, border:`2px solid ${TD.lime}`, boxShadow:`0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${TD.lime}30`, display:'block' }} />
+              <figcaption style={{ position:'absolute', bottom:16, left:16, ...FF.label, fontSize:13, fontWeight:700, color:TD.ink, background:TD.lime, padding:'7px 14px', borderRadius:99 }}>Request pickup.</figcaption>
+            </figure>
           </div>
         </div>
       </section>

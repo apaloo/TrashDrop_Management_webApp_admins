@@ -47,7 +47,7 @@ const ROUTE_SOURCES = {
   '/partners': [...HOME, 'src/pages/PartnersPage.js'],
   '/faq': ['src/pages/FAQPage.js', ...PUBLIC_LAYOUT],
   // Also shows the homepage's steps, services and pricing sections
-  '/how-it-works': ['src/pages/HowItWorksPage.js', ...HOME, ...PUBLIC_LAYOUT],
+  '/how-it-works': ['src/pages/HowItWorksPage.js', 'public/images/how-it-works', ...HOME, ...PUBLIC_LAYOUT],
   '/users': ['src/pages/UsersPage.js', ...PUBLIC_LAYOUT],
   '/collectors': ['src/pages/CollectorsPage.js', ...PUBLIC_LAYOUT],
   '/illegal-dumping': ['src/pages/IllegalDumpingPublicPage.js', ...PUBLIC_LAYOUT],
