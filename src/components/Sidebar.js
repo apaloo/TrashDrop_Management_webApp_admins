@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/auth';
 import { SECTIONS, canAccessSection } from '../constants/accessControl';
+import { can } from '../lib/permissions';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -24,11 +25,11 @@ const Sidebar = () => {
       icon: 'fas fa-truck',
       section: SECTIONS.REQUEST_PICKUP,
       children: [
-        { title: 'Live Map', path: '/request-pickup/live-map' },
-        { title: 'Pickup Requests', path: '/request-pickup/requests' },
-        { title: 'Collectors', path: '/request-pickup/collectors' },
-        { title: 'Alerts', path: '/request-pickup/alerts' },
-        { title: 'Logs', path: '/request-pickup/logs' }
+        { title: 'Live Map', path: '/request-pickup/live-map', capability: 'requests.view' },
+        { title: 'Pickup Requests', path: '/request-pickup/requests', capability: 'requests.view' },
+        { title: 'Collectors', path: '/request-pickup/collectors', capability: 'collectors.view' },
+        { title: 'Alerts', path: '/request-pickup/alerts', capability: 'alerts.view' },
+        { title: 'Logs', path: '/request-pickup/logs', capability: 'logs.view' }
       ]
     },
     { 
@@ -37,9 +38,9 @@ const Sidebar = () => {
       icon: 'fas fa-dumpster',
       section: SECTIONS.BIN_MANAGEMENT,
       children: [
-        { title: 'Generate Bag', path: '/bin-management/generate' },
-        { title: 'Bag Management', path: '/bin-management/manage' },
-        { title: 'Bag History', path: '/bin-management/history' }
+        { title: 'Generate Bag', path: '/bin-management/generate', capability: 'bags.manage' },
+        { title: 'Bag Management', path: '/bin-management/manage', capability: 'bags.manage' },
+        { title: 'Bag History', path: '/bin-management/history', capability: 'bags.view' }
       ]
     },
     { 
@@ -69,7 +70,14 @@ const Sidebar = () => {
 
   // Check if the menu item should be displayed based on user role
   const canView = (section) => canAccessSection(section, role, user);
-  const visibleItems = menuItems.filter(item => canView(item.section));
+  // A menu item shows when the role may open its section, and each sub-page
+  // when the role has that page's capability (src/lib/permissions.js)
+  const visibleItems = menuItems
+    .filter(item => canView(item.section))
+    .map(item => item.children
+      ? { ...item, children: item.children.filter(child => !child.capability || can(child.capability, role)) }
+      : item)
+    .filter(item => !item.children || item.children.length > 0);
   const activeParent = visibleItems.findIndex(item =>
     item.children?.some(child => location.pathname === child.path || location.pathname.startsWith(`${child.path}/`)));
 

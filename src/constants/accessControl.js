@@ -8,6 +8,7 @@
  * as a User.
  */
 import { GHANA_REGIONS, OTHER_DISTRICT, isKnownDistrict } from './ghanaRegions';
+import { can, rolesWith, rolesWithAny } from '../lib/permissions';
 
 export const ROLES = {
   USER: 'user',
@@ -100,18 +101,24 @@ export const getEffectiveRole = (role, user) => {
   return role;
 };
 
+// Sections are worked out from the capability table (src/lib/permissions.js)
+// so a menu item, a route and a data call can never disagree. Settings and
+// Regulatory are open to every account (a person's own profile and the
+// regulatory information).
+const EVERY_ROLE = Object.values(ROLES);
+
 export const SECTION_PERMISSIONS = {
-  [SECTIONS.DASHBOARD]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
-  [SECTIONS.SETTINGS]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
-  [SECTIONS.REGULATORY]: [ROLES.USER, ROLES.VOLUNTEER, ROLES.MEDIA, ROLES.MANAGER, ROLES.AUTHORITY, ROLES.ADMIN],
+  [SECTIONS.DASHBOARD]: rolesWithAny(['dashboard.stats', 'dashboard.liveQueue']),
+  [SECTIONS.SETTINGS]: EVERY_ROLE,
+  [SECTIONS.REGULATORY]: EVERY_ROLE,
   // Authority sees its own district, read-only (see areaScopeFor). Volunteers
   // work from the collector app; Media gets its read-only view separately.
-  [SECTIONS.ILLEGAL_DUMPING]: [ROLES.AUTHORITY, ROLES.MANAGER, ROLES.ADMIN],
-  [SECTIONS.BIN_MANAGEMENT]: [ROLES.ADMIN],
-  [SECTIONS.REQUEST_PICKUP]: [ROLES.ADMIN],
-  [SECTIONS.ACCOUNTS]: [ROLES.ADMIN],
+  [SECTIONS.ILLEGAL_DUMPING]: rolesWith('dumping.view'),
+  [SECTIONS.BIN_MANAGEMENT]: rolesWith('bags.view'),
+  [SECTIONS.REQUEST_PICKUP]: rolesWith('requests.view'),
+  [SECTIONS.ACCOUNTS]: rolesWith('users.manage'),
   // National, read-only report data without reporter details (media_dumping_reports)
-  [SECTIONS.MEDIA_DATA]: [ROLES.MEDIA, ROLES.MANAGER, ROLES.ADMIN]
+  [SECTIONS.MEDIA_DATA]: rolesWith('reports.view')
 };
 
 export const canAccessSection = (section, role, user) => {
@@ -122,7 +129,7 @@ export const canAccessSection = (section, role, user) => {
 };
 
 /** Who can verify, assign, complete or cancel illegal dumping reports */
-export const canManageDumping = (role) => role === ROLES.MANAGER || role === ROLES.ADMIN;
+export const canManageDumping = (role) => can('dumping.manage', role);
 
 /**
  * The area an account may see. Same rules as td_my_area() in the database

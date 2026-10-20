@@ -27,24 +27,31 @@ describe('roles', () => {
 
 describe('sections', () => {
   const can = (section, role) => canAccessSection(section, role, someone);
-  it('everyone gets Dashboard, Settings and Regulatory', () => {
+  it('everyone gets Settings and Regulatory; only Admin and Manager get the Dashboard', () => {
     ['user', 'volunteer', 'media', 'manager', 'authority'].forEach(r => {
-      expect(can(SECTIONS.DASHBOARD, r)).toBe(true);
       expect(can(SECTIONS.SETTINGS, r)).toBe(true);
       expect(can(SECTIONS.REGULATORY, r)).toBe(true);
     });
+    expect(can(SECTIONS.DASHBOARD, 'manager')).toBe(true);
+    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.DASHBOARD, r)).toBe(false));
+    expect(canAccessSection(SECTIONS.DASHBOARD, 'user', admin)).toBe(true);
   });
   it('Illegal Dumping is Manager, Admin and Authority (district view)', () => {
     expect(can(SECTIONS.ILLEGAL_DUMPING, 'manager')).toBe(true);
     ['user', 'volunteer', 'media'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(false));
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);
   });
-  it('Request Pickup, Bin Management and Account Approvals are admin only', () => {
-    [SECTIONS.REQUEST_PICKUP, SECTIONS.BIN_MANAGEMENT, SECTIONS.ACCOUNTS].forEach(s => {
+  it('Bin Management and Account Approvals are admin only', () => {
+    [SECTIONS.BIN_MANAGEMENT, SECTIONS.ACCOUNTS].forEach(s => {
       expect(can(s, 'manager')).toBe(false);
       expect(can(s, 'authority')).toBe(false);
       expect(canAccessSection(s, 'user', admin)).toBe(true);
     });
+  });
+  it('Request Pickup is Admin and Manager (requests.view)', () => {
+    expect(can(SECTIONS.REQUEST_PICKUP, 'manager')).toBe(true);
+    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.REQUEST_PICKUP, r)).toBe(false));
+    expect(canAccessSection(SECTIONS.REQUEST_PICKUP, 'user', admin)).toBe(true);
   });
 });
 
