@@ -47,7 +47,6 @@ export const PUBLIC_NAV = [
     groups: [{
       items: [
         { to: '/about/',          label: 'About TrashDrop',           icon: 'fa-info-circle' },
-        { to: '/#service-areas',  label: 'Waste collection near you', icon: 'fa-map-marker-alt' },
         { to: '/faq/',            label: 'FAQ',                       icon: 'fa-question-circle' },
       ],
     }],
