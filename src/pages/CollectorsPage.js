@@ -10,7 +10,7 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       "name": "Do I need a smartphone to use the TrashDrop Carter App?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Any smartphone with a modern browser (Chrome, Firefox, or Safari) can run the TrashDrop Carter App at trashdrops.com. No app store installation is required. The app works offline — it caches your accepted requests, map tiles, and profile locally, queuing any actions you take without internet until your connection is restored." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Any smartphone with a modern browser (Chrome, Firefox, or Safari) can run the TrashDrop Carter App at collector.trashdrops.com. No app store installation is required. The app works offline — it caches your accepted requests, map tiles, and profile locally, queuing any actions you take without internet until your connection is restored." }
     },
     {
       "@type": "Question",
@@ -36,7 +36,7 @@ const FAQ_SCHEMA = {
 };
 
 const SIGNUP_STEPS = [
-  { n:'01', icon:'fa-mobile-alt',    title:'Open Carter App',         body:'Visit trashdrops.com on any modern smartphone browser. No app store download required.' },
+  { n:'01', icon:'fa-mobile-alt',    title:'Open Carter App',         body:'Visit collector.trashdrops.com on any modern smartphone browser. No app store download required.' },
   { n:'02', icon:'fa-phone',         title:'Verify Phone Number',     body:'Enter your Ghana phone number (+233 format). Verify via SMS OTP. Your phone number is your login — no email needed.' },
   { n:'03', icon:'fa-id-card',       title:'Upload Ghana ID',         body:'Upload front and back photos of your Ghana Card, Passport, or Voters ID for identity verification.' },
   { n:'04', icon:'fa-truck',         title:'Add Vehicle Details',     body:'Enter your vehicle type, licence plate number, colour, and upload a vehicle photo.' },
@@ -54,7 +54,7 @@ const EARNINGS = [
 ];
 
 const FAQ_ITEMS = [
-  { q:'Do I need a smartphone to use the TrashDrop Carter App?', a:'Any smartphone with a modern browser (Chrome, Firefox, or Safari) can run the TrashDrop Carter App at trashdrops.com. No app store installation is required. The app works offline — it caches your accepted requests, map tiles, and profile locally, queuing any actions you take without internet until your connection is restored.' },
+  { q:'Do I need a smartphone to use the TrashDrop Carter App?', a:'Any smartphone with a modern browser (Chrome, Firefox, or Safari) can run the TrashDrop Carter App at collector.trashdrops.com. No app store installation is required. The app works offline — it caches your accepted requests, map tiles, and profile locally, queuing any actions you take without internet until your connection is restored.' },
   { q:'How quickly will I receive payment after completing a pickup?', a:'Earnings are added to your available balance immediately after the waste disposal step is confirmed at an authorised disposal site. Funds are available for withdrawal immediately after disposal via MoMo payouts. The minimum withdrawal is ₵10 and the daily maximum is ₵5,000.' },
   { q:'What documents do I need to sign up as a collector?', a:'You need a valid Ghana ID (Ghana Card, Passport, or Voters ID — front and back photos), your vehicle details (type, licence plate number, colour, and a vehicle photo), and a company or organisation ID. Your phone number must be a valid Ghana number in +233 format, used as your login — no email required.' },
   { q:'What are authority assignments and how do I access them?', a:'Authority assignments are government and municipal cleanup contracts for illegal dump sites, construction debris, industrial waste, and public spaces. They pay ₵50–₵500 per assignment and are listed in the Assign tab of the Carter App. Unlike regular pickups, assignments are allocated directly to you — there is no competition with other collectors — and require a detailed completion report plus before-and-after photos.' },

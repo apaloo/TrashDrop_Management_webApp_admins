@@ -23,7 +23,7 @@ const FAQ_SCHEMA = {
       "name": "How does the TrashDrop QR bag system work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap Request Pickup to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra."
+        "text": "The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap Request Pickup to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra."
       }
     },
     {
@@ -31,7 +31,7 @@ const FAQ_SCHEMA = {
       "name": "Do I need to download an app to use TrashDrop?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. TrashDrop is a Progressive Web App (PWA) — it runs entirely in your mobile or desktop browser at trashdrops.com. Open the URL, sign up with your email, and you are ready. No app store required."
+        "text": "No. TrashDrop is a Progressive Web App (PWA) — it runs entirely in your mobile or desktop browser at app.trashdrops.com. Open the URL, sign up with your email, and you are ready. No app store required."
       }
     },
     {
@@ -94,7 +94,7 @@ const WEBPAGE_SCHEMA = {
 };
 
 const STEPS = [
-  { n:'01', icon:'fa-user-plus',        title:'Sign Up',            body:'Create your free account at trashdrops.com using your email. No app store download required — it runs entirely in your browser.' },
+  { n:'01', icon:'fa-user-plus',        title:'Sign Up',            body:'Create your free account at app.trashdrops.com using your email. No app store download required — it runs entirely in your browser.' },
   { n:'02', icon:'fa-map-marker-alt',   title:'Set Your Location',  body:'Enable GPS or enter your address manually. TrashDrop pinpoints your location for accurate collector matching.' },
   { n:'03', icon:'fa-qrcode',           title:'Choose Your Service', body:'Select the QR Bag System for free pickups with pre-purchased bags, or the Digital Bin for instant on-demand collection with a GPS-based quote.' },
   { n:'04', icon:'fa-check-circle',     title:'Collector Accepts',  body:'A verified, ID-checked collector in your area accepts your request within 2 hours. You see their live GPS position in real time.' },
@@ -104,7 +104,7 @@ const STEPS = [
 
 const QR_STEPS = [
   { n:'01', icon:'fa-shopping-bag',   title:'Buy TrashDrop Bags',    body:'Purchase official bag bundles from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bundle carries a printed QR code.' },
-  { n:'02', icon:'fa-qrcode',         title:'Scan to Activate',      body:'Open the TrashDrop app at trashdrops.com, tap the QR scanner, and scan the code. This registers the bags to your account and updates your inventory.' },
+  { n:'02', icon:'fa-qrcode',         title:'Scan to Activate',      body:'Open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code. This registers the bags to your account and updates your inventory.' },
   { n:'03', icon:'fa-trash-alt',      title:'Fill Your Bags',        body:'Fill the bags with household or business waste. Separate recyclables where possible to maximise your reward points.' },
   { n:'04', icon:'fa-hand-pointer',   title:'Request Free Pickup',   body:'Open the app and tap "Request Pickup." TrashDrop matches you with the nearest available verified collector instantly.' },
   { n:'05', icon:'fa-map-marked-alt', title:'Live GPS Tracking',     body:'Your collector travels to your location. Track them in real time on the map — visible directly in the app.' },
@@ -112,7 +112,7 @@ const QR_STEPS = [
 ];
 
 const FAQ_ITEMS = [
-  { q: 'Do I need to download an app to use TrashDrop?', a: 'No. TrashDrop is a Progressive Web App (PWA) — it runs entirely in your mobile or desktop browser at trashdrops.com. Open the URL, sign up with your email, and you are ready. No app store required.' },
+  { q: 'Do I need to download an app to use TrashDrop?', a: 'No. TrashDrop is a Progressive Web App (PWA) — it runs entirely in your mobile or desktop browser at app.trashdrops.com. Open the URL, sign up with your email, and you are ready. No app store required.' },
   { q: 'How long does it take for a collector to arrive?', a: 'A verified collector accepts requests within 2 hours. The full process — from request submission to completed collection — typically finishes within 8 hours in urban Accra. You can track the collector\'s live GPS position from the moment they accept.' },
   { q: 'What is the difference between the QR Bag System and the Digital Bin?', a: 'The QR Bag System uses pre-purchased official bags. Scan the QR code to register them, fill the bags, and request a FREE pickup when ready — no extra payment at collection. The Digital Bin is for on-demand pickup of any waste: enter the details, receive a GPS-based price quote instantly, and pay via MoMo or cash only at the point of collection.' },
   { q: 'What happens to my waste after it is collected?', a: 'TrashDrop collectors deliver waste only to authorised disposal sites holding valid environmental permits from the Ghana EPA. Recyclables go to licensed recycling facilities, organic waste goes to composting sites, and general waste goes to approved municipal landfills. No illegal dumping — every trip is tracked.' },
@@ -292,7 +292,7 @@ const HowItWorksPage = () => {
             </h2>
             {/* ── AI ANSWER PARAGRAPH for #qr anchor ── */}
             <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.8, maxWidth:740, margin:'0 auto' }}>
-              The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap "Request Pickup" to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra.
+              The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap "Request Pickup" to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra.
             </p>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>

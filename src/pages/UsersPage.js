@@ -39,7 +39,7 @@ const FEATURES = [
   { icon:'fa-mobile-alt',    title:'Digital Bin Service',   body:'On-demand pickup with instant GPS-based pricing. No bags needed — request collection of any waste.' },
   { icon:'fa-map-marked-alt','title':'Live GPS Tracking',   body:'See your collector\'s real-time location from the moment they accept your request to arrival.' },
   { icon:'fa-star',          title:'Reward Points',         body:'Earn points on every completed pickup and illegal dumping report. Redeem for discounts or community donations.' },
-  { icon:'fa-mobile-alt',    title:'No App Download',       body:'TrashDrop runs as a Progressive Web App at trashdrops.com — works on any smartphone browser.' },
+  { icon:'fa-mobile-alt',    title:'No App Download',       body:'TrashDrop runs as a Progressive Web App at app.trashdrops.com — works on any smartphone browser.' },
   { icon:'fa-wallet',        title:'MoMo & Card Payments',  body:'Pay via MTN MoMo, Telecel Cash, AirtelTigo Money, or debit/credit card. QR pickups are always FREE.' },
 ];
 

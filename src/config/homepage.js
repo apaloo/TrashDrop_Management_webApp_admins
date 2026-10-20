@@ -13,7 +13,7 @@ export const PUBLIC_STAT_THRESHOLDS = {
 };
 
 // Where households book: the TrashDrop household app (the booking card's QR code opens it too)
-export const HOUSEHOLD_APP_URL = process.env.REACT_APP_HOUSEHOLD_APP_URL || 'https://trashdrop-mobile.windsurf.build/';
+export const HOUSEHOLD_APP_URL = process.env.REACT_APP_HOUSEHOLD_APP_URL || 'https://app.trashdrops.com/';
 
 // Cities on the booking card, with a centre point for "use my location"
 export const BOOKING_CITIES = [
