@@ -8,7 +8,7 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       "name": "How do I report illegal dumping in Ghana?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Open the TrashDrop app at trashdrops.com, tap 'Report Illegal Dumping,' photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Open the TrashDrop app at app.trashdrops.com, tap 'Report Illegal Dumping,' photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects." }
     },
     {
       "@type": "Question",
@@ -34,7 +34,7 @@ const FAQ_SCHEMA = {
 };
 
 const REPORT_STEPS = [
-  { n:'01', icon:'fa-mobile-alt',        title:'Open the App',            body:'Go to trashdrops.com on any smartphone. No download required. Sign in or continue anonymously.' },
+  { n:'01', icon:'fa-mobile-alt',        title:'Open the App',            body:'Go to app.trashdrops.com on any smartphone. No download required. Sign in or continue anonymously.' },
   { n:'02', icon:'fa-exclamation-triangle','title':'Tap "Report Illegal Dumping"', body:'Find the report button on the home screen or in the main menu — visible without a full account.' },
   { n:'03', icon:'fa-camera',            title:'Photograph the Site',     body:'Take a minimum of one clear photo of the dump site. Multiple photos increase response priority.' },
   { n:'04', icon:'fa-map-marker-alt',    title:'Allow GPS Location',      body:'The app captures your GPS coordinates automatically to pinpoint the exact location of the dump site.' },
@@ -55,7 +55,7 @@ const IllegalDumpingPublicPage = () => {
   useEffect(() => {
     document.title = 'Report Illegal Dumping in Ghana | TrashDrop';
     const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Report illegal dumping in Ghana in under 2 minutes via the TrashDrop app at trashdrops.com. Get GPS-pinpointed enforcement, earn reward points, and track cleanup. Available in Accra, Kumasi, Takoradi and Tamale.');
+    if (el) el.setAttribute('content', 'Report illegal dumping in Ghana in under 2 minutes via the TrashDrop app at app.trashdrops.com. Get GPS-pinpointed enforcement, earn reward points, and track cleanup. Available in Accra, Kumasi, Takoradi and Tamale.');
 
     // Fix canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
@@ -98,7 +98,7 @@ const IllegalDumpingPublicPage = () => {
           </h1>
           {/* ── AI ANSWER PARAGRAPH ── */}
           <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:680, margin:'0 0 40px' }}>
-            Illegal dumping — the disposal of waste in unauthorised locations — can be reported quickly and easily through the TrashDrop app at trashdrops.com. Open the app, tap "Report Illegal Dumping," photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews, and you can track the cleanup status directly in the app. Ghana's Environmental Sanitation Law (Act 490) makes illegal dumping a fineable offence — reporting through TrashDrop is the fastest way to trigger enforcement action in Accra, Kumasi, Takoradi or Tamale.
+            Illegal dumping — the disposal of waste in unauthorised locations — can be reported quickly and easily through the TrashDrop app at app.trashdrops.com. Open the app, tap "Report Illegal Dumping," photograph the dump site (minimum one clear photo), allow the app to capture your GPS coordinates to pinpoint the location, and submit the report. You will immediately earn reward points that can be redeemed for discounts on future pickups or donated to community projects. TrashDrop notifies the relevant municipal authority and dispatches licensed cleanup crews, and you can track the cleanup status directly in the app. Ghana's Environmental Sanitation Law (Act 490) makes illegal dumping a fineable offence — reporting through TrashDrop is the fastest way to trigger enforcement action in Accra, Kumasi, Takoradi or Tamale.
           </p>
           <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
             <a href="#how-to-report" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
