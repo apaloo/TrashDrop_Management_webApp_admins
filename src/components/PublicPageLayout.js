@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
 import { PublicMenuDesktop, PublicMenuMobile } from './PublicMenu';
+import SectionRhythm from './SectionRhythm';
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────────── */
 export const TD = {
@@ -186,6 +187,7 @@ const PublicPageLayout = ({ children, title, description }) => {
         @keyframes td-fadeup { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
         .pub-reveal { animation: td-fadeup 0.7s cubic-bezier(.22,1,.36,1) both; }
       `}</style>
+      <SectionRhythm />
       <PublicNavbar />
       <main>{children}</main>
       <PublicFooter />

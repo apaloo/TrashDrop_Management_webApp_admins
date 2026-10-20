@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
 import { PublicMenuDesktop, PublicMenuMobile } from '../components/PublicMenu';
+import SectionRhythm from '../components/SectionRhythm';
 import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
@@ -1850,6 +1851,7 @@ const LpPageInner = ({ auth }) => {
   return (
     <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
+      <SectionRhythm />
       <HomeNavbar         isAuthenticated={auth} />
       <HeroSection        isAuthenticated={auth} />
       <TrustRow />
@@ -1882,6 +1884,7 @@ const PartnersPageInner = ({ auth }) => {
   return (
     <div className="td-page td-partners-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body }}>
       <GlobalStyles />
+      <SectionRhythm />
       <HomeNavbar isAuthenticated={auth} />
       <header style={{ background:TD.ink, padding:'136px 24px 64px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
