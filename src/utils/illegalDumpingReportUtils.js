@@ -164,6 +164,44 @@ export const canTransition = (from, to) => {
 };
 export const isOpenStatus = (status) => ['pending', 'verified', 'in_progress'].includes(normalizeEnum(status) || 'pending');
 
+/**
+ * Why a report can't get a cleanup team yet, or null when it can. Only a
+ * verified report with nobody on it can be assigned, to a paid collector or a
+ * volunteer group alike (volunteer groups can also only claim verified
+ * reports, see claim_dumping_report in 20261028_volunteer_claims.sql).
+ * `report` is a normalised report (status, assignedTo or cleanupAssigned, cleanupTeam).
+ */
+export const assignmentBlockReason = (report) => {
+  if (!report) return 'Choose a report first.';
+  const status = normalizeEnum(report.status) || 'pending';
+  if (status === 'pending') {
+    return 'Verify this report before assigning a cleanup team. Check the photos and location, then choose Verify.';
+  }
+  if (report.assignedTo || report.cleanupAssigned) {
+    return `This report already has a cleanup team${report.cleanupTeam ? ` (${report.cleanupTeam})` : ''}.`;
+  }
+  if (status !== 'verified') {
+    return `This report is ${statusLabel(status).toLowerCase()}, so it can't be assigned. Only verified reports can get a cleanup team.`;
+  }
+  return null;
+};
+
+/** Message when the database refused or skipped an assignment (the report changed meanwhile) */
+export const assignmentFailedMessage = (error) => {
+  const text = `${error?.message || ''} ${error?.details || ''}`;
+  // PGRST116: the update matched no row (single() → "Cannot coerce the result to a single JSON object")
+  if (error?.code === 'PGRST116' || /0 rows|changed meanwhile|single JSON object|no\) rows returned/i.test(text)) {
+    return 'This report changed since you opened it (someone may have assigned, claimed or cancelled it). Refresh and try again.';
+  }
+  if (/Status cannot change from pending/i.test(text)) {
+    return 'Verify this report before assigning a cleanup team.';
+  }
+  if (error?.code === '42501' || /not allowed|permission denied/i.test(text)) {
+    return 'Your account can\'t assign cleanups. Ask an admin.';
+  }
+  return 'Couldn\'t assign the cleanup. Try again.';
+};
+
 /** "18.0 hrs" under 48 hours, otherwise "3.2 days"; "—" when there is no value */
 export const formatDuration = (hours) => {
   if (hours === null || hours === undefined || !Number.isFinite(hours)) return '—';

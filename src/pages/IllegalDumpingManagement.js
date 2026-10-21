@@ -6,6 +6,7 @@ import { supabase } from '../utils/supabase';
 import {
   toReportViewModel, computeReportStats, formatDuration, formatDate, matchesSearch,
   normalizeEnum, toTitle, statusLabel, severityBadgeClass, canTransition, isOpenStatus, STATUS_LABELS,
+  assignmentBlockReason, assignmentFailedMessage,
 } from '../utils/illegalDumpingReportUtils';
 import StatusBadge from '../components/illegalDumping/StatusBadge';
 import ReportPhotos from '../components/illegalDumping/ReportPhotos';
@@ -77,6 +78,8 @@ const IllegalDumpingManagement = () => {
 
   // Open collector selection modal
   const openCollectorModal = (report) => {
+    const blocked = assignmentBlockReason(report);
+    if (blocked) { toast(blocked, 5000); return; }
     setSelectedReportForAssignment(report);
     setCleanupFee('');
     setFeeStep(true);
@@ -167,17 +170,19 @@ const IllegalDumpingManagement = () => {
   };
 
   const assignCleanup = async (reportId, collectorId, collectorName, fee) => {
+    const blocked = assignmentBlockReason(reports.find(r => r.id === reportId));
+    if (blocked) { toast(blocked, 5000); return; }
     try {
       const estimatedCleanupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
       // Keeps (or sets) status verified so the job shows in the collector's Available tab
       const result = await assignCleanupTeam(reportId, collectorId, estimatedCleanupDate, fee);
-      if (result?.error) throw new Error(result.error.message || 'Failed to assign cleanup team');
+      if (result?.error) throw result.error;
       toast(`Cleanup assigned to ${collectorName}`);
       await refreshReports(true);
       if (selectedReport?.id === reportId) loadHistory(reportId);
     } catch (error) {
       console.error('Error assigning cleanup team:', error);
-      toast(`Failed to assign cleanup team: ${error.message}`);
+      toast(assignmentFailedMessage(error), 5000);
     }
   };
 

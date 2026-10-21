@@ -18,6 +18,7 @@ import {
   SEVERITY_OPTIONS, WASTE_TYPE_OPTIONS, UNKNOWN_SEVERITY_COLOR, GHANA_BOUNDS,
   normalizeEnum, toTitle, getSeverityColor, hasCoordinates, isOutsideGhana,
   matchesFilters, computeReportStats, statusLabel, statusBadgeClass, severityBadgeClass, formatDuration,
+  assignmentBlockReason, assignmentFailedMessage,
 } from '../utils/illegalDumpingReportUtils';
 import EnhancedImage from '../components/common/EnhancedImage';
 import { secureUrls } from '../utils/secureUrl';
@@ -358,6 +359,8 @@ const IllegalDumpingMap = () => {
 
   // Open collector selection modal
   const openCollectorModal = (report) => {
+    const blocked = assignmentBlockReason(report);
+    if (blocked) { notify(blocked, 5000); return; }
     setSelectedReportForAssignment(report);
     setShowCollectorModal(true);
     fetchCollectors();
@@ -366,19 +369,27 @@ const IllegalDumpingMap = () => {
   // Assign cleanup team
   const assignCleanupTeamHandler = async (collectorId, collectorName) => {
     if (!selectedReportForAssignment) return;
+    const blocked = assignmentBlockReason(selectedReportForAssignment);
+    if (blocked) { notify(blocked, 5000); return; }
 
     try {
-      // Update in Supabase - save collector UUID to assigned_to column
-      const { error } = await supabase
+      // Update in Supabase - save collector UUID to assigned_to column.
+      // Only while the report is still verified and unassigned, so a screen
+      // opened before someone else verified, claimed or cancelled it can't overwrite them.
+      const { data, error } = await supabase
         .from('illegal_dumping_mobile')
         .update({
           status: 'in_progress',
           assigned_to: collectorId,
           updated_at: new Date().toISOString()
         })
-        .eq('id', selectedReportForAssignment.id);
+        .eq('id', selectedReportForAssignment.id)
+        .eq('status', 'verified')
+        .is('assigned_to', null)
+        .select('id');
 
       if (error) throw error;
+      if (!data || data.length === 0) throw Object.assign(new Error('0 rows: report changed meanwhile'), { code: 'PGRST116' });
 
       setDumpingReportData(prev =>
         prev.map(report => {
@@ -400,7 +411,7 @@ const IllegalDumpingMap = () => {
       setSelectedReportForAssignment(null);
     } catch (error) {
       console.error('Error assigning cleanup:', error);
-      notify('Failed to assign cleanup');
+      notify(assignmentFailedMessage(error), 5000);
     }
   };
 

@@ -1015,6 +1015,9 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fe
       // Database constraint only allows: 'pending', 'verified', 'in_progress', 'completed'
       // Use 'verified' so assignment appears in collector's "Available" tab
       // Collector will change to 'in_progress' when they accept the assignment
+      // Callers check first (assignmentBlockReason); the filters below make sure the
+      // report is still verified and unassigned when the update runs, so an
+      // unverified report is never verified here by accident.
       const newStatus = 'verified';
       
       const updatePayload = { 
@@ -1033,6 +1036,8 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fe
         .from('illegal_dumping_mobile')
         .update(updatePayload)
         .eq('id', reportId)
+        .eq('status', 'verified')
+        .is('assigned_to', null)
         .select()
         .single();
       
