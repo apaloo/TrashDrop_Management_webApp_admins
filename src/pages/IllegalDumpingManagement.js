@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchAllIllegalDumpingReports, updateIllegalDumpingStatus, fetchIllegalDumpingHistory, assignCleanupTeam } from '../utils/databaseUtils';
 import { SEVERITY } from '../config/constants';
-import { supabase } from '../utils/supabase';
+import AssignCleanupModal from '../components/illegalDumping/AssignCleanupModal';
 import {
   toReportViewModel, computeReportStats, formatDuration, formatDate, matchesSearch,
   normalizeEnum, toTitle, statusLabel, severityBadgeClass, canTransition, isOpenStatus, STATUS_LABELS,
@@ -43,11 +43,7 @@ const IllegalDumpingManagement = () => {
 
   // Collector selection state
   const [showCollectorModal, setShowCollectorModal] = useState(false);
-  const [collectors, setCollectors] = useState([]);
-  const [loadingCollectors, setLoadingCollectors] = useState(false);
   const [selectedReportForAssignment, setSelectedReportForAssignment] = useState(null);
-  const [cleanupFee, setCleanupFee] = useState('');
-  const [feeStep, setFeeStep] = useState(true); // true = enter fee, false = select collector
 
   const toast = (message, ms = 3000) => {
     setToastMessage(message);
@@ -55,36 +51,12 @@ const IllegalDumpingManagement = () => {
     setTimeout(() => setShowToast(false), ms);
   };
 
-  // Fetch collectors from Supabase
-  const fetchCollectors = async () => {
-    setLoadingCollectors(true);
-    try {
-      const { data, error } = await supabase
-        .from('collector_profiles')
-        .select('id, first_name, last_name, email, phone, status, vehicle_type, vehicle_plate')
-        .eq('status', 'active')
-        .order('first_name', { ascending: true });
-
-      if (error) throw error;
-      setCollectors(data || []);
-    } catch (error) {
-      console.error('Error fetching collectors:', error);
-      toast('Failed to load collectors');
-      setCollectors([]);
-    } finally {
-      setLoadingCollectors(false);
-    }
-  };
-
   // Open collector selection modal
   const openCollectorModal = (report) => {
     const blocked = assignmentBlockReason(report);
     if (blocked) { toast(blocked, 5000); return; }
     setSelectedReportForAssignment(report);
-    setCleanupFee('');
-    setFeeStep(true);
     setShowCollectorModal(true);
-    fetchCollectors();
   };
 
   // Loads every report (no row cap); filters and KPIs are applied on the page
@@ -169,20 +141,24 @@ const IllegalDumpingManagement = () => {
     }
   };
 
-  const assignCleanup = async (reportId, collectorId, collectorName, fee) => {
-    const blocked = assignmentBlockReason(reports.find(r => r.id === reportId));
-    if (blocked) { toast(blocked, 5000); return; }
+  // Called by the assignment window; true when the report was assigned
+  const assignCleanup = async ({ teamId, teamName, fee, volunteer }) => {
+    const reportId = selectedReportForAssignment?.id;
+    const blocked = assignmentBlockReason(reports.find(r => r.id === reportId) || selectedReportForAssignment);
+    if (blocked) { toast(blocked, 5000); return false; }
     try {
       const estimatedCleanupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
-      // Keeps (or sets) status verified so the job shows in the collector's Available tab
-      const result = await assignCleanupTeam(reportId, collectorId, estimatedCleanupDate, fee);
+      // Keeps status verified so the job shows in the team's Available tab until they accept
+      const result = await assignCleanupTeam(reportId, teamId, estimatedCleanupDate, fee);
       if (result?.error) throw result.error;
-      toast(`Cleanup assigned to ${collectorName}`);
+      toast(volunteer ? `Cleanup assigned to volunteer group ${teamName}` : `Cleanup assigned to ${teamName}`);
       await refreshReports(true);
       if (selectedReport?.id === reportId) loadHistory(reportId);
+      return true;
     } catch (error) {
       console.error('Error assigning cleanup team:', error);
       toast(assignmentFailedMessage(error), 5000);
+      return false;
     }
   };
 
@@ -642,151 +618,9 @@ const IllegalDumpingManagement = () => {
         </div>
       )}
 
-      {/* Collector Selection Modal */}
-      {showCollectorModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {feeStep ? 'Set Cleanup Payment' : 'Select Collector for Cleanup'}
-              </h3>
-              <button 
-                onClick={() => {
-                  setShowCollectorModal(false);
-                  setSelectedReportForAssignment(null);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            {selectedReportForAssignment && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm">
-                <p className="font-medium">Report ID: {selectedReportForAssignment.id?.slice(0, 8)}...</p>
-                <p className="text-gray-600">{selectedReportForAssignment.locationLabel}</p>
-                <p className="text-gray-500 capitalize">Severity: {selectedReportForAssignment.severity || 'N/A'} &bull; Size: {selectedReportForAssignment.size || 'N/A'}</p>
-              </div>
-            )}
-
-            {feeStep ? (
-              /* Step 1: Enter payment amount */
-              <div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Enter the payment amount (GHS) to allocate to the collector for this cleanup job before assigning.
-                </p>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cleanup Fee (GHS)</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={cleanupFee}
-                      onChange={e => setCleanupFee(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg pl-14 pr-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      autoFocus
-                    />
-                  </div>
-                  {cleanupFee && !isNaN(parseFloat(cleanupFee)) && parseFloat(cleanupFee) > 0 && (
-                    <p className="mt-2 text-sm text-green-600 font-medium">GHS {parseFloat(cleanupFee).toFixed(2)} will be allocated to the assigned collector.</p>
-                  )}
-                  {cleanupFee === '' && (
-                    <p className="mt-2 text-xs text-gray-400">Leave blank to assign without a set payment amount.</p>
-                  )}
-                </div>
-                <div className="flex justify-between gap-3">
-                  <button
-                    onClick={() => {
-                      setShowCollectorModal(false);
-                      setSelectedReportForAssignment(null);
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setFeeStep(false)}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                  >
-                    {cleanupFee && parseFloat(cleanupFee) > 0 ? `Continue with GHS ${parseFloat(cleanupFee).toFixed(2)}` : 'Continue Without Fee →'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Step 2: Select collector */
-              <div>
-                {cleanupFee && parseFloat(cleanupFee) > 0 && (
-                  <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <span className="text-green-700 text-sm font-medium">💰 Payment: GHS {parseFloat(cleanupFee).toFixed(2)}</span>
-                    <button onClick={() => setFeeStep(true)} className="ml-auto text-xs text-green-600 underline">Edit</button>
-                  </div>
-                )}
-                {loadingCollectors ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : collectors.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No active collectors available</p>
-                    <p className="text-sm mt-2">Please add collectors in Collectors Management</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {collectors.map(collector => (
-                      <div 
-                        key={collector.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all"
-                        onClick={async () => {
-                          const collectorName = `${collector.first_name} ${collector.last_name}`;
-                          await assignCleanup(selectedReportForAssignment.id, collector.id, collectorName, cleanupFee);
-                          setShowCollectorModal(false);
-                          setSelectedReportForAssignment(null);
-                        }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">
-                              {collector.first_name} {collector.last_name}
-                            </h4>
-                            <p className="text-sm text-gray-500">{collector.email}</p>
-                            {collector.phone && (
-                              <p className="text-sm text-gray-500">Phone: {collector.phone}</p>
-                            )}
-                            {collector.vehicle_type && (
-                              <p className="text-sm text-gray-500">
-                                Vehicle: {collector.vehicle_type} {collector.vehicle_plate && `(${collector.vehicle_plate})`}
-                              </p>
-                            )}
-                          </div>
-                          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                            {collector.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="mt-4 flex justify-between">
-                  <button onClick={() => setFeeStep(true)} className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm">
-                    ← Back
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCollectorModal(false);
-                      setSelectedReportForAssignment(null);
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {showCollectorModal && selectedReportForAssignment && (
+        <AssignCleanupModal report={selectedReportForAssignment} onAssign={assignCleanup}
+          onClose={() => { setShowCollectorModal(false); setSelectedReportForAssignment(null); }} />
       )}
     </div>
   );

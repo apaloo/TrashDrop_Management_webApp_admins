@@ -1,6 +1,6 @@
 import {
   matchesFilters, computeReportStats, getSeverityColor, isOutsideGhana, normalizeEnum, UNKNOWN_SEVERITY_COLOR,
-  assignmentBlockReason, assignmentFailedMessage,
+  assignmentBlockReason, assignmentFailedMessage, standardCleanupPayment, isVolunteerTeam,
 } from '../illegalDumpingReportUtils';
 
 const report = (over = {}) => ({
@@ -100,5 +100,19 @@ describe('assignmentFailedMessage', () => {
     expect(assignmentFailedMessage({ message: 'Status cannot change from pending to in_progress' })).toBe('Verify this report before assigning a cleanup team.');
     expect(assignmentFailedMessage({ code: '42501', message: 'Not allowed' })).toMatch(/can't assign cleanups/);
     expect(assignmentFailedMessage({ message: 'network down' })).toBe("Couldn't assign the cleanup. Try again.");
+  });
+});
+
+describe('cleanup payment', () => {
+  it('standard rate is size × severity (same as td_cleanup_payment)', () => {
+    expect(standardCleanupPayment('small', 'low')).toBe(5);
+    expect(standardCleanupPayment('Medium', 'medium')).toBe(10);
+    expect(standardCleanupPayment('large', 'high')).toBe(30);
+    expect(standardCleanupPayment(null, 'high')).toBe(15);
+  });
+  it('recognises volunteer group profiles', () => {
+    expect(isVolunteerTeam({ collector_type: 'volunteer' })).toBe(true);
+    expect(isVolunteerTeam({ collector_type: 'collector' })).toBe(false);
+    expect(isVolunteerTeam({})).toBe(false);
   });
 });

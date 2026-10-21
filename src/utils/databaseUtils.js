@@ -1026,11 +1026,11 @@ export const assignCleanupTeam = async (reportId, collectorId, scheduledDate, fe
         updated_at: new Date().toISOString()
       };
 
-      // Only include cleanup_fee if a valid value was provided
-      const feeValue = fee !== '' && fee != null && !isNaN(parseFloat(fee)) ? parseFloat(fee) : null;
-      if (feeValue !== null) {
-        updatePayload.cleanup_fee = feeValue;
-      }
+      // Always written, so a fee left from an earlier (released) assignment
+      // never carries over. null = the standard size × severity rate; volunteer
+      // groups are unpaid whatever is stored (td_cleanup_payment in the collector app's database).
+      const feeValue = fee !== '' && fee != null && !isNaN(parseFloat(fee)) && parseFloat(fee) > 0 ? parseFloat(fee) : null;
+      updatePayload.cleanup_fee = feeValue;
 
       const { data, error } = await supabase
         .from('illegal_dumping_mobile')

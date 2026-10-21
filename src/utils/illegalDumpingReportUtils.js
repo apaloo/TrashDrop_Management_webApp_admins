@@ -186,6 +186,19 @@ export const assignmentBlockReason = (report) => {
   return null;
 };
 
+/**
+ * What a paid collector earns for a cleanup when the admin sets no fee: the
+ * size × severity amount. Same rule as td_cleanup_payment() in the collector
+ * app's database migration (20261102_dumping_cleanup_payments.sql).
+ */
+export const standardCleanupPayment = (size, severity) => {
+  const base = { small: 5, medium: 10, large: 20 }[normalizeEnum(size)] ?? 10;
+  return Math.round(base * (normalizeEnum(severity) === 'high' ? 1.5 : 1) * 100) / 100;
+};
+
+/** A collector profile that belongs to a volunteer group (unpaid, see 20261028_volunteer_claims.sql) */
+export const isVolunteerTeam = (profile) => profile?.collector_type === 'volunteer';
+
 /** Message when the database refused or skipped an assignment (the report changed meanwhile) */
 export const assignmentFailedMessage = (error) => {
   const text = `${error?.message || ''} ${error?.details || ''}`;

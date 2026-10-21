@@ -13,7 +13,8 @@ import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 import { useAuth } from '../context/AuthContext';
 
 // Import Supabase utilities
-import { fetchIllegalDumpingReports } from '../utils/databaseUtils';
+import { fetchIllegalDumpingReports, assignCleanupTeam } from '../utils/databaseUtils';
+import AssignCleanupModal from '../components/illegalDumping/AssignCleanupModal';
 import {
   SEVERITY_OPTIONS, WASTE_TYPE_OPTIONS, UNKNOWN_SEVERITY_COLOR, GHANA_BOUNDS,
   normalizeEnum, toTitle, getSeverityColor, hasCoordinates, isOutsideGhana,
@@ -132,8 +133,6 @@ const IllegalDumpingMap = () => {
   const mapRef = useRef();
   const toastTimer = useRef(null);
   const [showCollectorModal, setShowCollectorModal] = useState(false);
-  const [collectors, setCollectors] = useState([]);
-  const [loadingCollectors, setLoadingCollectors] = useState(false);
   const [selectedReportForAssignment, setSelectedReportForAssignment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailsReport, setDetailsReport] = useState(null);
@@ -336,82 +335,37 @@ const IllegalDumpingMap = () => {
     }
   };
 
-  // Fetch collectors from Supabase
-  const fetchCollectors = async () => {
-    setLoadingCollectors(true);
-    try {
-      const { data, error } = await supabase
-        .from('collector_profiles')
-        .select('id, first_name, last_name, email, phone, status, vehicle_type, vehicle_plate')
-        .eq('status', 'active')
-        .order('first_name', { ascending: true });
-
-      if (error) throw error;
-      setCollectors(data || []);
-    } catch (error) {
-      console.error('Error fetching collectors:', error);
-      notify('Failed to load collectors');
-      setCollectors([]);
-    } finally {
-      setLoadingCollectors(false);
-    }
-  };
-
   // Open collector selection modal
   const openCollectorModal = (report) => {
     const blocked = assignmentBlockReason(report);
     if (blocked) { notify(blocked, 5000); return; }
     setSelectedReportForAssignment(report);
     setShowCollectorModal(true);
-    fetchCollectors();
   };
 
-  // Assign cleanup team
-  const assignCleanupTeamHandler = async (collectorId, collectorName) => {
-    if (!selectedReportForAssignment) return;
-    const blocked = assignmentBlockReason(selectedReportForAssignment);
-    if (blocked) { notify(blocked, 5000); return; }
+  // Assign cleanup team (from the assignment window); true when assigned.
+  // Same as the Reports page: the report stays verified with the team on it,
+  // and the collector app moves it to in_progress when the team accepts.
+  const assignCleanupTeamHandler = async ({ teamId, teamName, fee, volunteer }) => {
+    const report = selectedReportForAssignment;
+    if (!report) return false;
+    const blocked = assignmentBlockReason(report);
+    if (blocked) { notify(blocked, 5000); return false; }
 
     try {
-      // Update in Supabase - save collector UUID to assigned_to column.
-      // Only while the report is still verified and unassigned, so a screen
-      // opened before someone else verified, claimed or cancelled it can't overwrite them.
-      const { data, error } = await supabase
-        .from('illegal_dumping_mobile')
-        .update({
-          status: 'in_progress',
-          assigned_to: collectorId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedReportForAssignment.id)
-        .eq('status', 'verified')
-        .is('assigned_to', null)
-        .select('id');
+      const estimatedCleanupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      const result = await assignCleanupTeam(report.id, teamId, estimatedCleanupDate, fee);
+      if (result?.error) throw result.error;
 
-      if (error) throw error;
-      if (!data || data.length === 0) throw Object.assign(new Error('0 rows: report changed meanwhile'), { code: 'PGRST116' });
-
-      setDumpingReportData(prev =>
-        prev.map(report => {
-          if (report.id === selectedReportForAssignment.id) {
-            return {
-              ...report,
-              cleanupAssigned: true,
-              cleanupTeam: collectorName,
-              collectorId: collectorId,
-              status: 'in_progress'
-            };
-          }
-          return report;
-        })
-      );
-
-      notify(`Cleanup assigned to ${collectorName}`);
-      setShowCollectorModal(false);
-      setSelectedReportForAssignment(null);
+      setDumpingReportData(prev => prev.map(r => (r.id === report.id
+        ? { ...r, cleanupAssigned: true, cleanupTeam: teamName, collectorId: teamId, status: 'verified' }
+        : r)));
+      notify(volunteer ? `Cleanup assigned to volunteer group ${teamName}` : `Cleanup assigned to ${teamName}`);
+      return true;
     } catch (error) {
       console.error('Error assigning cleanup:', error);
       notify(assignmentFailedMessage(error), 5000);
+      return false;
     }
   };
 
@@ -1084,108 +1038,9 @@ const IllegalDumpingMap = () => {
       )}
 
 
-      {/* Collector Selection Modal */}
-      {showCollectorModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" onClick={() => setShowCollectorModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
-              <h3 className="text-xl font-semibold">Select Collector for Cleanup</h3>
-              <button 
-                onClick={() => setShowCollectorModal(false)}
-                className="text-white hover:text-gray-200"
-              >
-                <i className="fas fa-times text-2xl"></i>
-              </button>
-            </div>
-            
-            {/* Report Info */}
-            {selectedReportForAssignment && (
-              <div className="px-6 py-3 bg-gray-50 border-b">
-                <p className="text-sm text-gray-600">Report ID: <span className="font-medium">{selectedReportForAssignment.id}</span></p>
-                <p className="text-sm text-gray-600">Location: <span className="font-medium">{selectedReportForAssignment.location?.address || 'N/A'}</span></p>
-              </div>
-            )}
-            
-            {/* Collectors List */}
-            <div className="p-6 overflow-y-auto max-h-[500px]">
-              {loadingCollectors ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
-              ) : collectors.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <i className="fas fa-users text-5xl mb-4"></i>
-                  <p>No active collectors available</p>
-                  <p className="text-sm mt-2">Please check back later or contact admin</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {collectors.map((collector) => (
-                    <div 
-                      key={collector.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all"
-                      onClick={() => assignCleanupTeamHandler(collector.id, `${collector.first_name} ${collector.last_name}`)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <i className="fas fa-user-circle text-2xl text-blue-600"></i>
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
-                                {collector.first_name} {collector.last_name}
-                              </h4>
-                              <p className="text-sm text-gray-600">{collector.email}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-gray-500">Phone:</span>
-                              <span className="ml-2 font-medium">{collector.phone || 'N/A'}</span>
-                            </div>
-                            {collector.vehicle_type && (
-                              <div>
-                                <span className="text-gray-500">Vehicle:</span>
-                                <span className="ml-2 font-medium">{collector.vehicle_type}</span>
-                              </div>
-                            )}
-                            {collector.vehicle_plate && (
-                              <div>
-                                <span className="text-gray-500">Plate:</span>
-                                <span className="ml-2 font-medium">{collector.vehicle_plate}</span>
-                              </div>
-                            )}
-                            <div>
-                              <span className="text-gray-500">Status:</span>
-                              <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                {collector.status}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <button className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">
-                          Assign
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
-              <button
-                onClick={() => setShowCollectorModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {showCollectorModal && selectedReportForAssignment && (
+        <AssignCleanupModal report={selectedReportForAssignment} onAssign={assignCleanupTeamHandler}
+          onClose={() => { setShowCollectorModal(false); setSelectedReportForAssignment(null); }} />
       )}
     </div>
   );
