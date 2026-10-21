@@ -247,7 +247,8 @@ const HowItWorksPage = () => {
       </section>
 
       {/* ── Services Comparison ──────────────────────────────────────────── */}
-      <section style={{ background:'#0c1a0c', padding:'80px 24px' }}>
+      {/* The menu's "Two ways to drop your waste" opens here (/how-it-works/#services) */}
+      <section id="services" style={{ background:'#0c1a0c', padding:'80px 24px' }}>
         <div style={{ maxWidth:960, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,3.5vw,46px)', color:'#f0f5f0', letterSpacing:'-1px', margin:0 }}>Two services. One platform.</h2>

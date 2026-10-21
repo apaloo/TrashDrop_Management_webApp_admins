@@ -1923,13 +1923,12 @@ const PartnersPageInner = ({ auth }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   /how-it-works — the household sections: steps, the two services and bag pricing
+   /how-it-works — the household sections: steps and bag pricing (the two services stay on the homepage)
    ═══════════════════════════════════════════════════════════════════════════════ */
 export const HouseholdSections = () => (
   <LpThemeProvider mode="dark">
     <GlobalStyles />
     <HowItWorksSection />
-    <ServicesSection />
     <PricingGuideSection />
   </LpThemeProvider>
 );
