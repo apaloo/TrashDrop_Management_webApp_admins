@@ -54,7 +54,7 @@ export const PublicNavbar = () => {
             ? <Link to="/dashboard" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none' }}>Dashboard →</Link>
             : <>
                 <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:linkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/signup" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link>
+                <Link to="/#book-app" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link>
               </>}
         </div>
         <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:'#fff' }}>
@@ -69,7 +69,7 @@ export const PublicNavbar = () => {
               ? <Link to="/dashboard" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Go to Dashboard</Link>
               : <>
                   <Link to="/login"  onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:600, color:'#fff', textAlign:'center', padding:12, borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', textDecoration:'none' }}>Sign In</Link>
-                  <Link to="/signup" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link>
+                  <Link to="/#book-app" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link>
                 </>}
           </div>
         </div>
@@ -104,7 +104,7 @@ export const PublicFooter = () => (
         </div>
         {[
           { title:'Platform', links:[['How It Works','/how-it-works/'],['For Households','/users/'],['QR Bag System','/how-it-works/#qr'],['Digital Bin Service','/how-it-works/'],['Pricing','/how-it-works/#pricing']] },
-          { title:'Collectors', links:[['Earn as Carter','/collectors/'],['Carter App','/collectors/'],['Authority Assignments','/collectors/'],['Earnings Calculator','/collectors/'],['Sign Up Free','/signup']] },
+          { title:'Collectors', links:[['Earn as Carter','/collectors/'],['Carter App','/collectors/'],['Authority Assignments','/collectors/'],['Earnings Calculator','/collectors/'],["Sign Up Free","/collectors/#download-app"]] },
           { title:'Waste Collection', links:[['Accra','/waste-collection-accra/'],['Kumasi','/waste-collection-kumasi/'],['Takoradi','/waste-collection-takoradi/'],['Tamale','/waste-collection-tamale/'],['On-demand waste pickup','/waste-pickup/']] },
           { title:'Resources', links:[['FAQ','/faq/'],['Blog','/blog/'],['About Us','/about/'],['Partners','/partners/'],['Report Illegal Dump','/illegal-dumping/'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (

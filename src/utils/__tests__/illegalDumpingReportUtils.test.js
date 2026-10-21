@@ -1,5 +1,6 @@
 import {
   matchesFilters, computeReportStats, getSeverityColor, isOutsideGhana, normalizeEnum, UNKNOWN_SEVERITY_COLOR,
+  assignmentBlockReason, assignmentFailedMessage, standardCleanupPayment, isVolunteerTeam,
 } from '../illegalDumpingReportUtils';
 
 const report = (over = {}) => ({
@@ -67,5 +68,51 @@ describe('markers and bounds', () => {
   it('normalises enum spellings', () => {
     expect(normalizeEnum('In Progress')).toBe('in_progress');
     expect(normalizeEnum(' Hazardous ')).toBe('hazardous');
+  });
+});
+
+describe('assignmentBlockReason', () => {
+  it('only a verified report with nobody on it can be assigned', () => {
+    expect(assignmentBlockReason(report({ status: 'verified' }))).toBeNull();
+  });
+  it('asks to verify a pending report first (for collectors and volunteer groups alike)', () => {
+    expect(assignmentBlockReason(report({ status: 'pending' }))).toMatch(/^Verify this report before assigning/);
+    expect(assignmentBlockReason(report({ status: undefined }))).toMatch(/^Verify this report/);
+  });
+  it('names the team already on it', () => {
+    expect(assignmentBlockReason(report({ status: 'verified', assignedTo: 'p1', cleanupTeam: 'Bus Stop Boys' })))
+      .toBe('This report already has a cleanup team (Bus Stop Boys).');
+    expect(assignmentBlockReason(report({ status: 'verified', cleanupAssigned: true }))).toMatch(/already has a cleanup team/);
+  });
+  it('refuses closed or running reports', () => {
+    ['in_progress', 'completed', 'disposed', 'cancelled'].forEach(st =>
+      expect(assignmentBlockReason(report({ status: st }))).toMatch(/can't be assigned/));
+  });
+});
+
+describe('assignmentFailedMessage', () => {
+  it('explains a report that changed meanwhile instead of showing the database text', () => {
+    expect(assignmentFailedMessage({ code: 'PGRST116' })).toMatch(/changed since you opened it/);
+    expect(assignmentFailedMessage(new Error('Database error with illegal_dumping_mobile: Cannot coerce the result to a single JSON object')))
+      .toMatch(/changed since you opened it/);
+  });
+  it('maps the status-flow trigger and permission errors', () => {
+    expect(assignmentFailedMessage({ message: 'Status cannot change from pending to in_progress' })).toBe('Verify this report before assigning a cleanup team.');
+    expect(assignmentFailedMessage({ code: '42501', message: 'Not allowed' })).toMatch(/can't assign cleanups/);
+    expect(assignmentFailedMessage({ message: 'network down' })).toBe("Couldn't assign the cleanup. Try again.");
+  });
+});
+
+describe('cleanup payment', () => {
+  it('standard rate is size × severity (same as td_cleanup_payment)', () => {
+    expect(standardCleanupPayment('small', 'low')).toBe(5);
+    expect(standardCleanupPayment('Medium', 'medium')).toBe(10);
+    expect(standardCleanupPayment('large', 'high')).toBe(30);
+    expect(standardCleanupPayment(null, 'high')).toBe(15);
+  });
+  it('recognises volunteer group profiles', () => {
+    expect(isVolunteerTeam({ collector_type: 'volunteer' })).toBe(true);
+    expect(isVolunteerTeam({ collector_type: 'collector' })).toBe(false);
+    expect(isVolunteerTeam({})).toBe(false);
   });
 });

@@ -341,7 +341,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
           {isAuthenticated
             ? <Link to="/dashboard" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Dashboard →</Link>
             : <><Link to="/login"  className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/signup" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
+                <Link to="/#book-app" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
         </div>
         <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark || !scrolled ? '#fff' : TD.forest }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
@@ -357,7 +357,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             {isAuthenticated
               ? <Link to="/dashboard" style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Go to Dashboard</Link>
               : <><Link to="/login"  style={mobileSignInStyle}>Sign In</Link>
-                  <Link to="/signup" style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link></>}
+                  <Link to="/#book-app" style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link></>}
           </div>
         </div>
       )}

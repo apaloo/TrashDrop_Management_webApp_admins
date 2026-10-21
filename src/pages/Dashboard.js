@@ -5,6 +5,8 @@ import {
 } from 'chart.js';
 import { Doughnut, Line, Bar } from 'react-chartjs-2';
 import { useAuth } from '../context/AuthContext';
+import { ROLE_LABELS } from '../constants/accessControl';
+import { can } from '../lib/permissions';
 import { fetchDashboard, fetchStaleRequests } from '../services/dashboardAdminService';
 import { cancelRequest } from '../services/pickupAdminService';
 import { setAlertStatus } from '../services/alertAdminService';
@@ -34,19 +36,44 @@ const Help = ({ text }) => (
   </span>
 );
 
-const Kpi = ({ icon, iconBg, iconColor, label, value, change, sub, help, onClick, loading, testid }) => (
-  <button type="button" onClick={onClick} data-testid={testid}
-    className="bg-white rounded-lg shadow-sm border-0 p-6 flex items-center text-left hover:shadow-md transition-shadow w-full">
+const Skeleton = ({ className = 'h-full min-h-[160px]' }) => (
+  <div className={`animate-pulse flex flex-col justify-center gap-3 ${className}`} data-testid="skeleton" aria-busy="true">
+    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+  </div>
+);
+
+// A real failure (network, server): a plain message and a retry, never the backend's own text
+const Failed = ({ onRetry, text = 'Couldn’t load these numbers. Try Refresh.' }) => (
+  <div role="alert" data-testid="load-failed" className="h-full min-h-[120px] flex flex-col items-center justify-center text-center text-gray-500 gap-2">
+    <i className="fas fa-exclamation-circle text-2xl text-amber-500" aria-hidden="true"></i>
+    <p className="text-sm">{text}</p>
+    {onRetry && <button type="button" onClick={onRetry} className="text-sm text-green-700 hover:underline">Retry</button>}
+  </div>
+);
+
+// The database refused this role even though the page allowed the call
+const Locked = ({ role, what = 'these stats' }) => (
+  <div data-testid="locked" className="bg-white rounded-lg shadow-sm p-6 flex items-center gap-4 text-gray-600">
+    <i className="fas fa-lock text-2xl text-gray-400" aria-hidden="true"></i>
+    <p className="text-sm">Your role ({ROLE_LABELS[role] || role}) doesn’t include {what}. Ask an admin if you need access.</p>
+  </div>
+);
+
+const Kpi = ({ icon, iconBg, iconColor, label, value, change, sub, help, onClick, loading, failed, testid }) => (
+  <button type="button" onClick={onClick} data-testid={testid} disabled={!onClick}
+    className={`bg-white rounded-lg shadow-sm border-0 p-6 flex items-center text-left transition-shadow w-full ${onClick ? 'hover:shadow-md' : 'cursor-default'}`}>
     <div className={`p-3 rounded-full mr-4 ${iconBg}`}><i className={`fas fa-${icon} text-2xl`} style={{ color: iconColor }} aria-hidden="true"></i></div>
     <div className="min-w-0">
       <p className="text-gray-600 text-sm">{label}{help && <Help text={help} />}</p>
       {loading ? <div className="animate-pulse bg-gray-200 h-6 w-20 rounded mt-1"></div> : (
         <div className="flex items-baseline flex-wrap gap-x-2">
-          <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
-          {change !== undefined && <span className="text-sm text-gray-500" title="Compared with the previous period of the same length">{change}</span>}
+          <h3 className="text-2xl font-bold text-gray-800">{failed ? '—' : value}</h3>
+          {!failed && change !== undefined && <span className="text-sm text-gray-500" title="Compared with the previous period of the same length">{change}</span>}
         </div>
       )}
-      {sub && !loading && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+      {(failed || sub) && !loading && <p className="text-xs text-gray-500 mt-0.5">{failed ? 'Couldn’t load. Try Refresh.' : sub}</p>}
     </div>
   </button>
 );
@@ -70,7 +97,7 @@ const SEVERITY = {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [params, setParams] = useSearchParams();
   const rangeKey = params.get('range') || '';
   const customFrom = params.get('from') || '';
@@ -78,9 +105,20 @@ const Dashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const period = useMemo(() => periodFromParams(params), [rangeKey, customFrom, customTo]);
 
+  // What this role may see (src/lib/permissions.js). The data calls below only
+  // run for roles that have them, and panels a role can't use are not drawn.
+  const canStats = can('dashboard.stats', role);
+  const canQueue = can('dashboard.liveQueue', role);
+  const canBags = can('bags.view', role);
+  const canAlerts = can('alerts.view', role);
+  const canCancel = can('requests.cancel', role);
+  const canOpenRequests = can('requests.view', role);
+  const canOpenCollectors = can('collectors.view', role);
+  const canOpenDumping = can('dumping.view', role);
+
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(canStats);
+  const [error, setError] = useState(null); // DashboardError
   const [updatedAt, setUpdatedAt] = useState(null);
   const [stale, setStale] = useState(null);
   const [staleError, setStaleError] = useState(null);
@@ -94,18 +132,33 @@ const Dashboard = () => {
 
   const showToast = (text, kind = 'ok') => { setToast({ text, kind }); setTimeout(() => setToast(null), 3500); };
 
+  const report = (e, capability) => {
+    if (e?.kind === 'forbidden') {
+      console.warn(`Dashboard: the database refused ${capability} for role "${role}" although the page allowed it. The page and the database permissions are out of step.`, e.detail);
+    } else {
+      console.error('Dashboard: load failed', e?.detail || e);
+    }
+  };
+
   useEffect(() => {
     let live = true;
-    setLoading(true);
-    fetchDashboard(period)
-      .then(d => { if (live) { setData(d); setError(null); setUpdatedAt(new Date()); } })
-      .catch(e => { if (live) setError(e.message); })
-      .finally(() => { if (live) setLoading(false); });
-    fetchStaleRequests(STALE_DAYS)
-      .then(r => { if (live) { setStale(r); setStaleError(null); } })
-      .catch(e => { if (live) { setStale([]); setStaleError(e.message); } });
+    if (canStats) {
+      setLoading(true);
+      fetchDashboard(period)
+        .then(d => { if (live) { setData(d); setError(null); setUpdatedAt(new Date()); } })
+        .catch(e => { if (live) { setData(null); setError(e); report(e, 'dashboard.stats'); } })
+        .finally(() => { if (live) setLoading(false); });
+    } else {
+      setLoading(false);
+    }
+    if (canQueue) {
+      fetchStaleRequests(STALE_DAYS)
+        .then(r => { if (live) { setStale(r); setStaleError(null); } })
+        .catch(e => { if (live) { setStale(null); setStaleError(e); report(e, 'dashboard.liveQueue'); } });
+    }
     return () => { live = false; };
-  }, [period, reloadKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, reloadKey, canStats, canQueue]);
 
   // Refresh every 5 minutes while the page is open
   useEffect(() => {
@@ -136,6 +189,16 @@ const Dashboard = () => {
   const dumping = data?.dumping || [];
   const alerts = (data?.alerts?.latest || []).map(a => normalizeDashboardAlert(a));
   const bySource = req.by_source || {};
+
+  // One status for the numbers from the database: loading → skeletons, a real
+  // failure → "—" and a retry, a refusal → the locked card. Never zeros.
+  const retry = () => setReloadKey(k => k + 1);
+  const status = !canStats ? 'hidden' : loading && !data ? 'loading' : error ? (error.kind === 'forbidden' ? 'locked' : 'error') : 'ok';
+  const staleStatus = !canQueue ? 'hidden' : staleError ? (staleError.kind === 'forbidden' ? 'locked' : 'error') : stale === null ? 'loading' : 'ok';
+  const showQueueKpis = canStats && canQueue; // pending and collectors come with the same answer as the stats
+  // Opens a page only if this role may open it; otherwise the card is not a link
+  const go = (allowed, to) => (allowed ? () => navigate(to) : undefined);
+  const body = (ok) => (status === 'loading' ? <Skeleton /> : status === 'error' ? <Failed onRetry={retry} /> : ok);
 
   /* ── actions ─────────────────────────────────────────────────────────── */
 
@@ -240,178 +303,210 @@ const Dashboard = () => {
         Showing {period.fromDay} to {period.toDay}; changes compare with the {Math.round((period.to - period.from) / 864e5) || 1} days before.
       </p>
 
-      {error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{error}</div>}
+      {!canStats && !canQueue && <Locked role={role} what="the dashboard" />}
+      {status === 'locked' && <div className="mb-8"><Locked role={role} /></div>}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Kpi testid="kpi-total" icon="truck-loading" iconBg="bg-green-100" iconColor="#4CAF50" label="Total Requests" loading={loading && !data}
-          value={req.total ?? 0} change={pctChange(req.total, req.prev_total)}
-          sub="Pickup requests + digital bins" help="Requests created in this period (pickup requests and digital bins)."
-          onClick={() => navigate(totalLink)} />
-        <Kpi testid="kpi-pending" icon="clock" iconBg="bg-yellow-100" iconColor="#FFC107" label="Pending Requests" loading={loading && !data}
-          value={req.pending ?? 0} change={pctChange(req.pending, req.prev_pending)}
-          sub={req.pending_all_dates ? `${req.pending_all_dates} waiting in total${req.oldest_pending_at ? `, oldest ${durationSince(req.oldest_pending_at)}` : ''}` : 'None waiting'}
-          help="No collector assigned and not completed or cancelled (the same rule as the alerts). The number is for this period; the line below counts every date."
-          onClick={() => navigate(requestListUrl(period, { status: 'status:pending', unassigned: '1' }))} />
-        <Kpi testid="kpi-collectors" icon="users" iconBg="bg-blue-100" iconColor="#2196F3" label="Collectors Online" loading={loading && !data}
-          value={`${online}/${col.total ?? 0}`} sub={`${col.active ?? 0} on a job · ${col.idle ?? 0} idle`}
-          help="Online = location reported in the last 10 minutes (same rule as the Live Map). This is right now, not the selected period."
-          onClick={() => navigate('/request-pickup/collectors')} />
-        <Kpi testid="kpi-sla" icon="check-circle" iconBg="bg-purple-100" iconColor="#9C27B0" label="SLA Compliance" loading={loading && !data}
-          value={slaNow === null ? '—' : `${slaNow}%`} change={ptsChange(slaNow, slaPrev)}
-          sub={sla.measured ? `${sla.met} of ${sla.measured} completed requests` : 'No completed requests to measure'}
-          help={SLA_HELP} onClick={() => navigate(requestListUrl(period, { status: 'status:disposed' }))} />
-      </div>
+      {canStats && status !== 'locked' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Kpi testid="kpi-total" icon="truck-loading" iconBg="bg-green-100" iconColor="#4CAF50" label="Total Requests" loading={status === 'loading'} failed={status === 'error'}
+            value={req.total ?? 0} change={pctChange(req.total, req.prev_total)}
+            sub="Pickup requests + digital bins" help="Requests created in this period (pickup requests and digital bins)."
+            onClick={go(canOpenRequests, totalLink)} />
+          {showQueueKpis && (
+            <Kpi testid="kpi-pending" icon="clock" iconBg="bg-yellow-100" iconColor="#FFC107" label="Pending Requests" loading={status === 'loading'} failed={status === 'error'}
+              value={req.pending ?? 0} change={pctChange(req.pending, req.prev_pending)}
+              sub={req.pending_all_dates ? `${req.pending_all_dates} waiting in total${req.oldest_pending_at ? `, oldest ${durationSince(req.oldest_pending_at)}` : ''}` : 'None waiting'}
+              help="No collector assigned and not completed or cancelled (the same rule as the alerts). The number is for this period; the line below counts every date."
+              onClick={go(canOpenRequests, requestListUrl(period, { status: 'status:pending', unassigned: '1' }))} />
+          )}
+          {showQueueKpis && (
+            <Kpi testid="kpi-collectors" icon="users" iconBg="bg-blue-100" iconColor="#2196F3" label="Collectors Online" loading={status === 'loading'} failed={status === 'error'}
+              value={`${online}/${col.total ?? 0}`} sub={`${col.active ?? 0} on a job · ${col.idle ?? 0} idle`}
+              help="Online = location reported in the last 10 minutes (same rule as the Live Map). This is right now, not the selected period."
+              onClick={go(canOpenCollectors, '/request-pickup/collectors')} />
+          )}
+          <Kpi testid="kpi-sla" icon="check-circle" iconBg="bg-purple-100" iconColor="#9C27B0" label="SLA Compliance" loading={status === 'loading'} failed={status === 'error'}
+            value={slaNow === null ? '—' : `${slaNow}%`} change={ptsChange(slaNow, slaPrev)}
+            sub={sla.measured ? `${sla.met} of ${sla.measured} completed requests` : 'No completed requests to measure'}
+            help={SLA_HELP} onClick={go(canOpenRequests, requestListUrl(period, { status: 'status:disposed' }))} />
+        </div>
+      )}
 
       {/* Requests */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <Panel testid="panel-status" className="lg:col-span-2" title="Pickup Requests by Status"
-          help="Every request created in this period, in exactly one group. The groups add up to Total Requests. Click a bar to open those requests."
-          action={<span className="text-xs text-gray-500" data-testid="status-sum">Total {statusSum}</span>}>
-          <div className="h-64">
-            {statusSum === 0 ? <Empty /> : (
-              <Bar data={statusChart} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
-                ...clickable(i => navigate(requestListUrl(period, rows[i].filter))) }} />
-            )}
-          </div>
-        </Panel>
-        <Panel testid="panel-source" title="Pickup Requests vs Digital Bins" help="Where this period's requests came from. Click a slice to open them.">
-          <div className="h-64">
-            {(req.total || 0) === 0 ? <Empty /> : (
-              <Doughnut data={sourceChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
-                ...clickable(i => navigate(requestListUrl(period, { source: i === 0 ? 'pickup_requests' : 'digital_bins' }))) }} />
-            )}
-          </div>
-        </Panel>
-      </div>
+      {canStats && status !== 'locked' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Panel testid="panel-status" className="lg:col-span-2" title="Pickup Requests by Status"
+            help="Every request created in this period, in exactly one group. The groups add up to Total Requests. Click a bar to open those requests."
+            action={status === 'ok' && <span className="text-xs text-gray-500" data-testid="status-sum">Total {statusSum}</span>}>
+            <div className="h-64">
+              {body(statusSum === 0 ? <Empty /> : (
+                <Bar data={statusChart} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
+                  scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+                  ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, rows[i].filter))) : {}) }} />
+              ))}
+            </div>
+          </Panel>
+          <Panel testid="panel-source" title="Pickup Requests vs Digital Bins" help="Where this period's requests came from. Click a slice to open them.">
+            <div className="h-64">
+              {body((req.total || 0) === 0 ? <Empty /> : (
+                <Doughnut data={sourceChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+                  ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, { source: i === 0 ? 'pickup_requests' : 'digital_bins' }))) : {}) }} />
+              ))}
+            </div>
+          </Panel>
+        </div>
+      )}
 
       {/* Collectors + waste */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Panel testid="panel-collectors" title="Collectors right now"
-          help="Active = online and on a job; Idle = online with no job; On Break = profile status on break; Off Duty = no location in the last 10 minutes."
-          action={<button type="button" onClick={() => navigate('/request-pickup/collectors')} className="text-sm text-green-700 hover:underline">Collectors →</button>}>
-          {(col.total || 0) === 0 ? <Empty text="No collectors yet" /> : (
-            <>
-              <div className="grid grid-cols-4 gap-2 mb-4 text-center">
-                {[['Active', col.active, 'text-green-700 bg-green-50'], ['Idle', col.idle, 'text-amber-700 bg-amber-50'],
-                  ['On Break', col.on_break, 'text-blue-700 bg-blue-50'], ['Off Duty', col.off_duty, 'text-gray-600 bg-gray-100']].map(([l, v, c]) => (
-                  <div key={l} className={`rounded-md py-2 ${c}`}><div className="text-2xl font-bold">{v ?? 0}</div><div className="text-xs">{l}</div></div>
+      {((showQueueKpis && status !== 'locked') || (canBags && canStats && status !== 'locked')) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {showQueueKpis && (
+            <Panel testid="panel-collectors" className={canBags ? '' : 'lg:col-span-2'} title="Collectors right now"
+              help="Active = online and on a job; Idle = online with no job; On Break = profile status on break; Off Duty = no location in the last 10 minutes."
+              action={canOpenCollectors && <button type="button" onClick={() => navigate('/request-pickup/collectors')} className="text-sm text-green-700 hover:underline">Collectors →</button>}>
+              {status === 'loading' ? <Skeleton /> : status === 'error' ? <Failed onRetry={retry} /> : (col.total || 0) === 0 ? <Empty text="No collectors yet" /> : (
+                <>
+                  <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+                    {[['Active', col.active, 'text-green-700 bg-green-50'], ['Idle', col.idle, 'text-amber-700 bg-amber-50'],
+                      ['On Break', col.on_break, 'text-blue-700 bg-blue-50'], ['Off Duty', col.off_duty, 'text-gray-600 bg-gray-100']].map(([l, v, c]) => (
+                      <div key={l} className={`rounded-md py-2 ${c}`}><div className="text-2xl font-bold">{v ?? 0}</div><div className="text-xs">{l}</div></div>
+                    ))}
+                  </div>
+                  {canOpenRequests ? (
+                    <button type="button" onClick={() => navigate(requestListUrl(null, { status: 'status:pending', unassigned: '1' }))}
+                      className="w-full text-left text-sm rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 mb-3 hover:bg-amber-100" data-testid="unassigned-waiting">
+                      <strong>{col.unassigned_waiting ?? 0}</strong> unassigned request{col.unassigned_waiting === 1 ? '' : 's'} waiting (all dates) →
+                    </button>
+                  ) : (
+                    <p className="w-full text-sm rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 mb-3" data-testid="unassigned-waiting">
+                      <strong>{col.unassigned_waiting ?? 0}</strong> unassigned request{col.unassigned_waiting === 1 ? '' : 's'} waiting (all dates)
+                    </p>
+                  )}
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Completed today</p>
+                  {(col.completed_today || []).length === 0 ? <p className="text-sm text-gray-400">No collector online or with completions today</p> : (
+                    <ul className="divide-y divide-gray-100 text-sm max-h-40 overflow-y-auto">
+                      {col.completed_today.map(c => (
+                        <li key={c.id} className="py-1.5 flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${c.state === 'active' ? 'bg-green-500' : c.state === 'idle' ? 'bg-amber-500' : 'bg-gray-300'}`} aria-hidden="true" />
+                          <span className="truncate">{c.name}</span>
+                          <span className="ml-auto font-medium">{c.done}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </Panel>
+          )}
+          {canBags && (
+            <Panel testid="panel-waste" className={showQueueKpis ? '' : 'lg:col-span-2'} title="Waste Distribution (bags)"
+              help="Bags generated in this period, by the waste type saved on their batch (same types as Generate Bags). Unclassified = batches with no type saved."
+              action={status === 'ok' && waste.find(w => w.key === 'Unclassified')?.value > 0 && (
+                <span className="text-xs rounded-full bg-gray-100 text-gray-700 px-2 py-0.5" data-testid="unclassified">Unclassified {waste.find(w => w.key === 'Unclassified').value}</span>)}>
+              <div className="h-64">
+                {body(wasteTotal === 0 ? <Empty /> : (
+                  <Doughnut data={wasteChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
+                    ...clickable(() => navigate('/bin-management/manage')) }} />
                 ))}
               </div>
-              <button type="button" onClick={() => navigate(requestListUrl(null, { status: 'status:pending', unassigned: '1' }))}
-                className="w-full text-left text-sm rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 mb-3 hover:bg-amber-100" data-testid="unassigned-waiting">
-                <strong>{col.unassigned_waiting ?? 0}</strong> unassigned request{col.unassigned_waiting === 1 ? '' : 's'} waiting (all dates) →
-              </button>
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Completed today</p>
-              {(col.completed_today || []).length === 0 ? <p className="text-sm text-gray-400">No collector online or with completions today</p> : (
-                <ul className="divide-y divide-gray-100 text-sm max-h-40 overflow-y-auto">
-                  {col.completed_today.map(c => (
-                    <li key={c.id} className="py-1.5 flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${c.state === 'active' ? 'bg-green-500' : c.state === 'idle' ? 'bg-amber-500' : 'bg-gray-300'}`} aria-hidden="true" />
-                      <span className="truncate">{c.name}</span>
-                      <span className="ml-auto font-medium">{c.done}</span>
+            </Panel>
+          )}
+        </div>
+      )}
+
+      {/* Bags + dumping */}
+      {canStats && status !== 'locked' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {canBags && (
+            <Panel testid="panel-bags" title="Bag Utilization"
+              help="Generated = bags in batches created then; Distributed = a household scanned the batch QR; Collected = the pickup using the bag was completed. Same data as Bag Management and Bag History."
+              action={<button type="button" onClick={() => navigate('/bin-management/history')} className="text-sm text-green-700 hover:underline">Bag History →</button>}>
+              <div className="h-56">
+                {body(seriesTotal(bagSeries, 'generated') + seriesTotal(bagSeries, 'distributed') + seriesTotal(bagSeries, 'collected') === 0 ? <Empty /> : (
+                  <Line data={bagChart} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
+                ))}
+              </div>
+              {status === 'ok' && bags.all_time && (
+                <p className="text-xs text-gray-500 mt-3" data-testid="bags-all-time">
+                  All time (not archived): {bags.all_time.batches} batches · {bags.all_time.bags} bags · {bags.all_time.distributed} distributed · {bags.all_time.collected} collected
+                  <span className="text-gray-400"> — same totals as Bag History</span>
+                </p>
+              )}
+            </Panel>
+          )}
+          <Panel testid="panel-dumping" className={canBags ? '' : 'lg:col-span-2'} title="Dumping Reports" help="Illegal dumping reports by the date they were submitted (created_at)."
+            action={status === 'ok' && <span className="text-xs text-gray-500">Total {data?.dumping_total ?? 0}</span>}>
+            <div className="h-56">
+              {body((data?.dumping_total || 0) === 0 ? <Empty /> : (
+                <Bar data={dumpingChart} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...(canOpenDumping ? clickable(() => navigate('/illegal-dumping/reports')) : {}) }} />
+              ))}
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {/* Alerts + stale requests */}
+      {((canAlerts && canStats && status !== 'locked') || canQueue) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {canAlerts && canStats && status !== 'locked' && (
+            <Panel testid="panel-alerts" className={canQueue ? '' : 'lg:col-span-2'} title={`Alerts${status === 'ok' && data?.alerts ? ` (${data.alerts.open} open)` : ''}`}
+              action={<button type="button" className="text-sm text-green-700 hover:underline" onClick={() => navigate('/request-pickup/alerts')}>View All</button>}>
+              {status === 'loading' ? <Skeleton /> : status === 'error' ? <Failed onRetry={retry} /> : alerts.length === 0 ? <Empty text="No open alerts" /> : (
+                <ul className="divide-y divide-gray-200">
+                  {alerts.map(a => {
+                    const sev = SEVERITY[a.severity] || SEVERITY.low;
+                    return (
+                      <li key={a.id} className="py-3 flex items-start gap-3" data-testid="alert-row">
+                        <div className="rounded-full p-2" style={{ backgroundColor: sev.bg }}><i className={`fas fa-${sev.icon}`} style={{ color: sev.color }} aria-hidden="true"></i></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between gap-2">
+                            <p className="text-sm font-medium text-gray-900">{a.title}</p>
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full capitalize whitespace-nowrap" style={{ backgroundColor: sev.bg, color: sev.color }}>{a.severity}</span>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {a.requestAge && <><strong className="text-gray-700">Request waiting {a.requestAge}</strong> · </>}
+                            Alert raised {a.raisedAgo} ago
+                          </p>
+                          <div className="flex flex-wrap gap-3 mt-1 text-xs">
+                            {a.isRequest && <button type="button" className="text-green-700 hover:underline" onClick={() => navigate(`/request-pickup/requests?open=${a.entityRef}`)}>Assign collector</button>}
+                            {a.isRequest && <button type="button" className="text-green-700 hover:underline" onClick={() => navigate(`/request-pickup/requests?q=${a.entityRef}&open=${a.entityRef}`)}>View request</button>}
+                            <button type="button" className="text-gray-600 hover:underline" onClick={() => { setNote(''); setResolving({ alert: a, to: 'resolved' }); }}>Resolve</button>
+                            <button type="button" className="text-gray-600 hover:underline" onClick={() => { setNote(''); setResolving({ alert: a, to: 'closed' }); }}>Dismiss</button>
+                            <button type="button" className="text-gray-600 hover:underline" onClick={() => navigate(`/request-pickup/alerts?alert=${a.id}`)}>Details</button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Panel>
+          )}
+          {canQueue && (
+            <Panel testid="panel-stale" className={canAlerts && canStats && status !== 'locked' ? '' : 'lg:col-span-2'} title={`Stale requests (no collector for ${STALE_DAYS}+ days)`}
+              help="Pending with no collector for over 30 days, oldest first. Nothing is closed automatically; cancel each one only after checking it.">
+              {staleStatus === 'locked' ? <Locked role={role} what="this list" />
+                : staleStatus === 'error' ? <Failed onRetry={retry} text="Couldn’t load this list. Try Refresh." />
+                : staleStatus === 'loading' ? <Skeleton className="min-h-[120px]" />
+                : stale.length === 0 ? <Empty text="No stale requests" /> : (
+                <ul className="divide-y divide-gray-100 text-sm max-h-80 overflow-y-auto" data-testid="stale-list">
+                  {stale.map(r => (
+                    <li key={`${r.source}-${r.id}`} className="py-2 flex items-center gap-3" data-testid="stale-row">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{r.customer_name || 'Customer'} · <span className="font-mono text-xs">{r.id.slice(0, 8)}</span>{r.source === 'digital_bins' ? ' · bin' : ''}</p>
+                        <p className="text-xs text-gray-500 truncate">Since {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ({r.days_waiting} days){r.address ? ` · ${r.address}` : ''}</p>
+                      </div>
+                      {canOpenRequests && <button type="button" onClick={() => navigate(`/request-pickup/requests?q=${r.id}&open=${r.id}`)} className="text-xs text-green-700 hover:underline">View</button>}
+                      {canCancel && <button type="button" onClick={() => { setCancelReason(CANCEL_REASONS[0]); setCancelling(r); }} className="text-xs text-red-600 hover:underline">Cancel</button>}
                     </li>
                   ))}
                 </ul>
               )}
-            </>
+            </Panel>
           )}
-        </Panel>
-        <Panel testid="panel-waste" title="Waste Distribution (bags)"
-          help="Bags generated in this period, by the waste type saved on their batch (same types as Generate Bags). Unclassified = batches with no type saved."
-          action={waste.find(w => w.key === 'Unclassified')?.value > 0 && (
-            <span className="text-xs rounded-full bg-gray-100 text-gray-700 px-2 py-0.5" data-testid="unclassified">Unclassified {waste.find(w => w.key === 'Unclassified').value}</span>)}>
-          <div className="h-64">
-            {wasteTotal === 0 ? <Empty /> : (
-              <Doughnut data={wasteChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
-                ...clickable(() => navigate('/bin-management/manage')) }} />
-            )}
-          </div>
-        </Panel>
-      </div>
-
-      {/* Bags + dumping */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Panel testid="panel-bags" title="Bag Utilization"
-          help="Generated = bags in batches created then; Distributed = a household scanned the batch QR; Collected = the pickup using the bag was completed. Same data as Bag Management and Bag History."
-          action={<button type="button" onClick={() => navigate('/bin-management/history')} className="text-sm text-green-700 hover:underline">Bag History →</button>}>
-          <div className="h-56">
-            {seriesTotal(bagSeries, 'generated') + seriesTotal(bagSeries, 'distributed') + seriesTotal(bagSeries, 'collected') === 0 ? <Empty /> : (
-              <Line data={bagChart} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
-            )}
-          </div>
-          {bags.all_time && (
-            <p className="text-xs text-gray-500 mt-3" data-testid="bags-all-time">
-              All time (not archived): {bags.all_time.batches} batches · {bags.all_time.bags} bags · {bags.all_time.distributed} distributed · {bags.all_time.collected} collected
-              <span className="text-gray-400"> — same totals as Bag History</span>
-            </p>
-          )}
-        </Panel>
-        <Panel testid="panel-dumping" title="Dumping Reports" help="Illegal dumping reports by the date they were submitted (created_at)."
-          action={<span className="text-xs text-gray-500">Total {data?.dumping_total ?? 0}</span>}>
-          <div className="h-56">
-            {(data?.dumping_total || 0) === 0 ? <Empty /> : (
-              <Bar data={dumpingChart} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...clickable(() => navigate('/illegal-dumping/reports')) }} />
-            )}
-          </div>
-        </Panel>
-      </div>
-
-      {/* Alerts + stale requests */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Panel testid="panel-alerts" title={`Alerts${data?.alerts ? ` (${data.alerts.open} open)` : ''}`}
-          action={<button type="button" className="text-sm text-green-700 hover:underline" onClick={() => navigate('/request-pickup/alerts')}>View All</button>}>
-          {alerts.length === 0 ? <Empty text="No open alerts" /> : (
-            <ul className="divide-y divide-gray-200">
-              {alerts.map(a => {
-                const s = SEVERITY[a.severity] || SEVERITY.low;
-                return (
-                  <li key={a.id} className="py-3 flex items-start gap-3" data-testid="alert-row">
-                    <div className="rounded-full p-2" style={{ backgroundColor: s.bg }}><i className={`fas fa-${s.icon}`} style={{ color: s.color }} aria-hidden="true"></i></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between gap-2">
-                        <p className="text-sm font-medium text-gray-900">{a.title}</p>
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full capitalize whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.color }}>{a.severity}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {a.requestAge && <><strong className="text-gray-700">Request waiting {a.requestAge}</strong> · </>}
-                        Alert raised {a.raisedAgo} ago
-                      </p>
-                      <div className="flex flex-wrap gap-3 mt-1 text-xs">
-                        {a.isRequest && <button type="button" className="text-green-700 hover:underline" onClick={() => navigate(`/request-pickup/requests?open=${a.entityRef}`)}>Assign collector</button>}
-                        {a.isRequest && <button type="button" className="text-green-700 hover:underline" onClick={() => navigate(`/request-pickup/requests?q=${a.entityRef}&open=${a.entityRef}`)}>View request</button>}
-                        <button type="button" className="text-gray-600 hover:underline" onClick={() => { setNote(''); setResolving({ alert: a, to: 'resolved' }); }}>Resolve</button>
-                        <button type="button" className="text-gray-600 hover:underline" onClick={() => { setNote(''); setResolving({ alert: a, to: 'closed' }); }}>Dismiss</button>
-                        <button type="button" className="text-gray-600 hover:underline" onClick={() => navigate(`/request-pickup/alerts?alert=${a.id}`)}>Details</button>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-        <Panel testid="panel-stale" title={`Stale requests (no collector for ${STALE_DAYS}+ days)`}
-          help="Pending with no collector for over 30 days, oldest first. Nothing is closed automatically; cancel each one only after checking it.">
-          {staleError ? <p className="text-sm text-red-600">{staleError}</p> : stale === null ? <p className="text-sm text-gray-400">Loading…</p> : stale.length === 0 ? (
-            <Empty text="No stale requests" />
-          ) : (
-            <ul className="divide-y divide-gray-100 text-sm max-h-80 overflow-y-auto" data-testid="stale-list">
-              {stale.map(r => (
-                <li key={`${r.source}-${r.id}`} className="py-2 flex items-center gap-3" data-testid="stale-row">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{r.customer_name || 'Customer'} · <span className="font-mono text-xs">{r.id.slice(0, 8)}</span>{r.source === 'digital_bins' ? ' · bin' : ''}</p>
-                    <p className="text-xs text-gray-500 truncate">Since {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ({r.days_waiting} days){r.address ? ` · ${r.address}` : ''}</p>
-                  </div>
-                  <button type="button" onClick={() => navigate(`/request-pickup/requests?q=${r.id}&open=${r.id}`)} className="text-xs text-green-700 hover:underline">View</button>
-                  <button type="button" onClick={() => { setCancelReason(CANCEL_REASONS[0]); setCancelling(r); }} className="text-xs text-red-600 hover:underline">Cancel</button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
+        </div>
+      )}
 
       {cancelling && (
         <ConfirmDialog title={`Cancel request ${cancelling.id.slice(0, 8)}?`} confirmLabel="Cancel request" danger busy={busy}

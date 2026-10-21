@@ -12,7 +12,8 @@ import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { supabase } from './utils/supabase';
 import logger from './utils/logger';
-import { SECTIONS, ROLES, canAccessSection } from './constants/accessControl';
+import { SECTIONS, canAccessSection } from './constants/accessControl';
+import { can, landingPathFor } from './lib/permissions';
 import HomePage from './pages/HomePage';
 
 // Public marketing pages
@@ -52,13 +53,8 @@ const AlertsManagement = lazy(() => import('./pages/AlertsManagement'));
 const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
 // Protected route component
-// The dashboard is TrashDrop's own operations view; Media accounts start on the reports data
-const MediaHome = ({ children }) => {
-  const { role } = useAuth();
-  return role === ROLES.MEDIA ? <Navigate to="/media-data" replace /> : children;
-};
-
-const ProtectedRoute = ({ children, section }) => {
+// `section` is who may open the area; `capability` narrows a single page inside it.
+const ProtectedRoute = ({ children, section, capability }) => {
   const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading } = useAuth();
   const currentPath = window.location.pathname;
   
@@ -108,9 +104,10 @@ const ProtectedRoute = ({ children, section }) => {
     );
   }
 
-  if (section && !canAccessSection(section, role, user)) {
-    console.warn('ProtectedRoute: Access denied for section', section, { role, email: user?.email });
-    return <Navigate to="/dashboard" replace />;
+  // A role without access goes to its own starting page, not to a page it cannot open either
+  if ((section && !canAccessSection(section, role, user)) || (capability && !can(capability, role))) {
+    console.warn('ProtectedRoute: Access denied', { section, capability, role, email: user?.email });
+    return <Navigate to={landingPathFor(role)} replace />;
   }
   
   logger.log('ProtectedRoute: All checks passed, rendering children');
@@ -262,50 +259,50 @@ function App() {
               {/* Protected routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute section={SECTIONS.DASHBOARD}>
-                  <MediaHome><Dashboard /></MediaHome>
+                  <Dashboard />
                 </ProtectedRoute>
               } />
               
               {/* Request Pickup Management Routes */}
               <Route path="/request-pickup/live-map" element={
-                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP} capability="requests.view">
                   <LiveMap />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/requests" element={
-                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP} capability="requests.view">
                   <RequestPickupManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/collectors" element={
-                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP} capability="collectors.view">
                   <CollectorsManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/alerts" element={
-                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP} capability="alerts.view">
                   <AlertsManagement />
                 </ProtectedRoute>
               } />
               <Route path="/request-pickup/logs" element={
-                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP}>
+                <ProtectedRoute section={SECTIONS.REQUEST_PICKUP} capability="logs.view">
                   <LogsManagement />
                 </ProtectedRoute>
               } />
               
               {/* Bin Management Routes */}
               <Route path="/bin-management/generate" element={
-                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT} capability="bags.manage">
                   <GenerateBag />
                 </ProtectedRoute>
               } />
               <Route path="/bin-management/manage" element={
-                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT} capability="bags.manage">
                   <BagManagement />
                 </ProtectedRoute>
               } />
               <Route path="/bin-management/history" element={
-                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT}>
+                <ProtectedRoute section={SECTIONS.BIN_MANAGEMENT} capability="bags.view">
                   <BagHistory />
                 </ProtectedRoute>
               } />
