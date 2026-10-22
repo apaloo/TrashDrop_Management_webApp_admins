@@ -27,7 +27,7 @@ const Field = ({ label, children, wide }) => (
 );
 
 const RequestDetailsModal = ({
-  row, address, collectors, duplicates = [], outsideServiceArea, busy,
+  row, address, collectors, assignCollectors, duplicates = [], outsideServiceArea, busy,
   onAssign, onStatus, onCancel, onCancelAsDuplicate, onOpenRequest, onClose, onCopy,
 }) => {
   const [collectorId, setCollectorId] = useState('');
@@ -35,7 +35,9 @@ const RequestDetailsModal = ({
   const status = canonicalStatus(row.status);
   const hasCollector = !!row.collectorRef;
   const ranked = collectorsByDistance(row, collectors);
-  const chosen = ranked.find(c => c.id === collectorId);
+  // Who this account may assign to (Waste Management Managers: their region only)
+  const assignRanked = assignCollectors ? collectorsByDistance(row, assignCollectors) : ranked;
+  const chosen = assignRanked.find(c => c.id === collectorId);
   const fee = feeBreakdown(row, { batchPrice });
 
   useEffect(() => {
@@ -133,9 +135,9 @@ const RequestDetailsModal = ({
               <p className="font-medium">{row.collectorName || 'Assigned (profile not found)'}
                 {(() => { const c = ranked.find(x => x.id === row.collectorProfileId); return c?.distanceKm != null ? <span className="font-normal" style={muted}> · {c.distanceKm.toFixed(1)} km away</span> : null; })()}
               </p>
-            ) : status === 'pending' ? (
+            ) : status === 'pending' && onAssign ? (
               <div className="flex flex-wrap items-center gap-2">
-                <CollectorPicker collectors={ranked} value={collectorId} onChange={setCollectorId} className="flex-1 min-w-[220px]" />
+                <CollectorPicker collectors={assignRanked} value={collectorId} onChange={setCollectorId} className="flex-1 min-w-[220px]" />
                 <button type="button" disabled={!chosen || busy} onClick={() => onAssign(row, chosen)}
                   className="px-4 py-1.5 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40">
                   Assign

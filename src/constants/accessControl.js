@@ -148,3 +148,29 @@ export const areaScopeFor = (role, access) => {
 };
 
 export const getAllowedRolesForSection = (section) => SECTION_PERMISSIONS[section] || [];
+
+/** "Greater Accra Region " → "greater accra" (same as td_norm_region in the database) */
+export const normalizeRegion = (value) => {
+  const v = String(value ?? '').replace(/\s+region\s*$/i, '').trim().toLowerCase();
+  return v || null;
+};
+export const sameRegion = (a, b) => normalizeRegion(a) !== null && normalizeRegion(a) === normalizeRegion(b);
+
+/**
+ * Who may put collectors on pickup requests, and where. Same rule as
+ * td_my_assign_region() in supabase/migrations/20261103_manager_assign_scope.sql:
+ * Admin anywhere; a Manager only when the account type is Waste Management and
+ * the account has a region, and then only in that region. `access` is
+ * my_access() (company_type, region).
+ */
+export const assignScopeFor = (role, access) => {
+  if (role === ROLES.ADMIN) return { canAssign: true, region: null };
+  if (role !== ROLES.MANAGER) return { canAssign: false, region: null, reason: null };
+  if (access?.company_type !== 'waste_management') {
+    return { canAssign: false, region: null, reason: 'Assigning collectors is for Waste Management accounts. Ask an admin if your account type is wrong.' };
+  }
+  if (!normalizeRegion(access?.region)) {
+    return { canAssign: false, region: null, reason: 'Your account has no region yet, so you can’t assign collectors. Ask an admin to set your region.' };
+  }
+  return { canAssign: true, region: access.region };
+};
