@@ -9,6 +9,8 @@ import 'leaflet/dist/leaflet.css';
 import { appConfig } from '../config';
 import { STATUS } from '../config/constants';
 import { canManageDumping } from '../constants/accessControl';
+import { can } from '../lib/permissions';
+import { usesAreaActions, areaVerifyReport, areaMarkCleaned, areaAssignTeam, fetchAreaTeams } from '../services/dumpingAreaService';
 import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 import { useAuth } from '../context/AuthContext';
 
@@ -106,7 +108,16 @@ const formatHours = (hours) => formatDuration(hours);
 
 const IllegalDumpingMap = () => {
   const { role, area } = useAuth();
-  const canManageReports = canManageDumping(role);
+  const canManageReports = canManageDumping(role); // everything, e.g. cancel (Admin, Manager)
+  // What this account may do (src/lib/permissions.js); Media, Volunteer and User
+  // read without reporter details, and their actions go through the area functions
+  const privateView = !can('dumping.reporters', role);
+  const viaArea = usesAreaActions(role);
+  const canVerify = can('dumping.verify', role);
+  const canAssign = can('dumping.assign', role);
+  const canMarkCleaned = can('dumping.markCleaned', role);
+  const canSetFee = can('dumping.fee', role);
+  const mayDo = (to) => (to === 'verified' ? canVerify : to === 'completed' ? canMarkCleaned : canManageReports);
 
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -155,7 +166,7 @@ const IllegalDumpingMap = () => {
     try {
       if (!silent) setLoading(true);
 
-      const response = await fetchIllegalDumpingReports({ limit: REPORT_FETCH_LIMIT, page: 1, area });
+      const response = await fetchIllegalDumpingReports({ limit: REPORT_FETCH_LIMIT, page: 1, area: privateView ? null : area, privateView });
       const dataArray = Array.isArray(response) ? response : (response?.data || []);
 
       const transformedData = dataArray.map(item => {
@@ -165,8 +176,8 @@ const IllegalDumpingMap = () => {
         return {
           id: item.id,
           reportedAt: item.reported_at,
-          reportedBy: item.reporter?.name || item.reporter?.email || (item.reporter?.anonymous ? 'Anonymous' : 'Unknown user'),
-          reporterEmail: item.reporter?.email || null,
+          reportedBy: item.reporter?.hidden ? null : (item.reporter?.name || item.reporter?.email || (item.reporter?.anonymous ? 'Anonymous' : 'Unknown user')),
+          reporterEmail: item.reporter?.hidden ? null : (item.reporter?.email || null),
           resolvedAt: item.resolved_at,
           location: {
             lat: Number.isFinite(latNum) ? latNum : null,
@@ -204,7 +215,7 @@ const IllegalDumpingMap = () => {
     } finally {
       setLoading(false);
     }
-  }, [area]);
+  }, [area, privateView]);
 
   // Initial load
   useEffect(() => {
@@ -310,17 +321,21 @@ const IllegalDumpingMap = () => {
 
   // Status change from the details panel
   const updateReportStatus = async (report, newStatus) => {
-    if (!canManageReports || updatingStatus) return;
+    if (!mayDo(newStatus) || updatingStatus) return;
     if (newStatus === 'cancelled' && !window.confirm('Cancel this report? It will no longer appear as open.')) return;
 
     setUpdatingStatus(true);
     try {
       const updatedAt = new Date().toISOString();
-      const { error } = await supabase
-        .from('illegal_dumping_mobile')
-        .update({ status: newStatus, updated_at: updatedAt })
-        .eq('id', report.id);
-      if (error) throw error;
+      if (viaArea) {
+        await (newStatus === 'verified' ? areaVerifyReport(report.id) : areaMarkCleaned(report.id));
+      } else {
+        const { error } = await supabase
+          .from('illegal_dumping_mobile')
+          .update({ status: newStatus, updated_at: updatedAt })
+          .eq('id', report.id);
+        if (error) throw error;
+      }
 
       const cleaned = newStatus === 'completed';
       setDumpingReportData(prev => prev.map(r => (
@@ -354,8 +369,12 @@ const IllegalDumpingMap = () => {
 
     try {
       const estimatedCleanupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
-      const result = await assignCleanupTeam(report.id, teamId, estimatedCleanupDate, fee);
-      if (result?.error) throw result.error;
+      if (viaArea) {
+        await areaAssignTeam(report.id, teamId, fee);
+      } else {
+        const result = await assignCleanupTeam(report.id, teamId, estimatedCleanupDate, fee);
+        if (result?.error) throw result.error;
+      }
 
       setDumpingReportData(prev => prev.map(r => (r.id === report.id
         ? { ...r, cleanupAssigned: true, cleanupTeam: teamName, collectorId: teamId, status: 'verified' }
@@ -371,13 +390,13 @@ const IllegalDumpingMap = () => {
 
   // Status actions offered for a report in the details panel
   const getStatusActions = (report) => {
-    if (!canManageReports || !report) return [];
+    if (!report) return [];
     const s = normalizeEnum(report.status);
     const actions = [];
-    if (s === 'pending') actions.push({ key: 'verify', label: 'Verify Report', icon: 'fa-check-circle', className: 'bg-yellow-500 text-white hover:bg-yellow-600', run: () => updateReportStatus(report, 'verified') });
-    if ((s === 'pending' || s === 'verified') && !report.cleanupAssigned) actions.push({ key: 'assign', label: 'Assign Cleanup Team', icon: 'fa-user-plus', className: 'bg-blue-600 text-white hover:bg-blue-700', run: () => openCollectorModal(report) });
-    if (s === 'in_progress') actions.push({ key: 'complete', label: 'Mark Completed', icon: 'fa-broom', className: 'bg-green-600 text-white hover:bg-green-700', run: () => updateReportStatus(report, 'completed') });
-    if (s === 'pending' || s === 'verified') actions.push({ key: 'cancel', label: 'Cancel Report', icon: 'fa-ban', className: 'border border-gray-300 text-gray-600 hover:bg-gray-50', run: () => updateReportStatus(report, 'cancelled') });
+    if (s === 'pending' && canVerify) actions.push({ key: 'verify', label: 'Verify Report', icon: 'fa-check-circle', className: 'bg-yellow-500 text-white hover:bg-yellow-600', run: () => updateReportStatus(report, 'verified') });
+    if (canAssign && (s === 'pending' || s === 'verified') && !report.cleanupAssigned) actions.push({ key: 'assign', label: 'Assign Cleanup Team', icon: 'fa-user-plus', className: 'bg-blue-600 text-white hover:bg-blue-700', run: () => openCollectorModal(report) });
+    if (s === 'in_progress' && canMarkCleaned) actions.push({ key: 'complete', label: 'Mark Completed', icon: 'fa-broom', className: 'bg-green-600 text-white hover:bg-green-700', run: () => updateReportStatus(report, 'completed') });
+    if (canManageReports && (s === 'pending' || s === 'verified')) actions.push({ key: 'cancel', label: 'Cancel Report', icon: 'fa-ban', className: 'border border-gray-300 text-gray-600 hover:bg-gray-50', run: () => updateReportStatus(report, 'cancelled') });
     return actions;
   };
 
@@ -420,7 +439,7 @@ const IllegalDumpingMap = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
-      <AreaScopeNote area={area} readOnly={!canManageReports} />
+      <AreaScopeNote area={privateView && role === 'user' ? { level: 'home' } : area} readOnly={!(canVerify || canAssign || canMarkCleaned)} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
@@ -850,13 +869,13 @@ const IllegalDumpingMap = () => {
                           {selectedDumping.reportedAt ? new Date(selectedDumping.reportedAt).toLocaleString() : 'N/A'}
                         </p>
                       </div>
-                      <div>
+                      {selectedDumping.reportedBy && <div>
                         <p className="text-xs text-gray-400">Reporter</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5 break-words">{selectedDumping.reportedBy}</p>
                         {selectedDumping.reporterEmail && selectedDumping.reporterEmail !== selectedDumping.reportedBy && (
                           <p className="text-xs text-gray-400 break-words">{selectedDumping.reporterEmail}</p>
                         )}
-                      </div>
+                      </div>}
                     </div>
                     {selectedDumping.cleanupTeam && (
                       <div>
@@ -1015,7 +1034,7 @@ const IllegalDumpingMap = () => {
 
             {/* Modal Footer */}
             <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center flex-shrink-0">
-              {canManageReports && !detailsReport.cleanupAssigned && ['pending', 'verified'].includes(normalizeEnum(detailsReport.status)) && (
+              {canAssign && !detailsReport.cleanupAssigned && ['pending', 'verified'].includes(normalizeEnum(detailsReport.status)) && (
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
@@ -1040,6 +1059,7 @@ const IllegalDumpingMap = () => {
 
       {showCollectorModal && selectedReportForAssignment && (
         <AssignCleanupModal report={selectedReportForAssignment} onAssign={assignCleanupTeamHandler}
+          loadTeams={viaArea ? fetchAreaTeams : undefined} allowFee={canSetFee}
           onClose={() => { setShowCollectorModal(false); setSelectedReportForAssignment(null); }} />
       )}
     </div>

@@ -13,6 +13,8 @@ import ReportPhotos from '../components/illegalDumping/ReportPhotos';
 import useEscapeKey from '../hooks/useEscapeKey';
 import { useAuth } from '../context/AuthContext';
 import { canManageDumping } from '../constants/accessControl';
+import { can } from '../lib/permissions';
+import { usesAreaActions, areaVerifyReport, areaMarkCleaned, areaAssignTeam, fetchAreaTeams } from '../services/dumpingAreaService';
 import AreaScopeNote from '../components/illegalDumping/AreaScopeNote';
 
 const STATUS_FILTERS = ['pending', 'verified', 'in_progress', 'completed', 'disposed', 'cancelled'];
@@ -22,7 +24,15 @@ const IllegalDumpingManagement = () => {
   const initialStatus = normalizeEnum(searchParams.get('status'));
   const [reports, setReports] = useState([]);
   const { role, area } = useAuth();
-  const canManage = canManageDumping(role);
+  const canManage = canManageDumping(role); // everything, e.g. cancel (Admin, Manager)
+  // What this account may do (src/lib/permissions.js); Media, Volunteer and User
+  // read without reporter details, and their actions go through the area functions
+  const privateView = !can('dumping.reporters', role);
+  const viaArea = usesAreaActions(role);
+  const canVerify = can('dumping.verify', role);
+  const canAssign = can('dumping.assign', role);
+  const canMarkCleaned = can('dumping.markCleaned', role);
+  const canAct = canVerify || canAssign || canMarkCleaned || canManage;
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedReportHistory, setSelectedReportHistory] = useState([]);
@@ -63,7 +73,7 @@ const IllegalDumpingManagement = () => {
   const refreshReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const rows = await fetchAllIllegalDumpingReports({ area });
+      const rows = await fetchAllIllegalDumpingReports({ area: privateView ? null : area, privateView });
       const mapped = rows.map(toReportViewModel);
       setReports(mapped);
       setSelectedReport(prev => (prev ? mapped.find(r => r.id === prev.id) || prev : prev));
@@ -75,7 +85,7 @@ const IllegalDumpingManagement = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [area]);
+  }, [area, privateView]);
 
   // Initial load
   useEffect(() => {
@@ -128,8 +138,12 @@ const IllegalDumpingManagement = () => {
     if (CONFIRM_TEXT[newStatus] && !window.confirm(CONFIRM_TEXT[newStatus])) return;
     setActionPending(report.id);
     try {
-      const result = await updateIllegalDumpingStatus(report.id, newStatus);
-      if (result?.error) throw new Error(result.error.message || 'Failed to update status');
+      if (viaArea) {
+        await (newStatus === 'verified' ? areaVerifyReport(report.id) : areaMarkCleaned(report.id));
+      } else {
+        const result = await updateIllegalDumpingStatus(report.id, newStatus);
+        if (result?.error) throw new Error(result.error.message || 'Failed to update status');
+      }
       toast(`Status updated to ${statusLabel(newStatus)}`);
       await refreshReports(true);
       if (selectedReport?.id === report.id) loadHistory(report.id);
@@ -149,8 +163,12 @@ const IllegalDumpingManagement = () => {
     try {
       const estimatedCleanupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
       // Keeps status verified so the job shows in the team's Available tab until they accept
-      const result = await assignCleanupTeam(reportId, teamId, estimatedCleanupDate, fee);
-      if (result?.error) throw result.error;
+      if (viaArea) {
+        await areaAssignTeam(reportId, teamId, fee);
+      } else {
+        const result = await assignCleanupTeam(reportId, teamId, estimatedCleanupDate, fee);
+        if (result?.error) throw result.error;
+      }
       toast(volunteer ? `Cleanup assigned to volunteer group ${teamName}` : `Cleanup assigned to ${teamName}`);
       await refreshReports(true);
       if (selectedReport?.id === reportId) loadHistory(reportId);
@@ -184,15 +202,14 @@ const IllegalDumpingManagement = () => {
 
   // The next step each status allows (one primary action per row)
   const rowAction = (report) => {
-    if (!canManage) return null;
-    if (report.status === 'pending') return { label: 'Verify', to: 'verified', cls: 'bg-teal-50 text-teal-700 hover:bg-teal-100' };
-    if (report.status === 'in_progress') return { label: 'Mark Cleaned', to: 'completed', cls: 'bg-green-50 text-green-700 hover:bg-green-100' };
+    if (report.status === 'pending' && canVerify) return { label: 'Verify', to: 'verified', cls: 'bg-teal-50 text-teal-700 hover:bg-teal-100' };
+    if (report.status === 'in_progress' && canMarkCleaned) return { label: 'Mark Cleaned', to: 'completed', cls: 'bg-green-50 text-green-700 hover:bg-green-100' };
     return null;
   };
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <AreaScopeNote area={area} readOnly={!canManage} />
+      <AreaScopeNote area={privateView && role === 'user' ? { level: 'home' } : area} readOnly={!(canVerify || canAssign || canMarkCleaned)} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
@@ -487,10 +504,12 @@ const IllegalDumpingManagement = () => {
                 <p className="text-gray-600 text-sm">Reported At</p>
                 <p className="font-medium">{formatDate(selectedReport.reportedAt, { withTime: true })}</p>
               </div>
-              <div>
-                <p className="text-gray-600 text-sm">Reported By</p>
-                <p className="font-medium">{selectedReport.reportedBy}</p>
-              </div>
+              {!selectedReport.reporterHidden && (
+                <div>
+                  <p className="text-gray-600 text-sm">Reported By</p>
+                  <p className="font-medium">{selectedReport.reportedBy}</p>
+                </div>
+              )}
               <div>
                 <p className="text-gray-600 text-sm">Status</p>
                 <StatusBadge status={selectedReport.status} />
@@ -580,34 +599,36 @@ const IllegalDumpingManagement = () => {
             )}
 
             {/* Actions: only the steps the current status allows */}
-            {canManage && isOpenStatus(selectedReport.status) && (
+            {canAct && isOpenStatus(selectedReport.status) && (
               <div className="border-t pt-4 flex flex-wrap justify-end items-center gap-2">
                 {selectedReport.cleanupTeam && selectedReport.status === 'verified' && (
                   <div className="px-4 py-2 bg-green-100 text-green-800 rounded text-sm mr-auto">
                     Assigned to <strong>{selectedReport.cleanupTeam}</strong>, waiting for the collector to accept
                   </div>
                 )}
-                {selectedReport.status === 'pending' && (
+                {selectedReport.status === 'pending' && canVerify && (
                   <button onClick={() => updateReportStatus(selectedReport, 'verified')} disabled={actionPending === selectedReport.id}
                     className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">
                     Verify
                   </button>
                 )}
-                {['pending', 'verified'].includes(selectedReport.status) && !selectedReport.assignedTo && (
+                {canAssign && ['pending', 'verified'].includes(selectedReport.status) && !selectedReport.assignedTo && (
                   <button onClick={() => openCollectorModal(selectedReport)} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Assign Cleanup
                   </button>
                 )}
-                {selectedReport.status === 'in_progress' && (
+                {selectedReport.status === 'in_progress' && canMarkCleaned && (
                   <button onClick={() => updateReportStatus(selectedReport, 'completed')} disabled={actionPending === selectedReport.id}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                     Mark as Cleaned Up
                   </button>
                 )}
-                <button onClick={() => updateReportStatus(selectedReport, 'cancelled')} disabled={actionPending === selectedReport.id}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                  Cancel Report
-                </button>
+                {canManage && (
+                  <button onClick={() => updateReportStatus(selectedReport, 'cancelled')} disabled={actionPending === selectedReport.id}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Cancel Report
+                  </button>
+                )}
               </div>
             )}
 
@@ -620,6 +641,7 @@ const IllegalDumpingManagement = () => {
 
       {showCollectorModal && selectedReportForAssignment && (
         <AssignCleanupModal report={selectedReportForAssignment} onAssign={assignCleanup}
+          loadTeams={viaArea ? fetchAreaTeams : undefined} allowFee={can('dumping.fee', role)}
           onClose={() => { setShowCollectorModal(false); setSelectedReportForAssignment(null); }} />
       )}
     </div>

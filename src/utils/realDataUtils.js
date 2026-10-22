@@ -1,6 +1,7 @@
 import logger from './logger';
 import { supabase } from './supabase';
 import { secureUrl, secureUrls } from './secureUrl';
+import { fetchAreaDumpingReports } from '../services/dumpingAreaService';
 
 /**
  * Fetch real bag statistics from Supabase
@@ -407,10 +408,56 @@ const fetchDumpingDetailsById = async (ids) => {
   }
 };
 
+/**
+ * Reports from area_dumping_reports() (20261104) in the same shape as below,
+ * with the reporter hidden and no free-text description.
+ */
+const fetchPrivateDumpingReports = async ({ page, limit, status }) => {
+  const rows = await fetchAreaDumpingReports({ status });
+  const all = rows.map(r => {
+    const status = String(r.status || 'pending').toLowerCase();
+    const severity = String(r.severity || 'medium').toLowerCase();
+    const wasteType = String(r.waste_type || 'mixed').toLowerCase();
+    return {
+      id: r.id,
+      location: { address: r.area_name || [r.district, r.region].filter(Boolean).join(', ') || 'Location not specified', lat: parseCoordinate(r.latitude), lng: parseCoordinate(r.longitude) },
+      reporter: { id: null, name: null, email: null, anonymous: false, hidden: true },
+      status,
+      severity,
+      waste_type: wasteType,
+      size: r.size || 'medium',
+      estimated_volume: null,
+      hazardous_materials: null,
+      description: `${wasteType} dumping - ${severity} severity`,
+      description_is_generated: true,
+      images: secureUrls(r.photos),
+      reported_at: r.reported_at,
+      updated_at: r.updated_at,
+      resolved_at: r.completed_at || null,
+      area_name: r.area_name || null,
+      region: r.region || null,
+      district: r.district || null,
+      notes: null,
+      cleanup_fee: null,
+      disposed_at: r.disposed_at || null,
+      disposal_site_name: r.disposal_site_name || null,
+      assigned_to: r.assigned_to || null,
+      assigned_via: r.assigned_via || null,
+      cleanup_photos: secureUrls(r.cleanup_photos),
+      assignee: r.assigned_to ? { id: r.assigned_to } : null,
+      team_name: r.team_name || null,
+    };
+  });
+  const start = (page - 1) * limit;
+  return { data: all.slice(start, start + limit), totalCount: all.length, page, limit, totalPages: Math.ceil(all.length / limit) };
+};
+
 export const fetchIllegalDumpingReports = async (options = {}) => {
   // Ensure options is an object to prevent null/undefined errors
   const safeOptions = options || {};
-  const { page = 1, limit = 10, status = null, area = null } = safeOptions;
+  const { page = 1, limit = 10, status = null, area = null, privateView = false } = safeOptions;
+  // Media, Volunteer and User accounts: their area only, without reporter details (the database picks the area)
+  if (privateView) return fetchPrivateDumpingReports({ page, limit, status });
   // area: { level: 'national' | 'region' | 'district' | 'none', region, district } (areaScopeFor)
   if (area?.level === 'none') return { data: [], totalCount: 0, page, limit, totalPages: 0 };
 

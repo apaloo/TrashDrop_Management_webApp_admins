@@ -5,6 +5,7 @@ import IllegalDumpingHistory from '../IllegalDumpingHistory';
 import IllegalDumpingManagement from '../IllegalDumpingManagement';
 import { buildAuditRows } from '../../test-fixtures/illegalDumpingRows';
 import { fetchAllIllegalDumpingReports, updateIllegalDumpingStatus } from '../../utils/databaseUtils';
+import { areaVerifyReport, areaMarkCleaned } from '../../services/dumpingAreaService';
 
 jest.mock('../../utils/databaseUtils', () => ({
   fetchAllIllegalDumpingReports: jest.fn(),
@@ -13,6 +14,10 @@ jest.mock('../../utils/databaseUtils', () => ({
   assignCleanupTeam: jest.fn(),
 }));
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
+jest.mock('../../services/dumpingAreaService', () => ({
+  usesAreaActions: (role) => role !== 'admin' && role !== 'manager',
+  areaVerifyReport: jest.fn(), areaMarkCleaned: jest.fn(), areaAssignTeam: jest.fn(), fetchAreaTeams: jest.fn(),
+}));
 let mockAuth = { role: 'manager', area: { level: 'national' } };
 jest.mock('../../context/AuthContext', () => ({ useAuth: () => mockAuth }));
 
@@ -134,14 +139,16 @@ describe('Reports page', () => {
 describe('Authority (district view)', () => {
   const area = { level: 'district', region: 'Greater Accra', district: 'La-Nkwantanang-Madina' };
 
-  it('loads its district only and offers no actions', async () => {
+  it('loads its district with reporters, and verifies and marks cleaned through the area functions', async () => {
     mockAuth = { role: 'authority', area };
-    renderAt(<IllegalDumpingManagement />);
+    areaVerifyReport.mockResolvedValue({}); areaMarkCleaned.mockResolvedValue({});
+    renderAt(<IllegalDumpingManagement />, '/illegal-dumping/reports?status=pending');
     await reportsLoaded();
-    expect(fetchAllIllegalDumpingReports).toHaveBeenLastCalledWith({ area });
+    expect(fetchAllIllegalDumpingReports).toHaveBeenLastCalledWith({ area, privateView: false });
     expect(screen.getByTestId('area-scope')).toHaveTextContent('La-Nkwantanang-Madina, Greater Accra');
-    expect(screen.queryByRole('button', { name: /^Verify$/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Mark Cleaned/ })).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: /^Verify$/ })[0]);
+    await waitFor(() => expect(areaVerifyReport).toHaveBeenCalled());
+    expect(updateIllegalDumpingStatus).not.toHaveBeenCalled();
   });
 
   it('says so when the account has no district', async () => {
@@ -159,5 +166,48 @@ describe('Volunteer claims', () => {
     renderAt(<IllegalDumpingManagement />);
     await reportsLoaded();
     expect(screen.getAllByText('(volunteers)').length).toBeGreaterThan(0);
+  });
+});
+
+describe('Media, Volunteer and User accounts', () => {
+  beforeEach(() => { areaVerifyReport.mockReset(); areaMarkCleaned.mockReset(); updateIllegalDumpingStatus.mockReset(); });
+  const hidden = () => buildAuditRows().map(r => ({ ...r, reporter: { id: null, name: null, email: null, anonymous: false, hidden: true } }));
+
+  it('Media reads nationally without reporter details and can only verify', async () => {
+    mockAuth = { role: 'media', area: { level: 'national' } };
+    fetchAllIllegalDumpingReports.mockResolvedValue(hidden());
+    renderAt(<IllegalDumpingManagement />, '/illegal-dumping/reports?status=pending');
+    await reportsLoaded();
+    expect(fetchAllIllegalDumpingReports).toHaveBeenLastCalledWith({ area: null, privateView: true });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Details' })[0]);
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).queryByText('Reported By')).toBeNull();
+    expect(within(dialog).queryByText('Ama Mensah')).toBeNull();
+    expect(within(dialog).getByRole('button', { name: 'Verify' })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Assign Cleanup' })).toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'Cancel Report' })).toBeNull();
+  });
+
+  it('Volunteer can mark cleaned through the area functions', async () => {
+    mockAuth = { role: 'volunteer', area: { level: 'region', region: 'Greater Accra' } };
+    fetchAllIllegalDumpingReports.mockResolvedValue(hidden());
+    areaMarkCleaned.mockResolvedValue({});
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    renderAt(<IllegalDumpingManagement />, '/illegal-dumping/reports?status=in_progress');
+    await reportsLoaded();
+    expect(fetchAllIllegalDumpingReports).toHaveBeenLastCalledWith({ area: null, privateView: true });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Mark Cleaned' })[0]);
+    await waitFor(() => expect(areaMarkCleaned).toHaveBeenCalled());
+    expect(updateIllegalDumpingStatus).not.toHaveBeenCalled();
+  });
+
+  it('User sees its home district, view only', async () => {
+    mockAuth = { role: 'user', area: { level: 'none' } };
+    fetchAllIllegalDumpingReports.mockResolvedValue(hidden());
+    renderAt(<IllegalDumpingManagement />, '/illegal-dumping/reports?status=pending');
+    await reportsLoaded();
+    expect(screen.getByTestId('area-home')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Verify$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Mark Cleaned/ })).toBeNull();
   });
 });
