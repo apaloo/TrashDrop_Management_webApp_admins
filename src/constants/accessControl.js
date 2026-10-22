@@ -161,12 +161,13 @@ export const sameRegion = (a, b) => normalizeRegion(a) !== null && normalizeRegi
  * td_my_assign_region() in supabase/migrations/20261103_manager_assign_scope.sql:
  * Admin anywhere; a Manager only when the account type is Waste Management and
  * the account has a region, and then only in that region. `access` is
- * my_access() (company_type, region).
+ * my_access() as AuthContext holds it (companyType, region).
  */
 export const assignScopeFor = (role, access) => {
   if (role === ROLES.ADMIN) return { canAssign: true, region: null };
   if (role !== ROLES.MANAGER) return { canAssign: false, region: null, reason: null };
-  if (access?.company_type !== 'waste_management') {
+  // my_access() comes through normalizeAccess (accountRoleService), so the field is companyType
+  if ((access?.companyType ?? access?.company_type) !== 'waste_management') {
     return { canAssign: false, region: null, reason: 'Assigning collectors is for Waste Management accounts. Ask an admin if your account type is wrong.' };
   }
   if (!normalizeRegion(access?.region)) {

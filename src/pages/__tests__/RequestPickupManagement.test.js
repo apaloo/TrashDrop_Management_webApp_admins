@@ -78,7 +78,7 @@ describe('who may assign', () => {
   const pendingRow = () => screen.getAllByTestId('request-row').find(r => within(r).queryByText('Pending'));
 
   it('a Waste Management Manager assigns only to collectors in their region', async () => {
-    mockAuth = { user: { id: 'm1' }, role: 'manager', access: { company_type: 'waste_management', region: 'Greater Accra' } };
+    mockAuth = { user: { id: 'm1' }, role: 'manager', access: { companyType: 'waste_management', region: 'Greater Accra' } };
     mockCollectors = [collector('a', 'Ama Accra', 'Greater Accra'), collector('k', 'Kofi Kumasi', 'Ashanti'), collector('g', 'Gifty Region', 'Greater Accra Region')];
     renderPage();
     await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
@@ -93,7 +93,7 @@ describe('who may assign', () => {
   });
 
   it('a Recycling Manager sees no Assign action and is told why', async () => {
-    mockAuth = { user: { id: 'm2' }, role: 'manager', access: { company_type: 'recycling', region: 'Greater Accra' } };
+    mockAuth = { user: { id: 'm2' }, role: 'manager', access: { companyType: 'recycling', region: 'Greater Accra' } };
     renderPage();
     await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
     expect(within(pendingRow()).queryByRole('button', { name: 'Assign' })).toBeNull();
@@ -101,7 +101,7 @@ describe('who may assign', () => {
   });
 
   it('a Waste Management Manager without a region sees no Assign action', async () => {
-    mockAuth = { user: { id: 'm3' }, role: 'manager', access: { company_type: 'waste_management', region: null } };
+    mockAuth = { user: { id: 'm3' }, role: 'manager', access: { companyType: 'waste_management', region: null } };
     renderPage();
     await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
     expect(within(pendingRow()).queryByRole('button', { name: 'Assign' })).toBeNull();
