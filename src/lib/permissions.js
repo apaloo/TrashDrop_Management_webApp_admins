@@ -57,7 +57,7 @@ const LANDING_BY_ROLE = {
   manager: '/dashboard',
   authority: '/illegal-dumping/reports',
   media: '/media-data',
-  volunteer: '/settings',
+  volunteer: '/illegal-dumping/map',
   user: '/settings',
 };
 
