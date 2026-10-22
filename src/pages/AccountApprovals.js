@@ -36,7 +36,9 @@ const DetailsList = ({ row }) => {
 
 // Roles whose view depends on the account's area
 const needsDistrict = (role) => role === ROLES.AUTHORITY;
-const needsRegion = (role) => role === ROLES.AUTHORITY || role === ROLES.VOLUNTEER;
+// A Waste Management Manager assigns pickups in its region only (20261103_manager_assign_scope.sql)
+const assignsPickups = (role, companyType) => role === ROLES.MANAGER && companyType === 'waste_management';
+const needsRegion = (role, companyType) => role === ROLES.AUTHORITY || role === ROLES.VOLUNTEER || assignsPickups(role, companyType);
 const knownRegion = (r) => (GHANA_REGIONS.some(x => x.name === r) ? r : '');
 
 const date = (v) => (v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
@@ -79,12 +81,12 @@ const AccountApprovals = () => {
     setAreaDistrict(districtsOf(reg).includes(row.district) ? row.district : '');
   };
 
-  const areaMissing = dialog?.approve && ((needsRegion(role) && !areaRegion) || (needsDistrict(role) && !areaDistrict));
+  const areaMissing = dialog?.approve && ((needsRegion(role, dialog.row.company_type) && !areaRegion) || (needsDistrict(role) && !areaDistrict));
 
   const save = async () => {
     setBusy(true);
     try {
-      if (dialog.approve && needsRegion(role)) {
+      if (dialog.approve && needsRegion(role, dialog.row.company_type)) {
         const district = needsDistrict(role) ? areaDistrict : (areaRegion === dialog.row.region ? dialog.row.district : null);
         if (areaRegion !== (dialog.row.region || '') || (district || null) !== (dialog.row.district || null)) {
           await setAccountArea(dialog.row.user_id, { region: areaRegion, district });
@@ -186,7 +188,7 @@ const AccountApprovals = () => {
               </select>
             </label>
           )}
-          {dialog.approve && needsRegion(role) && (
+          {dialog.approve && needsRegion(role, dialog.row.company_type) && (
             <div className="grid grid-cols-2 gap-2" data-testid="area-fields">
               <label className="block">Region
                 <select value={areaRegion} onChange={e => { setAreaRegion(e.target.value); setAreaDistrict(''); }} className="mt-1 w-full border rounded px-2 py-1.5" data-testid="area-region">
@@ -203,7 +205,9 @@ const AccountApprovals = () => {
                 </label>
               )}
               <p className="col-span-2 text-xs text-gray-500">
-                {needsDistrict(role) ? 'An Authority sees reports in this district only.' : 'A Volunteer works on reports in this region.'}
+                {needsDistrict(role) ? 'An Authority sees reports in this district only.'
+                  : assignsPickups(role, dialog.row.company_type) ? 'This Manager assigns pickup requests in this region only, to collectors in this region.'
+                  : 'A Volunteer works on reports in this region.'}
                 {dialog.row.district && !districtsOf(knownRegion(dialog.row.region)).includes(dialog.row.district) ? ` They wrote "${dialog.row.district}"; pick the matching district.` : ''}
               </p>
             </div>
