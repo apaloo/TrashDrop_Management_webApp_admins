@@ -10,9 +10,11 @@ jest.mock('../../services/pickupAdminService', () => ({
   assignCollector: jest.fn(), changeStatus: jest.fn(), cancelRequest: jest.fn(),
 }));
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
-jest.mock('../../utils/collectorService', () => ({ fetchCollectorsForMap: () => Promise.resolve([]) }));
+let mockCollectors = [];
+jest.mock('../../utils/collectorService', () => ({ fetchCollectorsForMap: () => Promise.resolve(mockCollectors) }));
 jest.mock('../../utils/geocoding', () => ({ reverseGeocodeWithCache: () => Promise.resolve(null) }));
-jest.mock('../../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'admin-1' } }) }));
+let mockAuth = { user: { id: 'admin-1' }, role: 'admin', access: null };
+jest.mock('../../context/AuthContext', () => ({ useAuth: () => mockAuth }));
 jest.mock('react-leaflet', () => ({ MapContainer: ({ children }) => <div>{children}</div>, TileLayer: () => null, Marker: () => null }));
 
 const base = { source: 'pickup_requests', created_at: '2026-10-14T09:00:00Z', user_id: 'u', customer_name: 'Ama', address: 'Osu, Accra', lat: 5.55, lng: -0.18, bag_count: 1, fee: 25, priority: 'normal' };
@@ -32,6 +34,8 @@ const renderPage = (path = '/request-pickup/requests') => render(
 );
 
 beforeEach(() => {
+  mockAuth = { user: { id: 'admin-1' }, role: 'admin', access: null };
+  mockCollectors = [];
   svc.fetchRequestPage.mockImplementation(async (f) => {
     const filtered = sortRows(applyFilters(rows, f), f.sort, f.dir);
     return { rows: filtered.slice((f.page - 1) * PAGE_SIZE, f.page * PAGE_SIZE), total: filtered.length, mode: 'server' };
@@ -67,4 +71,40 @@ it('shows pending rows with an Assign action and bag counts in words', async () 
   const pendingRow = screen.getAllByTestId('request-row').find(r => within(r).queryByText('Pending'));
   expect(within(pendingRow).getByRole('button', { name: 'Assign' })).toBeInTheDocument();
   expect(within(pendingRow).getByText('1 bag')).toBeInTheDocument();
+});
+
+describe('who may assign', () => {
+  const collector = (id, name, region) => ({ id, userId: `u-${id}`, name, region, status: 'active', online: false });
+  const pendingRow = () => screen.getAllByTestId('request-row').find(r => within(r).queryByText('Pending'));
+
+  it('a Waste Management Manager assigns only to collectors in their region', async () => {
+    mockAuth = { user: { id: 'm1' }, role: 'manager', access: { company_type: 'waste_management', region: 'Greater Accra' } };
+    mockCollectors = [collector('a', 'Ama Accra', 'Greater Accra'), collector('k', 'Kofi Kumasi', 'Ashanti'), collector('g', 'Gifty Region', 'Greater Accra Region')];
+    renderPage();
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
+    expect(screen.getByTestId('assign-scope-region')).toHaveTextContent('Greater Accra');
+    fireEvent.click(within(pendingRow()).getByRole('button', { name: 'Assign' }));
+    const picker = await screen.findByRole('combobox', { name: 'Collector' });
+    const names = within(picker).getAllByRole('option').map(o => o.textContent);
+    expect(names.some(n => n.includes('Ama Accra'))).toBe(true);
+    expect(names.some(n => n.includes('Gifty Region'))).toBe(true);
+    expect(names.some(n => n.includes('Kofi Kumasi'))).toBe(false);
+    expect(screen.getByTestId('assign-region-note')).toHaveTextContent('Greater Accra');
+  });
+
+  it('a Recycling Manager sees no Assign action and is told why', async () => {
+    mockAuth = { user: { id: 'm2' }, role: 'manager', access: { company_type: 'recycling', region: 'Greater Accra' } };
+    renderPage();
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
+    expect(within(pendingRow()).queryByRole('button', { name: 'Assign' })).toBeNull();
+    expect(screen.getByTestId('assign-scope-note')).toHaveTextContent('Waste Management accounts');
+  });
+
+  it('a Waste Management Manager without a region sees no Assign action', async () => {
+    mockAuth = { user: { id: 'm3' }, role: 'manager', access: { company_type: 'waste_management', region: null } };
+    renderPage();
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
+    expect(within(pendingRow()).queryByRole('button', { name: 'Assign' })).toBeNull();
+    expect(screen.getByTestId('assign-scope-note')).toHaveTextContent('no region');
+  });
 });

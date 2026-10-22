@@ -1,6 +1,6 @@
 import {
   ROLES, SECTIONS, COMPANY_TYPES, getEffectiveRole, canAccessSection, deriveRoleForUser, getRoleForCompanyType,
-  areaScopeFor, canManageDumping,
+  areaScopeFor, canManageDumping, assignScopeFor, sameRegion,
 } from '../accessControl';
 
 const admin = { email: 'otisadomako50@gmail.com' };
@@ -81,5 +81,20 @@ describe('areas (same rules as td_my_area)', () => {
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'media', someone)).toBe(false);
     expect(canManageDumping('authority')).toBe(false);
     expect(canManageDumping('manager')).toBe(true);
+  });
+});
+
+describe('assigning collectors (same rule as td_my_assign_region)', () => {
+  it('Admin anywhere; Waste Management Manager in their region only; everyone else never', () => {
+    expect(assignScopeFor('admin', null)).toEqual({ canAssign: true, region: null });
+    expect(assignScopeFor('manager', { company_type: 'waste_management', region: 'Greater Accra' })).toEqual({ canAssign: true, region: 'Greater Accra' });
+    expect(assignScopeFor('manager', { company_type: 'recycling', region: 'Greater Accra' }).canAssign).toBe(false);
+    expect(assignScopeFor('manager', { company_type: 'waste_management', region: '' }).canAssign).toBe(false);
+    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(assignScopeFor(r, { company_type: 'waste_management', region: 'Greater Accra' }).canAssign).toBe(false));
+  });
+  it('matches region spellings', () => {
+    expect(sameRegion('Greater Accra Region', ' greater accra')).toBe(true);
+    expect(sameRegion('Ashanti', 'Greater Accra')).toBe(false);
+    expect(sameRegion(null, null)).toBe(false);
   });
 });

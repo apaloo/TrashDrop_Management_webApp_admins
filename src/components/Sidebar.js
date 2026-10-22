@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { signOut } from '../utils/auth';
 import { SECTIONS, canAccessSection } from '../constants/accessControl';
 import { can } from '../lib/permissions';
 
 const Sidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { role, user } = useAuth();
   const [expandedMenu, setExpandedMenu] = useState(null);
   
@@ -92,16 +90,6 @@ const Sidebar = () => {
       setExpandedMenu(null);
     } else {
       setExpandedMenu(index);
-    }
-  };
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
     }
   };
 
@@ -200,18 +188,10 @@ const Sidebar = () => {
         </div>
       </nav>
       <div className="p-4 mt-auto" style={{ borderTop: '1px solid var(--td-sidebar-border)' }}>
-        <button 
-          onClick={handleLogout}
-          className="flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
-          style={{ background: 'var(--td-sidebar-active)', color: '#fff' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >
-          <span className="inline-flex items-center justify-center mr-3">
-            <i className="fas fa-sign-out-alt"></i>
-          </span>
-          <span>Sign Out</span>
-        </button>
+        {/* Signing out is in the account menu at the top right */}
+        <p className="px-4 py-2.5 text-sm font-bold" style={{ color: 'var(--td-sidebar-text)' }} data-testid="sidebar-powered-by">
+          Powered by Infobrix Ltd
+        </p>
       </div>
     </div>
   );

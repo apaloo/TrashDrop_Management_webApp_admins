@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { assignScopeFor, sameRegion } from '../constants/accessControl';
 import { fetchCollectorsForMap } from '../utils/collectorService';
 import { withCollectorPosition, relativeTime, collectorLastSeen } from '../utils/liveMapUtils';
 import { reverseGeocodeWithCache } from '../utils/geocoding';
@@ -40,7 +41,9 @@ const readFilters = (params) => ({
 const SkeletonBlock = ({ className }) => <div className={`animate-pulse rounded bg-gray-300 opacity-40 ${className}`} />;
 
 const RequestPickupManagement = () => {
-  const { user } = useAuth();
+  const { user, role, access } = useAuth();
+  // Admin: any request, any collector. Waste Management Manager: only in their region (the database enforces the same)
+  const assignScope = useMemo(() => assignScopeFor(role, access), [role, access]);
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => readFilters(params), [params]);
 
@@ -153,6 +156,11 @@ const RequestPickupManagement = () => {
     [collectors, jobCounts]
   );
   const duplicatesOf = useCallback((row) => findDuplicates(row, summaryRows || []), [summaryRows]);
+  // Collectors this account may assign to
+  const assignCollectors = useMemo(
+    () => (assignScope.region ? collectorsWithJobs.filter(c => sameRegion(c.region, assignScope.region)) : collectorsWithJobs),
+    [collectorsWithJobs, assignScope.region]
+  );
   const outside = useCallback((row) => isOutsideServiceArea(row, collectors), [collectors]);
   const addressOf = (row) => row.address || addresses[keyOf(row)] || null;
   const totalPages = Math.max(1, Math.ceil((pageData?.total || 0) / PAGE_SIZE));
@@ -251,7 +259,7 @@ const RequestPickupManagement = () => {
 
   const RowActions = ({ row }) => (
     <div className="flex justify-end gap-1.5">
-      {canonicalStatus(row.status) === 'pending' && (
+      {assignScope.canAssign && canonicalStatus(row.status) === 'pending' && (
         <button type="button" onClick={() => openAssign([row])} className="px-2.5 py-1 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700">Assign</button>
       )}
       <button type="button" onClick={() => setDetail(row)} className="px-2.5 py-1 text-xs font-medium rounded border" style={border}>Details</button>
@@ -283,7 +291,7 @@ const RequestPickupManagement = () => {
     if (dialog.type === 'assign') {
       const targets = dialog.rows;
       const anchor = targets.find(r => r.lat !== null) || targets[0];
-      const ranked = collectorsByDistance(anchor, collectorsWithJobs);
+      const ranked = collectorsByDistance(anchor, assignCollectors);
       const chosen = ranked.find(c => c.id === dialog.collectorId);
       const distances = chosen ? targets.map(r => (chosen.position && r.lat !== null ? distanceKm(r.lat, r.lng, chosen.position[0], chosen.position[1]) : null)) : [];
       const farthest = distances.filter(d => d !== null).reduce((m, d) => Math.max(m, d), 0);
@@ -291,7 +299,14 @@ const RequestPickupManagement = () => {
         <ConfirmDialog title={targets.length > 1 ? `Assign ${targets.length} requests` : `Assign request #${shortId(targets[0].id)}`}
           confirmLabel="Assign" busy={busy} confirmDisabled={!chosen} onClose={close}
           onConfirm={() => runAction(`Assigned to ${chosen.name}`, targets, r => assignCollector(r, chosen))}>
-          <CollectorPicker collectors={ranked} value={dialog.collectorId} onChange={id => setDialog(d => ({ ...d, collectorId: id }))} className="w-full" />
+          {assignScope.region && (
+            <p className="text-sm" data-testid="assign-region-note">You can assign requests in <strong>{assignScope.region}</strong> region only, to collectors in {assignScope.region}.</p>
+          )}
+          {ranked.length === 0 ? (
+            <p className="text-sm" style={muted}>No collectors{assignScope.region ? ` in ${assignScope.region} region` : ''} yet.</p>
+          ) : (
+            <CollectorPicker collectors={ranked} value={dialog.collectorId} onChange={id => setDialog(d => ({ ...d, collectorId: id }))} className="w-full" />
+          )}
           {chosen && (
             <>
               <p>
@@ -465,6 +480,13 @@ const RequestPickupManagement = () => {
         )}
       </div>
 
+      {assignScope.reason && (
+        <p className="text-sm rounded border px-3 py-2" style={border} data-testid="assign-scope-note">{assignScope.reason}</p>
+      )}
+      {assignScope.region && (
+        <p className="text-sm" style={muted} data-testid="assign-scope-region">You can assign pickup requests in <strong>{assignScope.region}</strong> region to collectors in that region.</p>
+      )}
+
       {filterCollector && (
         <p className="text-sm">Showing requests for <strong>{filterCollector.name}</strong> <button type="button" className="underline" style={muted} onClick={() => setFilters({ collector: '' })}>show all</button></p>
       )}
@@ -473,9 +495,11 @@ const RequestPickupManagement = () => {
       {selectedRows.length > 0 && (
         <div className="rounded-lg border px-4 py-2 flex flex-wrap items-center gap-3 text-sm" style={card} role="region" aria-label="Bulk actions">
           <strong>{selectedRows.length} selected</strong>
-          <button type="button" disabled={!assignable.length} onClick={() => openAssign(assignable)} className="px-3 py-1.5 rounded bg-blue-600 text-white disabled:opacity-40">
-            Assign {assignable.length !== selectedRows.length ? `(${assignable.length} pending)` : ''}
-          </button>
+          {assignScope.canAssign && (
+            <button type="button" disabled={!assignable.length} onClick={() => openAssign(assignable)} className="px-3 py-1.5 rounded bg-blue-600 text-white disabled:opacity-40">
+              Assign {assignable.length !== selectedRows.length ? `(${assignable.length} pending)` : ''}
+            </button>
+          )}
           <button type="button" disabled={!cancellable.length} onClick={() => openCancel(cancellable)} className="px-3 py-1.5 rounded border border-red-300 text-red-700 disabled:opacity-40">
             Cancel {cancellable.length !== selectedRows.length ? `(${cancellable.length} can be cancelled)` : ''}
           </button>
@@ -589,10 +613,11 @@ const RequestPickupManagement = () => {
           row={detail}
           address={addressOf(detail)}
           collectors={collectorsWithJobs}
+          assignCollectors={assignCollectors}
           duplicates={duplicatesOf(detail)}
           outsideServiceArea={outside(detail)}
           busy={busy}
-          onAssign={(row, collector) => openAssign([row], collector?.id || '')}
+          onAssign={assignScope.canAssign ? (row, collector) => openAssign([row], collector?.id || '') : null}
           onStatus={onStatus}
           onCancel={openCancel}
           onCancelAsDuplicate={(row, other) => setDialog({ type: 'duplicate', rows: [row], other })}
