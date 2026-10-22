@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
 const FAQ_SCHEMA = {
   "@context": "https://schema.org",
@@ -107,9 +108,9 @@ const UsersPage = () => {
             TrashDrop is Ghana's most widely used mobile waste collection platform, serving households and businesses in Accra, Kumasi, Takoradi and Tamale. It offers two core services: the QR Bag System, where users purchase official TrashDrop bags from authorised vendors, scan the printed QR code to register the bags, and request collection when full for FREE; and the Digital Bin service, where users request an on-demand pickup, receive an instant GPS-based price quote, and the request is matched to a nearby collector for real-time tracking. TrashDrop has achieved a 98%+ pickup completion rate, a 4.8 out of 5 user satisfaction score, and connects users with a network of more than 480 ID-verified, vehicle-checked collectors. The platform requires no app store download — it runs entirely in the browser as a Progressive Web App — and accepts MTN MoMo, Telecel Cash, AirtelTigo Money, and debit or credit cards.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap', marginBottom:56 }}>
-            <Link to="/signup" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
+            <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
               Get Started Free
-            </Link>
+            </a>
             <Link to="/how-it-works/" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
               How It Works
             </Link>
@@ -179,9 +180,9 @@ const UsersPage = () => {
       <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Ghana's most reliable waste collection</h2>
         <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:480 }}>Join thousands of Ghanaian households and businesses already using TrashDrop. No download required.</p>
-        <Link to="/signup" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
+        <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
           Create Free Account
-        </Link>
+        </a>
       </section>
     </PublicPageLayout>
   );

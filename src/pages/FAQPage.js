@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
+import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
 /* ─── FAQPage JSON-LD ─────────────────────────────────────────────────────────
    Structured exactly to match Google's FAQPage rich result requirements.
@@ -331,9 +332,9 @@ const FAQPage = () => {
           Join thousands of Ghanaian households and businesses already using TrashDrop. No download required.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link to="/signup" style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: TD.lime, color: TD.ink, padding: '16px 40px', borderRadius: 12, textDecoration: 'none', boxShadow: `0 8px 32px ${TD.lime}45`, display: 'inline-block' }}>
+          <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: TD.lime, color: TD.ink, padding: '16px 40px', borderRadius: 12, textDecoration: 'none', boxShadow: `0 8px 32px ${TD.lime}45`, display: 'inline-block' }}>
             Create Free Account
-          </Link>
+          </a>
           <Link to="/how-it-works/" style={{ ...FF.label, fontSize: 15, fontWeight: 700, background: 'transparent', color: '#fff', padding: '16px 40px', borderRadius: 12, textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.18)', display: 'inline-block' }}>
             How It Works
           </Link>
