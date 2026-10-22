@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../../components/PublicPageLayout';
 import { BLOG_POSTS } from '../BlogPage';
 import { BUSINESS, SITE_URL, useSeo, withSlash } from '../../utils/seo';
+import { HOUSEHOLD_APP_URL } from '../../config/homepage';
 
 /* ────────────────────────────────────────────────────────────────────────────
    All 8 blog post contents
@@ -361,9 +362,9 @@ const BlogPostPage = () => {
               <div style={{ ...FF.label, fontSize:14, fontWeight:700, color:TD.lime, marginBottom:6 }}>Ready to try TrashDrop?</div>
               <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.6)' }}>No app download. Available at trashdrops.com</div>
             </div>
-            <Link to="/signup" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'12px 28px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
+            <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'12px 28px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
               Get Started Free →
-            </Link>
+            </a>
           </div>
         </div>
       </section>

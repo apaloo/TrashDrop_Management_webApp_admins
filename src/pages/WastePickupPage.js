@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
 import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, localBusinessJsonLd } from '../utils/seo';
+import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
 // On-demand pickup page: targets "waste pickup" / "trash pickup" searches.
 export const WASTE_PICKUP_SEO = {
@@ -47,10 +48,10 @@ const linkStyle = { color:TD.lime, textDecoration:'underline', textUnderlineOffs
 
 const CtaButtons = () => (
   <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-    <Link to="/signup"
+    <a href={HOUSEHOLD_APP_URL}
       style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
       Request a waste pickup
-    </Link>
+    </a>
     <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
       style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 26px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.22)', display:'inline-flex', alignItems:'center', gap:8 }}>
       <i className="fab fa-whatsapp"></i> WhatsApp {BUSINESS.phoneDisplay}

@@ -1165,7 +1165,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
             illegal dumping. Explore reported dumping sites across Ghana in real time.
           </p>
           <button
-            onClick={() => navigate(isAuthenticated ? '/illegal-dumping/reports' : '/signup')}
+            onClick={() => { if (isAuthenticated) navigate('/illegal-dumping/reports'); else window.location.href = HOUSEHOLD_APP_URL; }}
             style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:lp.sectionHeading, ...FF.label, fontSize:14, fontWeight:700, padding:'12px 24px', borderRadius:10, cursor:'pointer', border:`1.5px solid ${TD.lime}55` }}>
             <i className="fas fa-exclamation-triangle" style={{ color:TD.gold }}></i> Report Illegal Dump
           </button>
