@@ -87,10 +87,10 @@ describe('areas (same rules as td_my_area)', () => {
 describe('assigning collectors (same rule as td_my_assign_region)', () => {
   it('Admin anywhere; Waste Management Manager in their region only; everyone else never', () => {
     expect(assignScopeFor('admin', null)).toEqual({ canAssign: true, region: null });
-    expect(assignScopeFor('manager', { company_type: 'waste_management', region: 'Greater Accra' })).toEqual({ canAssign: true, region: 'Greater Accra' });
-    expect(assignScopeFor('manager', { company_type: 'recycling', region: 'Greater Accra' }).canAssign).toBe(false);
-    expect(assignScopeFor('manager', { company_type: 'waste_management', region: '' }).canAssign).toBe(false);
-    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(assignScopeFor(r, { company_type: 'waste_management', region: 'Greater Accra' }).canAssign).toBe(false));
+    expect(assignScopeFor('manager', { companyType: 'waste_management', region: 'Greater Accra' })).toEqual({ canAssign: true, region: 'Greater Accra' });
+    expect(assignScopeFor('manager', { companyType: 'recycling', region: 'Greater Accra' }).canAssign).toBe(false);
+    expect(assignScopeFor('manager', { companyType: 'waste_management', region: '' }).canAssign).toBe(false);
+    ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(assignScopeFor(r, { companyType: 'waste_management', region: 'Greater Accra' }).canAssign).toBe(false));
   });
   it('matches region spellings', () => {
     expect(sameRegion('Greater Accra Region', ' greater accra')).toBe(true);
