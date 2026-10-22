@@ -189,6 +189,10 @@ async function main() {
 
   const shellJsonLdCount = (shellHtml.match(/application\/ld\+json/g) || []).length;
   const problems = checkSitemap();
+  // The static 404 page isn't rendered here, so check its links directly
+  const notFoundHtml = fs.readFileSync(path.join(BUILD_DIR, '404.html'), 'utf8');
+  noSlashLinks([...notFoundHtml.matchAll(/href="([^"]*)"/g)].map(m => m[1]))
+    .forEach(h => problems.push(`404.html: link "${h}" should end with "/"`));
   // <lastmod> follows the last commit to each page's sources
   const lastmod = applyLastmod(path.join(BUILD_DIR, 'sitemap.xml'), SITE);
   console.log(`[prerender] sitemap lastmod: ${lastmod.changed.join(', ') || 'no changes'}`);
