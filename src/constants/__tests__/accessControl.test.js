@@ -36,9 +36,8 @@ describe('sections', () => {
     ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.DASHBOARD, r)).toBe(false));
     expect(canAccessSection(SECTIONS.DASHBOARD, 'user', admin)).toBe(true);
   });
-  it('Illegal Dumping is Manager, Admin and Authority (district view)', () => {
-    expect(can(SECTIONS.ILLEGAL_DUMPING, 'manager')).toBe(true);
-    ['user', 'volunteer', 'media'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(false));
+  it('Illegal Dumping is open to every role (each sees its own area; 20261104)', () => {
+    ['manager', 'authority', 'media', 'volunteer', 'user'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(true));
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);
   });
   it('Bin Management and Account Approvals are admin only', () => {
@@ -75,11 +74,10 @@ describe('areas (same rules as td_my_area)', () => {
     expect(areaScopeFor('user', madina)).toEqual({ level: 'none' });
   });
 
-  it('Authority can open Illegal Dumping but only Manager and Admin act on reports', () => {
+  it('only Manager and Admin have the full dumping controls (cancel); others act through their own capabilities', () => {
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'authority', someone)).toBe(true);
-    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'volunteer', someone)).toBe(false);
-    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'media', someone)).toBe(false);
     expect(canManageDumping('authority')).toBe(false);
+    expect(canManageDumping('volunteer')).toBe(false);
     expect(canManageDumping('manager')).toBe(true);
   });
 });

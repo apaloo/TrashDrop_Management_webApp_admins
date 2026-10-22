@@ -23,10 +23,9 @@ describe('Reports data page', () => {
     global.URL.revokeObjectURL = jest.fn();
   });
 
-  it('is for Media, Managers and Admins only', () => {
-    expect(canAccessSection(SECTIONS.MEDIA_DATA, 'media', { email: 'x@y.com' })).toBe(true);
-    expect(canAccessSection(SECTIONS.MEDIA_DATA, 'manager', { email: 'x@y.com' })).toBe(true);
-    ['user', 'volunteer', 'authority'].forEach(r => expect(canAccessSection(SECTIONS.MEDIA_DATA, r, { email: 'x@y.com' })).toBe(false));
+  it('is for Media, Managers, Admins, Authorities and Volunteers (their area), not Users', () => {
+    ['media', 'manager', 'authority', 'volunteer'].forEach(r => expect(canAccessSection(SECTIONS.MEDIA_DATA, r, { email: 'x@y.com' })).toBe(true));
+    expect(canAccessSection(SECTIONS.MEDIA_DATA, 'user', { email: 'x@y.com' })).toBe(false);
   });
 
   it('shows the national numbers and the reports', async () => {

@@ -267,7 +267,9 @@ export const toReportViewModel = (item) => {
   const report = {
     id: item.id,
     reportedAt: item.reported_at,
-    reportedBy: item.reporter?.name || item.reporter?.email || 'Anonymous',
+    // hidden: the account may not see who reported it (Media, Volunteer, User; 20261104)
+    reporterHidden: Boolean(item.reporter?.hidden),
+    reportedBy: item.reporter?.hidden ? null : (item.reporter?.name || item.reporter?.email || 'Anonymous'),
     reporterEmail: item.reporter?.email || null,
     resolvedAt: item.resolved_at || null,
     // Date a report entered History: completion time, or last update for cancelled

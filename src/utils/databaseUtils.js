@@ -948,10 +948,10 @@ export const fetchIllegalDumpingReports = async (options = {}) => {
  * @param {Object} options - { status, pageSize, area } (area from useAuth())
  * @returns {Promise<Array>} All matching reports, newest first
  */
-export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 500, area = null } = {}) => {
+export const fetchAllIllegalDumpingReports = async ({ status = null, pageSize = 500, area = null, privateView = false } = {}) => {
   const all = [];
   for (let page = 1; ; page++) {
-    const response = await fetchIllegalDumpingReportsReal({ status, limit: pageSize, page, area });
+    const response = await fetchIllegalDumpingReportsReal({ status, limit: pageSize, page, area, privateView });
     const rows = Array.isArray(response) ? response : (response?.data || []);
     all.push(...rows);
     const total = response?.totalCount ?? 0;

@@ -16,8 +16,22 @@ const teamName = (t) => `${t.first_name || ''} ${t.last_name || ''}`.trim() || t
  *
  * onAssign({ teamId, teamName, fee, volunteer }) does the database work and
  * resolves true when the report was assigned.
+ * loadTeams: where the teams come from (default: active collector profiles;
+ * Authority and Volunteer accounts pass area_assignable_teams). allowFee:
+ * false for accounts that may not set a fee (they get the standard rate).
  */
-const AssignCleanupModal = ({ report, onClose, onAssign }) => {
+const loadActiveProfiles = async () => {
+  // '*' so the list still loads where collector_type isn't in the database yet (everyone is then a collector)
+  const { data, error } = await supabase
+    .from('collector_profiles')
+    .select('*')
+    .eq('status', 'active')
+    .order('first_name', { ascending: true });
+  if (error) throw error;
+  return data || [];
+};
+
+const AssignCleanupModal = ({ report, onClose, onAssign, loadTeams = loadActiveProfiles, allowFee = true }) => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -30,22 +44,18 @@ const AssignCleanupModal = ({ report, onClose, onAssign }) => {
   useEffect(() => {
     let live = true;
     (async () => {
-      // '*' so the list still loads where collector_type isn't in the database yet (everyone is then a collector)
-      const { data, error } = await supabase
-        .from('collector_profiles')
-        .select('*')
-        .eq('status', 'active')
-        .order('first_name', { ascending: true });
-      if (!live) return;
-      if (error) {
+      try {
+        const data = await loadTeams();
+        if (live) setTeams(data || []);
+      } catch (error) {
         console.error('Error fetching cleanup teams:', error);
-        setLoadError(true);
+        if (live) setLoadError(true);
+      } finally {
+        if (live) setLoading(false);
       }
-      setTeams(data || []);
-      setLoading(false);
     })();
     return () => { live = false; };
-  }, []);
+  }, [loadTeams]);
 
   const collectors = teams.filter(t => !isVolunteerTeam(t));
   const volunteers = teams.filter(isVolunteerTeam);
@@ -58,7 +68,7 @@ const AssignCleanupModal = ({ report, onClose, onAssign }) => {
     if (!team || busy || feeInvalid) return;
     setBusy(true);
     const volunteer = isVolunteerTeam(team);
-    const ok = await onAssign({ teamId: team.id, teamName: teamName(team), fee: volunteer || !hasFee ? null : typed, volunteer });
+    const ok = await onAssign({ teamId: team.id, teamName: teamName(team), fee: volunteer || !hasFee || !allowFee ? null : typed, volunteer });
     setBusy(false);
     if (ok) onClose();
   };
@@ -136,6 +146,7 @@ const AssignCleanupModal = ({ report, onClose, onAssign }) => {
           /* Step 2, paid collector: payment */
           <div>
             <p className="text-sm text-gray-600 mb-3">Payment for <strong>{teamName(team)}</strong>. TrashDrop pays it into their earnings once the waste is disposed.</p>
+            {allowFee ? (<>
             <label htmlFor="cleanup-fee" className="block text-sm font-medium text-gray-700 mb-1">Cleanup fee (GHS)</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
@@ -148,6 +159,9 @@ const AssignCleanupModal = ({ report, onClose, onAssign }) => {
                 : hasFee ? <>The collector will be paid <strong className="text-green-700">{money(typed)}</strong>.</>
                 : <>Leave blank for the standard rate: <strong>{money(standard)}</strong> ({report?.size || 'medium'} size{String(report?.severity).toLowerCase() === 'high' ? ', high severity × 1.5' : ''}).</>}
             </p>
+            </>) : (
+              <p className="text-sm text-gray-500" data-testid="fee-hint">Paid at the standard rate: <strong>{money(standard)}</strong>.</p>
+            )}
           </div>
         )}
 

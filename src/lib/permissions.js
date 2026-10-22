@@ -23,10 +23,18 @@ export const CAPABILITY_ROLES = {
   'logs.view':           ['admin'],
   'bags.view':           ['admin'],
   'bags.manage':         ['admin'],
-  'dumping.view':        ['admin', 'manager', 'authority'], // Authority: its own district
-  'dumping.manage':      ['admin', 'manager'],
-  'reports.view':        ['admin', 'manager', 'media'],
-  'reports.export':      ['admin', 'manager', 'media'],
+  // Illegal dumping (20261104_area_dumping_access.sql). Area: Authority its
+  // district, Volunteer its region, User the district of its pickup address,
+  // Media national. Accounts without dumping.reporters never see who reported.
+  'dumping.view':        ['admin', 'manager', 'authority', 'media', 'volunteer', 'user'],
+  'dumping.reporters':   ['admin', 'manager', 'authority'],
+  'dumping.verify':      ['admin', 'manager', 'authority', 'media', 'volunteer'],
+  'dumping.assign':      ['admin', 'manager', 'authority', 'volunteer'], // Volunteer: volunteer groups only
+  'dumping.fee':         ['admin', 'manager', 'authority'],
+  'dumping.markCleaned': ['admin', 'manager', 'authority', 'volunteer'],
+  'dumping.manage':      ['admin', 'manager'], // everything else, e.g. cancel
+  'reports.view':        ['admin', 'manager', 'media', 'authority', 'volunteer'],
+  'reports.export':      ['admin', 'manager', 'media', 'authority', 'volunteer'],
   'users.manage':        ['admin'],
   'settings.manage':     ['admin'], // system settings; every account still edits its own profile
 };
@@ -43,17 +51,14 @@ export const rolesWith = (capability) => [...(CAPABILITY_ROLES[capability] || []
 export const rolesWithAny = (capabilities) =>
   [...new Set(capabilities.flatMap(c => CAPABILITY_ROLES[c] || []))];
 
-/**
- * Where a role starts. The first page its role can open; every account can
- * open its own Settings.
- */
-const LANDING = [
-  [['dashboard.stats', 'dashboard.liveQueue'], '/dashboard'],
-  [['dumping.view'], '/illegal-dumping/reports'],
-  [['reports.view'], '/media-data'],
-];
-
-export const landingPathFor = (role) => {
-  const hit = LANDING.find(([caps]) => canAny(caps, role));
-  return hit ? hit[1] : '/settings';
+/** Where each role starts (the table agreed for each role); unknown roles start on Settings */
+const LANDING_BY_ROLE = {
+  admin: '/dashboard',
+  manager: '/dashboard',
+  authority: '/illegal-dumping/reports',
+  media: '/media-data',
+  volunteer: '/settings',
+  user: '/settings',
 };
+
+export const landingPathFor = (role) => LANDING_BY_ROLE[role] || '/settings';

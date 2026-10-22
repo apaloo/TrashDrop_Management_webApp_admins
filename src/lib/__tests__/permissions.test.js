@@ -11,11 +11,12 @@ describe('capability table', () => {
     });
   });
 
-  it('never grants anything to the plain user role or to volunteers', () => {
-    Object.values(CAPABILITY_ROLES).forEach(roles => {
-      expect(roles).not.toContain('user');
-      expect(roles).not.toContain('volunteer');
-    });
+  it('Users only view illegal dumping; Volunteers only dumping and Reports Data', () => {
+    const granted = (role) => Object.keys(CAPABILITY_ROLES).filter(c => can(c, role)).sort();
+    expect(granted('user')).toEqual(['dumping.view']);
+    expect(granted('volunteer')).toEqual(['dumping.assign', 'dumping.markCleaned', 'dumping.verify', 'dumping.view', 'reports.export', 'reports.view']);
+    expect(granted('media')).toEqual(['dumping.verify', 'dumping.view', 'reports.export', 'reports.view']);
+    expect(granted('authority')).toEqual(['dumping.assign', 'dumping.fee', 'dumping.markCleaned', 'dumping.reporters', 'dumping.verify', 'dumping.view', 'reports.export', 'reports.view']);
   });
 
   it('gives Admin everything', () => {
@@ -48,9 +49,13 @@ describe('capability table', () => {
 });
 
 describe('the database table matches this one', () => {
-  // Reads td_capability_roles() from the migration, so changing one side only fails this test
-  const sql = fs.readFileSync(path.join(__dirname, '../../../supabase/migrations/20261101_role_permissions.sql'), 'utf8');
-  const fn = sql.slice(sql.indexOf('FUNCTION public.td_capability_roles'), sql.indexOf('ELSE ARRAY[]::text[]'));
+  // Reads td_capability_roles() from the newest migration that defines it, so changing one side only fails this test
+  const dir = path.join(__dirname, '../../../supabase/migrations');
+  const latest = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort().reverse()
+    .find(f => fs.readFileSync(path.join(dir, f), 'utf8').includes('FUNCTION public.td_capability_roles'));
+  const capSql = fs.readFileSync(path.join(dir, latest), 'utf8');
+  const sql = fs.readFileSync(path.join(dir, '20261101_role_permissions.sql'), 'utf8');
+  const fn = capSql.slice(capSql.indexOf('FUNCTION public.td_capability_roles'), capSql.indexOf('ELSE ARRAY[]::text[]', capSql.indexOf('FUNCTION public.td_capability_roles')));
   const db = Object.fromEntries([...fn.matchAll(/WHEN '([\w.]+)' THEN ARRAY\[([^\]]*)\]/g)]
     .map(([, cap, roles]) => [cap, [...roles.matchAll(/'(\w+)'/g)].map(m => m[1])]));
 
