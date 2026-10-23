@@ -145,7 +145,9 @@ describe('Generate Bags form', () => {
     expect(validateGenerateForm({ ...ok, bagsPerBatch: '1000', numberOfBatches: '6' }).errors.numberOfBatches).toMatch(/6000 bags/);
     expect(validateGenerateForm({ ...ok, pricePerBatch: '-1' }).errors.pricePerBatch).toBeTruthy();
     expect(validateGenerateForm({ ...ok, pricePerBatch: '1.234' }).errors.pricePerBatch).toBeTruthy();
-    expect(validateGenerateForm({ ...ok, pricePerBatch: '' }).values.price).toBeNull();
+    expect(validateGenerateForm({ ...ok, pricePerBatch: '' }).errors.pricePerBatch).toBe('Enter the price per batch');
+    expect(validateGenerateForm({ ...ok, pricePerBatch: '0' }).errors.pricePerBatch).toBeTruthy();
+    expect(validateGenerateForm({ ...ok, bagsPerBatch: '1000', pricePerBatch: '4' }).errors.pricePerBatch).toMatch(/at least/);
     expect(validateGenerateForm({ ...ok, qrPrefix: 'bad prefix!' }).errors.qrPrefix).toBeTruthy();
     expect(validateGenerateForm({ ...ok, qrPrefix: 'org-2026--x' }).errors.qrPrefix).toBeTruthy();
     expect(validateGenerateForm({ ...ok, qrPrefix: 'td-org-1' }).values.prefix).toBe('TD-ORG-1');
