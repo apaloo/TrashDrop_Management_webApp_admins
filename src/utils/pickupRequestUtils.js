@@ -197,36 +197,40 @@ export const findDuplicates = (row, candidates) => {
 
 /* ── fees ───────────────────────────────────────────────────────────────── */
 
-// Digital bin pricing, from the household app (src/utils/costCalculator.js)
-export const BIN_BASE_COSTS = { 60: 15, 80: 18, 90: 22, 100: 25, 120: 30, 240: 40, 340: 55, 360: 60, 660: 85, 1100: 120 };
+// Digital bin surcharges, from the household app (src/utils/costCalculator.js).
+// The base price per bin comes from the pricing zone covering the bin's
+// location (get_covering_pricing_zone); the app has no default price list.
 export const URGENT_SURCHARGE = 0.3;
 export const REQUEST_FEE = 1.0;
 
 /**
  * Fee breakdown and whether the stored fee matches the pricing logic.
- * - Digital bin: base (by bin size) × bags, + 30% urgent, + GHS 1 request fee.
+ * - Digital bin: zone price (by bin size) × bags, + 30% urgent, + GHS 1 request
+ *   fee; zone is { price, name } from fetchZoneBinPrice, null while unknown.
  * - Pickup request: the unit price of the customer's oldest active bag batch
  *   (create_pickup_request RPC); batchPrice is that price when known.
  * @returns {{ lines: Array<[string, number]>, expected: number|null, mismatch: boolean, note: string|null }}
  */
-export const feeBreakdown = (row, { batchPrice = null } = {}) => {
+export const feeBreakdown = (row, { batchPrice = null, zone = null } = {}) => {
   if (row.source === 'digital_bins') {
     if (row.promotionalFee !== null) {
       return { lines: [['Promotional price', row.promotionalFee]], expected: row.promotionalFee, mismatch: row.fee !== null && Math.abs(row.fee - row.promotionalFee) > 0.01, note: 'Promotion' };
     }
+    if (!zone || !Number.isFinite(zone.price)) {
+      return { lines: [], expected: null, mismatch: false, note: 'Priced by the pricing zone covering the bin\'s location.' };
+    }
     const size = row.binSizeLiters || 120;
     const bags = row.bags || 1;
-    const unit = BIN_BASE_COSTS[size] ?? BIN_BASE_COSTS[120];
-    const base = unit * bags;
+    const base = zone.price * bags;
     const urgent = row.isUrgent ? base * URGENT_SURCHARGE : 0;
-    const lines = [[`Base: ${size} L × ${bagsLabel(bags)} @ GHS ${unit.toFixed(2)}`, base]];
+    const lines = [[`Base: ${size} L × ${bagsLabel(bags)} @ GHS ${zone.price.toFixed(2)}${zone.name ? ` (${zone.name} zone)` : ''}`, base]];
     if (urgent) lines.push(['Urgent surcharge (30%)', urgent]);
     lines.push(['Request fee', REQUEST_FEE]);
     const expected = Math.round((base + urgent + REQUEST_FEE) * 100) / 100;
     return {
       lines, expected,
       mismatch: row.fee !== null && Math.abs(row.fee - expected) > 0.01,
-      note: 'A GPS pricing zone, discount or distance charge can change the price.',
+      note: 'Uses today\'s zone price. A price change since booking, a discount, or an on-site or distance charge can explain a difference.',
     };
   }
   if (row.source === 'pickup_requests') {

@@ -9,7 +9,7 @@ import { canonicalStatus, canCancel } from '../../constants/pickupStatus';
 import {
   shortId, bagsLabel, fullDate, relativeAge, formatGhs, feeBreakdown, collectorsByDistance, isOverdue,
 } from '../../utils/pickupRequestUtils';
-import { fetchBatchPrice } from '../../services/pickupAdminService';
+import { fetchBatchPrice, fetchZoneBinPrice } from '../../services/pickupAdminService';
 import EntityHistory from '../logs/EntityHistory';
 
 const pin = L.divIcon({
@@ -32,13 +32,14 @@ const RequestDetailsModal = ({
 }) => {
   const [collectorId, setCollectorId] = useState('');
   const [batchPrice, setBatchPrice] = useState(null);
+  const [zone, setZone] = useState(null);
   const status = canonicalStatus(row.status);
   const hasCollector = !!row.collectorRef;
   const ranked = collectorsByDistance(row, collectors);
   // Who this account may assign to (Waste Management Managers: their region only)
   const assignRanked = assignCollectors ? collectorsByDistance(row, assignCollectors) : ranked;
   const chosen = assignRanked.find(c => c.id === collectorId);
-  const fee = feeBreakdown(row, { batchPrice });
+  const fee = feeBreakdown(row, { batchPrice, zone });
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -49,9 +50,13 @@ const RequestDetailsModal = ({
   useEffect(() => {
     let live = true;
     setBatchPrice(null);
+    setZone(null);
     if (row.source === 'pickup_requests' && row.batchId) fetchBatchPrice(row.batchId).then(p => { if (live) setBatchPrice(p); });
+    if (row.source === 'digital_bins' && row.promotionalFee === null) {
+      fetchZoneBinPrice(row.lat, row.lng, row.binSizeLiters).then(z => { if (live) setZone(z); }).catch(() => {});
+    }
     return () => { live = false; };
-  }, [row.id, row.source, row.batchId]);
+  }, [row.id, row.source, row.batchId, row.lat, row.lng, row.binSizeLiters, row.promotionalFee]);
 
   const action = (label, to, cls, disabled, title) => (
     <button key={to} type="button" disabled={busy || disabled} title={title} onClick={() => onStatus(row, to)}

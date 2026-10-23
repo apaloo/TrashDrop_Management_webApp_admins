@@ -146,6 +146,21 @@ export const fetchBatchPrice = async (batchId) => {
   return data.unit_price ?? null;
 };
 
+/**
+ * The pricing zone price for a bin size at a location (digital bin fees), as
+ * the household app prices it: get_covering_pricing_zone, column price_<size>l.
+ * @returns {Promise<{ price: number, name: string|null }|null>} null when unknown
+ */
+export const fetchZoneBinPrice = async (lat, lng, binSizeLiters) => {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const { data, error } = await supabase.rpc('get_covering_pricing_zone', { p_latitude: lat, p_longitude: lng });
+  const zone = Array.isArray(data) ? data[0] : data;
+  if (error || !zone) return null;
+  const price = parseFloat(zone[`price_${binSizeLiters || 120}l`]);
+  if (!Number.isFinite(price) || price <= 0) return null;
+  return { price, name: zone.suburb || zone.name || zone.zone_name || null };
+};
+
 /* ── actions ────────────────────────────────────────────────────────────── */
 
 const update = async (row, payload) => {

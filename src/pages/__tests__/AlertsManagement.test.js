@@ -14,7 +14,7 @@ jest.mock('../../services/alertAdminService', () => ({
 }));
 jest.mock('../../services/pickupAdminService', () => ({
   fetchSummaryRows: jest.fn(), fetchRequestPage: jest.fn(), assignCollector: jest.fn(), setCollectorOnActiveRequest: jest.fn(),
-  changeStatus: jest.fn(), cancelRequest: jest.fn(), fetchBatchPrice: jest.fn(),
+  changeStatus: jest.fn(), cancelRequest: jest.fn(), fetchBatchPrice: jest.fn(), fetchZoneBinPrice: jest.fn(() => Promise.resolve(null)),
 }));
 jest.mock('../../utils/collectorService', () => ({ fetchCollectorsAdmin: () => Promise.resolve([
   { id: 'c1', userId: 'u-c1', name: 'Jack Bhone', firstName: 'Jack', status: 'active', phone: '+233241234567', currentLocation: { lat: 9.41, lng: -0.85 }, locationUpdatedAt: new Date().toISOString() },
