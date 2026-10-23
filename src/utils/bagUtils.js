@@ -204,13 +204,18 @@ export const validateGenerateForm = (form, limits = BAG_LIMITS) => {
   if (!errors.bagsPerBatch && !errors.numberOfBatches && bags * batches > limits.maxTotalBags) {
     errors.numberOfBatches = `That's ${bags * batches} bags; the limit is ${limits.maxTotalBags} per submission`;
   }
+  // Required: each bag's price (price per batch / bags) pays the collector for its pickup
   let price = null;
   const rawPrice = String(form.pricePerBatch ?? '').trim();
-  if (rawPrice !== '') {
+  if (rawPrice === '') {
+    errors.pricePerBatch = 'Enter the price per batch';
+  } else {
     price = Number(rawPrice);
-    if (!/^\d+(\.\d{1,2})?$/.test(rawPrice) || !Number.isFinite(price) || price < 0 || price > 1000000) {
-      errors.pricePerBatch = 'A price of 0 or more, with up to 2 decimals';
+    if (!/^\d+(\.\d{1,2})?$/.test(rawPrice) || !Number.isFinite(price) || price <= 0 || price > 1000000) {
+      errors.pricePerBatch = 'A price above 0, with up to 2 decimals';
       price = null;
+    } else if (Number.isInteger(bags) && bags > 0 && Math.round((price / bags) * 100) < 1) {
+      errors.pricePerBatch = 'Too low: each bag must cost at least GH₵0.01';
     }
   }
   const prefix = String(form.qrPrefix ?? '').trim().toUpperCase();

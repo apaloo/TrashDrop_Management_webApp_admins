@@ -229,7 +229,7 @@ const GenerateBag = () => {
               </div>
               <div>
                 <label htmlFor="pricePerBatch" className="block text-sm font-medium text-gray-700 mb-1">Price per Batch (GH₵)</label>
-                <input type="number" id="pricePerBatch" name="pricePerBatch" min="0" step="0.01" inputMode="decimal" placeholder="e.g. 50.00 (optional)"
+                <input type="number" id="pricePerBatch" name="pricePerBatch" min="0" step="0.01" inputMode="decimal" placeholder="e.g. 50.00" aria-required="true"
                   className={inputClass(showErr('pricePerBatch'))} value={form.pricePerBatch} onChange={onChange} aria-describedby="pricePerBatch-err" />
                 <FieldError id="pricePerBatch-err" text={showErr('pricePerBatch')} />
               </div>
