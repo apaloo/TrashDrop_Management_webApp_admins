@@ -131,6 +131,19 @@ describe('fees', () => {
     expect(feeBreakdown(bin, { zone: { price: 10.5, name: null } })).toMatchObject({ expected: 22, mismatch: false });
   });
 
+  it('checks promotional bins against the promotional fee, not the zone price', () => {
+    // the screenshot case: customer paid GHS 22, collector gets GHS 40, TrashDrop covers GHS 18
+    const bin = view({ source: 'digital_bins', bag_count: 2, bin_size_liters: 240, fee: 22, collector_total_payout: 40 });
+    const promo = { requestNumber: 2, clientFee: 22, collectorPayout: 40, subsidy: 18 };
+    const b = feeBreakdown(bin, { promo, zone: { price: 40, name: 'Torman' } });
+    expect(b).toMatchObject({ expected: 22, mismatch: false });
+    expect(b.lines[0][0]).toContain('promo request #2');
+    expect(b.note).toContain('GHS 18.00');
+    expect(feeBreakdown({ ...bin, fee: 30 }, { promo }).mismatch).toBe(true);
+    // schedule fee unknown: no verdict
+    expect(feeBreakdown(bin, { promo: { ...promo, clientFee: null } }).mismatch).toBe(false);
+  });
+
   it('compares pickup request fees with the batch price', () => {
     expect(feeBreakdown(view({ fee: 25 }), { batchPrice: 25 }).mismatch).toBe(false);
     expect(feeBreakdown(view({ fee: 50 }), { batchPrice: 25 }).mismatch).toBe(true);

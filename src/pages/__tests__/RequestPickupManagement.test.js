@@ -6,7 +6,7 @@ import * as svc from '../../services/pickupAdminService';
 import { normalizeViewRow, applyFilters, sortRows, PAGE_SIZE } from '../../utils/pickupRequestUtils';
 
 jest.mock('../../services/pickupAdminService', () => ({
-  fetchRequestPage: jest.fn(), fetchSummaryRows: jest.fn(), fetchAllMatching: jest.fn(), fetchBatchPrice: jest.fn(), fetchZoneBinPrice: jest.fn(() => Promise.resolve(null)),
+  fetchRequestPage: jest.fn(), fetchSummaryRows: jest.fn(), fetchAllMatching: jest.fn(), fetchBatchPrice: jest.fn(), fetchZoneBinPrice: jest.fn(() => Promise.resolve(null)), fetchBinPromotion: jest.fn(() => Promise.resolve(null)),
   assignCollector: jest.fn(), changeStatus: jest.fn(), cancelRequest: jest.fn(),
 }));
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));

@@ -161,6 +161,29 @@ export const fetchZoneBinPrice = async (lat, lng, binSizeLiters) => {
   return { price, name: zone.suburb || zone.name || zone.zone_name || null };
 };
 
+/**
+ * Whether a digital bin was booked at the promotional price, and the active
+ * promotional fee schedule for its size (household app: promotionalService).
+ * Promotional bins store is_promotional and their flat client fee in fee.
+ * @returns {Promise<{ requestNumber: number|null, clientFee: number|null, collectorPayout: number|null, subsidy: number|null }|null>}
+ *   null when the bin is not promotional or can't be read
+ */
+export const fetchBinPromotion = async (binId, binSizeLiters) => {
+  // '*' so a database without the promotion columns still answers
+  const { data: bin, error } = await supabase.from('digital_bins').select('*').eq('id', binId).maybeSingle();
+  if (error || !bin || bin.is_promotional !== true) return null;
+  const num = (v) => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? null : Number(v));
+  const { data: schedule } = await supabase.from('promotional_fee_schedule')
+    .select('client_fee, collector_payout, platform_subsidy')
+    .eq('bin_size_liters', binSizeLiters || 120).eq('is_active', true).maybeSingle();
+  return {
+    requestNumber: num(bin.promo_request_number),
+    clientFee: num(schedule?.client_fee),
+    collectorPayout: num(schedule?.collector_payout),
+    subsidy: num(schedule?.platform_subsidy),
+  };
+};
+
 /* ── actions ────────────────────────────────────────────────────────────── */
 
 const update = async (row, payload) => {

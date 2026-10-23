@@ -207,14 +207,28 @@ export const REQUEST_FEE = 1.0;
  * Fee breakdown and whether the stored fee matches the pricing logic.
  * - Digital bin: zone price (by bin size) × bags, + 30% urgent, + GHS 1 request
  *   fee; zone is { price, name } from fetchZoneBinPrice, null while unknown.
+ *   A promotional bin (promo from fetchBinPromotion) pays the flat promotional
+ *   client fee instead, and TrashDrop covers the rest of the collector's payout.
  * - Pickup request: the unit price of the customer's oldest active bag batch
  *   (create_pickup_request RPC); batchPrice is that price when known.
  * @returns {{ lines: Array<[string, number]>, expected: number|null, mismatch: boolean, note: string|null }}
  */
-export const feeBreakdown = (row, { batchPrice = null, zone = null } = {}) => {
+export const feeBreakdown = (row, { batchPrice = null, zone = null, promo = null } = {}) => {
   if (row.source === 'digital_bins') {
     if (row.promotionalFee !== null) {
       return { lines: [['Promotional price', row.promotionalFee]], expected: row.promotionalFee, mismatch: row.fee !== null && Math.abs(row.fee - row.promotionalFee) > 0.01, note: 'Promotion' };
+    }
+    if (promo) {
+      const label = `Promotional price${promo.requestNumber ? ` (customer's promo request #${promo.requestNumber})` : ''}`;
+      const expected = promo.clientFee ?? row.fee;
+      const payout = row.payouts?.total ?? promo.collectorPayout;
+      const subsidy = payout !== null && payout !== undefined && row.fee !== null ? Math.round((payout - row.fee) * 100) / 100 : promo.subsidy;
+      return {
+        lines: [[label, expected]],
+        expected,
+        mismatch: promo.clientFee !== null && row.fee !== null && Math.abs(row.fee - promo.clientFee) > 0.01,
+        note: subsidy > 0 ? `Promotion: TrashDrop pays the collector GHS ${subsidy.toFixed(2)} on top of the customer's fee.` : 'Promotion',
+      };
     }
     if (!zone || !Number.isFinite(zone.price)) {
       return { lines: [], expected: null, mismatch: false, note: 'Priced by the pricing zone covering the bin\'s location.' };
