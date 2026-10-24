@@ -1,0 +1,6 @@
+# Accepted TrashDrop Digital Bin Pricing (docs/DIGITAL_BIN_PRICING.md in
+# TrashDrop-Mobile-User-Domestic): changes need the owner's review.
+/CLAUDE.md                                               @apaloo
+/src/utils/pickupRequestUtils.js                         @apaloo
+/src/utils/__tests__/pickupRequestUtils.test.js          @apaloo
+/supabase/migrations/20261107_fee_mismatch_pricing.sql   @apaloo
