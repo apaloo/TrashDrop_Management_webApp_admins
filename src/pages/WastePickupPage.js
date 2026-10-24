@@ -4,10 +4,10 @@ import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPage
 import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, localBusinessJsonLd } from '../utils/seo';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
-// On-demand pickup page: targets "waste pickup" / "trash pickup" searches.
+// On-demand pickup page: targets "waste pickup" / "trash pickup" / "rubbish collector" searches.
 export const WASTE_PICKUP_SEO = {
-  title: 'Waste Pickup & Trash Pickup in Ghana – Same Day | TrashDrop',
-  description: 'Need a waste pickup today? Request an on-demand trash pickup in Accra, Kumasi, Takoradi or Tamale. Instant price, live tracking, pay on collection.',
+  title: 'Waste Pickup in Ghana: Book a Rubbish Collector Today | TrashDrop',
+  description: 'Need a rubbish collector today? Book an on-demand waste or trash pickup in Accra, Kumasi, Takoradi or Tamale. Instant price, live tracking, pay on collection.',
   path: WASTE_PICKUP_PATH,
 };
 
@@ -22,7 +22,7 @@ const WASTE_TYPES = [
 const STEPS = [
   ['Request', 'Open TrashDrop, set your location and describe the waste you want collected.'],
   ['Get an instant price', 'You see a GPS-based price quote before you confirm. No surprises at the gate.'],
-  ['Track your collector', 'A verified collector near you accepts within 2 hours. Follow them live on the map.'],
+  ['Track your collector', 'A verified rubbish collector near you accepts within 2 hours. Follow them live on the map.'],
   ['Pay and get confirmation', 'Pay with MoMo or cash when the waste is collected, and get confirmation it went to an authorised disposal site.'],
 ];
 
@@ -30,6 +30,7 @@ const FAQ = [
   { q: 'How fast is an on-demand waste pickup?', a: 'A verified collector near you accepts the request within 2 hours, and you can track them live on the map from the moment they accept.' },
   { q: 'How much does a trash pickup cost?', a: 'Digital Bin pickups are priced by distance and the amount of waste. You see the price in the app before you confirm. For free pickups, use TrashDrop QR Bags, from ₵115 for a batch of five.' },
   { q: 'How do I pay for a waste pickup?', a: 'Pay with MTN MoMo, Telecel Cash, AirtelTigo Money or cash when the collector picks up your waste.' },
+  { q: 'How do I find a rubbish collector near me?', a: 'Request a pickup in the TrashDrop app or on WhatsApp. TrashDrop sends the request to verified rubbish collectors close to you, and the first to accept comes to your gate. You see who is coming and can follow them on the map.' },
   { q: 'Where does TrashDrop offer waste pickup?', a: 'In Accra, Kumasi, Takoradi and Tamale. Each city page lists the neighbourhoods collectors currently cover.' },
 ];
 
@@ -86,11 +87,11 @@ const WastePickupPage = () => {
             <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Waste pickup
           </nav>
           <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            On-Demand Waste Pickup in Ghana
+            On-Demand Waste Pickup & Rubbish Collectors in Ghana
           </h1>
           <P>
             Need trash gone today? TrashDrop's Digital Bin service gives you an on-demand waste pickup anywhere we operate.
-            Enter your waste details, get an instant GPS price quote, and a nearby verified collector accepts within 2 hours.
+            Enter your waste details, get an instant GPS price quote, and a nearby verified rubbish collector accepts within 2 hours.
             Track them live and pay with MoMo or cash at collection.
           </P>
           <div style={{ marginTop:28 }}><CtaButtons /></div>

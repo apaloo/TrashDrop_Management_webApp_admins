@@ -107,7 +107,7 @@ const CityWasteCollectionPage = ({ slug }) => {
       <Section bg="#0c1a0c">
         <H2>Digital Bin: on-demand pickup in {c.name}</H2>
         <P>{c.digitalBin}</P>
-        <P>See how an <Link to={WASTE_PICKUP_PATH} style={linkStyle}>on-demand waste pickup</Link> works, from request to disposal confirmation.</P>
+        <P>See how to <Link to={WASTE_PICKUP_PATH} style={linkStyle}>book a rubbish collector on demand</Link>, from request to disposal confirmation.</P>
       </Section>
 
       {/* Bags */}

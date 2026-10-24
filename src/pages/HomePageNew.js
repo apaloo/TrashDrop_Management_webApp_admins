@@ -1838,7 +1838,7 @@ const HomePageNew = () => {
 };
 
 export const HOME_SEO = {
-  title: 'Waste Collection & Trash Pickup in Ghana | TrashDrop',
+  title: 'Waste Collection & Trash Pickup in Accra, Kumasi, Takoradi & Tamale | TrashDrop',
   description: 'Book waste collection and trash pickup in Accra, Kumasi, Takoradi & Tamale. Free pickup with QR Bags, on-demand bins, live tracking. Pay MoMo or cash.',
   path: '/',
 };

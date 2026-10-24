@@ -5,11 +5,11 @@ export const CITY_CONTENT = {
   accra: {
     name: 'Accra',
     region: 'Greater Accra',
-    title: 'Waste Collection in Accra | Trash Pickup Same Day | TrashDrop',
+    title: 'Waste Collection & Rubbish Pickup in Accra | TrashDrop',
     description: 'Book waste collection in Accra – East Legon, Madina, Spintex, Tema & more. Free pickup with QR Bags or same-day trash pickup. Track your collector live.',
     intro: [
       'Getting rubbish out of an Accra home should not depend on a truck that may or may not pass your street this week. TrashDrop gives households, landlords and small businesses across Greater Accra a simple way to book waste collection from a phone, see which verified collector is coming, and follow them on the map until the bags are gone.',
-      'Whether you live in a gated estate in East Legon, a compound house in Madina or a flat off the Spintex Road, the same app handles your trash pickup. No paper schedules, no guessing, and no waste left by the roadside to wash into gutters when the rains come.',
+      'Whether you live in a gated estate in East Legon, a compound house in Madina or a flat off the Spintex Road, the same app handles your trash pickup, whether you call it rubbish, refuse or borla. No paper schedules, no guessing, and no waste left by the roadside to wash into gutters when the rains come.',
     ],
     qrIntro: 'The QR Bag System is the easiest way to keep regular rubbish collection going in Accra. Each bag carries a QR code, so every pickup is recorded from your gate to an authorised disposal site.',
     digitalBin: 'Moving house in Cantonments, clearing out a shop in Osu, or left with extra waste after a family event in Dome? Use the Digital Bin when you need waste gone today and do not have QR Bags. Enter your location in the app, describe the waste, and get an instant GPS-based price quote before you confirm. A nearby collector accepts the job, and you pay with MoMo or cash when the waste is collected.',
