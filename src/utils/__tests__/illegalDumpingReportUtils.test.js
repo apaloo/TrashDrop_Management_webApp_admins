@@ -101,6 +101,12 @@ describe('assignmentFailedMessage', () => {
     expect(assignmentFailedMessage({ code: '42501', message: 'Not allowed' })).toMatch(/can't assign cleanups/);
     expect(assignmentFailedMessage({ message: 'network down' })).toBe("Couldn't assign the cleanup. Try again.");
   });
+  it('maps the database rule that only verified reports can be assigned', () => {
+    expect(assignmentFailedMessage({ code: 'P0001', message: 'Verify this report before assigning a cleanup team' }))
+      .toBe('Verify this report before assigning a cleanup team.');
+    expect(assignmentFailedMessage({ code: 'P0001', message: 'Only verified reports can be assigned a cleanup team (this one is completed)' }))
+      .toBe("This report is completed, so it can't be assigned. Only verified reports can get a cleanup team.");
+  });
 });
 
 describe('cleanup payment', () => {
