@@ -207,8 +207,9 @@ export const REQUEST_FEE = 1.0;
  * Fee breakdown and whether the stored fee matches the pricing logic.
  * - Digital bin: zone price (by bin size) × bags, + 30% urgent, + GHS 1 request
  *   fee; zone is { price, name } from fetchZoneBinPrice, null while unknown.
- *   A promotional bin (promo from fetchBinPromotion) pays the flat promotional
- *   client fee instead, and TrashDrop covers the rest of the collector's payout.
+ *   A promotional bin (promo from fetchBinPromotion) pays the promotional
+ *   client fee × bags instead (older bookings: one bag's fee), and TrashDrop
+ *   covers the rest of the collector's payout.
  * - Pickup request: the unit price of the customer's oldest active bag batch
  *   (create_pickup_request RPC); batchPrice is that price when known.
  * @returns {{ lines: Array<[string, number]>, expected: number|null, mismatch: boolean, note: string|null }}
@@ -220,13 +221,19 @@ export const feeBreakdown = (row, { batchPrice = null, zone = null, promo = null
     }
     if (promo) {
       const label = `Promotional price${promo.requestNumber ? ` (customer's promo request #${promo.requestNumber})` : ''}`;
-      const expected = promo.clientFee ?? row.fee;
+      // Promotional rate × bags; bookings made before promotions were priced per
+      // bag paid one bag's rate (household app migration 20261024)
+      const bags = row.bags || 1;
+      const flat = promo.clientFee !== null && row.fee !== null && Math.abs(row.fee - promo.clientFee) <= 0.01;
+      const expected = promo.clientFee === null ? row.fee
+        : flat ? promo.clientFee : Math.round(promo.clientFee * bags * 100) / 100;
+      const perBag = promo.clientFee !== null && !flat && bags > 1;
       const payout = row.payouts?.total ?? promo.collectorPayout;
       const subsidy = payout !== null && payout !== undefined && row.fee !== null ? Math.round((payout - row.fee) * 100) / 100 : promo.subsidy;
       return {
-        lines: [[label, expected]],
+        lines: [[perBag ? `${label} × ${bagsLabel(bags)}` : label, expected]],
         expected,
-        mismatch: promo.clientFee !== null && row.fee !== null && Math.abs(row.fee - promo.clientFee) > 0.01,
+        mismatch: promo.clientFee !== null && row.fee !== null && Math.abs(row.fee - expected) > 0.01,
         note: subsidy > 0 ? `Promotion: TrashDrop pays the collector GHS ${subsidy.toFixed(2)} on top of the customer's fee.` : 'Promotion',
       };
     }
