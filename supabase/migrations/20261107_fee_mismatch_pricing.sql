@@ -10,6 +10,7 @@
 --
 -- Rule 9 now expects:
 --   promotional bin  the active promotional_fee_schedule client fee for its size
+--                    × bags (one bag's fee also accepted: older bookings were flat)
 --   other bin        zone price for its size × bags, +30% if urgent, + GHS 1
 --   pickup request   unchanged (unit price of the customer's bag batch)
 -- and raises nothing when the expected price is unknown.
@@ -242,8 +243,8 @@ BEGIN
 
   -- 9. stored fee doesn't match the pricing logic
   --    Digital bins are priced like the household app: a promotional bin pays
-  --    the flat client fee of the active promotional_fee_schedule row for its
-  --    size; any other bin pays its pricing zone's price for the size × bags,
+  --    the client fee of the active promotional_fee_schedule row for its size
+  --    × bags (one bag's fee on older bookings); any other bin pays its pricing zone's price for the size × bags,
   --    + 30% if urgent, + GHS 1 request fee (get_covering_pricing_zone).
   --    Unknown expected price (no schedule row, location outside every zone,
   --    size the zone doesn't price) → no alert.
@@ -259,9 +260,12 @@ BEGIN
       SELECT q.*,
         CASE
           WHEN q.source = 'digital_bins' AND q.promotional_fee IS NOT NULL THEN q.promotional_fee
+          -- promotional rate × bags; a fee of one bag's rate is a booking made
+          -- before promotions were priced per bag (20261024 in the household app)
           WHEN q.source = 'digital_bins' AND b.promo THEN
-            (SELECT public.td_try_num(to_jsonb(s) ->> 'client_fee') FROM public.promotional_fee_schedule s
-              WHERE s.bin_size_liters = coalesce(q.bin_size_liters, 120) AND s.is_active LIMIT 1)
+            (SELECT CASE WHEN abs(q.fee - pf.promo_rate) <= 0.01 THEN pf.promo_rate ELSE round(pf.promo_rate * coalesce(q.bag_count, 1), 2) END
+               FROM (SELECT public.td_try_num(to_jsonb(s) ->> 'client_fee') AS promo_rate FROM public.promotional_fee_schedule s
+                      WHERE s.bin_size_liters = coalesce(q.bin_size_liters, 120) AND s.is_active LIMIT 1) pf)
           WHEN q.source = 'digital_bins' AND q.lat IS NOT NULL AND q.lng IS NOT NULL THEN
             (SELECT round(zp.price * coalesce(q.bag_count, 1) * (CASE WHEN q.is_urgent THEN 1.3 ELSE 1 END) + 1, 2)
                FROM (SELECT public.td_try_num(to_jsonb(z) ->> ('price_' || coalesce(q.bin_size_liters, 120) || 'l')) AS price
@@ -270,7 +274,7 @@ BEGIN
           WHEN q.source = 'pickup_requests' AND q.batch_id IS NOT NULL AND to_regclass('public.batches') IS NOT NULL
             THEN (SELECT trunc(public.td_try_num(to_jsonb(bt) ->> 'unit_price')) FROM public.batches bt WHERE bt.id::text = q.batch_id)
         END AS expected,
-        CASE WHEN q.source = 'digital_bins' AND (q.promotional_fee IS NOT NULL OR b.promo) THEN 'Promotional price for this bin size.'
+        CASE WHEN q.source = 'digital_bins' AND (q.promotional_fee IS NOT NULL OR b.promo) THEN 'Promotional price for this bin size × bags.'
              WHEN q.source = 'digital_bins' THEN 'Pricing zone price × bags (+30% urgent) + GHS 1 request fee, at today''s zone price.'
              ELSE 'Unit price of the customer''s bag batch.' END AS basis
       FROM td_req q

@@ -140,6 +140,12 @@ describe('fees', () => {
     expect(b.lines[0][0]).toContain('promo request #2');
     expect(b.note).toContain('GHS 18.00');
     expect(feeBreakdown({ ...bin, fee: 30 }, { promo }).mismatch).toBe(true);
+    // priced per bag since the household app's 20261024 migration: 22 × 2 = 44, collector 80
+    const perBag = feeBreakdown({ ...bin, fee: 44, payouts: { ...bin.payouts, total: 80 } }, { promo });
+    expect(perBag).toMatchObject({ expected: 44, mismatch: false });
+    expect(perBag.lines[0][0]).toContain('× 2 bags');
+    expect(perBag.note).toContain('GHS 36.00');
+    expect(feeBreakdown({ ...bin, fee: 40 }, { promo })).toMatchObject({ expected: 44, mismatch: true });
     // schedule fee unknown: no verdict
     expect(feeBreakdown(bin, { promo: { ...promo, clientFee: null } }).mismatch).toBe(false);
   });
