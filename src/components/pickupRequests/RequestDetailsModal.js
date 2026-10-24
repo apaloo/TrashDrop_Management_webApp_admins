@@ -9,7 +9,7 @@ import { canonicalStatus, canCancel } from '../../constants/pickupStatus';
 import {
   shortId, bagsLabel, fullDate, relativeAge, formatGhs, feeBreakdown, collectorsByDistance, isOverdue,
 } from '../../utils/pickupRequestUtils';
-import { fetchBatchPrice } from '../../services/pickupAdminService';
+import { fetchBatchPrice, fetchZoneBinPrice, fetchBinPromotion } from '../../services/pickupAdminService';
 import EntityHistory from '../logs/EntityHistory';
 
 const pin = L.divIcon({
@@ -32,13 +32,17 @@ const RequestDetailsModal = ({
 }) => {
   const [collectorId, setCollectorId] = useState('');
   const [batchPrice, setBatchPrice] = useState(null);
+  const [zone, setZone] = useState(null);
+  const [promo, setPromo] = useState(null);
+  const [binPricingLoaded, setBinPricingLoaded] = useState(false);
   const status = canonicalStatus(row.status);
   const hasCollector = !!row.collectorRef;
   const ranked = collectorsByDistance(row, collectors);
   // Who this account may assign to (Waste Management Managers: their region only)
   const assignRanked = assignCollectors ? collectorsByDistance(row, assignCollectors) : ranked;
   const chosen = assignRanked.find(c => c.id === collectorId);
-  const fee = feeBreakdown(row, { batchPrice });
+  // No verdict on a bin's fee until we know whether it was a promotion
+  const fee = feeBreakdown(row, { batchPrice, zone: binPricingLoaded ? zone : null, promo });
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -49,9 +53,21 @@ const RequestDetailsModal = ({
   useEffect(() => {
     let live = true;
     setBatchPrice(null);
+    setZone(null);
+    setPromo(null);
+    setBinPricingLoaded(false);
     if (row.source === 'pickup_requests' && row.batchId) fetchBatchPrice(row.batchId).then(p => { if (live) setBatchPrice(p); });
+    if (row.source === 'digital_bins' && row.promotionalFee === null) {
+      fetchBinPromotion(row.id, row.binSizeLiters).catch(() => null).then(async (p) => {
+        const z = p ? null : await fetchZoneBinPrice(row.lat, row.lng, row.binSizeLiters).catch(() => null);
+        if (!live) return;
+        setPromo(p);
+        setZone(z);
+        setBinPricingLoaded(true);
+      });
+    }
     return () => { live = false; };
-  }, [row.id, row.source, row.batchId]);
+  }, [row.id, row.source, row.batchId, row.lat, row.lng, row.binSizeLiters, row.promotionalFee]);
 
   const action = (label, to, cls, disabled, title) => (
     <button key={to} type="button" disabled={busy || disabled} title={title} onClick={() => onStatus(row, to)}
