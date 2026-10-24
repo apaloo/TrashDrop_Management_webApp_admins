@@ -227,6 +227,9 @@ export const updateCollectorStatus = async (collectorId, status, additionalData 
   return transformCollectorData(updatedRow);
 };
 
+/** collector_profiles.on_duty (the app's On-/Off-Duty button); null when the column isn't there */
+const dutyOf = (row) => (Object.prototype.hasOwnProperty.call(row, 'on_duty') ? row.on_duty === true : null);
+
 /**
  * Collectors for the Live Map: fetchCollectors() plus when each collector's
  * location was last reported and the PostGIS current_location point (the
@@ -239,6 +242,7 @@ export const fetchCollectorsForMap = async () => {
   if (!ids.length) return collectors;
 
   const attempts = [
+    'id, location_updated_at, last_active, current_location, license_plate, on_duty, on_duty_changed_at',
     'id, location_updated_at, last_active, current_location, license_plate',
     'id, location_updated_at, last_active, current_location',
     'id, location_updated_at, last_active',
@@ -255,6 +259,8 @@ export const fetchCollectorsForMap = async () => {
     locationUpdatedAt: byId[c.id]?.location_updated_at || null,
     lastActive: byId[c.id]?.last_active || null,
     currentLocationPoint: byId[c.id]?.current_location || null,
+    onDuty: dutyOf(byId[c.id] || {}),
+    onDutySince: byId[c.id]?.on_duty_changed_at || null,
     // The collector app stores the registration in license_plate
     vehicleRegistration: [byId[c.id]?.license_plate, c.vehicle?.plate].find(v => v && v !== 'N/A') || null,
   }));
@@ -293,6 +299,8 @@ export const toAdminCollector = (profile) => {
     lastActive,
     lastUpdated: hasLocationClock ? null : base.lastUpdated,
     currentLocationPoint: profile.current_location || null,
+    onDuty: dutyOf(profile),
+    onDutySince: profile.on_duty_changed_at || null,
     deactivationReason: profile.deactivation_reason || null,
     deactivatedAt: profile.deactivated_at || null,
   };

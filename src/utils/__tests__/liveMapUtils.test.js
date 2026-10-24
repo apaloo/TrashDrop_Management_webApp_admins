@@ -29,6 +29,16 @@ describe('collectors', () => {
     expect(isCollectorOnline({}, NOW)).toBe(false);
   });
 
+  it('follows the On-Duty switch in the collector app when it is recorded', () => {
+    // On-Duty with a day-old location (the phone stopped sending GPS)
+    expect(isCollectorOnline({ onDuty: true, locationUpdatedAt: '2026-10-11T12:00:00Z' }, NOW)).toBe(true);
+    expect(isCollectorOnline({ onDuty: true }, NOW)).toBe(true);
+    // Off-Duty collectors can't accept requests, even with a fresh location
+    expect(isCollectorOnline({ onDuty: false, locationUpdatedAt: '2026-10-12T11:59:00Z' }, NOW)).toBe(false);
+    // No on_duty column: the location rule
+    expect(isCollectorOnline({ onDuty: null, locationUpdatedAt: '2026-10-12T11:59:00Z' }, NOW)).toBe(true);
+  });
+
   it('keeps collectors whose lat/lng columns are empty but whose PostGIS point is set', () => {
     const c = withCollectorPosition({ ...base, currentLocation: { lat: null, lng: null }, currentLocationPoint: '0101000020e6100000560e2db29defc7bf7c613255306a1640' });
     expect(c.position[0]).toBeCloseTo(5.6037, 4);

@@ -91,6 +91,9 @@ const CollectorDetailsModal = ({ collector: c, requests, onClose, onCopy, action
             <Field label="Last seen">
               {c.presence.lastSeen ? <span title={fullDate(c.presence.lastSeen)}>{relativeTime(c.presence.lastSeen)}</span> : 'Never reported a location'}
             </Field>
+            <Field label="Last location update">
+              {c.presence.locationAt ? <span title={fullDate(c.presence.locationAt)}>{relativeTime(c.presence.locationAt)}</span> : 'Never reported a location'}
+            </Field>
             <Field label="App account">{c.userId ? 'Linked' : <span className="text-amber-700">Not signed in to the collector app yet</span>}</Field>
             {c.notes && <div className="sm:col-span-2"><Field label="Notes"><span className="whitespace-pre-wrap font-normal">{c.notes}</span></Field></div>}
           </div>

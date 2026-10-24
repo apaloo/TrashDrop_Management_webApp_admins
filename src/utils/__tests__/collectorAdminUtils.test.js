@@ -68,6 +68,19 @@ describe('presence (same 10-minute rule as the Live Map)', () => {
     expect(collectorPresence(base({ locationUpdatedAt: ago(60 * 30) }), NOW).key).toBe('offline');
     expect(collectorPresence(base({ locationUpdatedAt: null }), NOW)).toMatchObject({ key: 'offline', lastSeen: null });
   });
+
+  it('is online while On-Duty, and flags a location older than 10 min', () => {
+    const p = collectorPresence(base({ onDuty: true, onDutySince: ago(60), locationUpdatedAt: ago(60 * 25) }), NOW);
+    expect(p).toMatchObject({ key: 'online', gpsStale: true, lastSeen: ago(60), locationAt: ago(60 * 25) });
+    expect(collectorPresence(base({ onDuty: true, locationUpdatedAt: ago(2) }), NOW)).toMatchObject({ key: 'online', gpsStale: false });
+    expect(collectorPresence(base({ onDuty: true, locationUpdatedAt: null }), NOW)).toMatchObject({ key: 'online', gpsStale: true, locationAt: null });
+  });
+
+  it('is not online when Off-Duty; going Off-Duty counts as last seen', () => {
+    expect(collectorPresence(base({ onDuty: false, locationUpdatedAt: ago(2) }), NOW).key).toBe('recent');
+    expect(collectorPresence(base({ onDuty: false, onDutySince: ago(30), locationUpdatedAt: ago(60 * 30) }), NOW))
+      .toMatchObject({ key: 'recent', lastSeen: ago(30) });
+  });
 });
 
 describe('search, filters and sorting', () => {

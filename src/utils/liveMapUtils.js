@@ -38,9 +38,21 @@ export const ONLINE_WINDOW_MS = 10 * 60 * 1000;
 export const collectorLastSeen = (collector) =>
   collector.locationUpdatedAt || collector.lastActive || collector.lastUpdated || null;
 
-export const isCollectorOnline = (collector, now = Date.now()) => {
+const locationIsFresh = (collector, now) => {
   const t = new Date(collectorLastSeen(collector)).getTime();
   return Number.isFinite(t) && now - t <= ONLINE_WINDOW_MS;
+};
+
+/**
+ * Online = On-Duty in the collector app (collector_profiles.on_duty, which the
+ * app only shows once the database has it, and which the database requires to
+ * accept requests). Where duty isn't recorded (onDuty null), a location update
+ * in the last 10 minutes.
+ */
+export const isCollectorOnline = (collector, now = Date.now()) => {
+  if (collector.onDuty === true) return true;
+  if (collector.onDuty === false) return false;
+  return locationIsFresh(collector, now);
 };
 
 export const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -50,16 +62,26 @@ export const PRESENCE = {
   offline: { key: 'offline', label: 'Offline', color: COLLECTOR_OFFLINE_COLOR, badge: 'bg-gray-100 text-gray-700' },
 };
 
+const latest = (...values) => values
+  .filter(v => v && Number.isFinite(new Date(v).getTime()))
+  .sort((x, y) => new Date(y) - new Date(x))[0] || null;
+
 /**
- * Presence from the last location update (same rule as the Live Map):
- * online within 10 min, recent within 24 h, offline when older or never.
+ * Presence (same rule as the Live Map): online when On-Duty (see
+ * isCollectorOnline), otherwise recent if the app was last seen (location
+ * update or duty switch) within 24 h, offline when older or never.
+ * locationAt / gpsStale: when the last location came in, and whether an
+ * online collector's location is older than 10 minutes.
  */
 export const collectorPresence = (collector, now = Date.now()) => {
-  const lastSeen = collectorLastSeen(collector);
+  const locationAt = collectorLastSeen(collector);
+  const lastSeen = latest(locationAt, collector.onDutySince);
+  if (isCollectorOnline(collector, now)) {
+    return { ...PRESENCE.online, lastSeen, locationAt, gpsStale: !locationIsFresh(collector, now) };
+  }
   const t = new Date(lastSeen).getTime();
-  if (!lastSeen || !Number.isFinite(t)) return { ...PRESENCE.offline, lastSeen: null };
-  if (isCollectorOnline(collector, now)) return { ...PRESENCE.online, lastSeen };
-  return { ...(now - t <= RECENT_WINDOW_MS ? PRESENCE.recent : PRESENCE.offline), lastSeen };
+  if (!lastSeen || !Number.isFinite(t)) return { ...PRESENCE.offline, lastSeen: null, locationAt: null, gpsStale: false };
+  return { ...(now - t <= RECENT_WINDOW_MS ? PRESENCE.recent : PRESENCE.offline), lastSeen, locationAt, gpsStale: false };
 };
 
 /** "just now", "12 min ago", "3 h ago", "2 d ago", "—" */

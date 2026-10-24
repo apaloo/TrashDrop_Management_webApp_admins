@@ -453,9 +453,9 @@ const LiveMap = () => {
             <div key={g.key} className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border border-white" style={{ background: g.color }}></span>{g.label}</div>
           ))}
           <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--td-card-border)' }}>
-            <span className="w-3 h-3 rounded-full" style={{ background: COLLECTOR_ONLINE_COLOR }}></span>Collector online
+            <span className="w-3 h-3 rounded-full" style={{ background: COLLECTOR_ONLINE_COLOR }}></span>Collector online (On-Duty)
           </div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: COLLECTOR_OFFLINE_COLOR }}></span>Collector offline (&gt;10 min)</div>
+          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: COLLECTOR_OFFLINE_COLOR }}></span>Collector off duty</div>
         </div>
 
         {/* Empty state */}

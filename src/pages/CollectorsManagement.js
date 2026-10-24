@@ -150,9 +150,13 @@ const CollectorsManagement = () => {
   }, [loadSummary]);
 
   useEffect(() => { load(); }, [load]);
-  // Presence ("online", "last seen 3 h ago") moves with the clock
+  // Presence ("online", "last seen 3 h ago") moves with the clock, and
+  // On-/Off-Duty switches in the collector app show up within a minute
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 60000);
+    const t = setInterval(() => {
+      setNow(Date.now());
+      fetchCollectorsAdmin().then(setCollectors).catch(() => {});
+    }, 60000);
     return () => clearInterval(t);
   }, []);
 
@@ -369,7 +373,7 @@ const CollectorsManagement = () => {
           <span className="block text-xs mb-1" style={muted}>Online</span>
           <select value={filters.presence} onChange={e => setFilters({ presence: e.target.value })} className="w-full sm:w-auto border rounded px-2 py-1.5 text-sm" style={input} aria-label="Online filter">
             <option value="all">Everyone</option>
-            <option value="online">Online now (10 min)</option>
+            <option value="online">Online now (On-Duty)</option>
             <option value="recent">Seen in last 24 h</option>
             <option value="offline">Offline (24 h+)</option>
           </select>
@@ -521,7 +525,7 @@ const CollectorsManagement = () => {
       {!loading && (
         <p className="text-sm" style={muted}>
           Showing {visible.length} of {enriched.length} collectors{filtered ? ' (filtered)' : ''}.
-          {' '}Online = location update in the last 10 minutes, same as the <Link to="/request-pickup/live-map" className="underline">Live Map</Link>.
+          {' '}Online = On-Duty in the collector app, same as the <Link to="/request-pickup/live-map" className="underline">Live Map</Link>.
         </p>
       )}
 

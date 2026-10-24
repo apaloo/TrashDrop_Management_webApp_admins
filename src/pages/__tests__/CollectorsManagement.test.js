@@ -33,6 +33,8 @@ const collectors = [
   collector({ id: 'kofi-000-3333', name: 'Kofi Asante', firstName: 'Kofi', phone: '233501239999', status: 'inactive' }),
   collector({ id: 'esi-0000-4444', name: 'Esi Mensah', firstName: 'Esi' }),
   collector({ id: 'yaw-0000-5555', userId: 'u-yaw', name: 'Yaw Boateng', firstName: 'Yaw', zone: 'Kumasi', locationUpdatedAt: minutesAgo(1) }),
+  // On-Duty in the app, but the phone last sent a location a day ago
+  collector({ id: 'gett-000-6666', userId: 'u-gett', name: 'Gettina Omane', firstName: 'Gettina', zone: 'Accra – Ga North', onDuty: true, onDutySince: minutesAgo(68), locationUpdatedAt: minutesAgo(60 * 25) }),
 ];
 
 const base = { source: 'pickup_requests', created_at: '2026-10-14T09:00:00Z', user_id: 'u', address: 'Vitin Estate, Tamale', lat: 9.41, lng: -0.85, bag_count: 2, fee: 10 };
@@ -77,6 +79,12 @@ it('shows pickups, active jobs, rating and earnings from the requests', async ()
   expect(within(card('Yaw Boateng')).getByText('No ratings yet')).toBeInTheDocument();
   expect(within(card('Ama Owusu')).getByText(/Last seen 3 h ago/)).toBeInTheDocument();
   expect(within(jack).getByText('jack-000')).toBeInTheDocument(); // short ID
+});
+
+it('shows an On-Duty collector as online even when their location is old', async () => {
+  renderPage();
+  await waitFor(() => expect(card('Gettina Omane')).toBeTruthy());
+  expect(within(card('Gettina Omane')).getByText('Online · GPS 1 d ago')).toBeInTheDocument();
 });
 
 it('"Unassigned" lists every collector without a zone, and phone search accepts any format', async () => {
