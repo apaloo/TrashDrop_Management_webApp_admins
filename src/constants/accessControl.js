@@ -36,7 +36,9 @@ export const SECTIONS = {
   SETTINGS: 'settings',
   REGULATORY: 'regulatory',
   ACCOUNTS: 'accounts',
-  MEDIA_DATA: 'media-data'
+  MEDIA_DATA: 'media-data',
+  MY_PERFORMANCE: 'my-performance',
+  ACCOUNT_PERFORMANCE: 'account-performance'
 };
 
 /**
@@ -118,7 +120,13 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.REQUEST_PICKUP]: rolesWith('requests.view'),
   [SECTIONS.ACCOUNTS]: rolesWith('users.manage'),
   // National, read-only report data without reporter details (media_dumping_reports)
-  [SECTIONS.MEDIA_DATA]: rolesWith('reports.view')
+  [SECTIONS.MEDIA_DATA]: rolesWith('reports.view'),
+  // An account's own numbers and rank (my_performance() returns only the
+  // caller's own page; 20261109). Volunteer groups and MMDAs have metrics.
+  [SECTIONS.MY_PERFORMANCE]: [ROLES.VOLUNTEER, ROLES.AUTHORITY],
+  // Every account side by side, and any account's page (performance_overview()
+  // and my_performance(account) are staff only in the database)
+  [SECTIONS.ACCOUNT_PERFORMANCE]: rolesWith('users.manage')
 };
 
 export const canAccessSection = (section, role, user) => {
