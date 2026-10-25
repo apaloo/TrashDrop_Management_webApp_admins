@@ -64,6 +64,18 @@ const Sidebar = () => {
       icon: 'fas fa-newspaper',
       section: SECTIONS.MEDIA_DATA
     },
+    {
+      title: 'My Performance',
+      path: '/performance',
+      icon: 'fas fa-chart-line',
+      section: SECTIONS.MY_PERFORMANCE
+    },
+    {
+      title: 'Account Performance',
+      path: '/performance/accounts',
+      icon: 'fas fa-chart-line',
+      section: SECTIONS.ACCOUNT_PERFORMANCE
+    },
   ];
 
   // Check if the menu item should be displayed based on user role

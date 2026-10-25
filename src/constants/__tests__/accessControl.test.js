@@ -36,6 +36,12 @@ describe('sections', () => {
     ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.DASHBOARD, r)).toBe(false));
     expect(canAccessSection(SECTIONS.DASHBOARD, 'user', admin)).toBe(true);
   });
+  it('My Performance is for Volunteer groups and MMDAs; Account Performance is admin only', () => {
+    ['volunteer', 'authority'].forEach(r => expect(can(SECTIONS.MY_PERFORMANCE, r)).toBe(true));
+    ['user', 'media', 'manager'].forEach(r => expect(can(SECTIONS.MY_PERFORMANCE, r)).toBe(false));
+    ['user', 'volunteer', 'media', 'manager', 'authority'].forEach(r => expect(can(SECTIONS.ACCOUNT_PERFORMANCE, r)).toBe(false));
+    expect(canAccessSection(SECTIONS.ACCOUNT_PERFORMANCE, 'user', admin)).toBe(true);
+  });
   it('Illegal Dumping is open to every role (each sees its own area; 20261104)', () => {
     ['manager', 'authority', 'media', 'volunteer', 'user'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(true));
     expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);

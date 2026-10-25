@@ -29,6 +29,8 @@ const VolunteersPage = lazy(() => import('./pages/VolunteersPage'));
 const MediaPage = lazy(() => import('./pages/MediaPage'));
 const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
 const MediaReports = lazy(() => import('./pages/MediaReports'));
+const MyPerformance = lazy(() => import('./pages/MyPerformance'));
+const AccountPerformance = lazy(() => import('./pages/AccountPerformance'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -332,6 +334,28 @@ function App() {
                 <ProtectedRoute section={SECTIONS.MEDIA_DATA}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <MediaReports />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              {/* Account performance: own page (Volunteer, Authority); comparison and any account's page (Admin) */}
+              <Route path="/performance" element={
+                <ProtectedRoute section={SECTIONS.MY_PERFORMANCE}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <MyPerformance />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/performance/accounts" element={
+                <ProtectedRoute section={SECTIONS.ACCOUNT_PERFORMANCE}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <AccountPerformance />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/performance/accounts/:accountId" element={
+                <ProtectedRoute section={SECTIONS.ACCOUNT_PERFORMANCE}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <MyPerformance />
                   </Suspense>
                 </ProtectedRoute>
               } />
