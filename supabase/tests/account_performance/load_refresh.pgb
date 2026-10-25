@@ -1,0 +1,1 @@
+SELECT public.td_refresh_performance();
