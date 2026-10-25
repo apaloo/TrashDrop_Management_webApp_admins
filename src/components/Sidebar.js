@@ -71,6 +71,12 @@ const Sidebar = () => {
       section: SECTIONS.MY_PERFORMANCE
     },
     {
+      title: 'Team',
+      path: '/team',
+      icon: 'fas fa-users',
+      section: SECTIONS.TEAM
+    },
+    {
       title: 'Account Performance',
       path: '/performance',
       icon: 'fas fa-chart-line',

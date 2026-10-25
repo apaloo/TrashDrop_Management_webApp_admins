@@ -16,6 +16,8 @@ const normalizeAccess = (d) => ({
   region: d?.region || null,
   district: d?.district || null,
   reviewNote: d?.review_note || null,
+  // Volunteer group team (20261110): owner = the group's own account
+  team: d?.team ? { groupId: d.team.group_id, groupName: d.team.group_name || null, teamRole: d.team.team_role } : null,
 });
 
 /** The signed-in account's access. Throws with .missingSchema when the migration isn't run yet. */

@@ -38,7 +38,8 @@ export const SECTIONS = {
   ACCOUNTS: 'accounts',
   MEDIA_DATA: 'media-data',
   MY_PERFORMANCE: 'my-performance',
-  ACCOUNT_PERFORMANCE: 'account-performance'
+  ACCOUNT_PERFORMANCE: 'account-performance',
+  TEAM: 'team'
 };
 
 /**
@@ -126,7 +127,11 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.MY_PERFORMANCE]: [ROLES.VOLUNTEER, ROLES.AUTHORITY],
   // Every account side by side, and any account's page (performance_overview()
   // and my_performance(account) are staff only in the database)
-  [SECTIONS.ACCOUNT_PERFORMANCE]: rolesWith('users.manage')
+  [SECTIONS.ACCOUNT_PERFORMANCE]: rolesWith('users.manage'),
+  // A volunteer group's team: the group's own account and its members (who
+  // work as volunteers through the group; team_* functions check who may do
+  // what, 20261110)
+  [SECTIONS.TEAM]: [ROLES.VOLUNTEER]
 };
 
 export const canAccessSection = (section, role, user) => {
