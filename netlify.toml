@@ -102,6 +102,36 @@
   [headers.values]
     X-Robots-Tag = "noindex"
 
+[[headers]]
+  for = "/accounts"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/media-data"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/performance"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/performance/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/team"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/join/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
 # The old Accra page moved to the city landing page
 [[redirects]]
   from = "/accra"
@@ -151,6 +181,31 @@
   status = 200
 [[redirects]]
   from = "/illegal-dumping/*"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/accounts"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/media-data"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/performance"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/performance/*"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/team"
+  to = "/app-shell.html"
+  status = 200
+# Volunteer group invite links (opened signed in or out)
+[[redirects]]
+  from = "/join/*"
   to = "/app-shell.html"
   status = 200
 # Blog posts are public, so they get the indexable copy of the shell
