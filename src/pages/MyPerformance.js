@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchMyPerformance } from '../services/performanceService';
+import { memberStats } from '../services/teamService';
 import { relativeTime } from '../utils/liveMapUtils';
 import {
   PERIODS, ACCOUNT_KINDS, formatValue, rankText, changeText, targetProgress, fillTrend, isCountMetric, hasActivity,
@@ -71,6 +72,59 @@ const MetricCard = ({ metric, role, area, period }) => {
       )}
       <Sparkline points={trend} label={`${metric.label}, day by day`} />
     </div>
+  );
+};
+
+const MEMBER_COLUMNS = [
+  { key: 'verified', label: 'Verified' },
+  { key: 'assigned', label: 'Assigned' },
+  { key: 'claimed', label: 'Claimed' },
+  { key: 'completed', label: 'Cleaned up' },
+  { key: 'marked_cleaned', label: 'Marked cleaned' },
+];
+
+/** Each member's part in the group's numbers (only people in the group can load it) */
+const MemberTable = ({ days }) => {
+  const [rows, setRows] = useState(null);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    let live = true;
+    memberStats(days).then(r => { if (live) { setRows(r); setError(null); } })
+      .catch(e => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [days]);
+  if (error) return <p className="text-sm text-gray-500 mt-6">{error}</p>;
+  if (!rows) return null;
+  return (
+    <section className="bg-white rounded-lg shadow-sm mt-6 overflow-x-auto" aria-labelledby="members-title">
+      <div className="flex items-baseline gap-3 px-5 pt-5">
+        <h2 id="members-title" className="text-lg font-semibold text-gray-800">Members</h2>
+        <Link to="/team" className="text-sm text-green-700 hover:underline">Manage team</Link>
+      </div>
+      <p className="px-5 text-xs text-gray-500">What each person did for the group in the last {days} days. Only people in your group see this.</p>
+      <table className="min-w-full text-sm mt-2">
+        <thead className="bg-gray-50 text-gray-600">
+          <tr>
+            <th scope="col" className="text-left px-5 py-2 font-medium">Member</th>
+            {MEMBER_COLUMNS.map(c => <th key={c.key} scope="col" className="text-right px-3 py-2 font-medium">{c.label}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.member_id} className="border-t border-gray-100" data-testid="member-stats-row">
+              <td className="px-5 py-2">
+                {r.name}
+                {r.is_group && <span className="block text-xs text-gray-500">The shared group login (e.g. the collector app)</span>}
+              </td>
+              {MEMBER_COLUMNS.map(c => <td key={c.key} className="px-3 py-2 text-right tabular-nums">{r[c.key] ?? 0}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {rows.length <= 1 && (
+        <p className="px-5 py-3 text-sm text-gray-500" data-testid="no-members-yet">No members yet. <Link to="/team" className="text-green-700 hover:underline">Invite your group</Link> so each person signs in with their own account.</p>
+      )}
+    </section>
   );
 };
 
@@ -181,6 +235,7 @@ const MyPerformance = () => {
           <p className="text-xs text-gray-500 mt-4">
             Ranks compare approved {kind?.many || 'accounts'} in {area} over the same {days} days; other accounts’ numbers stay private.
           </p>
+          {data.role === 'volunteer' && !accountId && <MemberTable days={days} />}
         </>
       )}
     </div>

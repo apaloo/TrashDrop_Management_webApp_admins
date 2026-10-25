@@ -14,6 +14,7 @@ import { supabase } from './utils/supabase';
 import logger from './utils/logger';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
 import { can, landingPathFor } from './lib/permissions';
+import PendingInviteRedirect from './components/PendingInviteRedirect';
 import HomePage from './pages/HomePage';
 
 // Public marketing pages
@@ -32,6 +33,8 @@ const MediaReports = lazy(() => import('./pages/MediaReports'));
 const MyPerformance = lazy(() => import('./pages/MyPerformance'));
 const AccountPerformance = lazy(() => import('./pages/AccountPerformance'));
 const PerformanceMetrics = lazy(() => import('./pages/PerformanceMetrics'));
+const Team = lazy(() => import('./pages/Team'));
+const JoinTeam = lazy(() => import('./pages/JoinTeam'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -195,6 +198,7 @@ function App() {
       <ModalProvider>
         <Router>
           <RobotsMeta />
+          <PendingInviteRedirect />
           <Layout>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[60vh]">
@@ -352,6 +356,19 @@ function App() {
                     <AccountPerformance />
                   </Suspense>
                 </ProtectedRoute>
+              } />
+              <Route path="/team" element={
+                <ProtectedRoute section={SECTIONS.TEAM}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <Team />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              {/* Invite links: open signed in or out (not a PublicRoute, which would send signed-in people away) */}
+              <Route path="/join/:token" element={
+                <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                  <JoinTeam />
+                </Suspense>
               } />
               <Route path="/performance/metrics" element={
                 <ProtectedRoute section={SECTIONS.ACCOUNT_PERFORMANCE}>

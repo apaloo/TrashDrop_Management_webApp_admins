@@ -4,8 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import MyPerformance from '../MyPerformance';
 import { fetchMyPerformance, PerformanceError } from '../../services/performanceService';
+import { memberStats } from '../../services/teamService';
 
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
+jest.mock('../../services/teamService', () => ({ memberStats: jest.fn(() => Promise.resolve([])) }));
 jest.mock('../../services/performanceService', () => {
   const actual = jest.requireActual('../../services/performanceService');
   return { ...actual, fetchMyPerformance: jest.fn() };
@@ -37,6 +39,7 @@ const renderPage = (path = '/performance') => render(
 
 beforeEach(() => {
   jest.clearAllMocks();
+  memberStats.mockResolvedValue([]);
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -105,4 +108,26 @@ it('says so when the database refuses', async () => {
   fetchMyPerformance.mockRejectedValue(new PerformanceError('forbidden', 'nope'));
   renderPage('/performance/accounts/someone-else');
   expect(await screen.findByRole('alert')).toHaveTextContent('You can only see your own performance.');
+});
+
+it('shows a volunteer group each member’s part in its numbers', async () => {
+  memberStats.mockResolvedValue([
+    { member_id: 'g1', is_group: true, name: 'Group account', verified: 0, assigned: 0, claimed: 2, completed: 2, marked_cleaned: 0 },
+    { member_id: 'm1', is_group: false, name: 'Kofi Asante', verified: 3, assigned: 1, claimed: 0, completed: 0, marked_cleaned: 1 },
+  ]);
+  fetchMyPerformance.mockResolvedValue(page([completed]));
+  renderPage();
+  const rows = await screen.findAllByTestId('member-stats-row');
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveTextContent('The shared group login');
+  expect(rows[1]).toHaveTextContent('Kofi Asante31001');
+  expect(memberStats).toHaveBeenCalledWith(30);
+  expect(screen.queryByTestId('no-members-yet')).not.toBeInTheDocument();
+});
+
+it('has no members table for MMDAs or when an admin views a group', async () => {
+  fetchMyPerformance.mockResolvedValue(page([completed], { role: 'authority' }));
+  renderPage();
+  await screen.findByTestId('metric-vol_cleanups_completed');
+  expect(memberStats).not.toHaveBeenCalled();
 });
