@@ -1,0 +1,11 @@
+\set g random(1, 200)
+BEGIN;
+SELECT set_config('request.jwt.claim.sub', '44444444-0000-0000-0000-' || lpad(:g::text, 12, '0'), true);
+INSERT INTO illegal_dumping_mobile (reported_by, region, district) VALUES (('44444444-0000-0000-0000-' || lpad(:g::text, 12, '0'))::uuid, 'Greater Accra', 'Ga East') RETURNING replace(id::text,'-','') AS rid \gset
+UPDATE illegal_dumping_mobile SET status = 'verified' WHERE id = uuid(':rid');
+SELECT set_config('app.td_claim', 'on', true);
+UPDATE illegal_dumping_mobile SET assigned_to = ('33333333-0000-0000-0000-' || lpad(:g::text, 12, '0'))::uuid WHERE id = uuid(':rid');
+SELECT set_config('app.td_claim', '', true);
+UPDATE illegal_dumping_mobile SET status = 'in_progress' WHERE id = uuid(':rid');
+UPDATE illegal_dumping_mobile SET status = 'completed' WHERE id = uuid(':rid');
+COMMIT;
