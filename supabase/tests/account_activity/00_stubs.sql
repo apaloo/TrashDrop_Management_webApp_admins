@@ -15,7 +15,10 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
 CREATE FUNCTION public.td_admin_emails() RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT ARRAY['otisadomako50@gmail.com'] $$;
 CREATE FUNCTION public.td_is_staff() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT coalesce(lower(auth.jwt() ->> 'email') = ANY (public.td_admin_emails()), false) $$;
-CREATE TABLE public.account_roles (user_id uuid PRIMARY KEY, role text NOT NULL DEFAULT 'user', region text, district text);
+CREATE TABLE public.account_roles (user_id uuid PRIMARY KEY, role text NOT NULL DEFAULT 'user', region text, district text, org_name text);
+CREATE FUNCTION public.td_norm_region(p text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT nullif(lower(btrim(regexp_replace(coalesce(p, ''), '\s+region\s*$', '', 'i'))), '')
+$$;
 CREATE TABLE public.collector_profiles (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, first_name varchar, last_name varchar, status varchar, collector_type text NOT NULL DEFAULT 'collector');
 CREATE TABLE public.illegal_dumping_mobile (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), reported_by uuid, status text DEFAULT 'pending', assigned_to uuid,
