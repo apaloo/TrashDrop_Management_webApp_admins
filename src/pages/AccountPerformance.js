@@ -53,6 +53,7 @@ const AccountPerformance = () => {
         <div className="mr-auto">
           <h1 className="text-3xl font-bold text-gray-800">Account performance</h1>
           <p className="text-gray-600">Compare {kind.many} over the same period. Each account sees only its own numbers and rank.</p>
+          <Link to="/performance/metrics" className="text-sm text-green-700 hover:underline">Edit the metrics →</Link>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-md border border-gray-300 overflow-hidden bg-white" role="group" aria-label="Account type">

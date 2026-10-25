@@ -49,3 +49,43 @@ export const fetchPerformanceOverview = async (role, region, days) => {
   if (error) throw toError(error, 'performance_overview');
   return data || { metrics: [], accounts: [] };
 };
+
+/* ── metric list (admins; performance_metrics is staff-only in the database) ── */
+
+const metricError = (error, what) => {
+  if (error?.code === '23505') return new Error('A metric with that name already exists. Give it another name.');
+  if (error?.code === '23514') return new Error('The database refused these settings. Check the actions and numbers, then try again.');
+  if (forbidden(error)) return new Error('Only TrashDrop admins can change metrics.');
+  if (missing(error)) return new Error(MESSAGES.missing);
+  console.warn(`${what}:`, error?.message, error?.code);
+  return new Error('Couldn’t save. Check your connection and try again.');
+};
+
+/** Every metric, shown or hidden, in page order */
+export const fetchMetrics = async () => {
+  const { data, error } = await supabase.from('performance_metrics').select('*')
+    .order('sort_order', { ascending: true }).order('key', { ascending: true });
+  if (error) throw metricError(error, 'fetchMetrics');
+  return data || [];
+};
+
+export const createMetric = async (row, userId) => {
+  const { data, error } = await supabase.from('performance_metrics')
+    .insert({ ...row, updated_by: userId || null, updated_at: new Date().toISOString() })
+    .select().single();
+  if (error) throw metricError(error, 'createMetric');
+  return data;
+};
+
+export const updateMetric = async (key, patch, userId) => {
+  const { data, error } = await supabase.from('performance_metrics')
+    .update({ ...patch, updated_by: userId || null, updated_at: new Date().toISOString() })
+    .eq('key', key).select().single();
+  if (error) throw metricError(error, 'updateMetric');
+  return data;
+};
+
+export const deleteMetric = async (key) => {
+  const { error } = await supabase.from('performance_metrics').delete().eq('key', key);
+  if (error) throw metricError(error, 'deleteMetric');
+};

@@ -31,6 +31,7 @@ const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
 const MediaReports = lazy(() => import('./pages/MediaReports'));
 const MyPerformance = lazy(() => import('./pages/MyPerformance'));
 const AccountPerformance = lazy(() => import('./pages/AccountPerformance'));
+const PerformanceMetrics = lazy(() => import('./pages/PerformanceMetrics'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
@@ -349,6 +350,13 @@ function App() {
                 <ProtectedRoute section={SECTIONS.ACCOUNT_PERFORMANCE}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <AccountPerformance />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/performance/metrics" element={
+                <ProtectedRoute section={SECTIONS.ACCOUNT_PERFORMANCE}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <PerformanceMetrics />
                   </Suspense>
                 </ProtectedRoute>
               } />
