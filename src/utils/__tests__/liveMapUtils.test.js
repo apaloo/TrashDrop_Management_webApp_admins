@@ -29,10 +29,15 @@ describe('collectors', () => {
     expect(isCollectorOnline({}, NOW)).toBe(false);
   });
 
-  it('follows the On-Duty switch in the collector app when it is recorded', () => {
-    // On-Duty with a day-old location (the phone stopped sending GPS)
-    expect(isCollectorOnline({ onDuty: true, locationUpdatedAt: '2026-10-11T12:00:00Z' }, NOW)).toBe(true);
-    expect(isCollectorOnline({ onDuty: true }, NOW)).toBe(true);
+  it('follows the On-Duty switch in the collector app while the app checks in', () => {
+    // On-Duty and checking in, with a day-old location (no GPS fix)
+    expect(isCollectorOnline({ onDuty: true, lastActive: '2026-10-12T11:59:00Z', locationUpdatedAt: '2026-10-11T12:00:00Z' }, NOW)).toBe(true);
+    // Just switched On-Duty
+    expect(isCollectorOnline({ onDuty: true, onDutySince: '2026-10-12T11:58:00Z' }, NOW)).toBe(true);
+    // Left On-Duty, but the app stopped checking in (phone offline, app closed)
+    expect(isCollectorOnline({ onDuty: true, lastActive: '2026-10-12T11:54:00Z', onDutySince: '2026-10-12T08:00:00Z' }, NOW)).toBe(false);
+    expect(isCollectorOnline({ onDuty: true, locationUpdatedAt: '2026-10-11T12:00:00Z' }, NOW)).toBe(false);
+    expect(isCollectorOnline({ onDuty: true }, NOW)).toBe(false);
     // Off-Duty collectors can't accept requests, even with a fresh location
     expect(isCollectorOnline({ onDuty: false, locationUpdatedAt: '2026-10-12T11:59:00Z' }, NOW)).toBe(false);
     // No on_duty column: the location rule

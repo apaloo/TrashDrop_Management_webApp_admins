@@ -61,7 +61,7 @@ const base = (over) => ({
   email: null, phone: '+233241234567', status: 'active', zone: 'Tamale', locationUpdatedAt: ago(5), ...over,
 });
 
-describe('presence (same 10-minute rule as the Live Map)', () => {
+describe('presence (same rule as the Live Map)', () => {
   it('is online within 10 min, recent within 24 h, offline after', () => {
     expect(collectorPresence(base({ locationUpdatedAt: ago(5) }), NOW).key).toBe('online');
     expect(collectorPresence(base({ locationUpdatedAt: ago(180) }), NOW).key).toBe('recent');
@@ -69,11 +69,20 @@ describe('presence (same 10-minute rule as the Live Map)', () => {
     expect(collectorPresence(base({ locationUpdatedAt: null }), NOW)).toMatchObject({ key: 'offline', lastSeen: null });
   });
 
-  it('is online while On-Duty, and flags a location older than 10 min', () => {
-    const p = collectorPresence(base({ onDuty: true, onDutySince: ago(60), locationUpdatedAt: ago(60 * 25) }), NOW);
-    expect(p).toMatchObject({ key: 'online', gpsStale: true, lastSeen: ago(60), locationAt: ago(60 * 25) });
+  it('is online while On-Duty and checking in, and flags a location older than 10 min', () => {
+    const p = collectorPresence(base({ onDuty: true, onDutySince: ago(60), lastActive: ago(1), locationUpdatedAt: ago(60 * 25) }), NOW);
+    expect(p).toMatchObject({ key: 'online', gpsStale: true, lastSeen: ago(1), locationAt: ago(60 * 25), noSignal: false });
     expect(collectorPresence(base({ onDuty: true, locationUpdatedAt: ago(2) }), NOW)).toMatchObject({ key: 'online', gpsStale: false });
-    expect(collectorPresence(base({ onDuty: true, locationUpdatedAt: null }), NOW)).toMatchObject({ key: 'online', gpsStale: true, locationAt: null });
+    expect(collectorPresence(base({ onDuty: true, onDutySince: ago(1), locationUpdatedAt: null }), NOW)).toMatchObject({ key: 'online', gpsStale: true, locationAt: null });
+  });
+
+  it('is not online when On-Duty but the app stopped checking in 5+ min ago', () => {
+    expect(collectorPresence(base({ onDuty: true, onDutySince: ago(300), lastActive: ago(40), locationUpdatedAt: ago(45) }), NOW))
+      .toMatchObject({ key: 'recent', lastSeen: ago(40), noSignal: true });
+    expect(collectorPresence(base({ onDuty: true, onDutySince: ago(60 * 30), lastActive: null, locationUpdatedAt: null }), NOW))
+      .toMatchObject({ key: 'offline', noSignal: true });
+    expect(collectorPresence(base({ onDuty: true, lastActive: ago(4) }), NOW).key).toBe('online');
+    expect(collectorPresence(base({ onDuty: true, lastActive: ago(6), locationUpdatedAt: ago(6) }), NOW).key).toBe('recent');
   });
 
   it('is not online when Off-Duty; going Off-Duty counts as last seen', () => {
