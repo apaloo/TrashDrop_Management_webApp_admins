@@ -44,13 +44,35 @@ const locationIsFresh = (collector, now) => {
 };
 
 /**
+ * The collector app checks in (collector_profiles.last_active) every minute
+ * while On-Duty, and on every location update. No check-in for this long
+ * means the phone is offline, or the app is closed or in the background.
+ */
+export const HEARTBEAT_WINDOW_MS = 5 * 60 * 1000;
+
+const latest = (...values) => values
+  .filter(v => v && Number.isFinite(new Date(v).getTime()))
+  .sort((x, y) => new Date(y) - new Date(x))[0] || null;
+
+/** Last time the collector app was heard from: a check-in, a location or a duty switch */
+export const collectorHeartbeat = (collector) =>
+  latest(collector.lastActive, collector.locationUpdatedAt, collector.onDutySince);
+
+const isRecent = (value, now, windowMs) => {
+  const t = new Date(value).getTime();
+  return !!value && Number.isFinite(t) && now - t <= windowMs;
+};
+
+/**
  * Online = On-Duty in the collector app (collector_profiles.on_duty, which the
- * app only shows once the database has it, and which the database requires to
- * accept requests). Where duty isn't recorded (onDuty null), a location update
- * in the last 10 minutes.
+ * database requires to accept requests) AND the app checked in within the last
+ * 5 minutes. on_duty stays true when a phone loses its connection or the app
+ * is closed, so On-Duty alone doesn't mean the collector is reachable.
+ * Where duty isn't recorded (onDuty null), a location update in the last 10
+ * minutes.
  */
 export const isCollectorOnline = (collector, now = Date.now()) => {
-  if (collector.onDuty === true) return true;
+  if (collector.onDuty === true) return isRecent(collectorHeartbeat(collector), now, HEARTBEAT_WINDOW_MS);
   if (collector.onDuty === false) return false;
   return locationIsFresh(collector, now);
 };
@@ -62,26 +84,24 @@ export const PRESENCE = {
   offline: { key: 'offline', label: 'Offline', color: COLLECTOR_OFFLINE_COLOR, badge: 'bg-gray-100 text-gray-700' },
 };
 
-const latest = (...values) => values
-  .filter(v => v && Number.isFinite(new Date(v).getTime()))
-  .sort((x, y) => new Date(y) - new Date(x))[0] || null;
-
 /**
- * Presence (same rule as the Live Map): online when On-Duty (see
- * isCollectorOnline), otherwise recent if the app was last seen (location
- * update or duty switch) within 24 h, offline when older or never.
+ * Presence (same rule as the Live Map): online when On-Duty and checking in
+ * (see isCollectorOnline), otherwise recent if the app was last heard from
+ * (check-in, location update or duty switch) within 24 h, offline when older
+ * or never.
  * locationAt / gpsStale: when the last location came in, and whether an
  * online collector's location is older than 10 minutes.
+ * noSignal: On-Duty in the app, but the app has stopped checking in.
  */
 export const collectorPresence = (collector, now = Date.now()) => {
   const locationAt = collectorLastSeen(collector);
-  const lastSeen = latest(locationAt, collector.onDutySince);
+  const lastSeen = latest(locationAt, collectorHeartbeat(collector));
   if (isCollectorOnline(collector, now)) {
-    return { ...PRESENCE.online, lastSeen, locationAt, gpsStale: !locationIsFresh(collector, now) };
+    return { ...PRESENCE.online, lastSeen, locationAt, gpsStale: !locationIsFresh(collector, now), noSignal: false };
   }
-  const t = new Date(lastSeen).getTime();
-  if (!lastSeen || !Number.isFinite(t)) return { ...PRESENCE.offline, lastSeen: null, locationAt: null, gpsStale: false };
-  return { ...(now - t <= RECENT_WINDOW_MS ? PRESENCE.recent : PRESENCE.offline), lastSeen, locationAt, gpsStale: false };
+  const noSignal = collector.onDuty === true;
+  if (!lastSeen) return { ...PRESENCE.offline, lastSeen: null, locationAt: null, gpsStale: false, noSignal };
+  return { ...(isRecent(lastSeen, now, RECENT_WINDOW_MS) ? PRESENCE.recent : PRESENCE.offline), lastSeen, locationAt, gpsStale: false, noSignal };
 };
 
 /** "just now", "12 min ago", "3 h ago", "2 d ago", "—" */

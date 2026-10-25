@@ -33,8 +33,10 @@ const collectors = [
   collector({ id: 'kofi-000-3333', name: 'Kofi Asante', firstName: 'Kofi', phone: '233501239999', status: 'inactive' }),
   collector({ id: 'esi-0000-4444', name: 'Esi Mensah', firstName: 'Esi' }),
   collector({ id: 'yaw-0000-5555', userId: 'u-yaw', name: 'Yaw Boateng', firstName: 'Yaw', zone: 'Kumasi', locationUpdatedAt: minutesAgo(1) }),
-  // On-Duty in the app, but the phone last sent a location a day ago
-  collector({ id: 'gett-000-6666', userId: 'u-gett', name: 'Gettina Omane', firstName: 'Gettina', zone: 'Accra – Ga North', onDuty: true, onDutySince: minutesAgo(68), locationUpdatedAt: minutesAgo(60 * 25) }),
+  // On-Duty and the app is checking in, but the phone last sent a location a day ago
+  collector({ id: 'gett-000-6666', userId: 'u-gett', name: 'Gettina Omane', firstName: 'Gettina', zone: 'Accra – Ga North', onDuty: true, onDutySince: minutesAgo(68), lastActive: minutesAgo(1), locationUpdatedAt: minutesAgo(60 * 25) }),
+  // Left On-Duty, but the app stopped checking in 40 minutes ago (phone offline or app closed)
+  collector({ id: 'kwam-000-7777', userId: 'u-kwam', name: 'Kwame Darko', firstName: 'Kwame', zone: 'Kumasi', onDuty: true, onDutySince: minutesAgo(300), lastActive: minutesAgo(40), locationUpdatedAt: minutesAgo(45) }),
 ];
 
 const base = { source: 'pickup_requests', created_at: '2026-10-14T09:00:00Z', user_id: 'u', address: 'Vitin Estate, Tamale', lat: 9.41, lng: -0.85, bag_count: 2, fee: 10 };
@@ -81,10 +83,17 @@ it('shows pickups, active jobs, rating and earnings from the requests', async ()
   expect(within(jack).getByText('jack-000')).toBeInTheDocument(); // short ID
 });
 
-it('shows an On-Duty collector as online even when their location is old', async () => {
+it('shows an On-Duty collector whose app is checking in as online, even when their location is old', async () => {
   renderPage();
   await waitFor(() => expect(card('Gettina Omane')).toBeTruthy());
   expect(within(card('Gettina Omane')).getByText('Online · GPS 1 d ago')).toBeInTheDocument();
+});
+
+it('does not show an On-Duty collector as online once their app stops checking in', async () => {
+  renderPage();
+  await waitFor(() => expect(card('Kwame Darko')).toBeTruthy());
+  expect(within(card('Kwame Darko')).getByText('No signal · last seen 40 min ago')).toBeInTheDocument();
+  expect(within(card('Kwame Darko')).queryByText(/^Online/)).not.toBeInTheDocument();
 });
 
 it('"Unassigned" lists every collector without a zone, and phone search accepts any format', async () => {
