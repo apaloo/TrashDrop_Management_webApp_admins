@@ -8,7 +8,8 @@
 #    hand-worked numbers (3 groups in Greater Accra, 1 in Ashanti, 2 MMDAs)
 # 2. access: accounts see only their own page; staff see any page and the
 #    comparison and edit metrics without code; broken metrics are refused
-# 3. load: 200 groups opening dashboards (50 at once) while reports are
+# 3. editor: the rows the admin metric editor writes, under the database rules
+# 4. load: 200 groups opening dashboards (50 at once) while reports are
 #    worked and the refresh runs; no errors, totals consistent
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -28,6 +29,7 @@ psql_ -d "$db" -f "$mig/20261109_account_performance.sql" >/dev/null 2>&1
 psql_ -d "$db" -f "$mig/20261109_account_performance.sql" >/dev/null 2>&1   # safe to re-run
 psql_ -d "$db" -f "$here/10_metrics.sql" 2>&1 | grep -E "PASS|FAIL|ERROR"
 psql_ -d "$db" -f "$here/20_access.sql" 2>&1 | grep -E "PASS|FAIL|ERROR"
+psql_ -d "$db" -f "$here/30_editor.sql" 2>&1 | grep -E "PASS|FAIL|ERROR"
 
 if command -v pgbench >/dev/null 2>&1; then
   psql_ -d "$db" -c "

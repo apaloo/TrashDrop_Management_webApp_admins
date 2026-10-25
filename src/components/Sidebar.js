@@ -72,9 +72,13 @@ const Sidebar = () => {
     },
     {
       title: 'Account Performance',
-      path: '/performance/accounts',
+      path: '/performance',
       icon: 'fas fa-chart-line',
-      section: SECTIONS.ACCOUNT_PERFORMANCE
+      section: SECTIONS.ACCOUNT_PERFORMANCE,
+      children: [
+        { title: 'Compare Accounts', path: '/performance/accounts' },
+        { title: 'Metrics', path: '/performance/metrics' }
+      ]
     },
   ];
 
