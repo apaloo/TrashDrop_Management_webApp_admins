@@ -265,7 +265,7 @@ const GenerateBag = () => {
 
             <div className="flex justify-end mt-6 space-x-4">
               <button type="button" onClick={handlePreview}
-                className="py-2 px-4 border border-blue-500 rounded-md shadow-sm text-sm font-medium text-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                className="py-2 px-4 border border-green-600 rounded-md text-sm font-medium text-green-600 hover:bg-td-tonal">
                 <FontAwesomeIcon icon={faMagic} className="mr-2" /> Preview
               </button>
               <button type="submit" disabled={isGenerating}
@@ -395,7 +395,7 @@ const GenerateBag = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Batch QR code" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-2xl font-semibold text-gray-900">Batch QR Code</h3>
-              <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-gray-400 hover:text-gray-600" title="Close" aria-label="Close">
+              <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-gray-500 hover:text-gray-600" title="Close" aria-label="Close">
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
             </div>

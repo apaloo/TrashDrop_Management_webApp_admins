@@ -17,7 +17,7 @@ const CopyId = ({ id, className = '' }) => {
   return (
     <span className={`inline-flex items-center gap-1 ${className}`}>
       <span className="font-mono text-xs" title={id}>{shortId(id)}</span>
-      <button type="button" onClick={copy} className="text-xs text-gray-400 hover:text-green-700" title="Copy full ID" aria-label={`Copy ID ${id}`}>
+      <button type="button" onClick={copy} className="text-xs text-gray-500 hover:text-green-700" title="Copy full ID" aria-label={`Copy ID ${id}`}>
         {copied ? '✓' : '⧉'}
       </button>
     </span>

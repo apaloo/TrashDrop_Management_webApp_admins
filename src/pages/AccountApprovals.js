@@ -158,7 +158,7 @@ const AccountApprovals = () => {
                   <td className="px-3 py-3">{ROLE_LABELS[r.role] || r.role}{r.review_note && <div className="text-xs text-gray-500 mt-1 line-clamp-2" title={r.review_note}>{r.review_note}</div>}</td>
                   <td className="px-3 py-3 text-gray-600">{date(r.signed_up_at || r.created_at)}</td>
                   <td className="px-3 py-3 text-right whitespace-nowrap">
-                    {r.user_id === user?.id ? <span className="text-xs text-gray-400">You</span> : (
+                    {r.user_id === user?.id ? <span className="text-xs text-gray-500">You</span> : (
                       <>
                         <button type="button" onClick={() => open(r, true)} className="text-green-700 hover:underline mr-3">
                           {r.status === 'pending' ? 'Approve' : 'Change role'}

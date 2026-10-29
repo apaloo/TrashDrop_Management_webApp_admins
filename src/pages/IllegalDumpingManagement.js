@@ -218,7 +218,7 @@ const IllegalDumpingManagement = () => {
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {lastUpdated && (
-            <span className="text-xs text-gray-400 hidden sm:block">
+            <span className="text-xs text-gray-500 hidden sm:block">
               Last updated: {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           )}
@@ -235,7 +235,7 @@ const IllegalDumpingManagement = () => {
             onClick={() => refreshReports(false)}
             disabled={loading}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+              loading ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
             }`}
           >
             <i className={`fas fa-sync-alt text-xs ${loading ? 'fa-spin' : ''}`}></i>
@@ -249,7 +249,7 @@ const IllegalDumpingManagement = () => {
         <div className="fixed top-20 right-4 bg-gray-800 text-white shadow-xl rounded-lg px-4 py-3 z-[10000] flex items-center gap-3 max-w-sm" role="status">
           <i className="fas fa-info-circle text-blue-300 flex-shrink-0"></i>
           <span className="text-sm">{toastMessage}</span>
-          <button className="ml-auto text-gray-400 hover:text-white" onClick={() => setShowToast(false)} aria-label="Dismiss">
+          <button className="ml-auto text-gray-500 hover:text-white" onClick={() => setShowToast(false)} aria-label="Dismiss">
             <i className="fas fa-times text-xs"></i>
           </button>
         </div>
@@ -271,7 +271,7 @@ const IllegalDumpingManagement = () => {
             <div>
               <p className="text-xs text-gray-500 mb-0.5">{label}</p>
               <p className="text-2xl font-bold text-gray-800 leading-tight" data-testid={`kpi-${label.toLowerCase().replace(/\s+/g, '-')}`}>{loading ? '—' : value}</p>
-              {sub && !loading && <p className="text-xs text-gray-400">{sub}</p>}
+              {sub && !loading && <p className="text-xs text-gray-500">{sub}</p>}
             </div>
           </div>
         ))}
@@ -281,7 +281,7 @@ const IllegalDumpingManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
             <input
               type="text"
               placeholder="Search by ID, location, status, reporter or team..."
@@ -399,7 +399,7 @@ const IllegalDumpingManagement = () => {
                     <option value={50}>50</option>
                   </select>
                 </div>
-                <span className="hidden sm:inline text-gray-400">|</span>
+                <span className="hidden sm:inline text-gray-500">|</span>
                 <span>
                   {totalCount === 0
                     ? 'No entries'
@@ -444,7 +444,7 @@ const IllegalDumpingManagement = () => {
                   }
                   return pages.map((page, idx) =>
                     page === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm select-none">&hellip;</span>
+                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-500 text-sm select-none">&hellip;</span>
                     ) : (
                       <button
                         key={page}

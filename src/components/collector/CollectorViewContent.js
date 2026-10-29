@@ -27,7 +27,7 @@ const CollectorViewContent = ({ collector }) => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <i className="fas fa-user-circle text-gray-400 text-5xl"></i>
+              <i className="fas fa-user-circle text-gray-500 text-5xl"></i>
             )}
           </div>
           

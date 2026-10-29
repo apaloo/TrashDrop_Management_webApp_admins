@@ -125,7 +125,7 @@ const IllegalDumpingHistory = () => {
           <p className="text-sm text-gray-500 mt-0.5">Resolved and cancelled illegal dumping reports</p>
         </div>
         <div className="relative w-full sm:w-72">
-          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
           <input
             type="text"
             className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm"
@@ -135,7 +135,7 @@ const IllegalDumpingHistory = () => {
           />
           {searchTerm && (
             <button onClick={() => setSearchTerm('')} aria-label="Clear search"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600">
               <i className="fas fa-times text-xs"></i>
             </button>
           )}
@@ -187,7 +187,7 @@ const IllegalDumpingHistory = () => {
             {pendingReports.slice(0, 5).map(r => (
               <li key={r.id} className="py-2 flex justify-between gap-3">
                 <span className="truncate text-gray-700">{r.locationLabel}</span>
-                <span className="text-gray-400 whitespace-nowrap">{formatDate(r.reportedAt)}</span>
+                <span className="text-gray-500 whitespace-nowrap">{formatDate(r.reportedAt)}</span>
               </li>
             ))}
           </ul>
@@ -198,7 +198,7 @@ const IllegalDumpingHistory = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
-            <i className="fas fa-filter text-gray-400 text-sm"></i>
+            <i className="fas fa-filter text-gray-500 text-sm"></i>
             <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
             {activeFilterCount > 0 && (
               <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">{activeFilterCount} active</span>
@@ -233,7 +233,7 @@ const IllegalDumpingHistory = () => {
                 className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 value={filters.startDate} onChange={(e) => setDate('startDate', e.target.value)} />
             </label>
-            <span className="text-gray-400 mb-2 text-sm">→</span>
+            <span className="text-gray-500 mb-2 text-sm">→</span>
             <label>
               <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To Date</span>
               <input type="date" min={filters.startDate || undefined}
@@ -254,7 +254,7 @@ const IllegalDumpingHistory = () => {
             <button key={tab}
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === tab ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => { setSelectedTab(tab); setCurrentPage(1); }}>
-              {label} <span className="text-xs text-gray-400">({loading ? '—' : tabCounts[tab]})</span>
+              {label} <span className="text-xs text-gray-500">({loading ? '—' : tabCounts[tab]})</span>
             </button>
           ))}
         </nav>
@@ -322,7 +322,7 @@ const IllegalDumpingHistory = () => {
               <div className="px-6 pt-5 pb-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <h3 className="text-lg font-medium text-gray-900" id="history-modal-title">Report Details</h3>
-                  <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Close">&times;</button>
+                  <button onClick={closeModal} className="text-gray-500 hover:text-gray-600 text-2xl leading-none" aria-label="Close">&times;</button>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Report ID</span>

@@ -67,7 +67,7 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-building text-gray-400"></i>
+              <i className="fas fa-building text-gray-500"></i>
             </div>
             <input
               type="text"
@@ -92,7 +92,7 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-briefcase text-gray-400"></i>
+              <i className="fas fa-briefcase text-gray-500"></i>
             </div>
             <select
               id="company-type"
@@ -118,7 +118,7 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
-              <i className="fas fa-map-marker-alt text-gray-400"></i>
+              <i className="fas fa-map-marker-alt text-gray-500"></i>
             </div>
             <textarea
               id="operating-area"

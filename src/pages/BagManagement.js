@@ -313,7 +313,7 @@ const BagManagement = () => {
           {statsLoading && !bagStats ? <Spinner color="border-indigo-500" /> : statsError ? <p className="text-sm text-red-600">{statsError}</p> : (
             <>
               <div className="flex items-center justify-between gap-2">
-                <div className={thisWeek === null ? 'text-xl font-semibold text-gray-400' : 'text-3xl font-bold text-indigo-600'}>
+                <div className={thisWeek === null ? 'text-xl font-semibold text-gray-500' : 'text-3xl font-bold text-indigo-600'}>
                   {thisWeek === null ? NO_DATA : `${thisWeek}%`}
                 </div>
                 <div className="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded whitespace-nowrap">
