@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './theme/tokens.css';
 import './index.css';
+import './theme/dark.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { initializeRealDataOnly } from './utils/forceRealDataConfig';

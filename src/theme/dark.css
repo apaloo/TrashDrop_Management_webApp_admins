@@ -1,0 +1,274 @@
+/*
+ * Dashboard dark mode (docs/DESIGN_SYSTEM.md, "Dark mode"). Applies only inside
+ * the dashboard's content column when the person has switched dark mode on:
+ * Layout sets data-theme="dark" on the shell and data-surface="light" on the
+ * content column. The sidebar is dark in both modes; public pages and sign-in
+ * never get data-theme="dark".
+ *
+ * Tailwind's light tints (bg-red-50, text-red-700 …) become deep fills with pale
+ * text so they keep 4.5:1. A colour class used in the dashboard needs a rule
+ * here; src/theme/__tests__/darkMode.test.js lists any that are missing.
+ */
+
+/* Borders with no colour class take Tailwind's light default; give them the
+   dark border. :where() keeps this below any border colour class. */
+:where([data-theme="dark"] [data-surface="light"]) *,
+:where([data-theme="dark"] [data-surface="light"]) ::before,
+:where([data-theme="dark"] [data-surface="light"]) ::after {
+  border-color: var(--td-card-border);
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-white {
+  background-color: var(--td-card-bg);
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-td-cream,
+[data-theme="dark"] [data-surface="light"] .bg-gray-50,
+[data-theme="dark"] [data-surface="light"] .bg-gray-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-td-cream:hover,
+[data-theme="dark"] [data-surface="light"] .group:hover .group-hover\:bg-td-cream,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-gray-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-gray-100:hover {
+  background-color: var(--td-dk-surface-2);
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-gray-200,
+[data-theme="dark"] [data-surface="light"] .bg-gray-300,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-gray-200:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-gray-300:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-gray-400:hover,
+[data-theme="dark"] [data-surface="light"] .bg-gray-400 {
+  background-color: var(--td-dk-surface-3);
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-td-tonal,
+[data-theme="dark"] [data-surface="light"] .bg-green-50,
+[data-theme="dark"] [data-surface="light"] .bg-green-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-td-tonal:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-green-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-green-100:hover,
+[data-theme="dark"] [data-surface="light"] .bg-teal-100 {
+  background-color: var(--td-dk-tonal);
+}
+
+[data-theme="dark"] [data-surface="light"] .text-td-ink,
+[data-theme="dark"] [data-surface="light"] .text-gray-900,
+[data-theme="dark"] [data-surface="light"] .text-gray-800,
+[data-theme="dark"] [data-surface="light"] .text-gray-700,
+[data-theme="dark"] [data-surface="light"] .hover\:text-td-ink:hover {
+  color: var(--td-text-primary);
+}
+
+[data-theme="dark"] [data-surface="light"] .text-td-sage,
+[data-theme="dark"] [data-surface="light"] .text-gray-600,
+[data-theme="dark"] [data-surface="light"] .hover\:text-td-sage:hover,
+[data-theme="dark"] [data-surface="light"] .placeholder-gray-500 {
+  color: var(--td-text-secondary);
+}
+
+[data-theme="dark"] [data-surface="light"] .text-td-forest,
+[data-theme="dark"] [data-surface="light"] .text-green-600,
+[data-theme="dark"] [data-surface="light"] .text-green-700,
+[data-theme="dark"] [data-surface="light"] .text-green-800,
+[data-theme="dark"] [data-surface="light"] .text-teal-700,
+[data-theme="dark"] [data-surface="light"] .text-teal-800,
+[data-theme="dark"] [data-surface="light"] .hover\:text-green-600:hover {
+  color: var(--td-dk-link);
+}
+
+[data-theme="dark"] [data-surface="light"] .hover\:text-green-700:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:text-td-forest-dk:hover {
+  color: var(--td-dk-link-hover);
+}
+
+[data-theme="dark"] [data-surface="light"] .text-td-border {
+  color: var(--td-card-border);
+}
+
+[data-theme="dark"] [data-surface="light"] .border-td-border,
+[data-theme="dark"] [data-surface="light"] .border-gray-100,
+[data-theme="dark"] [data-surface="light"] .border-gray-200,
+[data-theme="dark"] [data-surface="light"] .border-green-100,
+[data-theme="dark"] [data-surface="light"] .divide-td-border,
+[data-theme="dark"] [data-surface="light"] .divide-gray-100,
+[data-theme="dark"] [data-surface="light"] .divide-gray-200 {
+  border-color: var(--td-card-border);
+}
+
+[data-theme="dark"] [data-surface="light"] .border-td-border-strong,
+[data-theme="dark"] [data-surface="light"] .border-gray-300,
+[data-theme="dark"] [data-surface="light"] .hover\:border-td-border-strong:hover {
+  border-color: var(--td-input-border);
+}
+
+[data-theme="dark"] [data-surface="light"] .border-td-forest,
+[data-theme="dark"] [data-surface="light"] .border-green-200,
+[data-theme="dark"] [data-surface="light"] .border-green-300,
+[data-theme="dark"] [data-surface="light"] .border-green-500,
+[data-theme="dark"] [data-surface="light"] .border-green-600,
+[data-theme="dark"] [data-surface="light"] .hover\:border-td-forest:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:border-green-500:hover {
+  border-color: var(--td-dk-link);
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-red-50,
+[data-theme="dark"] [data-surface="light"] .bg-red-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-red-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-red-100:hover {
+  background-color: #3b1515;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-red-500,
+[data-theme="dark"] [data-surface="light"] .text-red-600,
+[data-theme="dark"] [data-surface="light"] .text-red-700,
+[data-theme="dark"] [data-surface="light"] .text-red-800,
+[data-theme="dark"] [data-surface="light"] .text-red-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-red-500:hover {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-red-100,
+[data-theme="dark"] [data-surface="light"] .border-red-200,
+[data-theme="dark"] [data-surface="light"] .border-red-300,
+[data-theme="dark"] [data-surface="light"] .border-red-400,
+[data-theme="dark"] [data-surface="light"] .border-red-500 {
+  border-color: #7f2a2a;
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-amber-50,
+[data-theme="dark"] [data-surface="light"] .bg-amber-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-amber-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-amber-100:hover {
+  background-color: #3a2a0c;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-amber-500,
+[data-theme="dark"] [data-surface="light"] .text-amber-600,
+[data-theme="dark"] [data-surface="light"] .text-amber-700,
+[data-theme="dark"] [data-surface="light"] .text-amber-800,
+[data-theme="dark"] [data-surface="light"] .text-amber-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-amber-500:hover {
+  color: #fcd34d;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-amber-100,
+[data-theme="dark"] [data-surface="light"] .border-amber-200,
+[data-theme="dark"] [data-surface="light"] .border-amber-300,
+[data-theme="dark"] [data-surface="light"] .border-amber-400,
+[data-theme="dark"] [data-surface="light"] .border-amber-500 {
+  border-color: #7a5a14;
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-yellow-50,
+[data-theme="dark"] [data-surface="light"] .bg-yellow-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-yellow-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-yellow-100:hover {
+  background-color: #3a2a0c;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-yellow-500,
+[data-theme="dark"] [data-surface="light"] .text-yellow-600,
+[data-theme="dark"] [data-surface="light"] .text-yellow-700,
+[data-theme="dark"] [data-surface="light"] .text-yellow-800,
+[data-theme="dark"] [data-surface="light"] .text-yellow-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-yellow-500:hover {
+  color: #fcd34d;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-yellow-100,
+[data-theme="dark"] [data-surface="light"] .border-yellow-200,
+[data-theme="dark"] [data-surface="light"] .border-yellow-300,
+[data-theme="dark"] [data-surface="light"] .border-yellow-400,
+[data-theme="dark"] [data-surface="light"] .border-yellow-500 {
+  border-color: #7a5a14;
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-blue-50,
+[data-theme="dark"] [data-surface="light"] .bg-blue-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-blue-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-blue-100:hover {
+  background-color: #14213f;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-blue-500,
+[data-theme="dark"] [data-surface="light"] .text-blue-600,
+[data-theme="dark"] [data-surface="light"] .text-blue-700,
+[data-theme="dark"] [data-surface="light"] .text-blue-800,
+[data-theme="dark"] [data-surface="light"] .text-blue-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-blue-500:hover {
+  color: #a5c0fd;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-blue-100,
+[data-theme="dark"] [data-surface="light"] .border-blue-200,
+[data-theme="dark"] [data-surface="light"] .border-blue-300,
+[data-theme="dark"] [data-surface="light"] .border-blue-400,
+[data-theme="dark"] [data-surface="light"] .border-blue-500 {
+  border-color: #2d4a8a;
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-orange-50,
+[data-theme="dark"] [data-surface="light"] .bg-orange-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-orange-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-orange-100:hover {
+  background-color: #3d220f;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-orange-500,
+[data-theme="dark"] [data-surface="light"] .text-orange-600,
+[data-theme="dark"] [data-surface="light"] .text-orange-700,
+[data-theme="dark"] [data-surface="light"] .text-orange-800,
+[data-theme="dark"] [data-surface="light"] .text-orange-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-orange-500:hover {
+  color: #fdba74;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-orange-100,
+[data-theme="dark"] [data-surface="light"] .border-orange-200,
+[data-theme="dark"] [data-surface="light"] .border-orange-300,
+[data-theme="dark"] [data-surface="light"] .border-orange-400,
+[data-theme="dark"] [data-surface="light"] .border-orange-500 {
+  border-color: #7c4416;
+}
+
+[data-theme="dark"] [data-surface="light"] .bg-purple-50,
+[data-theme="dark"] [data-surface="light"] .bg-purple-100,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-purple-50:hover,
+[data-theme="dark"] [data-surface="light"] .hover\:bg-purple-100:hover {
+  background-color: #2a1a45;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-purple-500,
+[data-theme="dark"] [data-surface="light"] .text-purple-600,
+[data-theme="dark"] [data-surface="light"] .text-purple-700,
+[data-theme="dark"] [data-surface="light"] .text-purple-800,
+[data-theme="dark"] [data-surface="light"] .text-purple-900,
+[data-theme="dark"] [data-surface="light"] .hover\:text-purple-500:hover {
+  color: #d1b5fd;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-purple-100,
+[data-theme="dark"] [data-surface="light"] .border-purple-200,
+[data-theme="dark"] [data-surface="light"] .border-purple-300,
+[data-theme="dark"] [data-surface="light"] .border-purple-400,
+[data-theme="dark"] [data-surface="light"] .border-purple-500 {
+  border-color: #55368c;
+}
+
+[data-theme="dark"] [data-surface="light"] .text-td-error {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] [data-surface="light"] .border-td-error {
+  border-color: #f87171;
+}
+
+[data-theme="dark"] [data-surface="light"] .shadow-sm,
+[data-theme="dark"] [data-surface="light"] .shadow {
+  box-shadow: 0 0 0 1px var(--td-card-border);
+}
+
+[data-theme="dark"] [data-surface="light"] .shadow-md,
+[data-theme="dark"] [data-surface="light"] .hover\:shadow-md:hover {
+  box-shadow: 0 0 0 1px var(--td-card-border), 0 4px 12px rgba(0, 0, 0, 0.4);
+}

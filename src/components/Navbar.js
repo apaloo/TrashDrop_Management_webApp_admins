@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { ROLE_LABELS } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import GlobalSearch from './GlobalSearch';
 import MessagesModal from './modals/MessagesModal';
 import NotificationsModal from './modals/NotificationsModal';
@@ -11,6 +12,7 @@ import { fetchContacts, getUnreadMessageCount, markAllMessagesFromSenderAsRead, 
 
 const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const { user, role } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
@@ -178,7 +180,8 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
           <div className="flex items-center md:hidden">
             <Link to="/dashboard" className="flex items-center">
               <img src="/logo.svg" alt="TrashDrop Logo" className="h-8 w-auto" />
-              <span className="ml-2 text-lg font-semibold" style={{ color: 'var(--td-accent)' }}>TrashDrop</span>
+              {/* The logo already reads "TrashDrop"; the name is repeated only where the bar has room */}
+              <span className="ml-2 text-lg font-semibold hidden sm:inline" style={{ color: 'var(--td-accent)' }}>TrashDrop</span>
             </Link>
           </div>
           
@@ -186,7 +189,19 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
           <GlobalSearch role={role} />
           
           {/* Right side icons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Light or dark dashboard; remembered in this browser */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 hover:text-green-600"
+              style={{ color: 'var(--td-navbar-icon)' }}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={isDark ? 'Light mode' : 'Dark mode'}
+              data-testid="theme-toggle"
+            >
+              <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i>
+            </button>
             {/* Messages icon */}
             <div className="relative">
               <button

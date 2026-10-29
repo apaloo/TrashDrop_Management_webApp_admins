@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 /* ── Dashboard shell ─────────────────────────────────────────────
-   One light theme on the design system (docs/DESIGN_SYSTEM.md): a dark
-   ink sidebar like the website header, a white top bar and a pale page.
-   Dark mode was removed until every page supports it. */
+   The design system (docs/DESIGN_SYSTEM.md): a dark ink sidebar like the
+   website header, a white top bar and a pale page. Dark mode (off unless
+   the person switches it on) redefines these below and in theme/dark.css. */
 :root {
   --td-page-bg:        #f6f8f4;
   --td-card-bg:        #ffffff;
@@ -49,6 +49,49 @@ body {
   font-family: var(--td-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode: Layout sets data-theme="dark" on the dashboard shell only.
+   The sidebar values are the same in both modes. */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --td-page-bg:        #0d120d;
+  --td-card-bg:        #151b15;
+  --td-card-border:    #2b352b;
+
+  --td-navbar-bg:      #151b15;
+  --td-navbar-border:  #2b352b;
+  --td-navbar-text:    #eef3ec;
+  --td-navbar-icon:    #b3bcb2;
+
+  --td-text-primary:   #eef3ec;
+  --td-text-secondary: #b3bcb2;
+  --td-text-muted:     #b3bcb2;
+
+  --td-input-bg:       #101510;
+  --td-input-border:   #6f7a6f;
+  --td-input-text:     #eef3ec;
+
+  --td-footer-bg:      #151b15;
+  --td-footer-border:  #2b352b;
+  --td-footer-text:    #b3bcb2;
+
+  --td-dropdown-bg:    #151b15;
+  --td-dropdown-hover: #1c241c;
+  --td-dropdown-border:#2b352b;
+
+  --td-accent:         #8fd6a0;
+  --td-accent-light:   #17301f;
+
+  /* Used only by theme/dark.css */
+  --td-dk-surface-2:   #1c241c;
+  --td-dk-surface-3:   #2b352b;
+  --td-dk-tonal:       #17301f;
+  --td-dk-link:        #8fd6a0;
+  --td-dk-link-hover:  #b6ee69;
+
+  /* Focus rings: the brand green reads on the dark content area */
+  --td-focus:          #b6ee69;
 }
 
 /* Dropdowns are white fields like the inputs (the browser default is grey) */

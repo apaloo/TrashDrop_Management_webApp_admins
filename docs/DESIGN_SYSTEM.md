@@ -79,7 +79,23 @@ The signed-in dashboard uses the same tokens, approved by the owner on
   white text and the current page in brand green; a white top bar; a pale
   `#F6F8F4` page with white cards. The values are the `--td-*` variables in
   `src/index.css`.
-- **One light theme.** Dark mode was removed until every page supports it.
+- **Dark mode** is off until the person turns it on with the moon button in
+  the top bar; the choice is kept in this browser (`trashdrop_theme`). Only
+  the dashboard's content area changes: the sidebar is dark in both modes,
+  and the public site and sign-in are always light.
+  - Colours: page `#0D120D`, cards `#151B15`, raised `#1C241C`, pale green
+    `#17301F`, borders `#2B352B` / `#6F7A6F`, text `#EEF3EC` / `#B3BCB2`,
+    links and green text `#8FD6A0`, focus ring brand green. They are the
+    `[data-theme="dark"]` variables in `src/index.css`.
+  - `src/theme/dark.css` gives each colour class the dashboard uses its dark
+    value; status tints become deep fills with pale text. A new colour class
+    needs a rule there: `src/theme/__tests__/darkMode.test.js` names any that
+    are missing.
+  - Charts take `chartColor(c, isDark)` and `applyChartTheme(ChartJS, isDark)`
+    from `src/theme/chartTheme.js`; colours written inline (like the alert
+    severities on the dashboard home) need a dark pair beside them.
+  - Every dashboard page meets the same checks in both modes (axe 0, nothing
+    under 13px).
 - **Tailwind:** `text-xs` is 13px, and `green-600/700/800` are the dark green
   family (`#1B6E35`, `#155A2B`, `#114A23`), so green buttons, links and text
   pass contrast. The `td-*` colours in `tailwind.config.js` match `TD`.
