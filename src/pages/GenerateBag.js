@@ -32,7 +32,7 @@ const TYPE_COLORS = {
   General: 'bg-gray-800 text-white',
 };
 
-const inputClass = (bad) => `block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 ${bad ? 'border-red-500' : 'border-gray-300'}`;
+const inputClass = (bad) => `block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 ${bad ? 'border-red-500' : 'border-td-border-strong'}`;
 
 const FieldError = ({ id, text }) => (text ? <p id={id} className="mt-1 text-xs text-red-600">{text}</p> : null);
 
@@ -200,66 +200,66 @@ const GenerateBag = () => {
       {/* Form */}
       <div className="bg-white shadow-sm rounded-lg mb-6">
         <div className="p-6">
-          <h5 className="text-xl font-semibold mb-4 text-gray-700">Bag Batch Configuration</h5>
+          <h5 className="text-xl font-semibold mb-4 text-td-ink">Bag Batch Configuration</h5>
           <form onSubmit={(e) => { e.preventDefault(); askGenerate(); }} noValidate>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="trashType" className="block text-sm font-medium text-gray-700 mb-1">Trash Type</label>
+                <label htmlFor="trashType" className="block text-sm font-medium text-td-ink mb-1">Trash Type</label>
                 <select id="trashType" name="trashType" className={inputClass(showErr('trashType'))} value={form.trashType} onChange={onChange}>
                   {TRASH_TYPES.map(t => <option key={t.key} value={t.key}>{t.key}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="bagSize" className="block text-sm font-medium text-gray-700 mb-1">Bag Size</label>
+                <label htmlFor="bagSize" className="block text-sm font-medium text-td-ink mb-1">Bag Size</label>
                 <select id="bagSize" name="bagSize" className={inputClass(showErr('bagSize'))} value={form.bagSize} onChange={onChange}>
                   {BAG_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="bagsPerBatch" className="block text-sm font-medium text-gray-700 mb-1">Bags per Batch</label>
+                <label htmlFor="bagsPerBatch" className="block text-sm font-medium text-td-ink mb-1">Bags per Batch</label>
                 <input type="number" id="bagsPerBatch" name="bagsPerBatch" min="1" max={BAG_LIMITS.maxBagsPerBatch} step="1" inputMode="numeric"
                   className={inputClass(showErr('bagsPerBatch'))} value={form.bagsPerBatch} onChange={onChange} aria-describedby="bagsPerBatch-err" />
                 <FieldError id="bagsPerBatch-err" text={showErr('bagsPerBatch')} />
               </div>
               <div>
-                <label htmlFor="numberOfBatches" className="block text-sm font-medium text-gray-700 mb-1">Number of Batches</label>
+                <label htmlFor="numberOfBatches" className="block text-sm font-medium text-td-ink mb-1">Number of Batches</label>
                 <input type="number" id="numberOfBatches" name="numberOfBatches" min="1" max={BAG_LIMITS.maxBatches} step="1" inputMode="numeric"
                   className={inputClass(showErr('numberOfBatches'))} value={form.numberOfBatches} onChange={onChange} aria-describedby="numberOfBatches-err" />
                 <FieldError id="numberOfBatches-err" text={showErr('numberOfBatches')} />
               </div>
               <div>
-                <label htmlFor="pricePerBatch" className="block text-sm font-medium text-gray-700 mb-1">Price per Batch (GH₵)</label>
+                <label htmlFor="pricePerBatch" className="block text-sm font-medium text-td-ink mb-1">Price per Batch (GH₵)</label>
                 <input type="number" id="pricePerBatch" name="pricePerBatch" min="0" step="0.01" inputMode="decimal" placeholder="e.g. 50.00" aria-required="true"
                   className={inputClass(showErr('pricePerBatch'))} value={form.pricePerBatch} onChange={onChange} aria-describedby="pricePerBatch-err" />
                 <FieldError id="pricePerBatch-err" text={showErr('pricePerBatch')} />
               </div>
               <div>
-                <label htmlFor="qrPrefix" className="block text-sm font-medium text-gray-700 mb-1">QR Prefix <span className="font-normal text-gray-500">(optional)</span></label>
+                <label htmlFor="qrPrefix" className="block text-sm font-medium text-td-ink mb-1">QR Prefix <span className="font-normal text-td-sage">(optional)</span></label>
                 <input type="text" id="qrPrefix" name="qrPrefix" maxLength={30} placeholder={defaultQrPrefix(form.trashType)}
                   className={`${inputClass(showErr('qrPrefix') || errors.qrPrefix)} font-mono`} value={form.qrPrefix} onChange={onChange} aria-describedby="qrPrefix-help" />
                 {errors.qrPrefix ? <FieldError id="qrPrefix-help" text={errors.qrPrefix} /> : (
-                  <p id="qrPrefix-help" className="mt-1 text-xs text-gray-500">Letters, numbers and dashes. Empty = {defaultQrPrefix(form.trashType)}</p>
+                  <p id="qrPrefix-help" className="mt-1 text-xs text-td-sage">Letters, numbers and dashes. Empty = {defaultQrPrefix(form.trashType)}</p>
                 )}
               </div>
             </div>
 
-            <dl className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-md bg-gray-50 border border-gray-200 p-4 text-sm" data-testid="generate-totals">
+            <dl className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-md bg-td-cream border border-td-border p-4 text-sm" data-testid="generate-totals">
               <div>
-                <dt className="text-gray-500">Unit price per bag</dt>
-                <dd className="font-semibold text-gray-800">{formatCedis(summary.unitPrice)}</dd>
-                <dd className="text-xs text-gray-500">Price per batch ÷ {Number.isInteger(values.bags) ? values.bags : '?'} bags</dd>
+                <dt className="text-td-sage">Unit price per bag</dt>
+                <dd className="font-semibold text-td-ink">{formatCedis(summary.unitPrice)}</dd>
+                <dd className="text-xs text-td-sage">Price per batch ÷ {Number.isInteger(values.bags) ? values.bags : '?'} bags</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Total for all batches</dt>
-                <dd className="font-semibold text-gray-800">{formatCedis(summary.totalForAll)}</dd>
-                <dd className="text-xs text-gray-500">Price per batch × {Number.isInteger(values.batches) ? values.batches : '?'} batches</dd>
+                <dt className="text-td-sage">Total for all batches</dt>
+                <dd className="font-semibold text-td-ink">{formatCedis(summary.totalForAll)}</dd>
+                <dd className="text-xs text-td-sage">Price per batch × {Number.isInteger(values.batches) ? values.batches : '?'} batches</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Bags to create</dt>
-                <dd className={`font-semibold ${summary.totalBags > BAG_LIMITS.maxTotalBags ? 'text-red-600' : 'text-gray-800'}`}>
+                <dt className="text-td-sage">Bags to create</dt>
+                <dd className={`font-semibold ${summary.totalBags > BAG_LIMITS.maxTotalBags ? 'text-red-600' : 'text-td-ink'}`}>
                   {summary.totalBags === null ? '—' : summary.totalBags.toLocaleString()}
                 </dd>
-                <dd className="text-xs text-gray-500">Limit {BAG_LIMITS.maxTotalBags.toLocaleString()} per submission</dd>
+                <dd className="text-xs text-td-sage">Limit {BAG_LIMITS.maxTotalBags.toLocaleString()} per submission</dd>
               </div>
             </dl>
 
@@ -283,27 +283,27 @@ const GenerateBag = () => {
       {previewVisible && !hasErrors && (
         <div className="bg-white shadow-sm rounded-lg mb-6" data-testid="generate-preview">
           <div className="p-6">
-            <h5 className="text-xl font-semibold mb-4 text-gray-700">Preview</h5>
+            <h5 className="text-xl font-semibold mb-4 text-td-ink">Preview</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm content-start">
-                <dt className="text-gray-500">Trash type</dt><dd className="font-medium">{values.type}</dd>
-                <dt className="text-gray-500">Bag size</dt><dd className="font-medium">{values.size}</dd>
-                <dt className="text-gray-500">Batches</dt><dd className="font-medium">{values.batches}</dd>
-                <dt className="text-gray-500">Bags per batch</dt><dd className="font-medium">{values.bags}</dd>
-                <dt className="text-gray-500">Total bags</dt><dd className="font-semibold">{summary.totalBags}</dd>
-                <dt className="text-gray-500">Price per batch</dt><dd className="font-medium">{formatCedis(values.price)}</dd>
-                <dt className="text-gray-500">Unit price per bag</dt><dd className="font-medium text-green-700">{formatCedis(summary.unitPrice)}</dd>
-                <dt className="text-gray-500">Total for all batches</dt><dd className="font-semibold">{formatCedis(summary.totalForAll)}</dd>
-                <dt className="text-gray-500">QR prefix</dt><dd className="font-mono">{values.prefix}</dd>
+                <dt className="text-td-sage">Trash type</dt><dd className="font-medium">{values.type}</dd>
+                <dt className="text-td-sage">Bag size</dt><dd className="font-medium">{values.size}</dd>
+                <dt className="text-td-sage">Batches</dt><dd className="font-medium">{values.batches}</dd>
+                <dt className="text-td-sage">Bags per batch</dt><dd className="font-medium">{values.bags}</dd>
+                <dt className="text-td-sage">Total bags</dt><dd className="font-semibold">{summary.totalBags}</dd>
+                <dt className="text-td-sage">Price per batch</dt><dd className="font-medium">{formatCedis(values.price)}</dd>
+                <dt className="text-td-sage">Unit price per bag</dt><dd className="font-medium text-green-700">{formatCedis(summary.unitPrice)}</dd>
+                <dt className="text-td-sage">Total for all batches</dt><dd className="font-semibold">{formatCedis(summary.totalForAll)}</dd>
+                <dt className="text-td-sage">QR prefix</dt><dd className="font-mono">{values.prefix}</dd>
               </dl>
               <div className="flex flex-col items-center">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" aria-label="Sample label">
+                <div className="border-2 border-dashed border-td-border-strong rounded-lg p-4 text-center" aria-label="Sample label">
                   <QRCodeSVG value={SAMPLE_ID} size={140} level="H" includeMargin />
                   <p className="mt-2 text-sm font-semibold">TrashDrop · {values.type} · {values.size}</p>
-                  <p className="text-xs font-mono text-gray-600">{sampleBagCode(values.prefix, 1)}</p>
-                  {summary.unitPrice !== null && <p className="text-xs text-gray-600">{formatCedis(summary.unitPrice)} per bag</p>}
+                  <p className="text-xs font-mono text-td-sage">{sampleBagCode(values.prefix, 1)}</p>
+                  {summary.unitPrice !== null && <p className="text-xs text-td-sage">{formatCedis(summary.unitPrice)} per bag</p>}
                 </div>
-                <p className="mt-2 text-xs text-gray-500 text-center max-w-xs">Sample only. Each batch gets its own ID in the QR code when generated; nothing has been saved yet.</p>
+                <p className="mt-2 text-xs text-td-sage text-center max-w-xs">Sample only. Each batch gets its own ID in the QR code when generated; nothing has been saved yet.</p>
               </div>
             </div>
             <div className="mt-6 flex justify-end">
@@ -333,16 +333,16 @@ const GenerateBag = () => {
       <div className="mt-8 bg-white shadow-sm rounded-lg">
         <div className="p-6">
           <div className="flex items-center mb-4">
-            <h5 className="text-xl font-semibold text-gray-700">Generated Batches</h5>
-            <span className="ml-2 text-sm text-gray-500">newest 10</span>
+            <h5 className="text-xl font-semibold text-td-ink">Generated Batches</h5>
+            <span className="ml-2 text-sm text-td-sage">newest 10</span>
             <Link to="/bin-management/history" className="ml-auto text-sm text-green-700 hover:underline">See all in Bag History →</Link>
           </div>
           {recentError && <p className="text-red-600 text-sm mb-2">{recentError}</p>}
-          {recent === null ? <p className="text-gray-500 text-sm">Loading…</p> : recent.length === 0 ? (
-            <p className="text-gray-500 text-sm">{recentError ? 'Batches could not be loaded.' : 'No batches have been generated yet.'}</p>
+          {recent === null ? <p className="text-td-sage text-sm">Loading…</p> : recent.length === 0 ? (
+            <p className="text-td-sage text-sm">{recentError ? 'Batches could not be loaded.' : 'No batches have been generated yet.'}</p>
           ) : (
             <table className="w-full table-fixed text-sm" data-testid="recent-batches">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase text-left">
+              <thead className="bg-td-cream text-xs text-td-sage uppercase text-left">
                 <tr>
                   <th className="px-3 py-2 w-[14%]">Batch</th>
                   <th className="px-3 py-2 w-[13%]">Type</th>
@@ -354,16 +354,16 @@ const GenerateBag = () => {
                   <th className="px-3 py-2 w-[18%] text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-td-border">
                 {recent.map(b => (
-                  <tr key={b.id} className="hover:bg-gray-50" data-testid="recent-row">
-                    <td className="px-3 py-2"><CopyId id={b.id} />{b.batchNumber && <span className="block text-xs text-gray-500 truncate">#{b.batchNumber}</span>}</td>
-                    <td className="px-3 py-2">{b.type ? <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TYPE_COLORS[b.type] || 'bg-gray-100 text-gray-800'}`}>{b.type}</span> : '—'}</td>
+                  <tr key={b.id} className="hover:bg-td-cream" data-testid="recent-row">
+                    <td className="px-3 py-2"><CopyId id={b.id} />{b.batchNumber && <span className="block text-xs text-td-sage truncate">#{b.batchNumber}</span>}</td>
+                    <td className="px-3 py-2">{b.type ? <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TYPE_COLORS[b.type] || 'bg-gray-100 text-td-ink'}`}>{b.type}</span> : '—'}</td>
                     <td className="px-3 py-2">{orDash(b.size)}</td>
                     <td className="px-3 py-2">{b.bagCount}</td>
-                    <td className="px-3 py-2">{formatCedis(b.totalBatchPrice)}{b.unitPrice != null && <span className="block text-xs text-gray-500">{formatCedis(b.unitPrice)}/bag</span>}</td>
+                    <td className="px-3 py-2">{formatCedis(b.totalBatchPrice)}{b.unitPrice != null && <span className="block text-xs text-td-sage">{formatCedis(b.unitPrice)}/bag</span>}</td>
                     <td className="px-3 py-2 truncate" title={b.generatedByName || ''}>{orDash(b.generatedByName)}</td>
-                    <td className="px-3 py-2 text-gray-600">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                    <td className="px-3 py-2 text-td-sage">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <button type="button" onClick={() => setViewQRModal({ visible: true, batch: b })} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 mr-1">
                         <FontAwesomeIcon icon={faEye} /> View
@@ -392,19 +392,19 @@ const GenerateBag = () => {
       {/* QR code viewer */}
       {viewQRModal.visible && viewQRModal.batch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setViewQRModal({ visible: false, batch: null })}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Batch QR code" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-2xl font-semibold text-gray-900">Batch QR Code</h3>
-              <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-gray-500 hover:text-gray-600" title="Close" aria-label="Close">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Batch QR code" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-td-border">
+              <h3 className="text-2xl font-semibold text-td-ink">Batch QR Code</h3>
+              <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-td-sage hover:text-td-sage" title="Close" aria-label="Close">
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col items-center">
-                <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm">
+                <div className="bg-white border-2 border-td-border-strong rounded-lg p-4 shadow-sm">
                   <QRCodeSVG value={viewQRModal.batch.id} size={260} level="H" includeMargin fgColor="#000000" bgColor="#ffffff" />
                 </div>
-                <p className="mt-4 text-sm text-gray-600 text-center">Scan this QR code with the TrashDrop mobile app</p>
+                <p className="mt-4 text-sm text-td-sage text-center">Scan this QR code with the TrashDrop mobile app</p>
               </div>
               <dl className="text-sm space-y-2">
                 {[
@@ -419,14 +419,14 @@ const GenerateBag = () => {
                   ['Created by', orDash(viewQRModal.batch.generatedByName)],
                   ['Created', viewQRModal.batch.createdAt ? new Date(viewQRModal.batch.createdAt).toLocaleString('en-GB') : '—'],
                 ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-3 border-b border-gray-200 pb-2"><dt className="text-gray-600">{k}</dt><dd className="text-gray-900 text-right">{v}</dd></div>
+                  <div key={k} className="flex justify-between gap-3 border-b border-td-border pb-2"><dt className="text-td-sage">{k}</dt><dd className="text-td-ink text-right">{v}</dd></div>
                 ))}
                 <div className="pt-3 space-y-2">
                   <button onClick={() => { handleDownloadClick(viewQRModal.batch); setViewQRModal({ visible: false, batch: null }); }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                     <FontAwesomeIcon icon={faDownload} /> Download QR Code
                   </button>
-                  <Link to={`/bin-management/manage?batch=${viewQRModal.batch.id}`} className="block text-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                  <Link to={`/bin-management/manage?batch=${viewQRModal.batch.id}`} className="block text-center px-4 py-2 border border-td-border-strong rounded-md text-td-ink hover:bg-td-cream">
                     Open in Bag Management
                   </Link>
                 </div>

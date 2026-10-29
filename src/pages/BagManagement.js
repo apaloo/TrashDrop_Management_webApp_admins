@@ -24,9 +24,9 @@ const Spinner = ({ color = 'border-green-500' }) => (
 const SortHeader = ({ label, field, filters, onSort, className = '' }) => {
   const active = filters.sort === field;
   return (
-    <th className={`px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}
+    <th className={`px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider ${className}`}
       aria-sort={active ? (filters.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-      <button type="button" onClick={() => onSort(field)} className="inline-flex items-center gap-1 uppercase hover:text-gray-800">
+      <button type="button" onClick={() => onSort(field)} className="inline-flex items-center gap-1 uppercase hover:text-td-ink">
         {label}<span aria-hidden="true">{active ? (filters.dir === 'asc' ? '▲' : '▼') : '↕'}</span>
       </button>
     </th>
@@ -38,11 +38,11 @@ const ProgressCell = ({ batch }) => {
   return (
     <div title={`${p.distributed} distributed · ${p.filled} filled · ${p.collected} collected of ${p.total}`}>
       <div className="relative w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-        <div className="absolute inset-y-0 left-0 bg-blue-500" style={{ width: `${p.distributedPct}%` }} />
-        <div className="absolute inset-y-0 left-0 bg-yellow-500" style={{ width: `${p.filledPct}%` }} />
+        <div className="absolute inset-y-0 left-0 bg-td-orange" style={{ width: `${p.distributedPct}%` }} />
+        <div className="absolute inset-y-0 left-0 bg-[#1d4ed8]" style={{ width: `${p.filledPct}%` }} />
         <div className="absolute inset-y-0 left-0 bg-green-600" style={{ width: `${p.collectedPct}%` }} />
       </div>
-      <div className="text-xs text-gray-500 mt-1">{p.collected} of {p.total} collected</div>
+      <div className="text-xs text-td-sage mt-1">{p.collected} of {p.total} collected</div>
     </div>
   );
 };
@@ -275,16 +275,16 @@ const BagManagement = () => {
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" data-testid="card-requests">
-          <h3 className="text-lg font-medium text-gray-700 mb-2">Live Bag Requests</h3>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-td-border" data-testid="card-requests">
+          <h3 className="text-lg font-medium text-td-ink mb-2">Live Bag Requests</h3>
           {statsLoading && !bagStats ? <Spinner /> : statsError ? <p className="text-sm text-red-600">{statsError}</p> : (
             <>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold text-green-600">{bagStats.requests_today ?? 0}</div>
-                <div className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">requests today</div>
+                <div className="text-sm bg-td-tonal text-td-forest px-2 py-1 rounded">requests today</div>
               </div>
-              <div className="text-sm text-gray-500 mt-2">{bagStats.pending_collection ?? 0} pending collection</div>
-              <div className="flex justify-between text-xs text-gray-500 mt-3">
+              <div className="text-sm text-td-sage mt-2">{bagStats.pending_collection ?? 0} pending collection</div>
+              <div className="flex justify-between text-xs text-td-sage mt-3">
                 <span>{bagStats.collected_today ?? 0} collected today</span>
                 <span title="Bags households hold but haven't requested a pickup for">{bagStats.bags_awaiting ?? 0} bags awaiting use</span>
               </div>
@@ -293,35 +293,35 @@ const BagManagement = () => {
         </div>
 
         {/* Kept here: Bag History shows the same card, and the Dashboard already shows active collectors */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-700 mb-2">Collector Status</h3>
-          {statsLoading && !collectorStats.total ? <Spinner color="border-blue-500" /> : (
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-td-border">
+          <h3 className="text-lg font-medium text-td-ink mb-2">Collector Status</h3>
+          {statsLoading && !collectorStats.total ? <Spinner color="border-green-600" /> : (
             <>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-blue-600">{collectorStats.active || 0}/{collectorStats.total || 0}</div>
-                <div className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                <div className="text-3xl font-bold text-td-forest">{collectorStats.active || 0}/{collectorStats.total || 0}</div>
+                <div className="text-sm bg-td-tonal text-td-forest px-2 py-1 rounded">
                   {collectorStats.total > 0 ? Math.round((collectorStats.active / collectorStats.total) * 100) : 0}% Active
                 </div>
               </div>
-              <div className="text-sm text-gray-500 mt-2">{collectorStats.inactive || 0} collectors inactive</div>
+              <div className="text-sm text-td-sage mt-2">{collectorStats.inactive || 0} collectors inactive</div>
             </>
           )}
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" data-testid="card-performance">
-          <h3 className="text-lg font-medium text-gray-700 mb-2">Performance Timeline</h3>
-          {statsLoading && !bagStats ? <Spinner color="border-indigo-500" /> : statsError ? <p className="text-sm text-red-600">{statsError}</p> : (
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-td-border" data-testid="card-performance">
+          <h3 className="text-lg font-medium text-td-ink mb-2">Performance Timeline</h3>
+          {statsLoading && !bagStats ? <Spinner color="border-green-600" /> : statsError ? <p className="text-sm text-red-600">{statsError}</p> : (
             <>
               <div className="flex items-center justify-between gap-2">
-                <div className={thisWeek === null ? 'text-xl font-semibold text-gray-500' : 'text-3xl font-bold text-indigo-600'}>
+                <div className={thisWeek === null ? 'text-xl font-semibold text-td-sage' : 'text-3xl font-bold text-td-forest'}>
                   {thisWeek === null ? NO_DATA : `${thisWeek}%`}
                 </div>
-                <div className="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded whitespace-nowrap">
+                <div className="text-sm bg-td-tonal text-td-forest px-2 py-1 rounded whitespace-nowrap">
                   Last week: {lastWeek === null ? NO_DATA : `${lastWeek}%`}
                 </div>
               </div>
-              <div className="text-sm text-gray-500 mt-2">of bags requested this week were collected</div>
-              <div className="text-sm text-gray-500 mt-1">Avg. request → collected: {avgCollect || NO_DATA}</div>
+              <div className="text-sm text-td-sage mt-2">of bags requested this week were collected</div>
+              <div className="text-sm text-td-sage mt-1">Avg. request → collected: {avgCollect || NO_DATA}</div>
             </>
           )}
         </div>
@@ -329,67 +329,67 @@ const BagManagement = () => {
 
       {/* Filters */}
       <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3 items-end">
-        <label className="text-sm text-gray-600">Search
-          <input type="search" placeholder="Batch ID, number, type or QR prefix" className="mt-1 w-full p-2 border border-gray-300 rounded-lg"
+        <label className="text-sm text-td-sage">Search
+          <input type="search" placeholder="Batch ID, number, type or QR prefix" className="mt-1 w-full p-2 border border-td-border-strong rounded-lg"
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </label>
-        <label className="text-sm text-gray-600">Status
-          <select className="mt-1 w-full p-2 border border-gray-300 rounded-lg" value={filters.stage} onChange={(e) => setFilters({ stage: e.target.value })}>
+        <label className="text-sm text-td-sage">Status
+          <select className="mt-1 w-full p-2 border border-td-border-strong rounded-lg" value={filters.stage} onChange={(e) => setFilters({ stage: e.target.value })}>
             <option value="">All (not archived)</option>
             {BAG_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
             <option value={ARCHIVED_STAGE.key}>{ARCHIVED_STAGE.label}</option>
           </select>
         </label>
-        <label className="text-sm text-gray-600">Created from
-          <input type="date" className="mt-1 w-full p-2 border border-gray-300 rounded-lg" value={filters.from} max={filters.to || undefined}
+        <label className="text-sm text-td-sage">Created from
+          <input type="date" className="mt-1 w-full p-2 border border-td-border-strong rounded-lg" value={filters.from} max={filters.to || undefined}
             onChange={(e) => setFilters({ from: e.target.value })} />
         </label>
-        <label className="text-sm text-gray-600">Created to
-          <input type="date" className="mt-1 w-full p-2 border border-gray-300 rounded-lg" value={filters.to} min={filters.from || undefined}
+        <label className="text-sm text-td-sage">Created to
+          <input type="date" className="mt-1 w-full p-2 border border-td-border-strong rounded-lg" value={filters.to} min={filters.from || undefined}
             onChange={(e) => setFilters({ to: e.target.value })} />
         </label>
         <button type="button" disabled={!hasFilters} onClick={() => { setSearch(''); setFilters({ q: '', stage: '', from: '', to: '' }); }}
-          className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40">Clear</button>
+          className="px-3 py-2 text-sm border border-td-border-strong rounded-lg text-td-ink hover:bg-td-cream disabled:opacity-40">Clear</button>
       </div>
 
       {error && <div className="mb-4 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">{error}</div>}
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-xl shadow">
         {/* Desktop / laptop table: fixed columns, no sideways scrolling */}
-        <table className="w-full table-fixed divide-y divide-gray-200 hidden md:table" data-testid="batch-table">
-          <thead className="bg-gray-50">
+        <table className="w-full table-fixed divide-y divide-td-border hidden md:table" data-testid="batch-table">
+          <thead className="bg-td-cream">
             <tr>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Batch</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider w-[15%]">Batch</th>
               <SortHeader label="Created" field="created_at" filters={filters} onSort={onSort} className="w-[14%]" />
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[17%]">Type · Size</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider w-[17%]">Type · Size</th>
               <SortHeader label="Qty" field="bag_count" filters={filters} onSort={onSort} className="w-[8%]" />
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">Status</th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[18%]">Progress</th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[16%]">Actions</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider w-[12%]">Status</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider w-[18%]">Progress</th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-td-sage uppercase tracking-wider w-[16%]">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-td-border">
             {loading ? (
               <tr><td colSpan="7"><Spinner /></td></tr>
             ) : batches.length === 0 ? (
-              <tr><td colSpan="7" className="px-6 py-10 text-center text-gray-500">{hasFilters ? 'No batches match these filters.' : 'No batches yet.'}</td></tr>
+              <tr><td colSpan="7" className="px-6 py-10 text-center text-td-sage">{hasFilters ? 'No batches match these filters.' : 'No batches yet.'}</td></tr>
             ) : batches.map(batch => (
-              <tr key={batch.id} className="hover:bg-gray-50" data-testid="batch-row">
+              <tr key={batch.id} className="hover:bg-td-cream" data-testid="batch-row">
                 <td className="px-3 py-3 text-sm">
                   <CopyId id={batch.id} />
-                  {batch.batchNumber && <span className="block text-xs text-gray-500 truncate" title={batch.batchNumber}>#{batch.batchNumber}</span>}
+                  {batch.batchNumber && <span className="block text-xs text-td-sage truncate" title={batch.batchNumber}>#{batch.batchNumber}</span>}
                 </td>
-                <td className="px-3 py-3 text-sm text-gray-600" title={fullDate(batch.createdAt)}>{batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
-                <td className="px-3 py-3 text-sm text-gray-700 truncate" title={typeSizeLabel(batch.type, batch.size)}>{typeSizeLabel(batch.type, batch.size)}</td>
-                <td className="px-3 py-3 text-sm text-gray-700">{batch.bagCount}{batch.unitPrice != null && <span className="block text-xs text-gray-500" title="Price per bag">{formatCedis(batch.unitPrice)}</span>}</td>
+                <td className="px-3 py-3 text-sm text-td-sage" title={fullDate(batch.createdAt)}>{batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                <td className="px-3 py-3 text-sm text-td-ink truncate" title={typeSizeLabel(batch.type, batch.size)}>{typeSizeLabel(batch.type, batch.size)}</td>
+                <td className="px-3 py-3 text-sm text-td-ink">{batch.bagCount}{batch.unitPrice != null && <span className="block text-xs text-td-sage" title="Price per bag">{formatCedis(batch.unitPrice)}</span>}</td>
                 <td className="px-3 py-3"><BagStageBadge stage={batch.stage} /></td>
                 <td className="px-3 py-3"><ProgressCell batch={batch} /></td>
                 <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
                   <button type="button" onClick={() => openDetails(batch)} className="text-green-700 hover:underline mr-3">View</button>
                   {batch.archived ? (
-                    <button type="button" onClick={() => setConfirm({ batch, archive: false })} className="text-gray-600 hover:underline">Restore</button>
+                    <button type="button" onClick={() => setConfirm({ batch, archive: false })} className="text-td-sage hover:underline">Restore</button>
                   ) : (
-                    <button type="button" onClick={() => setConfirm({ batch, archive: true })} className="text-gray-600 hover:underline">Archive</button>
+                    <button type="button" onClick={() => setConfirm({ batch, archive: true })} className="text-td-sage hover:underline">Archive</button>
                   )}
                 </td>
               </tr>
@@ -398,35 +398,35 @@ const BagManagement = () => {
         </table>
 
         {/* Phones: cards */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden divide-y divide-td-border">
           {loading ? <Spinner /> : batches.length === 0 ? (
-            <p className="px-4 py-8 text-center text-gray-500">{hasFilters ? 'No batches match these filters.' : 'No batches yet.'}</p>
+            <p className="px-4 py-8 text-center text-td-sage">{hasFilters ? 'No batches match these filters.' : 'No batches yet.'}</p>
           ) : batches.map(batch => (
             <div key={batch.id} className="p-4 space-y-2" data-testid="batch-card">
-              <div className="flex items-center gap-2"><CopyId id={batch.id} /><BagStageBadge stage={batch.stage} /><span className="ml-auto text-sm text-gray-600">{batch.bagCount} bags</span></div>
-              <div className="text-sm text-gray-700">{typeSizeLabel(batch.type, batch.size)}<span className="text-gray-500"> · {batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB') : '—'}</span></div>
+              <div className="flex items-center gap-2"><CopyId id={batch.id} /><BagStageBadge stage={batch.stage} /><span className="ml-auto text-sm text-td-sage">{batch.bagCount} bags</span></div>
+              <div className="text-sm text-td-ink">{typeSizeLabel(batch.type, batch.size)}<span className="text-td-sage"> · {batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB') : '—'}</span></div>
               <ProgressCell batch={batch} />
               <div className="flex gap-4 text-sm">
                 <button type="button" onClick={() => openDetails(batch)} className="text-green-700">View</button>
-                <button type="button" onClick={() => setConfirm({ batch, archive: !batch.archived })} className="text-gray-600">{batch.archived ? 'Restore' : 'Archive'}</button>
+                <button type="button" onClick={() => setConfirm({ batch, archive: !batch.archived })} className="text-td-sage">{batch.archived ? 'Restore' : 'Archive'}</button>
               </div>
             </div>
           ))}
         </div>
 
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-600">
+        <div className="px-4 py-3 border-t border-td-border bg-td-cream rounded-b-lg flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-td-sage">
           <div className="flex items-center gap-3">
             <label htmlFor="bmRowsPerPage">Rows per page:</label>
-            <select id="bmRowsPerPage" value={filters.size} onChange={(e) => setFilters({ size: Number(e.target.value) })} className="border border-gray-300 rounded-md py-1 px-2 bg-white">
+            <select id="bmRowsPerPage" value={filters.size} onChange={(e) => setFilters({ size: Number(e.target.value) })} className="border border-td-border-strong rounded-md py-1 px-2 bg-white">
               {[5, 10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <span>{total === 0 ? 'No entries' : `Showing ${(page - 1) * filters.size + 1}–${Math.min(page * filters.size, total)} of ${total}`}</span>
           </div>
           <nav className="inline-flex items-center gap-2" aria-label="Pagination">
-            <button type="button" disabled={page <= 1} onClick={() => setFilters({ page: page - 1 })} className="px-3 py-1 rounded-md border border-gray-300 bg-white disabled:opacity-40">Previous</button>
+            <button type="button" disabled={page <= 1} onClick={() => setFilters({ page: page - 1 })} className="px-3 py-1 rounded-md border border-td-border-strong bg-white disabled:opacity-40">Previous</button>
             <span>Page {page} of {totalPages}</span>
-            <button type="button" disabled={page >= totalPages} onClick={() => setFilters({ page: page + 1 })} className="px-3 py-1 rounded-md border border-gray-300 bg-white disabled:opacity-40">Next</button>
+            <button type="button" disabled={page >= totalPages} onClick={() => setFilters({ page: page + 1 })} className="px-3 py-1 rounded-md border border-td-border-strong bg-white disabled:opacity-40">Next</button>
           </nav>
         </div>
       </div>
@@ -437,21 +437,21 @@ const BagManagement = () => {
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="create-batch-title">
             <h2 id="create-batch-title" className="text-xl font-semibold mb-4">Create New Bag Batch</h2>
             <form onSubmit={handleCreateBatch}>
-              <label className="block text-gray-700 text-sm font-bold mb-4">Type
-                <select name="type" value={formData.type} onChange={(e) => setFormData(f => ({ ...f, type: e.target.value }))} className="mt-2 w-full p-2 border border-gray-300 rounded font-normal" required>
+              <label className="block text-td-ink text-sm font-bold mb-4">Type
+                <select name="type" value={formData.type} onChange={(e) => setFormData(f => ({ ...f, type: e.target.value }))} className="mt-2 w-full p-2 border border-td-border-strong rounded font-normal" required>
                   {['Recyclable', 'Organic', 'General', 'Hazardous', 'Electronic', 'Other'].map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </label>
-              <label className="block text-gray-700 text-sm font-bold mb-4">Size
-                <select name="size" value={formData.size} onChange={(e) => setFormData(f => ({ ...f, size: e.target.value }))} className="mt-2 w-full p-2 border border-gray-300 rounded font-normal" required>
+              <label className="block text-td-ink text-sm font-bold mb-4">Size
+                <select name="size" value={formData.size} onChange={(e) => setFormData(f => ({ ...f, size: e.target.value }))} className="mt-2 w-full p-2 border border-td-border-strong rounded font-normal" required>
                   {['Small', 'Medium', 'Large'].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </label>
-              <label className="block text-gray-700 text-sm font-bold mb-6">Quantity
-                <input type="number" name="quantity" value={formData.quantity} onChange={(e) => setFormData(f => ({ ...f, quantity: e.target.value }))} className="mt-2 w-full p-2 border border-gray-300 rounded font-normal" min="1" max="1000" required />
+              <label className="block text-td-ink text-sm font-bold mb-6">Quantity
+                <input type="number" name="quantity" value={formData.quantity} onChange={(e) => setFormData(f => ({ ...f, quantity: e.target.value }))} className="mt-2 w-full p-2 border border-td-border-strong rounded font-normal" min="1" max="1000" required />
               </label>
               <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-300 text-td-ink rounded hover:bg-gray-400">Cancel</button>
                 <button type="submit" disabled={busy} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">{busy ? 'Creating…' : 'Create Batch'}</button>
               </div>
             </form>
@@ -485,16 +485,16 @@ const BagManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md" role="dialog" aria-modal="true" aria-label="Generating QR codes">
             <h3 className="text-lg font-medium mb-4">Generating QR Codes</h3>
-            <div className="flex justify-between text-sm text-gray-600 mb-1"><span>{downloadProgress.stage}</span><span>{Math.round(downloadProgress.progress)}%</span></div>
+            <div className="flex justify-between text-sm text-td-sage mb-1"><span>{downloadProgress.stage}</span><span>{Math.round(downloadProgress.progress)}%</span></div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${downloadProgress.progress}%` }} />
+              <div className="bg-green-600 h-2.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${downloadProgress.progress}%` }} />
             </div>
-            <p className="text-sm text-gray-500 text-center mt-4">
+            <p className="text-sm text-td-sage text-center mt-4">
               {downloadProgress.progress < 100 ? 'Generating enhanced QR codes (600×700px)…' : '✓ Download complete!'}
             </p>
             <div className="mt-4 flex justify-end">
               <button type="button" disabled={downloadProgress.isProcessing} onClick={() => setDownloadProgress(prev => ({ ...prev, showProgress: false }))}
-                className="px-4 py-2 text-sm rounded-md border bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 disabled:opacity-50">Close</button>
+                className="px-4 py-2 text-sm rounded-md border bg-gray-100 hover:bg-gray-200 text-td-ink border-td-border-strong disabled:opacity-50">Close</button>
             </div>
           </div>
         </div>
