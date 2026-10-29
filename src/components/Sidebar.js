@@ -116,7 +116,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto" style={{ background: 'var(--td-sidebar-bg)', color: 'var(--td-sidebar-text)', transition: 'background 0.25s ease' }}>
+    <div data-surface="dark" className="w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto" style={{ background: 'var(--td-sidebar-bg)', color: 'var(--td-sidebar-text)', transition: 'background 0.25s ease' }}>
       {/* Logo and brand */}
       <div className="px-6 pt-8 pb-6">
         <Link to="/dashboard" className="flex items-center">
