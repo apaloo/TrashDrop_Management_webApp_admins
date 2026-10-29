@@ -91,7 +91,7 @@ const PopupAtReport = ({ report, isDark, onClose, children }) => {
   const position = useMemo(() => [lat, lng], [lat, lng]);
   return (
     <Popup position={position} offset={[0, -8]} closeButton={false} closeOnClick={false} autoClose={false}
-      closeOnEscapeKey={false} autoPanPaddingTopLeft={[16, 64]} autoPanPaddingBottomRight={[16, 16]} maxWidth={360} minWidth={280}
+      closeOnEscapeKey={false} autoPanPaddingTopLeft={[16, 64]} autoPanPaddingBottomRight={[16, 16]} maxWidth={800} minWidth={0}
       className={`td-pub-popup${isDark ? ' td-pub-popup-dark' : ''}`}>
       {children}
     </Popup>
@@ -207,7 +207,26 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
       <style>{`
         .td-pub-marker, .td-pub-cluster { background: transparent; border: none; }
         .td-pub-popup .leaflet-popup-content-wrapper { padding: 0; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 50px rgba(0,0,0,0.35); overflow: hidden; }
-        .td-pub-popup .leaflet-popup-content { margin: 0; width: min(340px, calc(100vw - 80px)) !important; font: inherit; line-height: 1.5; }
+        .td-pub-popup .leaflet-popup-content { margin: 0; width: auto !important; font: inherit; line-height: 1.5; }
+        /* The card sets its own size: photo on top on phones, beside the details on
+           wider screens, and larger again in full screen */
+        .td-pub-card { position: relative; width: min(340px, calc(100vw - 80px)); }
+        .td-pub-photo { position: relative; display: block; width: 100%; padding: 0; border: none; cursor: zoom-in; }
+        .td-pub-photo-img { display: block; width: 100%; height: 200px; object-fit: cover; }
+        .td-pub-photo-hint { position: absolute; left: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.62); color: #fff; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+        [data-expanded="true"] .td-pub-photo-img { height: 260px; }
+        @media (min-width: 768px) {
+          .td-pub-card.td-has-photo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); width: min(620px, calc(100vw - 112px)); }
+          .td-has-photo .td-pub-photo { height: 100%; }
+          .td-has-photo .td-pub-photo-img { height: 100%; min-height: 300px; }
+          .td-has-photo .td-pub-details { align-self: center; padding: 20px 52px 20px 22px !important; }
+          [data-expanded="true"] .td-pub-card.td-has-photo { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); width: min(780px, calc(100vw - 64px)); }
+          [data-expanded="true"] .td-has-photo .td-pub-photo-img { min-height: 400px; }
+        }
+        /* Phones: a taller map so the card, photo on top, fits under the full-screen button */
+        @media (max-width: 767px) {
+          [data-expanded="false"] [data-testid="public-map-frame"], [data-expanded="false"] .leaflet-container { min-height: 580px !important; }
+        }
         .td-pub-popup .leaflet-popup-tip { background: #ffffff; }
         /* Map popups sit below the map's own buttons, so the ones low on the map step aside while a card is open */
         [data-card-open="true"] .td-map-hide-with-card { display: none !important; }
@@ -242,24 +261,22 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
           <ResizeWith expanded={expanded} />
           {selected && (
             <PopupAtReport report={selected} isDark={isDark} onClose={() => setSelectedId(null)}>
-            <div className="td-pub-card" role="dialog" aria-label="Report details" data-testid="public-report-card"
+            <div className={`td-pub-card${selected.photos.length ? ' td-has-photo' : ''}`} role="dialog" aria-label="Report details" data-testid="public-report-card"
               style={{ background: card.bg, fontFamily: FONT_BODY, color: card.text }}>
-              <div style={{ position: 'relative' }}>
                 {selected.photos.length > 0 ? (
-                  <button onClick={() => setLightbox(selected.photos[0])} title="View larger photo" style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: card.photoBg, cursor: 'zoom-in' }}>
-                    <img src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported, ${describeArea(selected)}`} loading="lazy" decoding="async"
-                      style={{ display: 'block', width: '100%', height: 140, objectFit: 'cover' }} />
+                  <button className="td-pub-photo" onClick={() => setLightbox(selected.photos[0])} title="View larger photo" style={{ background: card.photoBg }}>
+                    <img className="td-pub-photo-img" src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported, ${describeArea(selected)}`} loading="lazy" decoding="async" />
+                    <span className="td-pub-photo-hint"><i className="fas fa-expand" aria-hidden="true" />View photo</span>
                   </button>
                 ) : (
                   <div data-testid="no-photo-strip" style={{ height: 44, background: card.photoBg, display: 'flex', alignItems: 'center', padding: '0 18px', fontSize: 13, color: card.sub }}>
                     <i className="fas fa-camera" style={{ marginRight: 6 }} />No photo
                   </div>
                 )}
-                <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', top: selected.photos.length ? 10 : 6, right: 10, width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer' }}>
-                  <i className="fas fa-times" />
+                <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', zIndex: 2, top: selected.photos.length ? 10 : 6, right: 10, width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer' }}>
+                  <i className="fas fa-times" aria-hidden="true" />
                 </button>
-              </div>
-              <div style={{ padding: '16px 18px 18px' }}>
+              <div className="td-pub-details" style={{ padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   {selected.isCleanedUp ? (
                     <span style={{ fontSize: 13, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: CLEANED_COLOR, color: '#fff' }}>✓ Cleaned up</span>
