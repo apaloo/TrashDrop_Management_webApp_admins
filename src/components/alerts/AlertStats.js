@@ -38,7 +38,7 @@ const AlertStats = ({ stats, filters, setFilters, autoResolved = 0 }) => {
       <div className="rounded-lg border px-4 py-3 flex flex-col" style={card}>
         <div className="flex items-baseline justify-between mb-2">
           <h2 className="font-semibold text-sm">Alerts by type</h2>
-          <span className="text-[11px]" style={muted}>all alerts · open in brackets</span>
+          <span className="text-xs" style={muted}>all alerts · open in brackets</span>
         </div>
         {stats.types.length === 0 ? <p className="text-sm" style={muted}>No alerts yet</p> : (
           <ul className="space-y-1.5 text-sm overflow-y-auto max-h-[180px] pr-1" data-testid="alerts-by-type">

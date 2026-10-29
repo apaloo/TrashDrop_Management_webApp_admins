@@ -7,15 +7,15 @@ const NOW = Date.parse('2026-10-12T12:00:00Z');
 
 describe('status colours', () => {
   it('groups the statuses used by every request table', () => {
-    expect(statusGroupOf('pending').color).toBe('#F59E0B');
+    expect(statusGroupOf('pending').color).toBe('#B4530E');
     expect(statusGroupOf('available').key).toBe('pending');
-    expect(statusGroupOf('accepted').color).toBe('#3B82F6');
+    expect(statusGroupOf('accepted').color).toBe('#1D4ED8');
     expect(statusGroupOf('assigned').key).toBe('assigned');
-    expect(statusGroupOf('in_progress').color).toBe('#8B5CF6');
+    expect(statusGroupOf('in_progress').color).toBe('#7C3AED');
     expect(statusGroupOf('picked_up').key).toBe('in_progress');
-    expect(statusGroupOf('completed').color).toBe('#10B981');
+    expect(statusGroupOf('completed').color).toBe('#1B6E35');
     expect(statusGroupOf('disposed').key).toBe('completed');
-    expect(statusGroupOf('cancelled').color).toBe('#9CA3AF');
+    expect(statusGroupOf('cancelled').color).toBe('#6B7280');
     expect(statusGroupOf('weird').key).toBe('other');
   });
 });

@@ -46,7 +46,7 @@ const clusterIcon = (cluster) => {
   const size = count < 10 ? 34 : count < 50 ? 40 : 46;
   return L.divIcon({
     className: 'live-map-cluster-icon',
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#1F2937;color:#fff;border:3px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font:600 13px/1 system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.35)">${count}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#0A0F0A;color:#fff;border:3px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font:600 13px/1 'DM Sans',system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.35)">${count}</div>`,
     iconSize: [size, size],
   });
 };
@@ -277,10 +277,14 @@ const LiveMap = () => {
 
   return (
     <div className="space-y-4">
+      <div>
+        <h1 className="text-[28px] leading-tight font-bold text-td-ink">Live Map</h1>
+        <p className="text-td-sage">Open requests and collectors, updated as they move</p>
+      </div>
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Requests on map', value: counts.total, icon: 'fa-map-marker-alt', color: '#1F2937' },
+          { label: 'Requests on map', value: counts.total, icon: 'fa-map-marker-alt', color: '#0A0F0A' },
           { label: 'Pending', value: counts.pending, icon: 'fa-clock', color: STATUS_GROUPS[0].color },
           { label: 'In progress', value: counts.inProgress, icon: 'fa-truck-moving', color: STATUS_GROUPS[2].color },
           { label: 'Collectors online', value: `${counts.collectorsOnline} / ${counts.collectorsTotal}`, icon: 'fa-user-check', color: COLLECTOR_ONLINE_COLOR },
@@ -376,7 +380,8 @@ const LiveMap = () => {
 
           <MarkerClusterGroup chunkedLoading showCoverageOnHover={false} spiderfyOnMaxZoom zoomToBoundsOnClick maxClusterRadius={45} iconCreateFunction={clusterIcon}>
             {mappedRequests.map(request => (
-              <Marker key={`${request.source}-${request.id}`} position={request.position} icon={requestIcon(request.status)}>
+              <Marker key={`${request.source}-${request.id}`} position={request.position} icon={requestIcon(request.status)}
+                title={`Request #${String(request.id).slice(0, 8)}, ${statusGroupOf(request.status).label}`}>
                 <Tooltip direction="top" offset={[0, -10]}>
                   {request.requestedBy?.name && request.requestedBy.name !== 'Unknown Customer' ? request.requestedBy.name : `#${String(request.id).slice(0, 8)}`}
                 </Tooltip>

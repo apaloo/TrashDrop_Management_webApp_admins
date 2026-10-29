@@ -337,7 +337,7 @@ const AlertsManagement = () => {
     <div className="p-4 space-y-4" style={{ color: 'var(--td-text-primary)' }}>
       <div className="flex flex-wrap items-center gap-3">
         <div className="mr-auto">
-          <h1 className="text-2xl font-semibold">Alerts</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Alerts</h1>
           <p className="text-sm" style={muted}>Problems found automatically every 5 minutes, plus alerts raised by the team</p>
         </div>
         <button type="button" onClick={() => setShowRules(v => !v)} aria-expanded={showRules} className="px-3 py-2 rounded border text-sm" style={border}>

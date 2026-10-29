@@ -4,12 +4,12 @@ import { muted } from '../pickupRequests/theme';
 
 export const AlertPriorityBadge = ({ priority }) => {
   const p = alertPriority(priority);
-  return <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${p.className}`}>{p.label}</span>;
+  return <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${p.className}`}>{p.label}</span>;
 };
 
 export const AlertStatusBadge = ({ status }) => {
   const s = alertStatus(status);
-  return <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ${s.className}`}>{s.label}</span>;
+  return <span className={`inline-block text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${s.className}`}>{s.label}</span>;
 };
 
 export const AlertTypeLabel = ({ type, className = '' }) => {

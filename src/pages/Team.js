@@ -165,7 +165,7 @@ const Team = () => {
     <div className="p-4">
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
-          <h1 className="text-3xl font-bold text-gray-800">Team</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Team</h1>
           <p className="text-gray-600">{team?.group_name || 'Your volunteer group'}{myRole ? ` · you are the ${TEAM_ROLE_LABELS[myRole].toLowerCase()}` : ''}</p>
         </div>
         {(myRole === 'member' || myRole === 'admin') && (

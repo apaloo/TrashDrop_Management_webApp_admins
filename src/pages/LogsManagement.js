@@ -37,7 +37,7 @@ const RecordCell = ({ log, onOpen }) => {
       {link
         ? <button type="button" className="font-mono text-xs text-blue-600 hover:underline" title={`${label} ${log.entityId}`} onClick={e => { e.stopPropagation(); onOpen(link); }}>#{shortRef(log.entityId)}</button>
         : <span className="font-mono text-xs" title={log.entityId}>#{shortRef(log.entityId)}</span>}
-      <span className="block text-[11px]" style={muted}>{label}</span>
+      <span className="block text-xs" style={muted}>{label}</span>
     </span>
   );
 };
@@ -132,7 +132,7 @@ const LogsManagement = () => {
     <div className="p-4 space-y-4" style={{ color: 'var(--td-text-primary)' }}>
       <div className="flex flex-wrap items-center gap-3">
         <div className="mr-auto">
-          <h1 className="text-2xl font-semibold">Logs &amp; audit trail</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Logs &amp; audit trail</h1>
           <p className="text-sm" style={muted}>Every change, sign-in and failure across the admin. Times are Accra time.</p>
         </div>
         <button type="button" onClick={load} className="px-3 py-2 rounded border text-sm" style={border}>Refresh</button>
@@ -240,9 +240,9 @@ const LogsManagement = () => {
                     <td className="px-3 py-2 whitespace-nowrap" title={relativeFromNow(l.createdAt)}>{formatAccra(l.createdAt)}</td>
                     <td className="px-2 py-2"><LogLevelBadge level={l.level} /></td>
                     <td className="px-2 py-2 truncate" title={`${l.actorName || 'System'} (${actorRoleLabel(l.actorRole)})`}>
-                      {l.actorName || 'System'}<span className="block text-[11px]" style={muted}>{actorRoleLabel(l.actorRole)}</span>
+                      {l.actorName || 'System'}<span className="block text-xs" style={muted}>{actorRoleLabel(l.actorRole)}</span>
                     </td>
-                    <td className="px-2 py-2 truncate" title={l.action || ''}>{l.actionLabel}{l.isSample && <span className="ml-1 text-[10px] px-1 rounded bg-gray-200 text-gray-700">sample</span>}</td>
+                    <td className="px-2 py-2 truncate" title={l.action || ''}>{l.actionLabel}{l.isSample && <span className="ml-1 text-xs px-1 rounded bg-gray-200 text-gray-700">sample</span>}</td>
                     <td className="px-2 py-2"><RecordCell log={l} onOpen={openRecord} /></td>
                     <td className="px-2 py-2 truncate" title={l.message}>{l.message}</td>
                   </tr>

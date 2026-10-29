@@ -16,7 +16,7 @@ export const STATUS_GROUPS = [
   { key: 'completed', label: 'Completed', color: statusColor('disposed'), statuses: statusesIn('completed') },
   { key: 'cancelled', label: 'Cancelled', color: statusColor('cancelled'), statuses: statusesIn('cancelled') },
 ];
-export const OTHER_STATUS_GROUP = { key: 'other', label: 'Other', color: '#64748B', statuses: [] };
+export const OTHER_STATUS_GROUP = { key: 'other', label: 'Other', color: '#525C52', statuses: [] };
 
 const normalize = (s) => String(s ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
 

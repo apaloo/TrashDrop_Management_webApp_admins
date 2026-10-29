@@ -147,7 +147,7 @@ const Settings = () => {
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-[28px] leading-tight font-bold text-td-ink">Settings</h1>
         <p className="mt-2 text-sm text-gray-600">
           Manage your account settings and preferences
         </p>

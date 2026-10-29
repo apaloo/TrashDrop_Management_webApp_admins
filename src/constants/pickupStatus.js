@@ -5,28 +5,30 @@
  *   pending → accepted → en_route → arrived → collecting → disposed
  * plus cancelled, expired, and legacy values (available, assigned, picked_up,
  * in_progress, in_transit, completed, canceled). Each maps to one canonical
- * status below. Colours match the Live Map.
+ * status below. Colours match the Live Map, and white text on each passes
+ * 4.5:1 (docs/DESIGN_SYSTEM.md).
  */
+const C = { pending: '#B4530E', assigned: '#1D4ED8', moving: '#7C3AED', done: '#1B6E35', cancelled: '#6B7280', unknown: '#525C52' };
 
 export const PICKUP_STATUSES = [
-  { key: 'pending',    label: 'Pending',    group: 'open',        color: '#F59E0B', aliases: ['pending', 'available', 'new', 'requested', 'scheduled', 'open'] },
-  { key: 'accepted',   label: 'Assigned',   group: 'in_progress', color: '#3B82F6', aliases: ['accepted', 'assigned', 'confirmed', 'reserved'] },
-  { key: 'en_route',   label: 'En route',   group: 'in_progress', color: '#8B5CF6', aliases: ['en_route', 'in_transit', 'started', 'in_progress'] },
-  { key: 'arrived',    label: 'Arrived',    group: 'in_progress', color: '#8B5CF6', aliases: ['arrived'] },
-  { key: 'collecting', label: 'Collecting', group: 'in_progress', color: '#8B5CF6', aliases: ['collecting', 'picked_up'] },
-  { key: 'disposed',   label: 'Completed',  group: 'done',        color: '#10B981', aliases: ['disposed', 'completed', 'collected', 'done'] },
-  { key: 'cancelled',  label: 'Cancelled',  group: 'cancelled',   color: '#9CA3AF', aliases: ['cancelled', 'canceled', 'rejected', 'declined', 'failed'] },
-  { key: 'expired',    label: 'Expired',    group: 'cancelled',   color: '#9CA3AF', aliases: ['expired'] },
+  { key: 'pending',    label: 'Pending',    group: 'open',        color: C.pending, aliases: ['pending', 'available', 'new', 'requested', 'scheduled', 'open'] },
+  { key: 'accepted',   label: 'Assigned',   group: 'in_progress', color: C.assigned, aliases: ['accepted', 'assigned', 'confirmed', 'reserved'] },
+  { key: 'en_route',   label: 'En route',   group: 'in_progress', color: C.moving, aliases: ['en_route', 'in_transit', 'started', 'in_progress'] },
+  { key: 'arrived',    label: 'Arrived',    group: 'in_progress', color: C.moving, aliases: ['arrived'] },
+  { key: 'collecting', label: 'Collecting', group: 'in_progress', color: C.moving, aliases: ['collecting', 'picked_up'] },
+  { key: 'disposed',   label: 'Completed',  group: 'done',        color: C.done, aliases: ['disposed', 'completed', 'collected', 'done'] },
+  { key: 'cancelled',  label: 'Cancelled',  group: 'cancelled',   color: C.cancelled, aliases: ['cancelled', 'canceled', 'rejected', 'declined', 'failed'] },
+  { key: 'expired',    label: 'Expired',    group: 'cancelled',   color: C.cancelled, aliases: ['expired'] },
 ];
 
 export const STATUS_GROUPS = [
-  { key: 'open',        label: 'Open',        color: '#F59E0B' },
-  { key: 'in_progress', label: 'In progress', color: '#8B5CF6' },
-  { key: 'done',        label: 'Done',        color: '#10B981' },
-  { key: 'cancelled',   label: 'Cancelled',   color: '#9CA3AF' },
+  { key: 'open',        label: 'Open',        color: C.pending },
+  { key: 'in_progress', label: 'In progress', color: C.moving },
+  { key: 'done',        label: 'Done',        color: C.done },
+  { key: 'cancelled',   label: 'Cancelled',   color: C.cancelled },
 ];
 
-const UNKNOWN = { key: 'unknown', label: 'Unknown', group: 'open', color: '#64748B', aliases: [] };
+const UNKNOWN = { key: 'unknown', label: 'Unknown', group: 'open', color: C.unknown, aliases: [] };
 
 const normalize = (s) => String(s ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
 

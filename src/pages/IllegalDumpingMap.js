@@ -443,7 +443,7 @@ const IllegalDumpingMap = () => {
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Illegal Dumping Map</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal Dumping Map</h1>
           <p className="text-sm text-gray-500 mt-0.5">Monitor and manage illegal dumping reports geographically</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -484,7 +484,7 @@ const IllegalDumpingMap = () => {
             <div>
               <p className="text-xs text-gray-500 mb-0.5">{label}</p>
               <p className="text-2xl font-bold text-gray-800 leading-tight">{hasLoaded ? value : '—'}</p>
-              {hasLoaded && sub && <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>}
+              {hasLoaded && sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
             </div>
           </div>
         ))}
@@ -731,7 +731,7 @@ const IllegalDumpingMap = () => {
           {/* Severity legend */}
           {hasLoaded && (
             <div data-testid="severity-legend" className="absolute bottom-4 right-4 bg-white bg-opacity-95 rounded-lg shadow-md px-3 py-2 z-[400] text-xs text-gray-700">
-              <p className="font-semibold text-gray-500 uppercase tracking-wider text-[10px] mb-1">Severity</p>
+              <p className="font-semibold text-gray-500 uppercase tracking-wider text-xs mb-1">Severity</p>
               {[...SEVERITY_OPTIONS, { value: 'unknown', label: 'Unknown', color: UNKNOWN_SEVERITY_COLOR }].map(o => (
                 <div key={o.value} className="flex items-center gap-1.5 leading-5">
                   <span className="inline-block w-3 h-3 rounded-full border border-white shadow" style={{ backgroundColor: o.color }}></span>
@@ -739,7 +739,7 @@ const IllegalDumpingMap = () => {
                 </div>
               ))}
               <div className="flex items-center gap-1.5 leading-5 mt-1 pt-1 border-t border-gray-100">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-800 text-white text-[9px] font-semibold">5</span>
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-800 text-white text-xs font-semibold">5</span>
                 Cluster (ring = most severe)
               </div>
             </div>

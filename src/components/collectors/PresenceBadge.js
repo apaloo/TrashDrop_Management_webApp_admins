@@ -31,7 +31,7 @@ const PresenceBadge = ({ presence, showLastSeen = false, className = '' }) => {
   const gps = online && showLastSeen && presence.gpsStale
     ? ` · GPS ${presence.locationAt ? relativeTime(presence.locationAt) : 'none'}` : '';
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${presence.badge} ${className}`}
+    <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap ${presence.badge} ${className}`}
       title={titleOf(presence)}>
       <span className="w-2 h-2 rounded-full" style={{ background: presence.color }} aria-hidden="true"></span>
       {online ? `Online${gps}` : offlineText(presence, showLastSeen)}
