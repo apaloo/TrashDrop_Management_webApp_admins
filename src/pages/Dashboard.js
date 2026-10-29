@@ -97,7 +97,7 @@ const Panel = ({ title, help, action, children, className = '', testid }) => (
 
 const SEVERITY = {
   critical: { icon: 'exclamation-triangle', color: '#b91c1c', bg: '#fdecec' },
-  high: { icon: 'exclamation-circle', color: '#b4530e', bg: '#fef0e5' },
+  high: { icon: 'exclamation-circle', color: '#b4530e', bg: '#fff5ee' },
   medium: { icon: 'exclamation-circle', color: '#92400e', bg: '#fdf6e3' },
   low: { icon: 'info-circle', color: '#1d4ed8', bg: '#eaf0fd' },
 };

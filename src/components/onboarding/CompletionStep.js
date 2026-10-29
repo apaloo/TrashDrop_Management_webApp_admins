@@ -4,22 +4,22 @@ const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) 
   return (
     <div>
       <h2 className="text-2xl font-bold text-td-ink">Review and Complete</h2>
-      <p className="mt-1 text-sm text-gray-600">
+      <p className="mt-1 text-sm text-td-sage">
         Please review your information before completing setup
       </p>
 
       <div className="mt-6 space-y-6">
         {/* Company Information Review */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="text-md font-medium text-gray-700 mb-2">Company Information</h4>
+        <div className="bg-td-cream p-4 rounded-lg">
+          <h4 className="text-md font-medium text-td-ink mb-2">Company Information</h4>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-500">Company Name</p>
+              <p className="text-td-sage">Company Name</p>
               <p className="font-medium">{formData.companyName}</p>
             </div>
             <div>
-              <p className="text-gray-500">Company Type</p>
+              <p className="text-td-sage">Company Type</p>
               <p className="font-medium">
                 {formData.companyType === 'waste_management' && 'Waste Management'}
                 {formData.companyType === 'recycling' && 'Recycling'}
@@ -29,19 +29,19 @@ const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) 
               </p>
             </div>
             <div className="col-span-2">
-              <p className="text-gray-500">Operating Area</p>
+              <p className="text-td-sage">Operating Area</p>
               <p className="font-medium">{formData.operatingArea}</p>
             </div>
           </div>
         </div>
         
         {/* Preferences Review */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="text-md font-medium text-gray-700 mb-2">Your Preferences</h4>
+        <div className="bg-td-cream p-4 rounded-lg">
+          <h4 className="text-md font-medium text-td-ink mb-2">Your Preferences</h4>
           
           <div className="space-y-4">
             <div className="text-sm">
-              <p className="text-gray-500">Notifications</p>
+              <p className="text-td-sage">Notifications</p>
               <ul className="list-disc list-inside font-medium mt-1 ml-2">
                 {formData.notificationPreferences.email && <li>Email Notifications</li>}
                 {formData.notificationPreferences.push && <li>Push Notifications</li>}
@@ -53,7 +53,7 @@ const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) 
             </div>
             
             <div className="text-sm">
-              <p className="text-gray-500">Dashboard Display</p>
+              <p className="text-td-sage">Dashboard Display</p>
               <ul className="list-disc list-inside font-medium mt-1 ml-2">
                 {formData.dashboardPreferences.showKpis && <li>Show KPI Cards</li>}
                 {formData.dashboardPreferences.showRecentActivity && <li>Show Recent Activity</li>}
@@ -65,13 +65,13 @@ const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) 
         
         {/* Dashboard Preview */}
         <div className="border border-green-200 rounded-lg p-4">
-          <h4 className="text-md font-medium text-gray-700 mb-2">Dashboard Preview</h4>
+          <h4 className="text-md font-medium text-td-ink mb-2">Dashboard Preview</h4>
           <div className="bg-gray-100 rounded p-4 h-48 flex justify-center items-center">
             <div className="text-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <p className="mt-2 text-sm text-gray-700">Dashboard preview will be available after setup</p>
+              <p className="mt-2 text-sm text-td-ink">Dashboard preview will be available after setup</p>
             </div>
           </div>
         </div>
@@ -96,7 +96,7 @@ const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) 
           <button
             type="button"
             onClick={onPrevious}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            className="inline-flex items-center px-4 py-2 border border-td-border-strong shadow-sm text-sm font-medium rounded-md text-td-ink bg-white hover:bg-td-cream focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

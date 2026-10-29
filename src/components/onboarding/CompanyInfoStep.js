@@ -55,19 +55,19 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-td-ink">Company Information</h2>
-        <p className="mt-2 text-md text-gray-600 max-w-md mx-auto">
+        <p className="mt-2 text-md text-td-sage max-w-md mx-auto">
           Tell us about your company to help personalize your TrashDrop experience
         </p>
       </div>
 
       <form className="mt-6 space-y-6 max-w-lg mx-auto" onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="company-name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="company-name" className="block text-sm font-medium text-td-ink">
             Company Name
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-building text-gray-500"></i>
+              <i className="fas fa-building text-td-sage"></i>
             </div>
             <input
               type="text"
@@ -87,12 +87,12 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
         </div>
 
         <div>
-          <label htmlFor="company-type" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="company-type" className="block text-sm font-medium text-td-ink">
             Company Type
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-briefcase text-gray-500"></i>
+              <i className="fas fa-briefcase text-td-sage"></i>
             </div>
             <select
               id="company-type"
@@ -113,12 +113,12 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
         </div>
 
         <div>
-          <label htmlFor="operating-area" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="operating-area" className="block text-sm font-medium text-td-ink">
             Operating Area
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
-              <i className="fas fa-map-marker-alt text-gray-500"></i>
+              <i className="fas fa-map-marker-alt text-td-sage"></i>
             </div>
             <textarea
               id="operating-area"

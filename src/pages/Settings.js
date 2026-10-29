@@ -148,21 +148,21 @@ const Settings = () => {
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-[28px] leading-tight font-bold text-td-ink">Settings</h1>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-td-sage">
           Manage your account settings and preferences
         </p>
       </div>
       
       {/* Settings tabs and content */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-hidden">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-td-border">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-4 py-4 text-sm font-medium ${
               activeTab === 'profile'
                 ? 'border-b-2 border-green-500 text-green-600'
-                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'text-td-sage hover:text-td-ink hover:border-td-border-strong'
             }`}
           >
             <i className="fas fa-user mr-2"></i>
@@ -173,7 +173,7 @@ const Settings = () => {
             className={`px-4 py-4 text-sm font-medium ${
               activeTab === 'notifications'
                 ? 'border-b-2 border-green-500 text-green-600'
-                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'text-td-sage hover:text-td-ink hover:border-td-border-strong'
             }`}
           >
             <i className="fas fa-bell mr-2"></i>
@@ -184,7 +184,7 @@ const Settings = () => {
             className={`px-4 py-4 text-sm font-medium ${
               activeTab === 'dashboard'
                 ? 'border-b-2 border-green-500 text-green-600'
-                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'text-td-sage hover:text-td-ink hover:border-td-border-strong'
             }`}
           >
             <i className="fas fa-chart-line mr-2"></i>
@@ -195,7 +195,7 @@ const Settings = () => {
             className={`px-4 py-4 text-sm font-medium ${
               activeTab === 'region'
                 ? 'border-b-2 border-green-500 text-green-600'
-                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'text-td-sage hover:text-td-ink hover:border-td-border-strong'
             }`}
           >
             <i className="fas fa-globe mr-2"></i>
@@ -208,14 +208,14 @@ const Settings = () => {
           {/* Profile Settings */}
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Profile Information</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-lg font-medium text-td-ink">Profile Information</h3>
+              <p className="mt-1 text-sm text-td-sage">
                 Update your account information and contact details.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-td-ink">
                     First Name
                   </label>
                   <input
@@ -224,12 +224,12 @@ const Settings = () => {
                     id="firstName"
                     value={profileData.firstName}
                     onChange={handleProfileChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-td-border-strong shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-td-ink">
                     Last Name
                   </label>
                   <input
@@ -238,12 +238,12 @@ const Settings = () => {
                     id="lastName"
                     value={profileData.lastName}
                     onChange={handleProfileChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-td-border-strong shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-td-ink">
                     Email Address
                   </label>
                   <input
@@ -253,15 +253,15 @@ const Settings = () => {
                     value={profileData.email}
                     readOnly
                     disabled
-                    className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm"
+                    className="mt-1 block w-full rounded-md border-td-border-strong bg-gray-100 shadow-sm"
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-td-sage">
                     To change your email, please contact support.
                   </p>
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="phone" className="block text-sm font-medium text-td-ink">
                     Phone Number
                   </label>
                   <input
@@ -270,7 +270,7 @@ const Settings = () => {
                     id="phone"
                     value={profileData.phone}
                     onChange={handleProfileChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-td-border-strong shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                 </div>
               </div>
@@ -280,8 +280,8 @@ const Settings = () => {
           {/* Notification Settings */}
           {activeTab === 'notifications' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Notification Preferences</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-lg font-medium text-td-ink">Notification Preferences</h3>
+              <p className="mt-1 text-sm text-td-sage">
                 Choose how you'd like to receive notifications and alerts.
               </p>
               
@@ -294,12 +294,12 @@ const Settings = () => {
                       type="checkbox"
                       checked={notificationPreferences.email}
                       onChange={handleNotificationChange}
-                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="email-notifications" className="font-medium text-gray-700">Email Notifications</label>
-                    <p className="text-gray-500">Receive updates and alerts via email</p>
+                    <label htmlFor="email-notifications" className="font-medium text-td-ink">Email Notifications</label>
+                    <p className="text-td-sage">Receive updates and alerts via email</p>
                   </div>
                 </div>
                 
@@ -311,12 +311,12 @@ const Settings = () => {
                       type="checkbox"
                       checked={notificationPreferences.push}
                       onChange={handleNotificationChange}
-                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="push-notifications" className="font-medium text-gray-700">Push Notifications</label>
-                    <p className="text-gray-500">Receive browser push notifications</p>
+                    <label htmlFor="push-notifications" className="font-medium text-td-ink">Push Notifications</label>
+                    <p className="text-td-sage">Receive browser push notifications</p>
                   </div>
                 </div>
                 
@@ -328,12 +328,12 @@ const Settings = () => {
                       type="checkbox"
                       checked={notificationPreferences.sms}
                       onChange={handleNotificationChange}
-                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="sms-notifications" className="font-medium text-gray-700">SMS Notifications</label>
-                    <p className="text-gray-500">Receive text message alerts for critical events</p>
+                    <label htmlFor="sms-notifications" className="font-medium text-td-ink">SMS Notifications</label>
+                    <p className="text-td-sage">Receive text message alerts for critical events</p>
                   </div>
                 </div>
               </div>
@@ -356,8 +356,8 @@ const Settings = () => {
           {/* Dashboard Settings */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Dashboard Preferences</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-lg font-medium text-td-ink">Dashboard Preferences</h3>
+              <p className="mt-1 text-sm text-td-sage">
                 Customize how your dashboard looks and what information is displayed.
               </p>
               
@@ -370,12 +370,12 @@ const Settings = () => {
                       type="checkbox"
                       checked={dashboardPreferences.showKpis}
                       onChange={handleDashboardChange}
-                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="show-kpis" className="font-medium text-gray-700">Show KPI Cards</label>
-                    <p className="text-gray-500">Display key performance indicators on your dashboard</p>
+                    <label htmlFor="show-kpis" className="font-medium text-td-ink">Show KPI Cards</label>
+                    <p className="text-td-sage">Display key performance indicators on your dashboard</p>
                   </div>
                 </div>
                 
@@ -387,23 +387,23 @@ const Settings = () => {
                       type="checkbox"
                       checked={dashboardPreferences.showRecentActivity}
                       onChange={handleDashboardChange}
-                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                      className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="show-recent-activity" className="font-medium text-gray-700">Show Recent Activity</label>
-                    <p className="text-gray-500">Display your recent activity feed on the dashboard</p>
+                    <label htmlFor="show-recent-activity" className="font-medium text-td-ink">Show Recent Activity</label>
+                    <p className="text-td-sage">Display your recent activity feed on the dashboard</p>
                   </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="default-view" className="block text-sm font-medium text-gray-700">Default View</label>
+                  <label htmlFor="default-view" className="block text-sm font-medium text-td-ink">Default View</label>
                   <select
                     id="default-view"
                     name="defaultView"
                     value={dashboardPreferences.defaultView}
                     onChange={handleDashboardChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-td-border-strong focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                   >
                     <option value="map">Map View</option>
                     <option value="list">List View</option>
@@ -418,20 +418,20 @@ const Settings = () => {
           {/* Regional Settings */}
           {activeTab === 'region' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Regional Settings</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-lg font-medium text-td-ink">Regional Settings</h3>
+              <p className="mt-1 text-sm text-td-sage">
                 Adjust regional preferences like timezone, date format and measurement units.
               </p>
               
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="timezone" className="block text-sm font-medium text-gray-700">Timezone</label>
+                  <label htmlFor="timezone" className="block text-sm font-medium text-td-ink">Timezone</label>
                   <select
                     id="timezone"
                     name="timezone"
                     value={regionSettings.timezone}
                     onChange={handleRegionChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-td-border-strong focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                   >
                     <option value="UTC">UTC (Coordinated Universal Time)</option>
                     <option value="America/New_York">Eastern Time (US & Canada)</option>
@@ -442,13 +442,13 @@ const Settings = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700">Date Format</label>
+                  <label htmlFor="dateFormat" className="block text-sm font-medium text-td-ink">Date Format</label>
                   <select
                     id="dateFormat"
                     name="dateFormat"
                     value={regionSettings.dateFormat}
                     onChange={handleRegionChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-td-border-strong focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                   >
                     <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
                     <option value="DD/MM/YYYY">DD/MM/YYYY (Europe)</option>
@@ -457,13 +457,13 @@ const Settings = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="measurementUnit" className="block text-sm font-medium text-gray-700">Measurement Unit</label>
+                  <label htmlFor="measurementUnit" className="block text-sm font-medium text-td-ink">Measurement Unit</label>
                   <select
                     id="measurementUnit"
                     name="measurementUnit"
                     value={regionSettings.measurementUnit}
                     onChange={handleRegionChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-td-border-strong focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
                   >
                     <option value="metric">Metric (kg, km)</option>
                     <option value="imperial">Imperial (lbs, miles)</option>
@@ -474,7 +474,7 @@ const Settings = () => {
           )}
           
           {/* Action buttons and status messages */}
-          <div className="mt-8 border-t border-gray-200 pt-5">
+          <div className="mt-8 border-t border-td-border pt-5">
             {saveSuccess && (
               <div className="mb-4 p-4 bg-green-50 rounded-md border border-green-200">
                 <div className="flex">

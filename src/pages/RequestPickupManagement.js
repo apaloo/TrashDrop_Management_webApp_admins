@@ -468,7 +468,7 @@ const RequestPickupManagement = () => {
           </select>
         </label>
         {(filters.from || filters.to || filters.source || filters.unassigned) && (
-          <span className="text-xs rounded-full px-2 py-1 mb-1 bg-blue-50 text-blue-800 border border-blue-200" data-testid="dashboard-filter-note">
+          <span className="text-xs rounded-full px-2 py-1 mb-1 bg-td-tonal text-td-forest border border-td-border" data-testid="dashboard-filter-note">
             {[filters.unassigned && 'No collector', filters.source && (filters.source === 'digital_bins' ? 'Digital bins' : 'Pickup requests'),
               (filters.from || filters.to) && `Requested ${filters.from || '…'} to ${filters.to || '…'}`].filter(Boolean).join(' · ')}
           </span>

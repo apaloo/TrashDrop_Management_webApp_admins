@@ -48,18 +48,18 @@ const CollectorViewContent = ({ collector }) => {
           </p>
           
           <div className="flex space-x-2 mb-4">
-            <button className="p-2 bg-blue-50 rounded-full text-td-forest hover:bg-blue-100">
+            <button className="p-2 bg-td-tonal rounded-full text-td-forest hover:bg-green-100">
               <i className="fas fa-phone"></i>
             </button>
-            <button className="p-2 bg-blue-50 rounded-full text-td-forest hover:bg-blue-100">
+            <button className="p-2 bg-td-tonal rounded-full text-td-forest hover:bg-green-100">
               <i className="fas fa-envelope"></i>
             </button>
-            <button className="p-2 bg-blue-50 rounded-full text-td-forest hover:bg-blue-100">
+            <button className="p-2 bg-td-tonal rounded-full text-td-forest hover:bg-green-100">
               <i className="fas fa-comment"></i>
             </button>
           </div>
           
-          <div className="w-full bg-blue-50 rounded-lg p-3">
+          <div className="w-full bg-td-tonal rounded-lg p-3">
             <h5 className="text-sm font-medium text-td-ink mb-2">Quick Stats</h5>
             <div className="grid grid-cols-2 gap-2 text-center">
               <div>
@@ -158,7 +158,7 @@ const CollectorViewContent = ({ collector }) => {
                 <div key={index} className="flex items-start">
                   <div className={`h-8 w-8 rounded-full mr-3 flex items-center justify-center ${
                     activity.type === 'collection' ? 'bg-green-100 text-green-500' :
-                    activity.type === 'delivery' ? 'bg-blue-100 text-td-forest' :
+                    activity.type === 'delivery' ? 'bg-td-tonal text-td-forest' :
                     'bg-gray-100 text-td-sage'
                   }`}>
                     <i className={`fas ${

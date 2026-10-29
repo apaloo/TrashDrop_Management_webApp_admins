@@ -39,16 +39,16 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={onClose}>
       <div 
-        className="bg-white rounded-lg shadow-xl w-80 animate-float"
+        className="bg-white rounded-xl shadow-xl w-80 animate-float"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 flex justify-between items-center border-b">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-td-ink">
             QR Code: {qrData?.id || 'Batch'}
           </h3>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-600 transition-colors"
+            className="text-td-sage hover:text-td-sage transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
@@ -62,16 +62,16 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
               className="w-48 h-48 border p-2"
             />
           ) : (
-            <div className="w-48 h-48 border p-2 flex items-center justify-center bg-gray-50">
-              <span className="text-gray-500">QR Preview</span>
+            <div className="w-48 h-48 border p-2 flex items-center justify-center bg-td-cream">
+              <span className="text-td-sage">QR Preview</span>
             </div>
           )}
           
           <div className="mt-4 text-center">
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-sm text-td-sage mb-1">
               {qrData?.description || 'Scan this code with the TrashDrop app'}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-td-sage">
               Prefix: {qrData?.prefix || 'TD-'}
             </p>
           </div>
@@ -98,7 +98,7 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
           
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center"
+            className="px-4 py-2 bg-gray-200 text-td-ink rounded-lg hover:bg-gray-300 flex items-center"
           >
             <i className="fas fa-print mr-2"></i>
             Print

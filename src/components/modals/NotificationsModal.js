@@ -26,6 +26,13 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
     loadNotifications();
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const filteredNotifications = activeTab === 'all' 
@@ -76,27 +83,29 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
   const getIcon = (type) => {
     switch(type) {
       case 'alert':
-        return <i className="fas fa-exclamation-triangle text-red-500"></i>;
+        return <i className="fas fa-exclamation-triangle text-red-700"></i>;
       case 'info':
-        return <i className="fas fa-info-circle text-blue-500"></i>;
+        return <i className="fas fa-info-circle text-td-forest"></i>;
       case 'success':
-        return <i className="fas fa-check-circle text-green-500"></i>;
+        return <i className="fas fa-check-circle text-green-600"></i>;
       default:
-        return <i className="fas fa-bell text-gray-500"></i>;
+        return <i className="fas fa-bell text-td-sage"></i>;
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-[600px] flex flex-col">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl h-[600px] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="notifications-modal-title">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
+          <h2 id="notifications-modal-title" className="text-xl font-semibold text-td-ink">Notifications</h2>
           <button 
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label="Close"
+            className="text-td-sage hover:text-td-ink"
           >
-            <i className="fas fa-times text-xl"></i>
+            <i className="fas fa-times text-xl" aria-hidden="true"></i>
           </button>
         </div>
         
@@ -105,14 +114,14 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
           <button 
             className={`px-4 py-3 font-medium text-sm relative ${
               activeTab === 'all' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-td-forest border-b-2 border-td-forest' 
+                : 'text-td-sage hover:text-td-ink'
             }`}
             onClick={() => setActiveTab('all')}
           >
             All
             {getTabCount('all') > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="ml-2 bg-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {getTabCount('all')}
               </span>
             )}
@@ -120,14 +129,14 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
           <button 
             className={`px-4 py-3 font-medium text-sm relative ${
               activeTab === 'alerts' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-td-forest border-b-2 border-td-forest' 
+                : 'text-td-sage hover:text-td-ink'
             }`}
             onClick={() => setActiveTab('alerts')}
           >
             Alerts
             {getTabCount('alerts') > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="ml-2 bg-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {getTabCount('alerts')}
               </span>
             )}
@@ -135,14 +144,14 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
           <button 
             className={`px-4 py-3 font-medium text-sm ${
               activeTab === 'pickup' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-td-forest border-b-2 border-td-forest' 
+                : 'text-td-sage hover:text-td-ink'
             }`}
             onClick={() => setActiveTab('pickup')}
           >
             Pickup
             {getTabCount('pickup') > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="ml-2 bg-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {getTabCount('pickup')}
               </span>
             )}
@@ -150,21 +159,21 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
           <button 
             className={`px-4 py-3 font-medium text-sm ${
               activeTab === 'reports' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-td-forest border-b-2 border-td-forest' 
+                : 'text-td-sage hover:text-td-ink'
             }`}
             onClick={() => setActiveTab('reports')}
           >
             Reports
             {getTabCount('reports') > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="ml-2 bg-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {getTabCount('reports')}
               </span>
             )}
           </button>
           <div className="flex-1"></div>
           <button 
-            className="px-4 py-3 text-sm text-primary hover:text-primary-dark font-medium"
+            className="px-4 py-3 text-sm text-td-forest hover:text-td-forest-dk font-medium"
             onClick={markAllAsRead}
           >
             Mark all as read
@@ -177,11 +186,11 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
             <div className="divide-y">
               {isLoading ? (
                 <div className="p-6 text-center">
-                  <p className="text-gray-500">Loading notifications...</p>
+                  <p className="text-td-sage">Loading notifications...</p>
                 </div>
               ) : error ? (
                 <div className="p-6 text-center">
-                  <p className="text-red-500">{error}</p>
+                  <p className="text-red-700">{error}</p>
                   <button 
                     onClick={() => {
                       setError(null);
@@ -194,44 +203,44 @@ const NotificationsModal = ({ isOpen, onClose, onRead }) => {
                         setIsLoading(false);
                       });
                     }} 
-                    className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                    className="mt-2 px-4 py-2 bg-gray-200 text-td-ink rounded-md hover:bg-gray-300"
                   >
                     Try Again
                   </button>
                 </div>
               ) : filteredNotifications.length === 0 ? (
                 <div className="p-6 text-center">
-                  <p className="text-gray-500">No notifications in this category</p>
+                  <p className="text-td-sage">No notifications in this category</p>
                 </div>
               ) : filteredNotifications.map(notification => (
                 <div 
                   key={notification.id}
-                  className={`p-4 flex hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}
+                  className={`p-4 flex hover:bg-gray-50 ${!notification.read ? 'bg-td-tonal' : ''}`}
                   onClick={() => markAsRead(notification.id)}
                 >
                   <div className={`mt-1 mr-4 rounded-full p-2 ${
                     notification.type === 'alert' ? 'bg-red-100' : 
                     notification.type === 'info' ? 'bg-blue-100' : 
-                    'bg-green-100'
+                    'bg-td-tonal'
                   }`}>
                     {getIcon(notification.type)}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <p className={`font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                      <p className={`font-medium ${!notification.read ? 'text-td-ink' : 'text-td-ink'}`}>
                         {notification.message}
                       </p>
                       {!notification.read && (
-                        <span className="h-2 w-2 bg-primary rounded-full"></span>
+                        <span className="h-2 w-2 bg-green-600 rounded-full"></span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">{notification.time}</p>
+                    <p className="text-sm text-td-sage mt-1">{notification.time}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <div className="flex flex-col items-center justify-center h-full text-td-sage">
               <i className="fas fa-bell-slash text-4xl mb-2"></i>
               <p>No notifications</p>
             </div>

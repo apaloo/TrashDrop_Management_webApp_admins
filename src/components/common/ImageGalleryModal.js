@@ -104,7 +104,7 @@ const ImageGalleryModal = ({ images, isOpen, onClose }) => {
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border-2 ${
-                    idx === currentIndex ? 'border-blue-500' : 'border-transparent'
+                    idx === currentIndex ? 'border-green-600' : 'border-transparent'
                   }`}
                 >
                   <EnhancedImage

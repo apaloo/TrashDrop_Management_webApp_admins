@@ -64,17 +64,17 @@ const AdvancedFilter = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border-0 p-4 ${className}`}>
+    <div className={`bg-white rounded-xl shadow-sm border-0 p-4 ${className}`}>
       <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
         {/* Search input */}
         {filterConfig.includes('search') && (
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-td-ink mb-1">
               Search
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-500"></i>
+                <i className="fas fa-search text-td-sage"></i>
               </div>
               <input
                 type="text"
@@ -90,7 +90,7 @@ const AdvancedFilter = ({
         {/* Status dropdown */}
         {filterConfig.includes('status') && (
           <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-td-ink mb-1">Status</label>
             <select
               className="w-full py-2 px-3 border rounded-md focus:ring-green-500 focus:border-green-500"
               value={filters.status || 'all'}
@@ -109,7 +109,7 @@ const AdvancedFilter = ({
         {/* Area/location dropdown */}
         {filterConfig.includes('area') && (
           <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+            <label className="block text-sm font-medium text-td-ink mb-1">Area</label>
             <select
               className="w-full py-2 px-3 border rounded-md focus:ring-green-500 focus:border-green-500"
               value={filters.area || 'all'}
@@ -128,7 +128,7 @@ const AdvancedFilter = ({
         {/* Type dropdown */}
         {filterConfig.includes('type') && (
           <div className="w-full md:w-44">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <label className="block text-sm font-medium text-td-ink mb-1">Type</label>
             <select
               className="w-full py-2 px-3 border rounded-md focus:ring-green-500 focus:border-green-500"
               value={filters.type || 'all'}
@@ -148,7 +148,7 @@ const AdvancedFilter = ({
         {filterConfig.includes('dateRange') && (
           <>
             <div className="w-full md:w-44">
-              <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+              <label className="block text-sm font-medium text-td-ink mb-1">From Date</label>
               <input
                 type="date"
                 className="w-full py-2 px-3 border rounded-md focus:ring-green-500 focus:border-green-500"
@@ -159,7 +159,7 @@ const AdvancedFilter = ({
             
             {/* Date range - End date */}
             <div className="w-full md:w-44">
-              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+              <label className="block text-sm font-medium text-td-ink mb-1">To Date</label>
               <input
                 type="date"
                 className="w-full py-2 px-3 border rounded-md focus:ring-green-500 focus:border-green-500"
@@ -175,8 +175,8 @@ const AdvancedFilter = ({
         
         {/* Clear filters button */}
         <button
-          className={`px-4 py-2 text-gray-600 hover:text-blue-800 border border-gray-300 hover:border-blue-800 rounded-md ${
-            activeFiltersCount > 0 ? 'bg-blue-50' : ''
+          className={`px-4 py-2 text-td-sage hover:text-td-forest border border-td-border-strong hover:border-td-forest rounded-md ${
+            activeFiltersCount > 0 ? 'bg-td-tonal' : ''
           }`}
           onClick={onClearFilters}
           disabled={activeFiltersCount === 0}
@@ -194,10 +194,10 @@ const AdvancedFilter = ({
       {showActiveFilters && activeFiltersCount > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {filters.searchTerm && filters.searchTerm.trim() !== '' && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-td-tonal text-td-forest">
               Search: {filters.searchTerm}
               <button 
-                className="ml-1 text-blue-600"
+                className="ml-1 text-td-forest"
                 onClick={() => onFilterChange('searchTerm', '')}
               >
                 <i className="fas fa-times-circle"></i>
@@ -213,10 +213,10 @@ const AdvancedFilter = ({
               const label = filters[optionsKey]?.find(opt => opt.value === filters[key])?.label || filters[key];
               
               return (
-                <span key={key} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span key={key} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-td-tonal text-td-forest">
                   {key.charAt(0).toUpperCase() + key.slice(1)}: {label}
                   <button 
-                    className="ml-1 text-blue-600"
+                    className="ml-1 text-td-forest"
                     onClick={() => onFilterChange(key, 'all')}
                   >
                     <i className="fas fa-times-circle"></i>
@@ -228,10 +228,10 @@ const AdvancedFilter = ({
           }).filter(Boolean)}
           
           {filters.dateRange?.start && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-td-tonal text-td-forest">
               From: {filters.dateRange.start}
               <button 
-                className="ml-1 text-blue-600"
+                className="ml-1 text-td-forest"
                 onClick={() => handleDateChange('start', { target: { value: '' }})}
               >
                 <i className="fas fa-times-circle"></i>
@@ -240,10 +240,10 @@ const AdvancedFilter = ({
           )}
           
           {filters.dateRange?.end && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-td-tonal text-td-forest">
               To: {filters.dateRange.end}
               <button 
-                className="ml-1 text-blue-600"
+                className="ml-1 text-td-forest"
                 onClick={() => handleDateChange('end', { target: { value: '' }})}
               >
                 <i className="fas fa-times-circle"></i>
