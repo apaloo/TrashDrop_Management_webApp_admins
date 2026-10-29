@@ -230,7 +230,7 @@ const SignUp = () => {
             <div className="flex gap-3">
               <Link
                 to="/login"
-                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors text-center"
+                className="flex-1 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors text-center"
                 onClick={() => setShowDuplicateModal(false)}
               >
                 {joining ? 'Sign in to join' : 'Go to Login'}
@@ -281,9 +281,9 @@ const SignUp = () => {
             <Link to="/" className="inline-flex items-center justify-center group">
               <img src="/logo.svg" alt="TrashDrop Logo" className="h-16 w-16 transition-transform group-hover:scale-105" />
             </Link>
-            <h2 className="mt-5 text-2xl font-bold text-gray-900">
+            <h1 className="mt-5 text-2xl font-bold text-gray-900">
               {joining ? `Join ${invite?.group_name || 'your volunteer group'}` : 'Create your account'}
-            </h2>
+            </h1>
             <p className="mt-1.5 text-sm text-gray-500" data-testid="signup-subtitle">
               {joining
                 ? 'Just your name, email and a password. You’ll work under the group’s account, so there’s nothing else to fill in.'
@@ -318,7 +318,7 @@ const SignUp = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-green-700 font-medium">{success}</p>
-                  <p className="text-xs text-green-600 mt-1">Redirecting to login page in 5 seconds...</p>
+                  <p className="text-xs text-green-700 mt-1">Redirecting to login page in 5 seconds...</p>
                 </div>
               </div>
             </div>
@@ -464,7 +464,7 @@ const SignUp = () => {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-white text-gray-400">Organization details</span>
+                  <span className="px-3 bg-white text-gray-500">Organization details</span>
                 </div>
               </div>
               
@@ -535,7 +535,7 @@ const SignUp = () => {
                 </div>
                 <div className="ml-3 text-sm">
                   <label htmlFor="agree-terms" className="text-gray-600">
-                    I agree to the <a href="/terms" className="font-medium text-green-600 hover:text-green-500 transition-colors">Terms of Service</a> and <a href="/privacy" className="font-medium text-green-600 hover:text-green-500 transition-colors">Privacy Policy</a>
+                    I agree to the <a href="/terms" className="font-medium text-green-700 hover:text-green-800 transition-colors">Terms of Service</a> and <a href="/privacy" className="font-medium text-green-700 hover:text-green-800 transition-colors">Privacy Policy</a>
                   </label>
                   {validationErrors.agreeToTerms && (
                     <p className="text-red-500 text-xs mt-1.5">{validationErrors.agreeToTerms}</p>
@@ -548,7 +548,7 @@ const SignUp = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40"
               >
                 {loading ? (
                   <i className="fas fa-circle-notch fa-spin mr-2"></i>
@@ -564,14 +564,14 @@ const SignUp = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white text-gray-400">or</span>
+                <span className="px-3 bg-white text-gray-500">or</span>
               </div>
             </div>
             
             <div className="text-center">
               <p className="text-sm text-gray-500">
                 Already have an account?{' '}
-                <Link to="/login" className="font-semibold text-green-600 hover:text-green-500 transition-colors">
+                <Link to="/login" className="font-semibold text-green-700 hover:text-green-800 transition-colors">
                   Sign in
                 </Link>
                 {joining && ' — you’ll join the group after signing in.'}
@@ -579,7 +579,7 @@ const SignUp = () => {
               {joining && (
                 <p className="text-xs text-gray-500 mt-2">
                   Not joining a group?{' '}
-                  <Link to="/signup" onClick={forgetInvite} className="font-medium text-green-600 hover:text-green-500">Create a full account instead</Link>
+                  <Link to="/signup" onClick={forgetInvite} className="font-medium text-green-700 hover:text-green-800">Create a full account instead</Link>
                 </p>
               )}
             </div>

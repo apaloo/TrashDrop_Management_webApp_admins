@@ -34,7 +34,7 @@ const P = ({ children }) => (
   <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', lineHeight:1.8, margin:'0 0 16px' }}>{children}</p>
 );
 const Section = ({ bg, children }) => (
-  <section style={{ background:bg, padding:'72px 24px' }}>
+  <section style={{ background:bg, padding:'var(--td-section-y) 24px' }}>
     <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
   </section>
 );
@@ -64,14 +64,14 @@ const VolunteersPage = () => {
           .td-vol-photos { max-width:480px; width:100%; margin:0 auto; }
         }
       `}</style>
-      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'140px 24px 80px' }}>
+      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
         {/* The reported dump, faint behind everything */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/volunteers/reported-dump.jpg)', backgroundSize:'cover', backgroundPosition:'center', opacity:0.16, filter:'blur(3px) saturate(0.8)', transform:'scale(1.05)' }} />
         <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(160deg,${TD.forestDk}e6 0%,#0d1a0de0 50%,${TD.ink} 100%)` }} />
         <div className="td-vol-hero" style={{ position:'relative', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1.1fr 0.9fr', gap:56, alignItems:'center' }}>
           <div>
-            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
-              <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Volunteers
+            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.68)', marginBottom:20 }}>
+              <Link to="/" style={{ color:'rgba(255,255,255,0.68)', textDecoration:'none' }}>Home</Link> / Environment / Volunteers
             </nav>
             <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
               Volunteer Cleanups for Community Groups in Ghana
@@ -123,9 +123,9 @@ const VolunteersPage = () => {
             ['No double work', 'A claimed site is yours. Other groups and collectors don’t see it until you finish or release it.'],
             ['Proof of your impact', 'Cleanup photos and the disposal record stay with each report, credited to your group.'],
           ].map(([t, d]) => (
-            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(168,230,61,0.04)' }}>
+            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(182,238,105,0.04)' }}>
               <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', margin:'0 0 4px' }}>{t}</h3>
-              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.6)', margin:0 }}>{d}</p>
+              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', margin:0 }}>{d}</p>
             </div>
           ))}
         </div>

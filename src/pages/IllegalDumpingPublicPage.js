@@ -85,7 +85,7 @@ const IllegalDumpingPublicPage = () => {
     <PublicPageLayout>
       <style>{`@media(max-width:900px){ .td-idp-hero{grid-template-columns:1fr!important; gap:40px!important} .td-idp-photo{max-width:440px; width:100%; margin:0 auto!important} .td-idp-photo img{height:440px!important} }`}</style>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,#1a0a0a 0%,#120808 50%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:`linear-gradient(160deg,#1a0a0a 0%,#120808 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(rgba(220,38,38,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(220,38,38,0.3) 1px,transparent 1px)`, backgroundSize:'52px 52px', pointerEvents:'none' }} />
         <div className="td-idp-hero" style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1, display:'grid', gridTemplateColumns:'1.2fr 0.8fr', gap:56, alignItems:'center' }}>
         <div>
@@ -111,7 +111,7 @@ const IllegalDumpingPublicPage = () => {
           <img src="/images/illegal-dumping/report-with-phone.jpg" width="720" height="1073" decoding="async"
             alt="A young man on a busy street photographs a pile of dumped rubbish with his phone to report it"
             style={{ width:'100%', height:540, objectFit:'cover', borderRadius:22, border:'2px solid rgba(239,68,68,0.55)', boxShadow:'0 28px 70px rgba(0,0,0,0.55), 0 0 50px rgba(239,68,68,0.18)', display:'block' }} />
-          <figcaption style={{ position:'absolute', left:16, bottom:16, display:'inline-flex', alignItems:'center', gap:8, ...FF.label, fontSize:13, fontWeight:700, color:'#fff', background:'#ef4444', padding:'8px 14px', borderRadius:99 }}>
+          <figcaption style={{ position:'absolute', left:16, bottom:16, display:'inline-flex', alignItems:'center', gap:8, ...FF.label, fontSize:13, fontWeight:700, color:'#fff', background:'#b91c1c', padding:'8px 14px', borderRadius:99 }}>
             <i className="fas fa-camera" aria-hidden="true"></i> Snap it. Report it.
           </figcaption>
         </figure>
@@ -119,33 +119,33 @@ const IllegalDumpingPublicPage = () => {
       </section>
 
       {/* ── Scale stat bar ── */}
-      <section style={{ background:'#100808', padding:'48px 24px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+      <section style={{ background:'#100808', padding:'var(--td-section-y-compact) 24px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ maxWidth:900, margin:'0 auto', display:'flex', gap:40, justifyContent:'center', flexWrap:'wrap' }}>
           {[{v:'12M+',l:'Tonnes of Waste Generated Annually in Ghana'},{v:'Act 490',l:'Ghana Environmental Sanitation Law'},{v:'<2 min',l:'Time to Submit a Report'},{v:'4 Cities',l:'Active Enforcement Coverage'}].map(s=>(
             <div key={s.l} style={{ textAlign:'center' }}>
               <div style={{ ...FF.data, fontSize:30, color:'#f87171', letterSpacing:'1px' }}>{s.v}</div>
-              <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1px', textTransform:'uppercase', maxWidth:140 }}>{s.l}</div>
+              <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1px', textTransform:'uppercase', maxWidth:140 }}>{s.l}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Steps ── */}
-      <section id="how-to-report" style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section id="how-to-report" style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Step by Step</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Step by Step</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Report in under two minutes</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
             {REPORT_STEPS.map((s,i) => (
               <div key={i} style={{ background:'rgba(220,38,38,0.04)', border:'1px solid rgba(220,38,38,0.12)', borderRadius:18, padding:'28px 24px', position:'relative', overflow:'hidden' }}>
-                <div style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:'rgba(220,38,38,0.08)' }}>{s.n}</div>
+                <div aria-hidden="true" style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:'rgba(220,38,38,0.08)' }}>{s.n}</div>
                 <div style={{ width:44, height:44, borderRadius:12, background:'rgba(220,38,38,0.12)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
                   <i className={`fas ${s.icon}`} style={{ color:'#f87171', fontSize:17 }}></i>
                 </div>
                 <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{s.body}</p>
+                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
               </div>
             ))}
           </div>
@@ -153,7 +153,7 @@ const IllegalDumpingPublicPage = () => {
       </section>
 
       {/* ── What Happens After ── */}
-      <section style={{ background:'#0c0808', padding:'80px 24px' }}>
+      <section style={{ background:'#0c0808', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', letterSpacing:'-1px', margin:0 }}>What happens after you report</h2>
@@ -162,7 +162,7 @@ const IllegalDumpingPublicPage = () => {
             {[
               { step:'Immediately', text:'Your report is logged with GPS coordinates, timestamped photos, and waste type classification. You earn reward points instantly.', color:'#22c55e' },
               { step:'Within 1 hour', text:'TrashDrop routes the report to the relevant Municipal District Assembly and environmental enforcement unit.', color:TD.lime },
-              { step:'Within 24 hours', text:'A licensed cleanup team is dispatched to the site. The report is assigned a reference number for tracking.', color:TD.gold },
+              { step:'Within 24 hours', text:'A licensed cleanup team is dispatched to the site. The report is assigned a reference number for tracking.', color:TD.orange },
               { step:'Ongoing',        text:'You track cleanup progress directly in the TrashDrop app. Once the site is confirmed clean, your report is marked resolved.', color:'#3b82f6' },
             ].map((r,i)=>(
               <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:20, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'20px 24px' }}>
@@ -175,7 +175,7 @@ const IllegalDumpingPublicPage = () => {
       </section>
 
       {/* ── Ghana Law Box ── */}
-      <section style={{ background:TD.ink, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:820, margin:'0 auto', background:'rgba(220,38,38,0.06)', border:'1px solid rgba(220,38,38,0.18)', borderRadius:20, padding:'40px 40px' }}>
           <div style={{ display:'flex', alignItems:'flex-start', gap:20 }}>
             <i className="fas fa-gavel" style={{ color:'#f87171', fontSize:28, marginTop:4, flexShrink:0 }}></i>
@@ -193,7 +193,7 @@ const IllegalDumpingPublicPage = () => {
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ background:TD.ink2, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:'0 0 0', letterSpacing:'-0.5px' }}>Frequently asked questions</h2>

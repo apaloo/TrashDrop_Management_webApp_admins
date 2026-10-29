@@ -309,17 +309,17 @@ const BlogPostPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'140px 24px 72px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
         <div style={{ maxWidth:800, margin:'0 auto', position:'relative', zIndex:1 }}>
           <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
-            <Link to="/blog/" style={{ ...FF.label, fontSize:12, color:TD.sage, textDecoration:'none', fontWeight:600 }}>
+            <Link to="/blog/" style={{ ...FF.label, fontSize:12, color:TD.sageOnDark, textDecoration:'none', fontWeight:600 }}>
               ← Blog
             </Link>
-            <span style={{ color:TD.sage }}>·</span>
+            <span style={{ color:TD.sageOnDark }}>·</span>
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'1.5px', color:post.tagColor, background:`${post.tagColor}15`, border:`1px solid ${post.tagColor}25`, borderRadius:99, padding:'3px 10px', textTransform:'uppercase' }}>{post.tag}</span>
-            <span style={{ color:TD.sage }}>·</span>
-            <span style={{ ...FF.label, fontSize:12, color:TD.sage }}>{post.readTime}</span>
+            <span style={{ color:TD.sageOnDark }}>·</span>
+            <span style={{ ...FF.label, fontSize:12, color:TD.sageOnDark }}>{post.readTime}</span>
           </div>
           <h1 style={{ ...FF.display, fontSize:'clamp(32px,5vw,58px)', color:'#f0f5f0', lineHeight:1.08, letterSpacing:'-1.5px', margin:0 }}>
             {content.title}
@@ -328,7 +328,7 @@ const BlogPostPage = () => {
       </section>
 
       {/* ── Article body ── */}
-      <section style={{ background:TD.ink2, padding:'72px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:780, margin:'0 auto' }}>
 
           {/* Opening paragraph — first 100-150 words extracted by AI */}
@@ -341,7 +341,7 @@ const BlogPostPage = () => {
               <img src={post.image} alt={post.imageAlt} width={post.imageSize[0]} height={post.imageSize[1]} decoding="async"
                 style={{ display:'block', width:'100%', height:'auto', borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }} />
               {content.fromFacebook && (
-                <figcaption style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:12 }}>
+                <figcaption style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', marginTop:12 }}>
                   First shared on the <a href={BUSINESS.facebookUrl} target="_blank" rel="noopener noreferrer" style={{ color:TD.lime }}>TrashDrop Facebook page</a>.
                 </figcaption>
               )}
@@ -360,7 +360,7 @@ const BlogPostPage = () => {
           <div style={{ marginTop:56, background:`${TD.lime}10`, border:`1px solid ${TD.lime}25`, borderRadius:16, padding:'32px 36px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
             <div>
               <div style={{ ...FF.label, fontSize:14, fontWeight:700, color:TD.lime, marginBottom:6 }}>Ready to try TrashDrop?</div>
-              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.6)' }}>No app download. Available at trashdrops.com</div>
+              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)' }}>No app download. Available at trashdrops.com</div>
             </div>
             <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'12px 28px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
               Get Started Free →
@@ -371,7 +371,7 @@ const BlogPostPage = () => {
 
       {/* ── FAQ ── */}
       {content.faq && content.faq.length > 0 && (
-        <section style={{ background:TD.ink, padding:'72px 24px' }}>
+        <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
           <div style={{ maxWidth:780, margin:'0 auto' }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(24px,3.5vw,38px)', color:'#f0f5f0', margin:'0 0 40px', letterSpacing:'-0.5px' }}>Frequently asked questions</h2>
             <FAQAccordion items={content.faq} />
@@ -380,14 +380,14 @@ const BlogPostPage = () => {
       )}
 
       {/* ── Related posts ── */}
-      <section style={{ background:TD.ink2, padding:'72px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
           <h2 style={{ ...FF.display, fontSize:'clamp(22px,3vw,32px)', color:'#f0f5f0', margin:'0 0 32px', letterSpacing:'-0.5px' }}>More from the blog</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
             {otherPosts.map(p => (
               <Link key={p.slug} to={`/blog/${p.slug}/`} style={{ textDecoration:'none' }}>
                 <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px 22px', transition:'all 0.22s' }}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;}}
                   onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>
                   <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:p.tagColor, textTransform:'uppercase' }}>{p.tag}</span>
                   <h3 style={{ ...FF.display, fontSize:'clamp(16px,2vw,19px)', color:'#f0f5f0', lineHeight:1.35, margin:'10px 0 10px', letterSpacing:'-0.2px' }}>{p.title}</h3>

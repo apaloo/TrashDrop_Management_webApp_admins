@@ -3,25 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
 import { PublicMenuDesktop, PublicMenuMobile } from './PublicMenu';
-import SectionRhythm from './SectionRhythm';
+import { TD, FF } from '../theme/brand';
 
-/* ─── Brand tokens ─────────────────────────────────────────────────────────── */
-export const TD = {
-  lime:     '#a8e63d',
-  forest:   '#1b6e35',
-  forestDk: '#0f4020',
-  ink:      '#0a0f0a',
-  ink2:     '#111a13',
-  sage:     '#6b7565',
-  cream:    '#f5f2eb',
-  gold:     '#f5c842',
-};
-export const FF = {
-  display: { fontFamily:"'DM Serif Display', Georgia, serif" },
-  body:    { fontFamily:"'DM Sans', system-ui, sans-serif" },
-  label:   { fontFamily:"'Syne', sans-serif" },
-  data:    { fontFamily:"'Bebas Neue', sans-serif" },
-};
+/* ─── Brand tokens: src/theme/brand.js (re-exported for the pages) ─────────── */
+export { TD, FF };
+
+const SOCIAL_NAMES = { 'fa-twitter':'X (Twitter)', 'fa-linkedin':'LinkedIn', 'fa-instagram':'Instagram', 'fa-facebook':'Facebook' };
 
 /* ─── Navbar ────────────────────────────────────────────────────────────────── */
 export const PublicNavbar = () => {
@@ -36,10 +23,10 @@ export const PublicNavbar = () => {
   }, []);
 
   const navBg     = scrolled ? 'rgba(10,15,10,0.97)' : 'transparent';
-  const navBorder = scrolled ? `1px solid rgba(168,230,61,0.12)` : '1px solid transparent';
+  const navBorder = scrolled ? `1px solid rgba(182,238,105,0.12)` : '1px solid transparent';
   const linkColor = 'rgba(255,255,255,0.78)';
   const brandColor = '#fff';
-  const menuColors = { link:linkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(168,230,61,0.15)', panelText:'rgba(255,255,255,0.88)', panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:'rgba(255,255,255,0.07)' };
+  const menuColors = { link:linkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(182,238,105,0.15)', panelText:'rgba(255,255,255,0.88)', panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:'rgba(255,255,255,0.07)' };
 
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:navBg, backdropFilter:scrolled?'blur(22px)':'none', borderBottom:navBorder }}>
@@ -62,7 +49,7 @@ export const PublicNavbar = () => {
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background:TD.ink, borderTop:`1px solid rgba(168,230,61,0.12)`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
+        <div style={{ background:TD.ink, borderTop:`1px solid rgba(182,238,105,0.12)`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
           <PublicMenuMobile colors={menuColors} onNavigate={() => setMobileOpen(false)} />
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
             {isAuthenticated
@@ -80,7 +67,7 @@ export const PublicNavbar = () => {
 
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 export const PublicFooter = () => (
-  <footer style={{ background:'#050805', borderTop:`1px solid rgba(168,230,61,0.08)`, padding:'60px 24px 32px' }}>
+  <footer style={{ background:'#050805', borderTop:`1px solid rgba(182,238,105,0.08)`, padding:'60px 24px 32px' }}>
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:40, marginBottom:48 }}>
         <div>
@@ -88,16 +75,16 @@ export const PublicFooter = () => (
             <img src="/logo.svg" alt="TrashDrop" style={{ height:32 }} onError={e=>{e.target.style.display='none'}} />
             <span style={{ ...FF.label, fontSize:17, fontWeight:800, color:'#fff' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </Link>
-          <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.7, maxWidth:240 }}>
+          <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, maxWidth:240 }}>
             Ghana's leading mobile waste management platform. Connecting households with verified collectors across Accra, Kumasi, Takoradi and Tamale.
           </p>
           <div style={{ display:'flex', gap:10, marginTop:20 }}>
             {[['fa-twitter','https://twitter.com'],['fa-linkedin','https://linkedin.com'],['fa-instagram','https://instagram.com'],['fa-facebook',BUSINESS.facebookUrl]].map(([icon, href]) => (
-              <a key={icon} href={href} target="_blank" rel="noopener noreferrer"
-                style={{ width:34, height:34, borderRadius:8, border:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)', textDecoration:'none', transition:'all 0.2s' }}
+              <a key={icon} href={href} target="_blank" rel="noopener noreferrer" aria-label={`TrashDrop on ${SOCIAL_NAMES[icon]}`}
+                style={{ width:34, height:34, borderRadius:8, border:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'all 0.2s' }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}60`;e.currentTarget.style.color=TD.lime;}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='rgba(255,255,255,0.5)';}}>
-                <i className={`fab ${icon}`} style={{ fontSize:14 }}></i>
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='rgba(255,255,255,0.68)';}}>
+                <i className={`fab ${icon}`} style={{ fontSize:14 }} aria-hidden="true"></i>
               </a>
             ))}
           </div>
@@ -109,17 +96,17 @@ export const PublicFooter = () => (
           { title:'Resources', links:[['FAQ','/faq/'],['Blog','/blog/'],['About Us','/about/'],['Partners','/partners/'],['Report Illegal Dump','/illegal-dumping/'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18 }}>{col.title}</h4>
+            <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.68)', marginBottom:18 }}>{col.title}</h4>
             {col.links.map(([label, href]) => (
               href.startsWith('mailto') || href.startsWith('http')
-                ? <a key={label} href={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}
+                ? <a key={label} href={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}
                     onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
-                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.55)'}>
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.68)'}>
                     {label}
                   </a>
-                : <Link key={label} to={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}
+                : <Link key={label} to={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}
                     onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
-                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.55)'}>
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.68)'}>
                     {label}
                   </Link>
             ))}
@@ -127,12 +114,12 @@ export const PublicFooter = () => (
         ))}
       </div>
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-        <p style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.3)', margin:0 }}>© 2026 Infobrix Limited. All rights reserved. TrashDrop® is a registered trademark.</p>
+        <p style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', margin:0 }}>© 2026 Infobrix Limited. All rights reserved. TrashDrop® is a registered trademark.</p>
         <div style={{ display:'flex', gap:20 }}>
           {[['Privacy Policy','#'],['Terms of Service','#'],['Cookie Policy','#']].map(([l,h]) => (
-            <a key={l} href={h} style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.3)', textDecoration:'none', transition:'color 0.2s' }}
+            <a key={l} href={h} style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'color 0.2s' }}
               onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
-              onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
+              onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.68)'}>
               {l}
             </a>
           ))}
@@ -181,13 +168,12 @@ const PublicPageLayout = ({ children, title, description }) => {
         .td-pub-btn { white-space:nowrap; }
         @media(max-width:1023px) { .td-nav-links{display:none!important} .td-mobile-btn{display:block!important} }
         @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
-        .td-nav-link:hover { color:#a8e63d !important; }
+        .td-nav-link:hover { color:#b6ee69 !important; }
         @keyframes td-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes td-pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(168,230,61,0.4)} 70%{box-shadow:0 0 0 8px rgba(168,230,61,0)} }
+        @keyframes td-pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(182,238,105,0.4)} 70%{box-shadow:0 0 0 8px rgba(182,238,105,0)} }
         @keyframes td-fadeup { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
         .pub-reveal { animation: td-fadeup 0.7s cubic-bezier(.22,1,.36,1) both; }
       `}</style>
-      <SectionRhythm />
       <PublicNavbar />
       <main>{children}</main>
       <PublicFooter />

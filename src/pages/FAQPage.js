@@ -217,13 +217,13 @@ const FAQPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section style={{ background: `linear-gradient(160deg,${TD.forestDk} 0%,#0a150a 45%,${TD.ink} 100%)`, padding: '140px 24px 72px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: `linear-gradient(160deg,${TD.forestDk} 0%,#0a150a 45%,${TD.ink} 100%)`, padding: 'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: `radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize: '36px 36px', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           {/* Breadcrumb — also helps Google understand page hierarchy */}
           <nav aria-label="Breadcrumb" style={{ marginBottom: 24, display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
-            <Link to="/" style={{ ...FF.label, fontSize: 11, color: TD.sage, textDecoration: 'none', fontWeight: 600, letterSpacing: '1px' }}>Home</Link>
-            <i className="fas fa-chevron-right" style={{ color: TD.sage, fontSize: 9 }}></i>
+            <Link to="/" style={{ ...FF.label, fontSize: 11, color: TD.sageOnDark, textDecoration: 'none', fontWeight: 600, letterSpacing: '1px' }}>Home</Link>
+            <i className="fas fa-chevron-right" style={{ color: TD.sageOnDark, fontSize: 9 }}></i>
             <span style={{ ...FF.label, fontSize: 11, color: TD.lime, fontWeight: 700, letterSpacing: '1px' }}>FAQ</span>
           </nav>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: `${TD.lime}14`, border: `1px solid ${TD.lime}30`, borderRadius: 99, padding: '6px 18px', marginBottom: 24 }}>
@@ -246,7 +246,7 @@ const FAQPage = () => {
             ].map(s => (
               <div key={s.l} style={{ textAlign: 'center' }}>
                 <div style={{ ...FF.data, fontSize: 26, color: TD.lime }}>{s.v}</div>
-                <div style={{ ...FF.label, fontSize: 10, color: TD.sage, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' }}>{s.l}</div>
+                <div style={{ ...FF.label, fontSize: 10, color: TD.sageOnDark, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -271,19 +271,19 @@ const FAQPage = () => {
       </section>
 
       {/* ── FAQ Accordion ─────────────────────────────────────────────────── */}
-      <section style={{ background: TD.ink2, padding: '56px 24px 96px' }}>
+      <section style={{ background: TD.ink2, padding: 'var(--td-section-y) 24px var(--td-section-y)' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <FAQAccordion items={filteredItems} />
 
           {filteredItems.length === 0 && (
-            <p style={{ ...FF.body, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '48px 0' }}>No questions in this category.</p>
+            <p style={{ ...FF.body, color: 'rgba(255,255,255,0.68)', textAlign: 'center', padding: '48px 0' }}>No questions in this category.</p>
           )}
 
           {/* Contact prompt */}
-          <div style={{ marginTop: 64, background: `rgba(168,230,61,0.06)`, border: `1px solid ${TD.lime}20`, borderRadius: 20, padding: '36px 32px', textAlign: 'center' }}>
+          <div style={{ marginTop: 64, background: `rgba(182,238,105,0.06)`, border: `1px solid ${TD.lime}20`, borderRadius: 20, padding: '36px 32px', textAlign: 'center' }}>
             <i className="fas fa-headset" style={{ color: TD.lime, fontSize: 28, marginBottom: 16, display: 'block' }}></i>
             <h2 style={{ ...FF.display, fontSize: 'clamp(22px,3vw,32px)', color: '#f0f5f0', margin: '0 0 12px', letterSpacing: '-0.5px' }}>Still have a question?</h2>
-            <p style={{ ...FF.body, fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: '0 0 28px', maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ ...FF.body, fontSize: 15, color: 'rgba(255,255,255,0.68)', margin: '0 0 28px', maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
               Our support team is available to help. Reach us by email or phone.
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -299,7 +299,7 @@ const FAQPage = () => {
       </section>
 
       {/* ── Related pages ─────────────────────────────────────────────────── */}
-      <section style={{ background: '#0c1a0c', padding: '80px 24px' }}>
+      <section style={{ background: '#0c1a0c', padding: 'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <h2 style={{ ...FF.display, fontSize: 'clamp(24px,3vw,38px)', color: '#f0f5f0', margin: 0, letterSpacing: '-0.5px' }}>Explore TrashDrop</h2>
@@ -312,13 +312,13 @@ const FAQPage = () => {
               { to: '/illegal-dumping/',icon: 'fa-exclamation-triangle', title: 'Report Illegal Dumping', body: 'Report dump sites and earn reward points instantly.' },
             ].map(link => (
               <Link key={link.to} to={link.to} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px 20px', textDecoration: 'none', display: 'block', transition: 'all 0.22s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = `${TD.lime}30`; e.currentTarget.style.background = `rgba(168,230,61,0.04)`; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = `${TD.lime}30`; e.currentTarget.style.background = `rgba(182,238,105,0.04)`; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}>
                 <div style={{ width: 40, height: 40, borderRadius: 11, background: `${TD.lime}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                   <i className={`fas ${link.icon}`} style={{ color: TD.lime, fontSize: 16 }}></i>
                 </div>
                 <h3 style={{ ...FF.label, fontSize: 14, fontWeight: 700, color: '#f0f5f0', margin: '0 0 6px' }}>{link.title}</h3>
-                <p style={{ ...FF.body, fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, margin: 0 }}>{link.body}</p>
+                <p style={{ ...FF.body, fontSize: 12, color: 'rgba(255,255,255,0.68)', lineHeight: 1.6, margin: 0 }}>{link.body}</p>
               </Link>
             ))}
           </div>
@@ -326,9 +326,9 @@ const FAQPage = () => {
       </section>
 
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
-      <section style={{ background: `linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding: '80px 24px', textAlign: 'center' }}>
+      <section style={{ background: `linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding: 'var(--td-section-y) 24px', textAlign: 'center' }}>
         <h2 style={{ ...FF.display, fontSize: 'clamp(28px,4vw,48px)', color: '#f0f5f0', margin: '0 0 16px', letterSpacing: '-1px' }}>Ready to get started?</h2>
-        <p style={{ ...FF.body, fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 auto 36px', maxWidth: 480 }}>
+        <p style={{ ...FF.body, fontSize: 16, color: 'rgba(255,255,255,0.68)', margin: '0 auto 36px', maxWidth: 480 }}>
           Join thousands of Ghanaian households and businesses already using TrashDrop. No download required.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>

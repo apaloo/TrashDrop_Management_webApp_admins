@@ -7,7 +7,10 @@ jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }) => <div data-testid="leaflet">{children}</div>,
   TileLayer: () => null,
   Marker: ({ title, eventHandlers }) => <button type="button" onClick={eventHandlers.click}>{title}</button>,
+  // The details open in a popup at the marker
+  Popup: ({ children, position }) => <div data-testid="popup" data-position={position.join(',')}>{children}</div>,
   useMap: () => ({ invalidateSize: jest.fn(), setView: jest.fn(), fitBounds: jest.fn() }),
+  useMapEvents: () => null,
 }));
 jest.mock('react-leaflet-cluster', () => ({ children }) => <>{children}</>);
 jest.mock('../../../services/publicDumpingReportsService', () => ({
@@ -35,6 +38,19 @@ it('a report’s details offer "View more details", to sign-up by default', () =
   fireEvent.click(screen.getByRole('button', { name: 'High risk · Osu, Accra' }));
   expect(screen.getByTestId('public-report-card')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /View more details/ })).toHaveAttribute('href', '/signup');
+});
+
+it('opens the details at the clicked report, and closes them with the button or Escape', () => {
+  renderMap();
+  fireEvent.click(screen.getByRole('button', { name: 'High risk · Osu, Accra' }));
+  expect(screen.getByTestId('popup')).toHaveAttribute('data-position', '5.55,-0.18');
+  // The legend low on the map steps aside so it can't cover the card
+  expect(screen.getByTestId('public-map-frame')).toHaveAttribute('data-card-open', 'true');
+  fireEvent.click(screen.getByRole('button', { name: 'Close details' }));
+  expect(screen.queryByTestId('public-report-card')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'High risk · Osu, Accra' }));
+  fireEvent.keyDown(window, { key: 'Escape' });
+  expect(screen.queryByTestId('public-report-card')).not.toBeInTheDocument();
 });
 
 it('"View more details" follows detailsHref (signed-in users)', () => {

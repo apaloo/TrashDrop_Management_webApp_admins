@@ -41,7 +41,7 @@ const P = ({ children }) => (
   <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', lineHeight:1.8, margin:'0 0 16px' }}>{children}</p>
 );
 const Section = ({ bg, children }) => (
-  <section style={{ background:bg, padding:'72px 24px' }}>
+  <section style={{ background:bg, padding:'var(--td-section-y) 24px' }}>
     <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
   </section>
 );
@@ -81,10 +81,10 @@ const WastePickupPage = () => {
 
   return (
     <PublicPageLayout>
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'140px 24px 72px' }}>
+      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
-            <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Waste pickup
+          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.68)', marginBottom:20 }}>
+            <Link to="/" style={{ color:'rgba(255,255,255,0.68)', textDecoration:'none' }}>Home</Link> / Waste pickup
           </nav>
           <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
             On-Demand Waste Pickup & Rubbish Collectors in Ghana
@@ -102,9 +102,9 @@ const WastePickupPage = () => {
         <H2>What we pick up</H2>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
           {WASTE_TYPES.map(([t, d]) => (
-            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(168,230,61,0.04)' }}>
+            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(182,238,105,0.04)' }}>
               <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', margin:'0 0 4px' }}>{t}</h3>
-              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.6)', margin:0 }}>{d}</p>
+              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', margin:0 }}>{d}</p>
             </div>
           ))}
         </div>

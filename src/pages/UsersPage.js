@@ -93,7 +93,7 @@ const UsersPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0a1a10 50%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0a1a10 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'40px 40px', pointerEvents:'none' }} />
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
@@ -120,7 +120,7 @@ const UsersPage = () => {
             {[{v:'98%+',l:'Pickup Completion Rate'},{v:'4.8/5',l:'User Satisfaction'},{v:'480+',l:'Verified Collectors'},{v:'4 Cities',l:'Active Coverage'}].map(s=>(
               <div key={s.l} style={{ textAlign:'center' }}>
                 <div style={{ ...FF.data, fontSize:28, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-                <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
+                <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -128,22 +128,22 @@ const UsersPage = () => {
       </section>
 
       {/* ── Features ── */}
-      <section style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Platform Features</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Platform Features</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Everything you need to manage waste</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
             {FEATURES.map((f,i) => (
               <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'28px 24px', transition:'all 0.25s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>
                 <div style={{ width:46, height:46, borderRadius:13, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
                   <i className={`fas ${f.icon}`} style={{ color:TD.lime, fontSize:18 }}></i>
                 </div>
                 <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{f.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{f.body}</p>
+                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{f.body}</p>
               </div>
             ))}
           </div>
@@ -151,10 +151,10 @@ const UsersPage = () => {
       </section>
 
       {/* ── Payment methods ── */}
-      <section style={{ background:'#0c1a0c', padding:'80px 24px' }}>
+      <section style={{ background:'#0c1a0c', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
           <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:'0 0 12px', letterSpacing:'-1px' }}>Payment methods accepted</h2>
-          <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.5)', margin:'0 0 48px' }}>QR Bag pickups are always FREE. Digital Bin pickups are paid at point of collection.</p>
+          <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', margin:'0 0 48px' }}>QR Bag pickups are always FREE. Digital Bin pickups are paid at point of collection.</p>
           <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}>
             {PAYMENTS.map(p => (
               <div key={p.name} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${p.color}25`, borderRadius:14, padding:'20px 28px', display:'flex', alignItems:'center', gap:12 }}>
@@ -167,7 +167,7 @@ const UsersPage = () => {
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ background:TD.ink, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:0, letterSpacing:'-0.5px' }}>Frequently asked questions</h2>
@@ -177,9 +177,9 @@ const UsersPage = () => {
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
+      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Ghana's most reliable waste collection</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:480 }}>Join thousands of Ghanaian households and businesses already using TrashDrop. No download required.</p>
+        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:480 }}>Join thousands of Ghanaian households and businesses already using TrashDrop. No download required.</p>
         <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
           Create Free Account
         </a>

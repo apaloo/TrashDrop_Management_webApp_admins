@@ -46,7 +46,7 @@ const P = ({ children }) => (
   <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', lineHeight:1.8, margin:'0 0 16px' }}>{children}</p>
 );
 const Section = ({ bg, children }) => (
-  <section style={{ background:bg, padding:'72px 24px' }}>
+  <section style={{ background:bg, padding:'var(--td-section-y) 24px' }}>
     <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
   </section>
 );
@@ -77,7 +77,7 @@ const MediaPage = () => {
           .td-press-fade { background:linear-gradient(180deg, rgba(10,15,10,0.75) 0%, ${TD.ink} 100%)!important; }
         }
       `}</style>
-      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'140px 24px 88px' }}>
+      <section style={{ position:'relative', overflow:'hidden', background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
         {/* Press wall: real reports from TrashDrop users, pinned like prints under a camera viewfinder */}
         <div className="td-press-wall" aria-hidden="true" style={{ position:'absolute', top:0, right:0, bottom:0, width:'58%' }}>
           <div style={{ position:'absolute', inset:'-40px -60px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:18, transform:'rotate(-6deg)', alignContent:'center' }}>
@@ -99,8 +99,8 @@ const MediaPage = () => {
         <div className="td-press-fade" aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(90deg, ${TD.ink} 0%, ${TD.ink} 38%, rgba(10,15,10,0.82) 55%, rgba(10,15,10,0.15) 100%)` }} />
         <div style={{ position:'relative', maxWidth:1200, margin:'0 auto' }}>
           <div style={{ maxWidth:640 }}>
-            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:20 }}>
-              <Link to="/" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>Home</Link> / Environment / Media &amp; Journalists
+            <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.68)', marginBottom:20 }}>
+              <Link to="/" style={{ color:'rgba(255,255,255,0.68)', textDecoration:'none' }}>Home</Link> / Environment / Media &amp; Journalists
             </nav>
             <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
               Illegal Dumping Data for Journalists and Media in Ghana
@@ -118,9 +118,9 @@ const MediaPage = () => {
         <H2>What the data covers</H2>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
           {DATA.map(([t, d]) => (
-            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(168,230,61,0.04)' }}>
+            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(182,238,105,0.04)' }}>
               <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', margin:'0 0 4px' }}>{t}</h3>
-              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.6)', margin:0 }}>{d}</p>
+              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', margin:0 }}>{d}</p>
             </div>
           ))}
         </div>

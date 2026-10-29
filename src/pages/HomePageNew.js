@@ -3,31 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import PublicDumpingMap, { usePublicDumpingReports } from '../components/landing/PublicDumpingMap';
 import { computePublicStats, formatDuration, publicStatVisibility, latestReports, describeArea, timeAgo, cleanupDurationText, HOTSPOT_MIN_REPORTS } from '../services/publicDumpingReportsService';
 import { PublicMenuDesktop, PublicMenuMobile } from '../components/PublicMenu';
-import SectionRhythm from '../components/SectionRhythm';
 import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBookingCity, TRUST_STATS, CITY_CARD_PHOTOS } from '../config/homepage';
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
+import { TD, FF } from '../theme/brand';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 
-/* ─── Brand tokens ──────────────────────────────────────────────────────────── */
-const TD = {
-  lime:     '#a8e63d',
-  forest:   '#1b6e35',
-  forestDk: '#0f4020',
-  ink:      '#0a0f0a',
-  ink2:     '#111a13',
-  sage:     '#6b7565',
-  cream:    '#f5f2eb',
-  gold:     '#f5c842',
-  orange:   '#F98B38',
-};
-const FF = {
-  display: { fontFamily:"'DM Serif Display', Georgia, serif" },
-  body:    { fontFamily:"'DM Sans', system-ui, sans-serif" },
-  label:   { fontFamily:"'Syne', sans-serif" },
-  data:    { fontFamily:"'Bebas Neue', sans-serif" },
-};
+/* ─── Brand tokens: src/theme/brand.js ─────────────────────────────────────── */
+
+// A card colour as text on a white card: the brand green and orange are too
+// light there, so they switch to their darker partners
+const onLight = (c) => ({ [TD.lime]: TD.forest, [TD.orange]: TD.orangeText, '#e07a5f': '#b4532a' }[c] || c);
+
+const SOCIAL_NAMES = { 'fab fa-twitter':'TrashDrop on X (Twitter)', 'fab fa-facebook-f':'TrashDrop on Facebook', 'fab fa-linkedin-in':'TrashDrop on LinkedIn', 'fab fa-instagram':'TrashDrop on Instagram' };
 
 /* ─── Landing-page theme tokens ─────────────────────────────────────────────── */
 const LP = {
@@ -41,70 +30,70 @@ const LP = {
     sectionPartner:TD.ink,
     sectionPricing:'#0a0a0a',
     footerBg:      '#050805',
-    footerBorder:  'rgba(168,230,61,0.08)',
+    footerBorder:  'rgba(182,238,105,0.08)',
     navScrollBg:   'rgba(10,15,10,0.96)',
-    navScrollBorder:'rgba(168,230,61,0.12)',
+    navScrollBorder:'rgba(182,238,105,0.12)',
     navText:       'rgba(255,255,255,0.75)',
     navBrand:      '#fff',
     mobileMenuBg:  TD.ink,
     heroOverlay:   'linear-gradient(135deg,rgba(10,15,10,0.85) 0%,rgba(10,15,10,0.7) 50%,rgba(10,15,10,0.5) 100%)',
     heroBg:        TD.ink,
     heroText:      '#f0f5f0',
-    heroSub:       'rgba(255,255,255,0.55)',
-    heroStatLabel: TD.sage,
+    heroSub:       'rgba(255,255,255,0.72)',
+    heroStatLabel: TD.sageOnDark,
     sectionHeading:'#f0f5f0',
-    bodyText:      'rgba(255,255,255,0.45)',
+    bodyText:      'rgba(255,255,255,0.68)',
     ink2Heading:   TD.ink2,
     sageText:      TD.sage,
     cardBg:        '#fff',
     cardBorder:    'rgba(0,0,0,0.06)',
     stepNum:       'rgba(0,0,0,0.03)',
     darkBoxBg:     TD.ink2,
-    darkBoxText:   'rgba(255,255,255,0.62)',
+    darkBoxText:   'rgba(255,255,255,0.72)',
     mapSectionBg:  '#0c1210',
     mapStatBg:     'rgba(255,255,255,0.03)',
     mapStatBorder: 'rgba(255,255,255,0.07)',
     mapStatText:   '#fff',
-    mapStatLabel:  'rgba(255,255,255,0.35)',
+    mapStatLabel:  'rgba(255,255,255,0.68)',
     pathwayCardBg: '#fff',
     pathwayText:   '#4a5568',
     partnerTileBg: 'rgba(255,255,255,0.03)',
     partnerTileB:  'rgba(255,255,255,0.07)',
     partnerH4:     '#f0f5f0',
-    partnerP:      'rgba(255,255,255,0.38)',
+    partnerP:      'rgba(255,255,255,0.68)',
     pricingBg:     '#0a1a0a',
-    pricingText:   'rgba(255,255,255,0.52)',
+    pricingText:   'rgba(255,255,255,0.7)',
     subBg:         '#1a1a1a',
-    subText:       'rgba(255,255,255,0.58)',
-    subSmall:      'rgba(255,255,255,0.32)',
+    subText:       'rgba(255,255,255,0.72)',
+    subSmall:      'rgba(255,255,255,0.65)',
     pricingBarBg:  '#1a1f1a',
-    pricingBarText:'rgba(255,255,255,0.32)',
-    impactText:    'rgba(255,255,255,0.42)',
+    pricingBarText:'rgba(255,255,255,0.65)',
+    impactText:    'rgba(255,255,255,0.68)',
     impactCount:   '#fff',
-    impactSub:     'rgba(255,255,255,0.4)',
+    impactSub:     'rgba(255,255,255,0.65)',
     fabLabel:      TD.ink,
     fabLabelBg:    TD.ink,
     fabLabelColor: '#fff',
-    featureBoxBg:  'rgba(168,230,61,0.05)',
-    featureBoxBorder:'rgba(168,230,61,0.15)',
+    featureBoxBg:  'rgba(182,238,105,0.05)',
+    featureBoxBorder:'rgba(182,238,105,0.15)',
     featureTitle:  TD.lime,
-    featureIconBg: 'rgba(168,230,61,0.12)',
+    featureIconBg: 'rgba(182,238,105,0.12)',
     featureIcon:   TD.lime,
     featureText:   'rgba(255,255,255,0.72)',
     mapLegendBg:   'rgba(10,15,10,0.9)',
     mapLegendBorder:'rgba(255,255,255,0.1)',
-    mapLegendLabel:'rgba(255,255,255,0.45)',
-    mapLegendText: 'rgba(255,255,255,0.55)',
+    mapLegendLabel:'rgba(255,255,255,0.68)',
+    mapLegendText: 'rgba(255,255,255,0.75)',
     pricingRowBorder:'rgba(255,255,255,0.06)',
-    pricingSize:   'rgba(255,255,255,0.35)',
-    pricingDesc:   'rgba(255,255,255,0.45)',
-    subTierLabel:  'rgba(255,255,255,0.42)',
+    pricingSize:   'rgba(255,255,255,0.65)',
+    pricingDesc:   'rgba(255,255,255,0.68)',
+    subTierLabel:  'rgba(255,255,255,0.65)',
     connectorBorder:'#fff',
     darkBoxStrong:  '#fff',
     darkBoxFooter:  '#fff',
-    darkBoxSub:     TD.sage,
-    howItWorksLabel:TD.sage,
-    sectionLabel:   TD.sage,
+    darkBoxSub:     TD.sageOnDark,
+    howItWorksLabel:TD.sageOnDark,
+    sectionLabel:   TD.sageOnDark,
     impactLabel:    `${TD.lime}80`,
     pathwaysLabel:  `${TD.forest}99`,
   },
@@ -118,7 +107,7 @@ const LP = {
     sectionPartner:'#1b3a28',
     sectionPricing:'#fafafa',
     footerBg:      '#1b3a28',
-    footerBorder:  'rgba(168,230,61,0.15)',
+    footerBorder:  'rgba(182,238,105,0.15)',
     navScrollBg:   'rgba(255,255,255,0.97)',
     navScrollBorder:'rgba(22,101,52,0.15)',
     navText:       'rgba(27,62,40,0.75)',
@@ -130,35 +119,35 @@ const LP = {
     heroSub:       'rgba(255,255,255,0.6)',
     heroStatLabel: '#a7c5b0',
     sectionHeading:'#1b3a28',
-    bodyText:      '#4a7060',
+    bodyText:      TD.sage,
     ink2Heading:   '#1b3a28',
-    sageText:      '#5a7a68',
+    sageText:      TD.sage,
     cardBg:        '#fff',
     cardBorder:    'rgba(22,101,52,0.1)',
     stepNum:       'rgba(22,101,52,0.04)',
     darkBoxBg:     TD.forest,
-    darkBoxText:   'rgba(255,255,255,0.75)',
+    darkBoxText:   'rgba(255,255,255,0.9)',
     mapSectionBg:  '#f0faf2',
     mapStatBg:     'rgba(22,101,52,0.04)',
     mapStatBorder: 'rgba(22,101,52,0.1)',
     mapStatText:   '#1b3a28',
-    mapStatLabel:  '#5a7a68',
+    mapStatLabel:  TD.sage,
     pathwayCardBg: '#fff',
     pathwayText:   '#4a5568',
     partnerTileBg: 'rgba(255,255,255,0.12)',
     partnerTileB:  'rgba(255,255,255,0.15)',
     partnerH4:     '#f0f5f0',
-    partnerP:      'rgba(255,255,255,0.6)',
+    partnerP:      'rgba(255,255,255,0.85)',
     pricingBg:     '#f0faf2',
-    pricingText:   '#4a7060',
+    pricingText:   TD.sage,
     subBg:         '#fff',
     subText:       '#374151',
     subSmall:      '#6b7280',
     pricingBarBg:  '#e8f5ed',
-    pricingBarText:'#5a7a68',
+    pricingBarText:TD.sage,
     impactText:    '#3a6a50',
     impactCount:   '#1b3a28',
-    impactSub:     '#5a7a68',
+    impactSub:     TD.sage,
     fabLabel:      '#fff',
     fabLabelBg:    '#1b3a28',
     fabLabelColor: '#fff',
@@ -173,15 +162,15 @@ const LP = {
     mapLegendLabel:'#2d4a38',
     mapLegendText: '#374151',
     pricingRowBorder:'rgba(22,101,52,0.08)',
-    pricingSize:   '#5a7a68',
-    pricingDesc:   '#4a7060',
-    subTierLabel:  '#5a7a68',
+    pricingSize:   TD.sage,
+    pricingDesc:   TD.sage,
+    subTierLabel:  TD.sage,
     connectorBorder:'#f0f9f0',
     darkBoxStrong:  '#f0f5f0',
     darkBoxFooter:  '#f0f5f0',
     darkBoxSub:     '#c8e6cc',
-    howItWorksLabel:'#5a7a68',
-    sectionLabel:   '#5a7a68',
+    howItWorksLabel:TD.sage,
+    sectionLabel:   TD.sage,
     impactLabel:    TD.forest,
     pathwaysLabel:  TD.forest,
   },
@@ -207,19 +196,12 @@ const LpThemeProvider = ({ children, mode }) => {
 };
 
 /* ─── Hooks ─────────────────────────────────────────────────────────────────── */
-const useReveal = (threshold = 0.12) => {
+// Sections are readable at rest (in link previews, on slow phones, with
+// reduced motion), so nothing waits for a scroll to appear. The hook keeps
+// its shape for the sections that use it.
+const useReveal = () => {
   const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, visible };
+  return { ref, visible: true };
 };
 
 const useCountUp = (end, duration = 2200, shouldStart = false) => {
@@ -250,18 +232,18 @@ const GlobalStyles = () => (
     @keyframes td-blink      { 0%,100%{opacity:1} 50%{opacity:0} }
     @keyframes td-marquee    { to{transform:translateX(-50%)} }
     @keyframes td-fadeup     { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes td-pulse-dot  { 0%,100%{box-shadow:0 0 0 0 rgba(168,230,61,0.4)} 70%{box-shadow:0 0 0 8px rgba(168,230,61,0)} }
-    .td-nav-link:hover { color:#a8e63d !important; }
+    @keyframes td-pulse-dot  { 0%,100%{box-shadow:0 0 0 0 rgba(182,238,105,0.4)} 70%{box-shadow:0 0 0 8px rgba(182,238,105,0)} }
+    .td-nav-link:hover { color:#b6ee69 !important; }
     .td-pathway-card:hover { transform:translateY(-8px) !important; }
-    .td-partner-tile:hover { background:rgba(168,230,61,0.06) !important; border-color:rgba(168,230,61,0.2) !important; }
-    .td-social-btn:hover { background:rgba(168,230,61,0.15) !important; border-color:rgba(168,230,61,0.4) !important; color:#a8e63d !important; }
-    .td-footer-link:hover { color:#a8e63d !important; }
+    .td-partner-tile:hover { background:rgba(182,238,105,0.06) !important; border-color:rgba(182,238,105,0.2) !important; }
+    .td-social-btn:hover { background:rgba(182,238,105,0.15) !important; border-color:rgba(182,238,105,0.4) !important; color:#b6ee69 !important; }
+    .td-footer-link:hover { color:#b6ee69 !important; }
     .td-nav-btn, .td-lp-toggle { white-space:nowrap; }
     @media(max-width:1279px) { .td-lp-toggle-label { display:none; } }
     @media(max-width:1023px) { .td-nav-links{display:none!important} }
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
-    .td-step-card:hover { transform:translateY(-6px)!important; border-color:rgba(168,230,61,0.55)!important; background:rgba(168,230,61,0.06)!important; }
+    .td-step-card:hover { transform:translateY(-6px)!important; border-color:rgba(182,238,105,0.55)!important; background:rgba(182,238,105,0.06)!important; }
     @media(max-width:1100px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important} .td-steps-line{display:none} }
     @media(max-width:640px) {
       .td-steps6{grid-template-columns:1fr!important; gap:12px!important}
@@ -304,11 +286,11 @@ const HomeNavbar = ({ isAuthenticated }) => {
   }, []);
   // Same menu as every other public page (components/PublicMenu.js)
   const navScrollBg     = isDark ? 'rgba(10,15,10,0.96)'        : 'rgba(255,255,255,0.97)';
-  const navScrollBorder = isDark ? 'rgba(168,230,61,0.12)'      : 'rgba(22,101,52,0.15)';
+  const navScrollBorder = isDark ? 'rgba(182,238,105,0.12)'      : 'rgba(22,101,52,0.15)';
   // Light links and theme switch while the bar is see-through over the dark hero
   const overDark        = isDark || !scrolled;
   const navLinkColor    = overDark ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
-  const brandColor      = isDark ? '#fff'                        : TD.forest;
+  const brandColor      = overDark ? '#fff'                      : TD.forest;
   const mobileMenuBg    = isDark ? TD.ink                        : '#fff';
   const mobileLinkColor = isDark ? 'rgba(255,255,255,0.8)'      : 'rgba(27,62,40,0.85)';
   const mobileLinkBorder= isDark ? 'rgba(255,255,255,0.05)'     : 'rgba(22,101,52,0.08)';
@@ -316,8 +298,8 @@ const HomeNavbar = ({ isAuthenticated }) => {
     ? { ...FF.label, fontWeight:600, color:'#fff', textAlign:'center', padding:12, borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', textDecoration:'none' }
     : { ...FF.label, fontWeight:600, color:TD.forest, textAlign:'center', padding:12, borderRadius:8, border:`1px solid ${TD.forest}40`, textDecoration:'none' };
   const menuColors = isDark
-    ? { link:navLinkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(168,230,61,0.15)', panelText:mobileLinkColor, panelMuted:'rgba(255,255,255,0.45)', accent:TD.lime, divider:mobileLinkBorder }
-    : { link:navLinkColor, linkHover:overDark ? TD.lime : TD.forest, panelBg:'#fff', panelBorder:'rgba(22,101,52,0.14)', panelText:mobileLinkColor, panelMuted:'rgba(27,62,40,0.5)', accent:TD.forest, divider:mobileLinkBorder };
+    ? { link:navLinkColor, linkHover:TD.lime, panelBg:TD.ink, panelBorder:'rgba(182,238,105,0.15)', panelText:mobileLinkColor, panelMuted:'rgba(255,255,255,0.68)', accent:TD.lime, divider:mobileLinkBorder }
+    : { link:navLinkColor, linkHover:overDark ? TD.lime : TD.forest, panelBg:'#fff', panelBorder:'rgba(22,101,52,0.14)', panelText:mobileLinkColor, panelMuted:'rgba(27,62,40,0.75)', accent:TD.forest, divider:mobileLinkBorder };
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:1500, transition:'all 0.35s ease', background:scrolled?navScrollBg:'transparent', backdropFilter:scrolled?'blur(22px)':'none', borderBottom:scrolled?`1px solid ${navScrollBorder}`:'1px solid transparent' }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
@@ -333,7 +315,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             onClick={toggleLp}
             title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
             aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
-            style={{ display:'inline-flex', alignItems:'center', gap:6, background:overDark?'rgba(168,230,61,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${overDark?'rgba(168,230,61,0.35)':'rgba(22,101,52,0.2)'}`, color:overDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
+            style={{ display:'inline-flex', alignItems:'center', gap:6, background:overDark?'rgba(182,238,105,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${overDark?'rgba(182,238,105,0.35)':'rgba(22,101,52,0.2)'}`, color:overDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
           >
             <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} style={{ fontSize:13 }}></i>
             <span className="td-lp-toggle-label">{isDark ? 'Light' : 'Dark'}</span>
@@ -348,10 +330,10 @@ const HomeNavbar = ({ isAuthenticated }) => {
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(168,230,61,0.12)':'rgba(22,101,52,0.1)'}`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
+        <div style={{ background:mobileMenuBg, borderTop:`1px solid ${isDark?'rgba(182,238,105,0.12)':'rgba(22,101,52,0.1)'}`, padding:'8px 24px 24px', maxHeight:'calc(100vh - 68px)', overflowY:'auto' }}>
           <PublicMenuMobile colors={menuColors} onNavigate={() => setMobileOpen(false)} />
           <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
-            <button onClick={toggleLp} style={{ ...FF.label, fontWeight:600, color:isDark?TD.lime:TD.forest, background:'transparent', border:`1px solid ${isDark?'rgba(168,230,61,0.25)':'rgba(22,101,52,0.2)'}`, textAlign:'center', padding:12, borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <button onClick={toggleLp} style={{ ...FF.label, fontWeight:600, color:isDark?TD.lime:TD.forest, background:'transparent', border:`1px solid ${isDark?'rgba(182,238,105,0.25)':'rgba(22,101,52,0.2)'}`, textAlign:'center', padding:12, borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               <i className={`fas ${isDark?'fa-sun':'fa-moon'}`}></i> Switch to {isDark?'Light':'Dark'} Mode
             </button>
             {isAuthenticated
@@ -421,14 +403,14 @@ const BookingCard = () => {
           <i className={`fas ${locating ? 'fa-spinner fa-spin' : 'fa-location-arrow'}`} aria-hidden="true"></i>
         </button>
       </div>
-      <p role="status" style={{ ...FF.body, fontSize:12, color:'#6b7280', minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
+      <p role="status" style={{ ...FF.body, fontSize:12, color:TD.sage, minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
 
       <div role="radiogroup" aria-label="Service" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, background:'#f1f3f5', borderRadius:12, padding:4, marginBottom:14 }}>
         {Object.entries(SERVICES).map(([key, s]) => (
           <button key={key} type="button" role="radio" aria-checked={service === key} onClick={() => setService(key)}
             style={{ border:'none', borderRadius:9, padding:'9px 6px', cursor:'pointer', background: service === key ? '#fff' : 'transparent', boxShadow: service === key ? '0 1px 4px rgba(0,0,0,0.12)' : 'none', ...FF.body, color:TD.ink, lineHeight:1.25 }}>
             <span style={{ display:'block', fontSize:14, fontWeight:600 }}>{s.label}</span>
-            <span style={{ display:'block', fontSize:12, color: key === 'bag' ? TD.forest : '#6b7280' }}>({s.note})</span>
+            <span style={{ display:'block', fontSize:12, color: key === 'bag' ? TD.forest : TD.sage }}>({s.note})</span>
           </button>
         ))}
       </div>
@@ -455,7 +437,7 @@ const HeroSection = ({ isAuthenticated }) => {
   const ORBS = [
     { s:420, t:'10%', l:'2%',  c:TD.lime,   d:0   },
     { s:300, t:'65%', l:'68%', c:TD.forest, d:1.5 },
-    { s:240, t:'25%', l:'75%', c:TD.gold,   d:3   },
+    { s:240, t:'25%', l:'75%', c:TD.orange,   d:3   },
     { s:360, t:'70%', l:'5%',  c:TD.forest, d:0.8 },
   ];
   return (
@@ -508,13 +490,13 @@ const HeroSection = ({ isAuthenticated }) => {
 
           {/* Right — floating cards */}
           <div className="td-hero-cards" style={{ position:'relative', height:480, zIndex:3 }}>
-            <div style={{ position:'absolute', top:20, right:0, width:258, background:`rgba(27,110,53,0.18)`, border:`1px solid rgba(168,230,61,0.2)`, backdropFilter:'blur(20px)', borderRadius:20, padding:'20px 22px', animation:'td-float 6s ease-in-out infinite', boxShadow:`0 24px 60px rgba(0,0,0,0.5)` }}>
+            <div style={{ position:'absolute', top:20, right:0, width:258, background:`rgba(27,110,53,0.18)`, border:`1px solid rgba(182,238,105,0.2)`, backdropFilter:'blur(20px)', borderRadius:20, padding:'20px 22px', animation:'td-float 6s ease-in-out infinite', boxShadow:`0 24px 60px rgba(0,0,0,0.5)` }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                 <i className="fas fa-qrcode" style={{ color:TD.lime, fontSize:13 }}></i>
                 <span style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase' }}>QR Bag Pickup</span>
               </div>
               <div style={{ ...FF.data, fontSize:52, color:'#fff', lineHeight:1 }}>FREE</div>
-              <div style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.55)', marginTop:4 }}>Collection included with every bag</div>
+              <div style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', marginTop:4 }}>Collection included with every bag</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:14 }}>
                 {['Organic','General','Recyclable'].map(t => <span key={t} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1px', color:TD.lime, background:`${TD.lime}18`, borderRadius:4, padding:'3px 6px', textTransform:'uppercase' }}>{t}</span>)}
               </div>
@@ -524,20 +506,20 @@ const HeroSection = ({ isAuthenticated }) => {
                 <div style={{ width:32, height:32, borderRadius:8, background:`${TD.lime}20`, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <i className="fas fa-trash-alt" style={{ color:TD.lime, fontSize:14 }}></i>
                 </div>
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:600 }}>Digital Bin</span>
+                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:600 }}>Digital Bin</span>
               </div>
               <div style={{ ...FF.data, fontSize:36, color:'#fff' }}>ON DEMAND</div>
               <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant price quote</div>
             </div>
-            <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.gold}18,${TD.gold}08)`, border:`1px solid ${TD.gold}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
-              <div style={{ ...FF.label, fontSize:10, color:TD.gold, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
+            <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.orange}18,${TD.orange}08)`, border:`1px solid ${TD.orange}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
+              <div style={{ ...FF.label, fontSize:10, color:TD.orange, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
               <div style={{ ...FF.data, fontSize:40, color:'#fff' }}>LIVE</div>
-              <div style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.45)', marginTop:2 }}>From request to doorstep</div>
+              <div style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)', marginTop:2 }}>From request to doorstep</div>
             </div>
             <div style={{ position:'absolute', top:12, left:'36%', width:92, height:92, borderRadius:'50%', border:`1.5px solid ${TD.lime}28`, display:'flex', alignItems:'center', justifyContent:'center', animation:'td-spin-slow 18s linear infinite' }}>
               <svg viewBox="0 0 100 100" style={{ position:'absolute', width:'100%', height:'100%' }}>
                 <path id="tc" d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="none" />
-                <text style={{ fontSize:8.5, fill:`${TD.lime}60`, fontFamily:'Syne,sans-serif', fontWeight:700, letterSpacing:'3px' }}>
+                <text style={{ fontSize:8.5, fill:`${TD.lime}60`, fontWeight:700, letterSpacing:'3px' }}>
                   <textPath href="#tc">Waste you can track · </textPath>
                 </text>
               </svg>
@@ -549,7 +531,7 @@ const HeroSection = ({ isAuthenticated }) => {
         </div>
       </div>
       <div style={{ position:'absolute', bottom:28, left:'50%', transform:'translateX(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:8, animation:'td-float 2.5s ease-in-out infinite' }}>
-        <span style={{ ...FF.label, fontSize:9, color:'rgba(255,255,255,0.28)', letterSpacing:'2px', fontWeight:700, textTransform:'uppercase' }}>Scroll</span>
+        <span style={{ ...FF.label, fontSize:9, color:'rgba(255,255,255,0.68)', letterSpacing:'2px', fontWeight:700, textTransform:'uppercase' }}>Scroll</span>
         <div style={{ width:24, height:40, border:'1.5px solid rgba(255,255,255,0.14)', borderRadius:99, display:'flex', justifyContent:'center', paddingTop:6 }}>
           <div style={{ width:4, height:8, background:TD.lime, borderRadius:99, animation:'td-float 1.4s ease-in-out infinite alternate' }} />
         </div>
@@ -634,7 +616,7 @@ const HowItWorksSection = () => {
                 <div className="td-step-body">
                   <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:6 }}>Step {i + 1}</span>
                   <h3 style={{ ...FF.label, fontSize:16, fontWeight:700, color:'#f0f5f0', margin:'0 0 8px' }}>{s.title}</h3>
-                  <p style={{ ...FF.body, fontSize:13.5, color:'rgba(255,255,255,0.6)', lineHeight:1.6, margin:0 }}>{s.text}</p>
+                  <p style={{ ...FF.body, fontSize:13.5, color:'rgba(255,255,255,0.68)', lineHeight:1.6, margin:0 }}>{s.text}</p>
                 </div>
               </li>
             ))}
@@ -652,7 +634,7 @@ const ServicesSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   return (
-    <section id="services" style={{ background:lp.sectionAlt, paddingTop:80, paddingBottom:100 }}>
+    <section id="services" style={{ background:lp.sectionAlt, paddingTop:'var(--td-section-y)', paddingBottom:'var(--td-section-y)' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
           <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
@@ -660,7 +642,7 @@ const ServicesSection = () => {
         <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,58px)', lineHeight:0.95, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1)' }}>
           Two ways to <em style={{ color:TD.forest }}>drop</em> your waste.<br />Zero excuses.
         </h2>
-        <p style={{ ...FF.body, fontSize:15, fontWeight:300, color:lp.sageText, maxWidth:540, marginBottom:48, lineHeight:1.75 }}>
+        <p style={{ ...FF.body, fontSize:15, fontWeight:400, color:lp.sageText, maxWidth:540, marginBottom:48, lineHeight:1.75 }}>
           TrashDrop offers two ways to book waste collection, built for how you actually live: QR Bags for regular rubbish collection
           with free pickup, or the Digital Bin for an on-demand trash pickup whenever you need one.
         </p>
@@ -668,7 +650,7 @@ const ServicesSection = () => {
           {/* QR Bag */}
           <div style={{ background:TD.ink2, borderRadius:20, padding:'40px 44px', position:'relative', overflow:'hidden', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             <div style={{ position:'absolute', top:-40, right:-40, width:220, height:220, borderRadius:'50%', background:`${TD.lime}0C`, pointerEvents:'none' }} />
-            <span style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.03)', lineHeight:1 }}>01</span>
+            <span aria-hidden="true" style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.03)', lineHeight:1 }}>01</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:`${TD.lime}18`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'5px 12px', marginBottom:20 }}>
               <span style={{ width:5, height:5, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
               <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase' }}>Service One</span>
@@ -688,7 +670,7 @@ const ServicesSection = () => {
                   </div>
                   <div>
                     <p style={{ ...FF.label, fontSize:11, fontWeight:700, color:TD.lime, letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
-                    <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:'rgba(255,255,255,0.55)', margin:0, lineHeight:1.65 }}>{d}</p>
+                    <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.9)', margin:0, lineHeight:1.65 }}>{d}</p>
                   </div>
                 </div>
               ))}
@@ -698,13 +680,13 @@ const ServicesSection = () => {
           {/* Digital Bin */}
           <div style={{ background:TD.forest, borderRadius:20, padding:'40px 44px', position:'relative', overflow:'hidden', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.22s' }}>
             <div style={{ position:'absolute', bottom:-40, left:-40, width:200, height:200, borderRadius:'50%', background:'rgba(255,255,255,0.04)', pointerEvents:'none' }} />
-            <span style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.04)', lineHeight:1 }}>02</span>
+            <span aria-hidden="true" style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.04)', lineHeight:1 }}>02</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:99, padding:'5px 12px', marginBottom:20 }}>
               <span style={{ width:5, height:5, borderRadius:'50%', background:'#fff', display:'inline-block' }} />
               <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:'#fff', textTransform:'uppercase' }}>Service Two</span>
             </div>
             <h3 style={{ ...FF.display, fontSize:'clamp(28px,3vw,42px)', color:'#fff', lineHeight:1, margin:'0 0 4px', letterSpacing:'-0.5px' }}>The Digital<br /><em style={{ color:'rgba(255,255,255,0.88)' }}>Bin Service</em></h3>
-            <p style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:'rgba(255,255,255,0.55)', textTransform:'uppercase', marginBottom:20 }}>Request · Quote · Track</p>
+            <p style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:'rgba(255,255,255,0.9)', textTransform:'uppercase', marginBottom:20 }}>Request · Quote · Track</p>
             <div style={{ width:36, height:2, background:'rgba(255,255,255,0.4)', borderRadius:99, marginBottom:28 }} />
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[['1','Request On-Demand Pickup','Open the app and submit a Request Bin Pickup (No Bag) anytime, anywhere.'],
@@ -716,7 +698,7 @@ const ServicesSection = () => {
                   </div>
                   <div>
                     <p style={{ ...FF.label, fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.88)', letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
-                    <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:'rgba(255,255,255,0.65)', margin:0, lineHeight:1.65 }}>{d}</p>
+                    <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.65)', margin:0, lineHeight:1.65 }}>{d}</p>
                   </div>
                 </div>
               ))}
@@ -825,7 +807,7 @@ const MobileReportMockup = () => {
               {/* Camera Viewfinder */}
               <div style={{ 
                 height:160, 
-                background:photoTaken?'rgba(168,230,61,0.08)':'#1a1a1a', 
+                background:photoTaken?'rgba(182,238,105,0.08)':'#1a1a1a', 
                 borderRadius:14, 
                 border:`1.5px dashed ${photoTaken?TD.lime:'rgba(255,255,255,0.15)'}`,
                 display:'flex',
@@ -838,15 +820,15 @@ const MobileReportMockup = () => {
               }}>
                 {photoTaken ? (
                   <>
-                    <div style={{ width:52, height:52, borderRadius:10, background:'rgba(168,230,61,0.12)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <div style={{ width:52, height:52, borderRadius:10, background:'rgba(182,238,105,0.12)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <i className="fas fa-image" style={{ color:TD.lime, fontSize:22 }}></i>
                     </div>
                     <span style={{ ...FF.label, fontSize:11, color:TD.lime, fontWeight:600 }}>Photo captured!</span>
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-camera" style={{ color:'rgba(255,255,255,0.25)', fontSize:28 }}></i>
-                    <span style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.35)' }}>Tap to capture</span>
+                    <i className="fas fa-camera" aria-hidden="true" style={{ color:'rgba(255,255,255,0.25)', fontSize:28 }}></i>
+                    <span style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)' }}>Tap to capture</span>
                   </>
                 )}
               </div>
@@ -884,11 +866,11 @@ const MobileReportMockup = () => {
                 <div style={{ 
                   position:'absolute', 
                   inset:0,
-                  background:'radial-gradient(circle at 50% 50%, rgba(168,230,61,0.08) 0%, transparent 60%)'
+                  background:'radial-gradient(circle at 50% 50%, rgba(182,238,105,0.08) 0%, transparent 60%)'
                 }} />
                 <div style={{ textAlign:'center', position:'relative', zIndex:1 }}>
                   <i className="fas fa-map-marker-alt" style={{ color:TD.lime, fontSize:26, marginBottom:4, display:'block' }}></i>
-                  <p style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.5)', margin:'4px 0' }}>Accra, Ghana</p>
+                  <p style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)', margin:'4px 0' }}>Accra, Ghana</p>
                   <p style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:600, letterSpacing:'0.5px' }}>GPS Accurate</p>
                 </div>
               </div>
@@ -912,19 +894,19 @@ const MobileReportMockup = () => {
               <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Review and submit</p>
               
               <div style={{ 
-                background:'rgba(168,230,61,0.06)', 
+                background:'rgba(182,238,105,0.06)', 
                 borderRadius:12, 
                 border:`1px solid ${TD.lime}25`,
                 padding:12,
                 marginBottom:12
               }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                  <div style={{ width:40, height:40, borderRadius:8, background:'rgba(168,230,61,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <div style={{ width:40, height:40, borderRadius:8, background:'rgba(182,238,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <i className="fas fa-image" style={{ color:TD.lime, fontSize:16 }}></i>
                   </div>
                   <div style={{ minWidth:0 }}>
                     <p style={{ ...FF.label, fontSize:11, color:'#fff', fontWeight:600, margin:0 }}>Photo attached</p>
-                    <p style={{ ...FF.body, fontSize:10, color:'rgba(255,255,255,0.5)', margin:'2px 0 0' }}>Accra, Ghana</p>
+                    <p style={{ ...FF.body, fontSize:10, color:'rgba(255,255,255,0.68)', margin:'2px 0 0' }}>Accra, Ghana</p>
                   </div>
                 </div>
                 <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
@@ -933,7 +915,7 @@ const MobileReportMockup = () => {
                       ...FF.label, 
                       fontSize:9, 
                       color:i===2?'#ef4444':TD.lime, 
-                      background:i===2?'rgba(239,68,68,0.12)':'rgba(168,230,61,0.12)',
+                      background:i===2?'rgba(239,68,68,0.12)':'rgba(182,238,105,0.12)',
                       padding:'3px 8px',
                       borderRadius:4,
                       fontWeight:600,
@@ -993,7 +975,7 @@ const MobileReportMockup = () => {
         ...FF.label,
         fontSize:11,
         fontWeight:700,
-        boxShadow:'0 4px 20px rgba(168,230,61,0.4)',
+        boxShadow:'0 4px 20px rgba(182,238,105,0.4)',
         transform:'rotate(-5deg)'
       }}>
         <i className="fas fa-bolt" style={{ marginRight:4 }}></i> 30 sec report
@@ -1038,7 +1020,7 @@ const LatestReportsOverlay = ({ data }) => {
   const recentCount = latestReports(reports, 'all', 15).length;
 
   const panelBg    = 'rgba(8,12,8,0.93)';
-  const borderCol  = 'rgba(168,230,61,0.18)';
+  const borderCol  = 'rgba(182,238,105,0.18)';
   const headText   = '#f0f5f0';
   const subText    = 'rgba(255,255,255,0.5)';
   const cardBg     = 'rgba(255,255,255,0.04)';
@@ -1047,7 +1029,7 @@ const LatestReportsOverlay = ({ data }) => {
   const pillBg     = 'rgba(255,255,255,0.07)';
 
   return (
-    <div data-testid="latest-reports-overlay" style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, maxHeight:'calc(100% - 80px)', maxWidth:'calc(100% - 32px)' }}>
+    <div data-testid="latest-reports-overlay" className="td-map-hide-with-card" style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, maxHeight:'calc(100% - 80px)', maxWidth:'calc(100% - 32px)' }}>
       {open && (
         <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'100%', minHeight:0, flex:'0 1 auto', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${borderCol}`, display:'flex', alignItems:'center', gap:8 }}>
@@ -1079,7 +1061,7 @@ const LatestReportsOverlay = ({ data }) => {
               const fresh = freshIds.includes(r.id);
               const cleanedText = r.isCleanedUp ? (cleanupDurationText(r.createdAt, r.completedAt) || 'Cleaned up') : null;
               return (
-                <div key={r.id} style={{ display:'flex', gap:10, background: fresh ? 'rgba(168,230,61,0.07)' : cardBg, border:`1px solid ${fresh ? TD.lime + '40' : cardBorder}`, borderRadius:12, padding:'9px 10px', transition:'all 0.4s ease' }}>
+                <div key={r.id} style={{ display:'flex', gap:10, background: fresh ? 'rgba(182,238,105,0.07)' : cardBg, border:`1px solid ${fresh ? TD.lime + '40' : cardBorder}`, borderRadius:12, padding:'9px 10px', transition:'all 0.4s ease' }}>
                   {r.photos[0]
                     ? <img src={r.photos[0]} alt={`Reported dumping at ${describeArea(r)}`} width="48" height="48" loading="lazy" decoding="async" style={{ width:48, height:48, borderRadius:8, objectFit:'cover', flexShrink:0, background:'#1a221a' }} />
                     : <div aria-hidden="true" style={{ width:48, height:48, borderRadius:8, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:metaTxt }}><i className="fas fa-trash-alt" style={{ fontSize:14 }}></i></div>}
@@ -1092,7 +1074,7 @@ const LatestReportsOverlay = ({ data }) => {
                     <div style={{ ...FF.body, fontSize:10, color:metaTxt, marginTop:2 }}>
                       Reported {timeAgo(r.createdAt)}{r.wasteType ? ` · ${r.wasteType.replace(/_/g, ' ')} waste` : ''}
                     </div>
-                    <div style={{ ...FF.body, fontSize:10, fontWeight:600, marginTop:4, color: r.isCleanedUp ? '#4ade80' : TD.gold }}>
+                    <div style={{ ...FF.body, fontSize:10, fontWeight:600, marginTop:4, color: r.isCleanedUp ? '#4ade80' : TD.orange }}>
                       {r.isCleanedUp ? `✓ ${cleanedText}` : 'Waiting for cleanup'}
                     </div>
                   </div>
@@ -1145,29 +1127,29 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
     {label:'Total Reports',value:String(stats.total),icon:'fa-file-alt',color:'#4d9de0',bg:'rgba(77,157,224,0.12)', title:'Public reports on the map (excludes cancelled reports)'},
     {label:'Hotspot Zones',value:String(stats.hotspots),icon:'fa-map-pin',color:'#dc2626',bg:'rgba(220,38,38,0.12)', title:`Areas where ${HOTSPOT_MIN_REPORTS}+ active reports are each within 500 m of another`},
     show.cleanupRate && {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
-    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
+    show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.orange,bg:`${TD.orange}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
   ].filter(Boolean);
   // A report's "View more details": visitors sign up first; signed-in users open the analytics map
   const detailsHref = isAuthenticated ? '/illegal-dumping/map' : '/signup';
   return (
-    <section id="map" style={{ background:lp.mapSectionBg, padding:'96px 0' }}>
+    <section id="map" style={{ background:lp.mapSectionBg, padding:'var(--td-section-y) 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:52 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:lpMode === 'dark' ? TD.lime : TD.forest, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
           <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:home ? 0 : '0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             {home
-              ? <>Trash Map — <em style={{ color:TD.lime }}>illegal dumping</em> hotspot</>
-              : <>Track. Report. <em style={{ color:TD.lime }}>Eliminate</em> Illegal Dumping.</>}
+              ? <>Trash Map — <em style={{ color:lpMode === 'dark' ? TD.lime : TD.forest }}>illegal dumping</em> hotspot</>
+              : <>Track. Report. <em style={{ color:lpMode === 'dark' ? TD.lime : TD.forest }}>Eliminate</em> Illegal Dumping.</>}
           </h2>
           {!home && <>
-          <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.bodyText, maxWidth:620, margin:'0 auto 24px', lineHeight:1.75 }}>
+          <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.bodyText, maxWidth:620, margin:'0 auto 24px', lineHeight:1.75 }}>
             Beyond waste collection, TrashDrop helps communities, cities and environmental agencies across Ghana detect, report and clean up
             illegal dumping. Explore reported dumping sites across Ghana in real time.
           </p>
           <button
             onClick={() => { if (isAuthenticated) navigate('/illegal-dumping/reports'); else window.location.href = HOUSEHOLD_APP_URL; }}
             style={{ display:'inline-flex', alignItems:'center', gap:10, background:'transparent', color:lp.sectionHeading, ...FF.label, fontSize:14, fontWeight:700, padding:'12px 24px', borderRadius:10, cursor:'pointer', border:`1.5px solid ${TD.lime}55` }}>
-            <i className="fas fa-exclamation-triangle" style={{ color:TD.gold }}></i> Report Illegal Dump
+            <i className="fas fa-exclamation-triangle" style={{ color:TD.orange }}></i> Report Illegal Dump
           </button>
           </>}
         </div>
@@ -1283,7 +1265,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
         <i className="fas fa-times" />
       </button>
       {/* Counter */}
-      <div style={{ position:'absolute', top:24, left:24, ...FF.label, fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:600, letterSpacing:'2px' }}>
+      <div style={{ position:'absolute', top:24, left:24, ...FF.label, fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:600, letterSpacing:'2px' }}>
         {index + 1} / {photos.length}
       </div>
       {/* Prev */}
@@ -1353,19 +1335,19 @@ const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
   const STATS = [
     { label:'Dumps Reported',     value:stats.total,     icon:'fa-flag',          color:'#f87171', accent:'rgba(248,113,113,0.15)' },
     { label:'Cleaned Up',         value:stats.cleanedUp, icon:'fa-broom',         color:TD.lime,   accent:`${TD.lime}18`            },
-    { label:'Waiting for Cleanup', value:stats.active,   icon:'fa-hourglass-half', color:TD.gold,  accent:`${TD.gold}18`            },
+    { label:'Waiting for Cleanup', value:stats.active,   icon:'fa-hourglass-half', color:TD.orange,  accent:`${TD.orange}18`            },
     { label:'Areas Reported',     value:stats.areas,     icon:'fa-map-marker-alt', color:'#60a5fa', accent:'rgba(96,165,250,0.15)'   },
   ];
   return (
     <section id="impact" style={{ background:lp.sectionForest, position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`radial-gradient(circle at 1px 1px,rgba(168,230,61,0.5) 1px,transparent 0)`, backgroundSize:'32px 32px', pointerEvents:'none' }} />
+      <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`radial-gradient(circle at 1px 1px,rgba(182,238,105,0.5) 1px,transparent 0)`, backgroundSize:'32px 32px', pointerEvents:'none' }} />
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'100px 24px' }}>
         <div style={{ textAlign:'center', marginBottom:72 }}>
           <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:lp.impactLabel, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Environmental Impact</span>
           <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             Making a <em style={{ color:TD.lime }}>Real Difference</em>
           </h2>
-          <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.impactText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>Every report, every cleanup, every community action adds up to meaningful environmental change across Ghana.</p>
+          <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.impactText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>Every report, every cleanup, every community action adds up to meaningful environmental change across Ghana.</p>
         </div>
         {/* ── Photo evidence grid ── */}
         {lbOpen && <Lightbox photos={DUMP_PHOTOS} index={lbIndex} onClose={lbClose} onPrev={lbPrev} onNext={lbNext} onGoTo={setLbIndex} />}
@@ -1421,9 +1403,9 @@ const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
           </p>
         </div>
 
-        {showNumbers && <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(168,230,61,0.1)', borderLeft:'1px solid rgba(168,230,61,0.1)' }}>
+        {showNumbers && <div className="td-impact-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1px solid rgba(182,238,105,0.1)', borderLeft:'1px solid rgba(182,238,105,0.1)' }}>
           {STATS.map((s,i) => (
-            <div key={s.label} style={{ borderRight:'1px solid rgba(168,230,61,0.1)', borderBottom:'1px solid rgba(168,230,61,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
+            <div key={s.label} style={{ borderRight:'1px solid rgba(182,238,105,0.1)', borderBottom:'1px solid rgba(182,238,105,0.1)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
               <ImpactStatCard {...s} ready={ready} />
             </div>
           ))}
@@ -1440,17 +1422,17 @@ const PathwaysSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
   const PATHWAYS = [
-    { title:'Local Authorities (MMDA)',     icon:'fa-landmark',     color:'#4d9de0', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup?type=municipality', popular:true,
+    { title:'Local Authorities (MMDA)',     icon:'fa-landmark',     color:'#2563eb', bg:'rgba(77,157,224,0.15)', border:'rgba(77,157,224,0.25)', cta:'Register as Environmental Officer', link:'/signup?type=municipality', popular:true,
       features:['Monitor illegal dumping hotspots','Assign and dispatch cleanup teams','Track enforcement actions & outcomes','Generate compliance reports'] },
     { title:'Volunteers',                   icon:'fa-hands-helping', color:TD.lime,  bg:`${TD.lime}15`,           border:`${TD.lime}25`,           cta:'Volunteer with your group',          link:'/volunteers/',
       features:['Claim verified dumping reports in your region','Up to 3 open cleanups at a time','One shared login for the whole group','Before-and-after cleanup photos'] },
     { title:'Media & Journalists',          icon:'fa-newspaper',    color:'#e07a5f', bg:'rgba(224,122,95,0.15)', border:'rgba(224,122,95,0.25)', cta:'Get Media access',                  link:'/media/',
       features:['National view of reports and cleanups','No reporter details shared','Filter by date, region, district and status','CSV download, up to 5,000 reports'] },
-    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.gold,   bg:`${TD.gold}15`,           border:`${TD.gold}25`,           cta:'Register as Waste Operator',         link:'/signup?type=waste_management',
+    { title:'Waste Management Operators',   icon:'fa-truck',        color:TD.orange,   bg:`${TD.orange}15`,           border:`${TD.orange}25`,           cta:'Register as Waste Operator',         link:'/signup?type=waste_management',
       features:['Manage bins and collection points','Optimize waste collection routes','Track operational performance KPIs','Real-time fleet and schedule management'] },
   ];
   return (
-    <section id="pathways" style={{ background:lp.sectionPathway, position:'relative', overflow:'hidden', padding:'100px 0' }}>
+    <section id="pathways" style={{ background:lp.sectionPathway, position:'relative', overflow:'hidden', padding:'var(--td-section-y) 0' }}>
       <div style={{ position:'absolute', top:-120, right:-120, width:500, height:500, borderRadius:'50%', background:`${TD.lime}08`, pointerEvents:'none', filter:'blur(80px)' }} />
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:64 }}>
@@ -1458,7 +1440,7 @@ const PathwaysSection = () => {
           <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             Choose Your <em style={{ color:TD.forest }}>Pathway</em>
           </h2>
-          <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.sageText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>
+          <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.sageText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>
             Whether you're a local authority, a volunteer group, a journalist or a waste operator — TrashDrop has tools designed specifically for you.
           </p>
         </div>
@@ -1474,11 +1456,11 @@ const PathwaysSection = () => {
                 {p.features.map(f => (
                   <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                     <i className="fas fa-check-circle" style={{ color:p.color, fontSize:14, marginTop:2, flexShrink:0 }}></i>
-                    <span style={{ ...FF.body, fontSize:14, fontWeight:300, color:lp.pathwayText, lineHeight:1.6 }}>{f}</span>
+                    <span style={{ ...FF.body, fontSize:14, fontWeight:400, color:lp.pathwayText, lineHeight:1.6 }}>{f}</span>
                   </li>
                 ))}
               </ul>
-              <Link to={p.link} style={{ display:'block', textAlign:'center', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.5px', padding:14, borderRadius:12, textDecoration:'none', background:p.popular?p.color:'transparent', color:p.popular?(p.color===TD.lime?TD.ink:'#fff'):p.color, border:p.popular?'none':`1.5px solid ${p.color}`, boxShadow:p.popular?`0 6px 24px ${p.color}40`:'none', transition:'all 0.2s ease' }}>
+              <Link to={p.link} style={{ display:'block', textAlign:'center', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.5px', padding:14, borderRadius:12, textDecoration:'none', background:p.popular?p.color:'transparent', color:p.popular?(p.color===TD.lime?TD.ink:'#fff'):onLight(p.color), border:p.popular?'none':`1.5px solid ${p.color}`, boxShadow:p.popular?`0 6px 24px ${p.color}40`:'none', transition:'all 0.2s ease' }}>
                 {p.cta}
               </Link>
             </div>
@@ -1499,18 +1481,18 @@ const PartnershipsSection = () => {
     { title:'Smart Cities',              desc:"Integrate TrashDrop into your city's digital infrastructure for real-time waste intelligence.", icon:'fa-city',        color:'#60a5fa' },
     { title:'Municipal Waste Agencies',  desc:'Streamline operations, track compliance, and optimize resource allocation.',                   icon:'fa-building',    color:TD.lime   },
     { title:'Environmental NGOs',        desc:'Leverage data insights to drive advocacy and community-based cleanup programs.',               icon:'fa-globe-africa',color:'#34d399' },
-    { title:'Recycling Companies',       desc:'Identify waste streams, optimize collection routes, and increase recycling rates.',            icon:'fa-recycle',     color:TD.gold   },
+    { title:'Recycling Companies',       desc:'Identify waste streams, optimize collection routes, and increase recycling rates.',            icon:'fa-recycle',     color:TD.orange   },
   ];
   return (
-    <section id="partners" style={{ background:lp.sectionPartner, padding:'100px 0' }}>
+    <section id="partners" style={{ background:lp.sectionPartner, padding:'var(--td-section-y) 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div className="td-partners-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'center' }}>
           <div>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:`${TD.lime}70`, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Partnerships</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Partnerships</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,52px)', lineHeight:1.05, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 20px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
               Partner With <em style={{ color:TD.lime }}>TrashDrop</em>
             </h2>
-            <p style={{ ...FF.body, fontSize:16, fontWeight:300, color:lp.partnerP, lineHeight:1.75, marginBottom:36 }}>
+            <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.partnerP, lineHeight:1.75, marginBottom:36 }}>
               Join a growing network of cities, agencies, and organizations using TrashDrop to build cleaner, smarter communities across Ghana and Africa.
             </p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:12 }}>
@@ -1535,7 +1517,7 @@ const PartnershipsSection = () => {
                   <i className={`fas ${uc.icon}`} style={{ color:uc.color, fontSize:18 }}></i>
                 </div>
                 <h4 style={{ ...FF.display, fontSize:17, color:lp.partnerH4, margin:'0 0 8px', letterSpacing:'-0.3px' }}>{uc.title}</h4>
-                <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:lp.partnerP, lineHeight:1.65, margin:0 }}>{uc.desc}</p>
+                <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:lp.partnerP, lineHeight:1.65, margin:0 }}>{uc.desc}</p>
               </div>
             ))}
           </div>
@@ -1554,7 +1536,7 @@ const cityAreas = (slug) => `${CITY_CONTENT[slug].areas.slice(0, 3).join(', ')}�
 const ServiceAreasSection = () => {
   const { lp } = useLpTheme();
   return (
-    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'72px 0' }}>
+    <section id="service-areas" style={{ background:lp.sectionAlt, padding:'var(--td-section-y) 0' }}>
       <div style={{ maxWidth:1280, margin:'0 auto' }}>
         <div style={{ padding:'0 24px', marginBottom:24 }}>
           <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,44px)', color:lp.ink2Heading, margin:'0 0 6px', letterSpacing:'-1px', lineHeight:1.05 }}>
@@ -1599,13 +1581,13 @@ const HomeFooter = () => {
             <img src="/logo.svg" alt="TrashDrop" style={{ height:40, width:40 }} />
             <span style={{ ...FF.label, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </div>
-          <p style={{ ...FF.body, fontSize:14, fontWeight:300, color:'rgba(255,255,255,0.38)', lineHeight:1.75, maxWidth:280, marginBottom:24 }}>
+          <p style={{ ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', lineHeight:1.75, maxWidth:280, marginBottom:24 }}>
             Trash and waste collection in Accra, Kumasi, Takoradi and Tamale, plus illegal dumping reporting across Ghana. Call or WhatsApp {BUSINESS.phoneDisplay}.
           </p>
           <div style={{ display:'flex', gap:10 }}>
             {[['fab fa-twitter','#'],['fab fa-facebook-f',BUSINESS.facebookUrl],['fab fa-linkedin-in','#'],['fab fa-instagram','#']].map(([ic,href]) => (
-              <a key={ic} href={href} className="td-social-btn" style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)', textDecoration:'none', transition:'all 0.2s ease', fontSize:13 }}>
-                <i className={ic}></i>
+              <a key={ic} href={href} className="td-social-btn" aria-label={SOCIAL_NAMES[ic]} style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'all 0.2s ease', fontSize:13 }}>
+                <i className={ic} aria-hidden="true"></i>
               </a>
             ))}
           </div>
@@ -1616,18 +1598,18 @@ const HomeFooter = () => {
           { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partners','/partners/'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:20 }}>{col.title}</h4>
+            <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.68)', marginBottom:20 }}>{col.title}</h4>
             {col.links.map(([label,href]) => (
               href.startsWith('/') || href.startsWith('#')
-                ? <Link key={label} to={href.startsWith('/')? href : '#'} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:300, color:'rgba(255,255,255,0.38)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</Link>
-                : <a key={label} href={href} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:300, color:'rgba(255,255,255,0.38)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</a>
+                ? <Link key={label} to={href.startsWith('/')? href : '#'} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</Link>
+                : <a key={label} href={href} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</a>
             ))}
           </div>
         ))}
       </div>
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:28, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-        <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:'rgba(255,255,255,0.28)', margin:0 }}>&copy; {new Date().getFullYear()} TrashDrop by Infobrix Limited. All rights reserved.</p>
-        <p style={{ ...FF.body, fontSize:13, fontWeight:300, color:'rgba(255,255,255,0.22)', margin:0 }}>Built for cleaner cities across Ghana and Africa.</p>
+        <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.68)', margin:0 }}>&copy; {new Date().getFullYear()} TrashDrop by Infobrix Limited. All rights reserved.</p>
+        <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.68)', margin:0 }}>Built for cleaner cities across Ghana and Africa.</p>
       </div>
     </div>
   </footer>
@@ -1640,7 +1622,7 @@ const HomeFooter = () => {
 const CollectorsLine = () => {
   const { lp } = useLpTheme();
   return (
-    <section style={{ background:lp.pageBg, padding:'40px 24px' }}>
+    <section style={{ background:lp.pageBg, padding:'var(--td-section-y-compact) 24px' }}>
       <p style={{ ...FF.body, fontSize:17, lineHeight:1.6, color:lp.ink2Heading, textAlign:'center', maxWidth:720, margin:'0 auto' }}>
         We work with existing collectors and aboboyaa crews, giving them better tools and steady jobs.
       </p>
@@ -1651,7 +1633,7 @@ const CollectorsLine = () => {
 const AppDownloadBanner = () => {
   const { isDark } = useLpTheme();
   return (
-    <section style={{ background: isDark ? '#0a140a' : '#f0faf2', padding:'64px 24px' }}>
+    <section style={{ background: isDark ? '#0a140a' : '#f0faf2', padding:'var(--td-section-y) 24px' }}>
       <div style={{
         maxWidth: 960,
         margin: '0 auto',
@@ -1756,7 +1738,7 @@ const PricingGuideSection = () => {
         {/* Dark gradient — solid left, barely touches the image area on the right */}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, #0a1a0a 0%, #0a1a0a 40%, rgba(10,26,10,0.7) 52%, rgba(10,26,10,0.08) 68%, transparent 100%)', zIndex:2 }} />
         {/* Subtle lime grid overlay */}
-        <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.03, backgroundImage:`linear-gradient(rgba(168,230,61,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(168,230,61,0.6) 1px,transparent 1px)`, backgroundSize:'40px 40px' }} />
+        <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.03, backgroundImage:`linear-gradient(rgba(182,238,105,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(182,238,105,0.6) 1px,transparent 1px)`, backgroundSize:'40px 40px' }} />
         {/* Lime left-edge accent line */}
         <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime},transparent)`, zIndex:3 }} />
         <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2026 PRICING</div>
@@ -1766,7 +1748,7 @@ const PricingGuideSection = () => {
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'5px', color:TD.lime, textTransform:'uppercase' }}>Smart Waste</span>
           </div>
           <h2 style={{ ...FF.data, fontSize:'clamp(52px,7vw,88px)', color:'#fff', lineHeight:0.9, letterSpacing:'2px', margin:0 }}>SMART WASTE.<br /><span style={{ color:TD.lime }}>FAIR PRICE.</span></h2>
-          <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.52)', marginTop:16, lineHeight:1.6 }}>QR-tagged bags · on-demand pickup · no hidden fees<br />Prices from ₵115/batch · Free collection on all plans</p>
+          <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', marginTop:16, lineHeight:1.6 }}>QR-tagged bags · on-demand pickup · no hidden fees<br />Prices from ₵115/batch · Free collection on all plans</p>
         </div>
       </div>
       <div style={{ background:TD.lime, textAlign:'center', ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', color:TD.ink, padding:12, textTransform:'uppercase' }}>+ Collection is FREE on every bag in the batch</div>
@@ -1846,7 +1828,6 @@ const LpPageInner = ({ auth }) => {
   return (
     <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
-      <SectionRhythm />
       <HomeNavbar         isAuthenticated={auth} />
       <HeroSection        isAuthenticated={auth} />
       <TrustRow />
@@ -1879,7 +1860,6 @@ const PartnersPageInner = ({ auth }) => {
   return (
     <div className="td-page td-partners-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body }}>
       <GlobalStyles />
-      <SectionRhythm />
       <HomeNavbar isAuthenticated={auth} />
       <header style={{ background:TD.ink, padding:'136px 24px 64px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
@@ -1892,7 +1872,7 @@ const PartnersPageInner = ({ auth }) => {
           </p>
         </div>
       </header>
-      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'56px 24px' }}>
+      <section aria-label="Our call to action" style={{ background:TD.lime, padding:'var(--td-section-y) 24px' }}>
         <div className="td-trashwalk" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'0.8fr 1.2fr', alignItems:'center', gap:48 }}>
           <img src="/images/partners/trashwalk.jpg" width="720" height="770" loading="lazy" decoding="async"
             alt="A resident on a trash walk holds up the TrashDrop app, with map pins over dump sites along the street"

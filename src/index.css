@@ -75,15 +75,13 @@
   --td-dropdown-hover: #22272e;
   --td-dropdown-border:#30363d;
 
-  --td-accent:         #a8e63d;
+  --td-accent:         #b6ee69;
   --td-accent-light:   #1a2e0a;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--td-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

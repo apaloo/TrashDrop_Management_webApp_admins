@@ -139,9 +139,9 @@ const Login = () => {
             <Link to="/" className="inline-flex items-center justify-center group">
               <img src="/logo.svg" alt="TrashDrop Logo" className="h-16 w-16 transition-transform group-hover:scale-105" />
             </Link>
-            <h2 className="mt-5 text-2xl font-bold text-gray-900">
+            <h1 className="mt-5 text-2xl font-bold text-gray-900">
               Welcome back
-            </h2>
+            </h1>
             <p className="mt-1.5 text-sm text-gray-500">
               Sign in to manage your waste collection operations
             </p>
@@ -228,7 +228,7 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-green-600 hover:text-green-500 transition-colors">
+                <Link to="/forgot-password" className="font-medium text-green-700 hover:text-green-800 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -238,7 +238,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40"
               >
                 {loading ? (
                   <i className="fas fa-circle-notch fa-spin mr-2"></i>
@@ -254,14 +254,14 @@ const Login = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white text-gray-400">or</span>
+                <span className="px-3 bg-white text-gray-500">or</span>
               </div>
             </div>
             
             <div className="text-center">
               <p className="text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link to="/signup" className="font-semibold text-green-600 hover:text-green-500 transition-colors">
+                <Link to="/signup" className="font-semibold text-green-700 hover:text-green-800 transition-colors">
                   Create account
                 </Link>
               </p>
