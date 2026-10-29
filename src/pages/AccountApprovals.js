@@ -20,13 +20,13 @@ const detailEntries = (d) => Object.entries(d || {}).filter(([, v]) => v !== nul
 
 const DetailsList = ({ row }) => {
   const items = detailEntries(row.details);
-  if (!items.length && !where(row)) return <p className="text-xs text-gray-500">No verification details were given.</p>;
+  if (!items.length && !where(row)) return <p className="text-xs text-td-sage">No verification details were given.</p>;
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs" data-testid="request-details">
-      {where(row) && <><dt className="text-gray-500">Area</dt><dd>{where(row)}</dd></>}
+      {where(row) && <><dt className="text-td-sage">Area</dt><dd>{where(row)}</dd></>}
       {items.map(([k, v]) => (
         <React.Fragment key={k}>
-          <dt className="text-gray-500">{detailLabel(k)}</dt>
+          <dt className="text-td-sage">{detailLabel(k)}</dt>
           <dd className="break-words">{/^https?:\/\//.test(String(v)) ? <a href={v} target="_blank" rel="noopener noreferrer" className="text-green-700 underline">{v}</a> : String(v)}</dd>
         </React.Fragment>
       ))}
@@ -115,22 +115,22 @@ const AccountApprovals = () => {
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="mr-auto">
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Account approvals</h1>
-          <p className="text-sm text-gray-600">People who asked for Volunteer, Media, Manager or Authority access at sign-up. Until approved they work as Users.</p>
+          <p className="text-sm text-td-sage">People who asked for Volunteer, Media, Manager or Authority access at sign-up. Until approved they work as Users.</p>
         </div>
         <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email, organisation, district"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 max-w-full" aria-label="Search accounts" />
+          className="border border-td-border-strong rounded-lg px-3 py-2 text-sm w-72 max-w-full" aria-label="Search accounts" />
       </div>
-      <div className="inline-flex rounded-md border border-gray-300 overflow-hidden bg-white mb-4" role="tablist">
+      <div className="inline-flex rounded-md border border-td-border-strong overflow-hidden bg-white mb-4" role="tablist">
         {TABS.map(t => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-1.5 text-sm ${tab === t.key ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{t.label}</button>
+            className={`px-4 py-1.5 text-sm ${tab === t.key ? 'bg-green-600 text-white' : 'text-td-ink hover:bg-td-cream'}`}>{t.label}</button>
         ))}
       </div>
       {error && <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full table-fixed text-sm" data-testid="accounts-table">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500 text-left">
+          <thead className="bg-td-cream text-xs uppercase text-td-sage text-left">
             <tr>
               <th className="px-3 py-3 w-[24%]">Person</th>
               <th className="px-3 py-3 w-[22%]">Organisation / type</th>
@@ -140,25 +140,25 @@ const AccountApprovals = () => {
               <th className="px-3 py-3 w-[17%] text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rows === null ? <tr><td colSpan="6" className="py-10 text-center text-gray-500">Loading…</td></tr>
-              : shown.length === 0 ? <tr><td colSpan="6" className="py-10 text-center text-gray-500">{tab === 'pending' ? 'No one is waiting for approval.' : 'No accounts here.'}</td></tr>
+          <tbody className="divide-y divide-td-border">
+            {rows === null ? <tr><td colSpan="6" className="py-10 text-center text-td-sage">Loading…</td></tr>
+              : shown.length === 0 ? <tr><td colSpan="6" className="py-10 text-center text-td-sage">{tab === 'pending' ? 'No one is waiting for approval.' : 'No accounts here.'}</td></tr>
               : shown.map(r => (
                 <tr key={r.user_id} className="align-top" data-testid="account-row">
                   <td className="px-3 py-3">
-                    <div className="font-medium text-gray-900 truncate">{r.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{r.email}</div>
+                    <div className="font-medium text-td-ink truncate">{r.name}</div>
+                    <div className="text-xs text-td-sage truncate">{r.email}</div>
                   </td>
                   <td className="px-3 py-3">
                     <div className="truncate">{r.org_name || '—'}</div>
-                    <div className="text-xs text-gray-500 truncate">{companyLabel(r.company_type)}{where(r) ? ` · ${where(r)}` : ''}</div>
-                    {detailEntries(r.details).length > 0 && <div className="text-xs text-gray-500 truncate" title={detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join('\n')}>{detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join(' · ')}</div>}
+                    <div className="text-xs text-td-sage truncate">{companyLabel(r.company_type)}{where(r) ? ` · ${where(r)}` : ''}</div>
+                    {detailEntries(r.details).length > 0 && <div className="text-xs text-td-sage truncate" title={detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join('\n')}>{detailEntries(r.details).map(([k, v]) => `${detailLabel(k)}: ${v}`).join(' · ')}</div>}
                   </td>
                   <td className="px-3 py-3">{ROLE_LABELS[r.requested_role] || r.requested_role}<div className="mt-1"><StatusPill status={r.status} /></div></td>
-                  <td className="px-3 py-3">{ROLE_LABELS[r.role] || r.role}{r.review_note && <div className="text-xs text-gray-500 mt-1 line-clamp-2" title={r.review_note}>{r.review_note}</div>}</td>
-                  <td className="px-3 py-3 text-gray-600">{date(r.signed_up_at || r.created_at)}</td>
+                  <td className="px-3 py-3">{ROLE_LABELS[r.role] || r.role}{r.review_note && <div className="text-xs text-td-sage mt-1 line-clamp-2" title={r.review_note}>{r.review_note}</div>}</td>
+                  <td className="px-3 py-3 text-td-sage">{date(r.signed_up_at || r.created_at)}</td>
                   <td className="px-3 py-3 text-right whitespace-nowrap">
-                    {r.user_id === user?.id ? <span className="text-xs text-gray-500">You</span> : (
+                    {r.user_id === user?.id ? <span className="text-xs text-td-sage">You</span> : (
                       <>
                         <button type="button" onClick={() => open(r, true)} className="text-green-700 hover:underline mr-3">
                           {r.status === 'pending' ? 'Approve' : 'Change role'}
@@ -172,7 +172,7 @@ const AccountApprovals = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500 mt-3">Admins are the whitelisted TrashDrop emails and aren't listed as requests. Every decision is recorded in Logs and the person gets a notification.</p>
+      <p className="text-xs text-td-sage mt-3">Admins are the whitelisted TrashDrop emails and aren't listed as requests. Every decision is recorded in Logs and the person gets a notification.</p>
 
       {dialog && (
         <ConfirmDialog
@@ -204,7 +204,7 @@ const AccountApprovals = () => {
                   </select>
                 </label>
               )}
-              <p className="col-span-2 text-xs text-gray-500">
+              <p className="col-span-2 text-xs text-td-sage">
                 {needsDistrict(role) ? 'An Authority sees reports in this district only.'
                   : assignsPickups(role, dialog.row.company_type) ? 'This Manager assigns pickup requests in this region only, to collectors in this region.'
                   : 'A Volunteer works on reports in this region.'}

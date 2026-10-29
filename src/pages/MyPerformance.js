@@ -31,8 +31,8 @@ const Sparkline = ({ points, label }) => {
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} className="mt-3 max-w-full">
       {segments.map((s, i) => (s.length > 1
-        ? <polyline key={i} points={s.join(' ')} fill="none" stroke="#16A34A" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        : <circle key={i} cx={s[0].split(',')[0]} cy={s[0].split(',')[1]} r="2" fill="#16A34A" />))}
+        ? <polyline key={i} points={s.join(' ')} fill="none" stroke="#1B6E35" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        : <circle key={i} cx={s[0].split(',')[0]} cy={s[0].split(',')[1]} r="2" fill="#1B6E35" />))}
     </svg>
   );
 };
@@ -43,13 +43,13 @@ const MetricCard = ({ metric, role, area, period }) => {
   const target = targetProgress(metric);
   const trend = metric.live ? [] : fillTrend(metric.trend, period.from, period.to, metric.unit, isCountMetric(metric));
   return (
-    <div className="bg-white rounded-lg shadow-sm p-5 flex flex-col" data-testid={`metric-${metric.key}`}>
+    <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col" data-testid={`metric-${metric.key}`}>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-gray-600 text-sm font-medium">{metric.label}</p>
-        {metric.live && <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">Right now</span>}
+        <p className="text-td-sage text-sm font-medium">{metric.label}</p>
+        {metric.live && <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-td-forest whitespace-nowrap">Right now</span>}
       </div>
-      <p className="text-3xl font-bold text-gray-800 mt-1" data-testid="metric-value">{formatValue(metric.value, metric.unit)}</p>
-      {metric.description && <p className="text-xs text-gray-500 mt-1">{metric.description}</p>}
+      <p className="text-3xl font-bold text-td-ink mt-1" data-testid="metric-value">{formatValue(metric.value, metric.unit)}</p>
+      {metric.description && <p className="text-xs text-td-sage mt-1">{metric.description}</p>}
       {rank && (
         <p className="mt-3 text-sm font-medium text-green-800 bg-green-50 rounded px-2 py-1 self-start" data-testid="metric-rank">
           <i className="fas fa-medal mr-1" aria-hidden="true"></i>{rank}
@@ -57,7 +57,7 @@ const MetricCard = ({ metric, role, area, period }) => {
       )}
       {change && (
         <p data-testid="metric-change"
-          className={`mt-2 text-xs ${change.good === true ? 'text-green-700' : change.good === false ? 'text-red-700' : 'text-gray-500'}`}>
+          className={`mt-2 text-xs ${change.good === true ? 'text-green-700' : change.good === false ? 'text-red-700' : 'text-td-sage'}`}>
           {change.text}
         </p>
       )}
@@ -67,7 +67,7 @@ const MetricCard = ({ metric, role, area, period }) => {
             aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(target.pct)}>
             <div className={`h-full ${target.met ? 'bg-green-600' : 'bg-amber-500'}`} style={{ width: `${target.pct}%` }}></div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">{target.text}</p>
+          <p className="text-xs text-td-sage mt-1">{target.text}</p>
         </div>
       )}
       <Sparkline points={trend} label={`${metric.label}, day by day`} />
@@ -93,17 +93,17 @@ const MemberTable = ({ days }) => {
       .catch(e => { if (live) setError(e.message); });
     return () => { live = false; };
   }, [days]);
-  if (error) return <p className="text-sm text-gray-500 mt-6">{error}</p>;
+  if (error) return <p className="text-sm text-td-sage mt-6">{error}</p>;
   if (!rows) return null;
   return (
-    <section className="bg-white rounded-lg shadow-sm mt-6 overflow-x-auto" aria-labelledby="members-title">
+    <section className="bg-white rounded-xl shadow-sm mt-6 overflow-x-auto" aria-labelledby="members-title">
       <div className="flex items-baseline gap-3 px-5 pt-5">
-        <h2 id="members-title" className="text-lg font-semibold text-gray-800">Members</h2>
+        <h2 id="members-title" className="text-lg font-semibold text-td-ink">Members</h2>
         <Link to="/team" className="text-sm text-green-700 hover:underline">Manage team</Link>
       </div>
-      <p className="px-5 text-xs text-gray-500">What each person did for the group in the last {days} days. Only people in your group see this.</p>
+      <p className="px-5 text-xs text-td-sage">What each person did for the group in the last {days} days. Only people in your group see this.</p>
       <table className="min-w-full text-sm mt-2">
-        <thead className="bg-gray-50 text-gray-600">
+        <thead className="bg-td-cream text-td-sage">
           <tr>
             <th scope="col" className="text-left px-5 py-2 font-medium">Member</th>
             {MEMBER_COLUMNS.map(c => <th key={c.key} scope="col" className="text-right px-3 py-2 font-medium">{c.label}</th>)}
@@ -111,10 +111,10 @@ const MemberTable = ({ days }) => {
         </thead>
         <tbody>
           {rows.map(r => (
-            <tr key={r.member_id} className="border-t border-gray-100" data-testid="member-stats-row">
+            <tr key={r.member_id} className="border-t border-td-border" data-testid="member-stats-row">
               <td className="px-5 py-2">
                 {r.name}
-                {r.is_group && <span className="block text-xs text-gray-500">The shared group login (e.g. the collector app)</span>}
+                {r.is_group && <span className="block text-xs text-td-sage">The shared group login (e.g. the collector app)</span>}
               </td>
               {MEMBER_COLUMNS.map(c => <td key={c.key} className="px-3 py-2 text-right tabular-nums">{r[c.key] ?? 0}</td>)}
             </tr>
@@ -122,7 +122,7 @@ const MemberTable = ({ days }) => {
         </tbody>
       </table>
       {rows.length <= 1 && (
-        <p className="px-5 py-3 text-sm text-gray-500" data-testid="no-members-yet">No members yet. <Link to="/team" className="text-green-700 hover:underline">Invite your group</Link> so each person signs in with their own account.</p>
+        <p className="px-5 py-3 text-sm text-td-sage" data-testid="no-members-yet">No members yet. <Link to="/team" className="text-green-700 hover:underline">Invite your group</Link> so each person signs in with their own account.</p>
       )}
     </section>
   );
@@ -176,25 +176,25 @@ const MyPerformance = () => {
           {accountId && <Link to="/performance/accounts" className="text-sm text-green-700 hover:underline">← All accounts</Link>}
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">{accountId ? (data?.name || 'Account performance') : 'My performance'}</h1>
           {data && (
-            <p className="text-gray-600" data-testid="account-line">
+            <p className="text-td-sage" data-testid="account-line">
               {[kind ? kind.one.replace(/^./, c => c.toUpperCase()) : null, data.district, data.region].filter(Boolean).join(' · ')}
             </p>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-md border border-gray-300 overflow-hidden bg-white" role="group" aria-label="Period">
+          <div className="inline-flex rounded-md border border-td-border-strong overflow-hidden bg-white" role="group" aria-label="Period">
             {PERIODS.map(p => (
               <button key={p.days} type="button" aria-pressed={days === p.days} onClick={() => setDays(p.days)}
-                className={`px-3 py-1.5 text-sm ${days === p.days ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}>
+                className={`px-3 py-1.5 text-sm ${days === p.days ? 'bg-green-600 text-white' : 'text-td-ink hover:bg-td-cream'}`}>
                 {p.label}
               </button>
             ))}
           </div>
-          <span className="text-xs text-gray-500" data-testid="updated">
+          <span className="text-xs text-td-sage" data-testid="updated">
             {data?.refreshed_at ? `Updated ${relativeTime(data.refreshed_at)} · every 5 minutes` : ''}
           </span>
           <button type="button" onClick={() => setReloadKey(k => k + 1)} disabled={loading || state.status === 'refreshing'}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50">
+            className="px-3 py-1.5 text-sm border border-td-border-strong rounded-md bg-white hover:bg-td-cream disabled:opacity-50">
             <i className={`fas fa-sync-alt mr-1 ${state.status === 'refreshing' ? 'animate-spin' : ''}`} aria-hidden="true"></i>Refresh
           </button>
         </div>
@@ -209,14 +209,14 @@ const MyPerformance = () => {
 
       {loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" aria-busy="true" aria-label="Loading">
-          {[0, 1, 2].map(i => <div key={i} className="bg-white rounded-lg shadow-sm p-5 h-40 animate-pulse"></div>)}
+          {[0, 1, 2].map(i => <div key={i} className="bg-white rounded-xl shadow-sm p-5 h-40 animate-pulse"></div>)}
         </div>
       )}
 
       {data && metrics.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6 text-gray-700" data-testid="no-metrics">
+        <div className="bg-white rounded-xl shadow-sm p-6 text-td-ink" data-testid="no-metrics">
           <p className="font-medium">Performance numbers are for approved volunteer groups and assemblies (MMDAs).</p>
-          <p className="text-sm text-gray-500 mt-1">If your account should be one of these, ask an admin to approve its access request.</p>
+          <p className="text-sm text-td-sage mt-1">If your account should be one of these, ask an admin to approve its access request.</p>
         </div>
       )}
 
@@ -232,7 +232,7 @@ const MyPerformance = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {metrics.map(m => <MetricCard key={m.key} metric={m} role={data.role} area={area} period={period} />)}
           </div>
-          <p className="text-xs text-gray-500 mt-4">
+          <p className="text-xs text-td-sage mt-4">
             Ranks compare approved {kind?.many || 'accounts'} in {area} over the same {days} days; other accounts’ numbers stay private.
           </p>
           {data.role === 'volunteer' && !accountId && <MemberTable days={days} />}
