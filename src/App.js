@@ -2,13 +2,11 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ModalProvider } from './context/ModalContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Settings from './pages/Settings';
 import IllegalDumpingMap from './pages/IllegalDumpingMap';
 import IllegalDumpingHistory from './pages/IllegalDumpingHistory';
 import Layout from './components/Layout';
-import ModalManager from './components/modals/ModalManager';
 import { safeDatabaseService } from './utils/safeDatabaseService';
 import { supabase } from './utils/supabase';
 import logger from './utils/logger';
@@ -196,7 +194,6 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-      <ModalProvider>
         <Router>
           <RobotsMeta />
           <PendingInviteRedirect />
@@ -405,11 +402,8 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
-            {/* Modal Manager to handle all modals across the application */}
-            <ModalManager />
           </Layout>
         </Router>
-      </ModalProvider>
       </ThemeProvider>
     </AuthProvider>
   );
