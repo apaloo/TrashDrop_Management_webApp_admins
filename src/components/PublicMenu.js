@@ -49,7 +49,7 @@ const MenuStyles = () => (
     .td-menu-item:hover .td-menu-label, .td-menu-item:focus-visible .td-menu-label { color:#b6ee69; }
     .td-menu-panel { animation: td-menu-in 0.16s ease-out both; }
     @keyframes td-menu-in { from{opacity:0;transform:translate(-50%,-6px)} to{opacity:1;transform:translate(-50%,0)} }
-    @media(max-width:1279px) { .td-menu-bar { gap:22px!important; } .td-menu-top { font-size:12.5px!important; letter-spacing:0!important; } }
+    @media(max-width:1279px) { .td-menu-bar { gap:18px!important; } .td-menu-top { font-size:14px!important; letter-spacing:0!important; } }
   `}</style>
 );
 

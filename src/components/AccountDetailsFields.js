@@ -3,8 +3,9 @@ import { GHANA_REGIONS, OTHER_DISTRICT, districtsOf } from '../constants/ghanaRe
 import { fieldsFor } from '../constants/accountTypeFields';
 import { suggestDistrictFromDevice } from '../utils/districtLocator';
 
-const inputCls = (bad) => `block w-full px-3 py-2.5 border ${bad ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm`;
-const Err = ({ text }) => (text ? <p className="text-red-500 text-xs mt-1.5">{text}</p> : null);
+// The sign-up form's field style (components/auth/AuthShell), without a leading icon
+const inputCls = (bad) => `block w-full h-12 px-3 rounded-lg border bg-white text-base text-td-ink placeholder-gray-500 transition-colors focus:border-td-forest ${bad ? 'border-td-error ring-1 ring-td-error' : 'border-td-border-strong'}`;
+const Err = ({ text }) => (text ? <p className="text-[13px] text-td-error mt-1.5">{text}</p> : null);
 
 /**
  * Region / district and the verification details for a company type.
@@ -37,12 +38,12 @@ const AccountDetailsFields = ({ companyType, value, onChange, errors = {} }) => 
 
   return (
     <div className="mt-4 space-y-4" data-testid="account-details">
-      {cfg.help && <p className="text-xs text-gray-500">{cfg.help}</p>}
+      {cfg.help && <p className="text-[13px] text-td-sage">{cfg.help}</p>}
       {showRegion && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="acct-region" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Region{cfg.region === 'optional' ? <span className="text-gray-400 font-normal"> (optional)</span> : ''}
+            <label htmlFor="acct-region" className="block text-sm font-medium text-td-ink mb-1.5">
+              Region{cfg.region === 'optional' ? <span className="text-td-sage font-normal"> (optional)</span> : ''}
             </label>
             <select id="acct-region" value={value.region || ''} className={inputCls(errors.region)}
               onChange={e => set({ region: e.target.value, district: '' })}>
@@ -53,8 +54,8 @@ const AccountDetailsFields = ({ companyType, value, onChange, errors = {} }) => 
           </div>
           {showDistrict && (
             <div>
-              <label htmlFor="acct-district" className="block text-sm font-medium text-gray-700 mb-1.5">
-                District / Assembly{cfg.district === 'optional' ? <span className="text-gray-400 font-normal"> (optional)</span> : ''}
+              <label htmlFor="acct-district" className="block text-sm font-medium text-td-ink mb-1.5">
+                District / Assembly{cfg.district === 'optional' ? <span className="text-td-sage font-normal"> (optional)</span> : ''}
               </label>
               <select id="acct-district" value={value.district || ''} disabled={!value.region} className={inputCls(errors.district)}
                 onChange={e => set({ district: e.target.value })}>
@@ -68,18 +69,18 @@ const AccountDetailsFields = ({ companyType, value, onChange, errors = {} }) => 
         </div>
       )}
       {showRegion && (
-        <div className="text-xs">
-          <button type="button" onClick={useLocation} disabled={locating} className="text-green-700 hover:underline disabled:opacity-50" data-testid="use-location">
+        <div className="text-sm">
+          <button type="button" onClick={useLocation} disabled={locating} className="font-semibold text-td-forest hover:underline disabled:opacity-50" data-testid="use-location">
             <i className="fas fa-location-arrow mr-1" aria-hidden="true"></i>{locating ? 'Finding your district…' : 'Use my location to fill this in'}
           </button>
-          {locateMsg && <p className={`mt-1 ${locateMsg.ok ? 'text-gray-600' : 'text-amber-700'}`} data-testid="locate-msg">{locateMsg.text}</p>}
+          {locateMsg && <p className={`mt-1 ${locateMsg.ok ? 'text-td-sage' : 'text-amber-800'}`} data-testid="locate-msg">{locateMsg.text}</p>}
         </div>
       )}
       {cfg.fields.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {cfg.fields.map(f => (
             <div key={f.key}>
-              <label htmlFor={`acct-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
+              <label htmlFor={`acct-${f.key}`} className="block text-sm font-medium text-td-ink mb-1.5">{f.label}</label>
               <input id={`acct-${f.key}`} type={f.type === 'number' ? 'text' : (f.type || 'text')} inputMode={f.type === 'number' ? 'numeric' : undefined}
                 value={value.details?.[f.key] || ''} placeholder={f.placeholder || ''} className={inputCls(errors[f.key])}
                 onChange={e => setDetail(f.key, e.target.value)} />

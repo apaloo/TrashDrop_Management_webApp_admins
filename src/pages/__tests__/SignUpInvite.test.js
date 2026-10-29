@@ -15,11 +15,11 @@ const token = 'ab'.repeat(32);
 const renderAt = (path) => render(<MemoryRouter initialEntries={[path]}><SignUp /></MemoryRouter>);
 
 const fillBasics = () => {
-  fireEvent.change(screen.getByLabelText('First Name'), { target: { value: 'Ama' } });
-  fireEvent.change(screen.getByLabelText('Last Name'), { target: { value: 'Mensah' } });
+  fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Ama' } });
+  fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Mensah' } });
   fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'ama@example.com' } });
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Strong-pass1' } });
-  fireEvent.change(screen.getByLabelText('Confirm Password'), { target: { value: 'Strong-pass1' } });
+  fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'Strong-pass1' } });
   fireEvent.click(screen.getByRole('checkbox'));
 };
 
@@ -32,8 +32,8 @@ beforeEach(() => {
 it('through an invite link: asks only for the person’s own details and ties the account to the group', async () => {
   renderAt(`/signup?invite=${token}`);
   expect(await screen.findByRole('heading', { name: 'Join Clean Accra' })).toBeInTheDocument();
-  expect(screen.queryByLabelText('Organisation / Group Name')).not.toBeInTheDocument();
-  expect(screen.queryByLabelText('Account Type')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Organisation or group name')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Account type')).not.toBeInTheDocument();
   expect(pendingInvite()).toBe(token);
 
   fillBasics();
@@ -51,8 +51,8 @@ it('through an invite link: asks only for the person’s own details and ties th
 it('without an invite: still asks for the full account setup', async () => {
   renderAt('/signup');
   expect(screen.getByRole('heading', { name: 'Create your account' })).toBeInTheDocument();
-  expect(screen.getByLabelText('Organisation / Group Name')).toBeInTheDocument();
-  expect(screen.getByLabelText('Account Type')).toBeInTheDocument();
+  expect(screen.getByLabelText('Organisation or group name')).toBeInTheDocument();
+  expect(screen.getByLabelText('Account type')).toBeInTheDocument();
   fillBasics();
   fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
   expect(await screen.findByText('Organisation or group name is required')).toBeInTheDocument();
@@ -65,12 +65,12 @@ it('falls back to the full form when the invite link can’t be used', async () 
   renderAt(`/signup?invite=${token}`);
   expect(await screen.findByRole('alert')).toHaveTextContent('This invite link has expired');
   expect(screen.getByRole('heading', { name: 'Create your account' })).toBeInTheDocument();
-  expect(screen.getByLabelText('Account Type')).toBeInTheDocument();
+  expect(screen.getByLabelText('Account type')).toBeInTheDocument();
 });
 
 it('ignores a malformed invite value', () => {
   renderAt('/signup?invite=nope');
-  expect(screen.getByLabelText('Account Type')).toBeInTheDocument();
+  expect(screen.getByLabelText('Account type')).toBeInTheDocument();
   expect(getInviteInfo).not.toHaveBeenCalled();
 });
 
@@ -81,6 +81,7 @@ it('an existing account through an invite: sign in to join instead', async () =>
   fillBasics();
   fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
   expect(await screen.findByRole('link', { name: 'Sign in to join' })).toHaveAttribute('href', '/login');
+  expect(screen.getByRole('dialog', { name: /account already exists/i })).toBeInTheDocument();
   expect(screen.getByText(/Sign in with it and you'll join Clean Accra/)).toBeInTheDocument();
   expect(pendingInvite()).toBe(token);
 });
@@ -92,7 +93,7 @@ it('does not call other sign-up problems "account already exists"', async () => 
   fillBasics();
   fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
   expect(await screen.findByText(/Too many sign-up emails/)).toBeInTheDocument();
-  expect(screen.queryByText('Account Already Exists')).not.toBeInTheDocument();
+  expect(screen.queryByRole('dialog', { name: /account already exists/i })).not.toBeInTheDocument();
 });
 
 describe('signUpProblem', () => {

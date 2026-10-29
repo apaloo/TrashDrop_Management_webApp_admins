@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthShell, { AUTH } from '../components/auth/AuthShell';
 import { getInviteInfo, acceptInvite } from '../services/teamService';
 import { updateUserMetadata } from '../utils/auth';
 import {
@@ -8,12 +9,7 @@ import {
 } from '../utils/teamInvite';
 
 const Card = ({ children }) => (
-  <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
-    <div className="bg-white rounded-lg shadow-sm p-6 w-full max-w-md text-gray-800">
-      <img src="/logo.svg" alt="TrashDrop" className="h-10 w-auto mb-4" />
-      {children}
-    </div>
-  </div>
+  <AuthShell><div className="text-td-ink">{children}</div></AuthShell>
 );
 
 /**
@@ -80,51 +76,51 @@ const JoinTeam = () => {
   }, [ready, signedUpWithLink, alreadyIn, join, dropInvite]);
 
   if (!info && !error) {
-    return <Card><p className="text-gray-500">Checking the invite link…</p></Card>;
+    return <Card><p className="text-td-sage text-center">Checking the invite link…</p></Card>;
   }
 
   if (info && !info.valid) {
     return (
       <Card>
-        <h1 className="text-xl font-semibold mb-2">This link can’t be used</h1>
-        <p role="alert" className="text-gray-700">{INVITE_PROBLEMS[info.reason] || INVITE_PROBLEMS.not_found}</p>
-        <Link to="/" className="inline-block mt-4 text-green-700 hover:underline">Go to TrashDrop</Link>
+        <h1 className={`${AUTH.title} mb-3`}>This link can’t be used</h1>
+        <p role="alert" className="text-td-sage">{INVITE_PROBLEMS[info.reason] || INVITE_PROBLEMS.not_found}</p>
+        <Link to="/" className={`inline-block mt-4 ${AUTH.link}`}>Go to TrashDrop</Link>
       </Card>
     );
   }
 
   return (
     <Card>
-      <h1 className="text-xl font-semibold">Join {groupName}</h1>
-      <p className="text-gray-600 mt-1" data-testid="invite-line">
+      <h1 className={AUTH.title}>Join {groupName}</h1>
+      <p className="text-td-sage mt-2" data-testid="invite-line">
         You’ve been invited as a {asRole}{info?.region ? ` of a volunteer group in ${info.region}` : ''}.
         Members verify and clean up illegal dumping reports with the group, and see the group’s performance.
       </p>
 
-      {error && <p role="alert" className="mt-4 rounded-md bg-red-50 text-red-800 px-3 py-2 text-sm">{error}</p>}
+      {error && <p role="alert" className={`${AUTH.alertError} mt-4`}>{error}</p>}
 
       {(loading || !authInitialized) ? (
-        <p className="mt-4 text-gray-500">Loading…</p>
+        <p className="mt-4 text-td-sage">Loading…</p>
       ) : !isAuthenticated ? (
-        <div className="mt-5 space-y-2">
-          <p className="text-sm text-gray-600">New to TrashDrop? Sign up with just your name, email and a password; you join the group when you first sign in. Already have an account? Sign in to join.</p>
-          <div className="flex gap-2">
-            <Link to={`/signup?invite=${token}`} className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 text-sm">Create an account</Link>
-            <Link to="/login" className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 text-sm">Sign in</Link>
+        <div className="mt-6 space-y-4">
+          <p className="text-sm text-td-sage">New to TrashDrop? Sign up with just your name, email and a password; you join the group when you first sign in. Already have an account? Sign in to join.</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to={`/signup?invite=${token}`} className={AUTH.primary}>Create an account</Link>
+            <Link to="/login" className={AUTH.secondary}>Sign in</Link>
           </div>
         </div>
       ) : alreadyIn ? (
         <div className="mt-5">
           <p className="text-sm">You’re already in {groupName}.</p>
-          <Link to="/team" onClick={dropInvite} className="inline-block mt-2 text-green-700 hover:underline">Open the team</Link>
+          <Link to="/team" onClick={dropInvite} className={`inline-block mt-2 ${AUTH.link}`}>Open the team</Link>
         </div>
       ) : (
-        <div className="mt-5 flex gap-2">
+        <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={join} disabled={joining}
-            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 text-sm disabled:opacity-50">
+            className={AUTH.primary}>
             {joining ? 'Joining…' : `Join ${groupName}`}
           </button>
-          <Link to="/" onClick={dropInvite} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 text-sm">Not now</Link>
+          <Link to="/" onClick={dropInvite} className={AUTH.secondary}>Not now</Link>
         </div>
       )}
     </Card>

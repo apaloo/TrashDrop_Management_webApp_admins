@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signIn } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import logger from '../utils/logger';
+import AuthShell, { AUTH, AuthDivider } from '../components/auth/AuthShell';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -111,172 +112,96 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Full-bleed background image */}
-      <div className="absolute inset-0">
-        <img src="/images/auth-bg.jpg" alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-green-900/60 to-black/70"></div>
-      </div>
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)',
-        backgroundSize: '32px 32px',
-      }}></div>
-
-      {/* Top bar */}
-      <div className="relative z-10 w-full px-4 sm:px-8 pt-6">
-        <Link to="/" className="inline-flex items-center text-white/70 hover:text-white transition-colors text-sm font-medium group">
-          <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-          Back to Home
-        </Link>
-      </div>
-
-      {/* Card */}
-      <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 sm:p-10">
-          {/* Logo & heading */}
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center justify-center group">
-              <img src="/logo.svg" alt="TrashDrop Logo" className="h-16 w-16 transition-transform group-hover:scale-105" />
-            </Link>
-            <h1 className="mt-5 text-2xl font-bold text-gray-900">
-              Welcome back
-            </h1>
-            <p className="mt-1.5 text-sm text-gray-500">
-              Sign in to manage your waste collection operations
-            </p>
-          </div>
-          
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-exclamation-circle text-red-500"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-envelope text-gray-400 text-sm"></i>
-                  </div>
-                  <input
-                    id="email-address"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-2.5 border ${
-                      validationErrors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
-                    } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors`}
-                    placeholder="you@example.com"
-                  />
-                </div>
-                {validationErrors.email && (
-                  <p className="text-red-500 text-xs mt-1.5">{validationErrors.email}</p>
-                )}
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-lock text-gray-400 text-sm"></i>
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-2.5 border ${
-                      validationErrors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
-                    } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors`}
-                    placeholder="Enter your password"
-                  />
-                </div>
-                {validationErrors.password && (
-                  <p className="text-red-500 text-xs mt-1.5">{validationErrors.password}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-green-700 hover:text-green-800 transition-colors">
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-600/25 hover:shadow-green-600/40"
-              >
-                {loading ? (
-                  <i className="fas fa-circle-notch fa-spin mr-2"></i>
-                ) : (
-                  <i className="fas fa-arrow-right-to-bracket mr-2"></i>
-                )}
-                {loading ? 'Signing in...' : 'Sign in'}
-              </button>
-            </div>
-            
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white text-gray-500">or</span>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-sm text-gray-500">
-                Don't have an account?{' '}
-                <Link to="/signup" className="font-semibold text-green-700 hover:text-green-800 transition-colors">
-                  Create account
-                </Link>
-              </p>
-            </div>
-          </form>
+    <AuthShell title="Welcome back" subtitle="Sign in to manage your waste collection operations">
+      {error && (
+        <div role="alert" className={`${AUTH.alertError} flex`}>
+          <i className="fas fa-exclamation-circle mt-0.5" aria-hidden="true"></i>
+          <p className="ml-3">{error}</p>
         </div>
-      </div>
+      )}
 
-      {/* Bottom brand line */}
-      <div className="relative z-10 text-center pb-6">
-        <p className="text-xs text-white/30">
-          Trash<span className="text-green-400/50">Drop</span> &mdash; Real-time environmental intelligence
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="email-address" className={AUTH.label}>Email address</label>
+            <div className="relative">
+              <div className={AUTH.inputIcon}>
+                <i className="fas fa-envelope" aria-hidden="true"></i>
+              </div>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={AUTH.input(validationErrors.email)}
+                placeholder="you@example.com"
+              />
+            </div>
+            {validationErrors.email && (
+              <p className={AUTH.fieldError}>{validationErrors.email}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="password" className={AUTH.label}>Password</label>
+            <div className="relative">
+              <div className={AUTH.inputIcon}>
+                <i className="fas fa-lock" aria-hidden="true"></i>
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={AUTH.input(validationErrors.password)}
+                placeholder="Enter your password"
+              />
+            </div>
+            {validationErrors.password && (
+              <p className={AUTH.fieldError}>{validationErrors.password}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className={AUTH.checkbox}
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-td-sage">
+              Remember me
+            </label>
+          </div>
+          <Link to="/forgot-password" className={AUTH.link}>
+            Forgot password?
+          </Link>
+        </div>
+
+        <button type="submit" disabled={loading} className={`${AUTH.primary} w-full`}>
+          <i className={`fas ${loading ? 'fa-circle-notch fa-spin' : 'fa-arrow-right-to-bracket'}`} aria-hidden="true"></i>
+          {loading ? 'Signing in...' : 'Sign in'}
+        </button>
+
+        <AuthDivider>or</AuthDivider>
+
+        <p className="text-center text-sm text-td-sage">
+          Don't have an account?{' '}
+          <Link to="/signup" className={AUTH.link}>
+            Create account
+          </Link>
         </p>
-      </div>
-    </div>
+      </form>
+    </AuthShell>
   );
 };
 
