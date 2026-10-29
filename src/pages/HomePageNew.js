@@ -1047,9 +1047,9 @@ const LatestReportsOverlay = ({ data }) => {
   const pillBg     = 'rgba(255,255,255,0.07)';
 
   return (
-    <div style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
+    <div data-testid="latest-reports-overlay" style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, maxHeight:'calc(100% - 80px)', maxWidth:'calc(100% - 32px)' }}>
       {open && (
-        <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'calc(100vw - 32px)', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
+        <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'100%', minHeight:0, flex:'0 1 auto', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${borderCol}`, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background:TD.lime, flexShrink:0, boxShadow:`0 0 0 3px ${TD.lime}28`, animation:'td-pulse-dot 1.8s infinite' }} />
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1.5px', textTransform:'uppercase', flex:1 }}>Latest reports</span>
@@ -1067,7 +1067,7 @@ const LatestReportsOverlay = ({ data }) => {
             })}
           </div>
 
-          <div style={{ maxHeight:340, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+          <div style={{ maxHeight:340, minHeight:0, flex:'1 1 auto', overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
             {status === 'loading' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Loading reports…</div>}
             {status === 'error' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Reports could not load right now. Try again in a minute.</div>}
             {status === 'ready' && items.length === 0 && (
@@ -1147,8 +1147,8 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
     show.cleanupRate && {label:'Cleanup Rate',value:stats.cleanupRate === null ? '—' : `${Math.round(stats.cleanupRate)}%`,icon:'fa-broom',color:TD.lime,bg:`${TD.lime}14`, title:`${stats.cleanedUp} of ${stats.total} reports cleaned up`},
     show.avgResponse && {label:'Avg Response',value:formatDuration(stats.avgResponseHours),icon:'fa-clock',color:TD.gold,bg:`${TD.gold}14`, title:'Average time from report to cleanup, for cleaned-up reports'},
   ].filter(Boolean);
-  // Logged-out visitors sign in first; logged-in users open the analytics map
-  const openFullMap = () => navigate(isAuthenticated ? '/illegal-dumping/map' : '/login');
+  // A report's "View more details": visitors sign up first; signed-in users open the analytics map
+  const detailsHref = isAuthenticated ? '/illegal-dumping/map' : '/signup';
   return (
     <section id="map" style={{ background:lp.mapSectionBg, padding:'96px 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
@@ -1214,12 +1214,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
 
           {/* Right: Map (real reports, read-only) */}
           <div style={{ flex:2, minWidth:300 }}>
-            <PublicDumpingMap lp={lp} isDark={lpMode === 'dark'} data={dumpingData}>
-              <div style={{ position:'absolute', top:14, right:14, zIndex:1100 }}>
-                <button onClick={openFullMap} style={{ display:'flex', alignItems:'center', gap:8, background:TD.forest, color:'#fff', border:'none', cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700, padding:'10px 18px', borderRadius:10, boxShadow:`0 4px 20px ${TD.forest}60` }}>
-                  <i className="fas fa-expand-arrows-alt"></i> Full Analytics Map
-                </button>
-              </div>
+            <PublicDumpingMap lp={lp} isDark={lpMode === 'dark'} data={dumpingData} detailsHref={detailsHref} expandable>
               {/* Social feed overlay — bottom-right corner of the map */}
               <LatestReportsOverlay data={dumpingData} />
             </PublicDumpingMap>

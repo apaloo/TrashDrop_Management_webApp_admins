@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -12,7 +13,9 @@ import { fetchPublicDumpingReports, timeAgo, cleanupDurationText, describeArea }
  * Public, read-only illegal dumping map for the landing page (logged-out view).
  * Shows real reports from the public_illegal_dumping_reports view: active reports
  * coloured by severity, completed ones as "cleaned up". Clicking a marker shows
- * details only; there are no edit or status actions here.
+ * details only; there are no edit or status actions here. "View more details"
+ * goes to detailsHref (sign-up for visitors). With expandable, a button opens
+ * the map full screen.
  */
 
 // Matches the landing page's "Risk Level" legend
@@ -76,6 +79,16 @@ const FitToReports = ({ reports }) => {
   return null;
 };
 
+// Leaflet measures its box once; tell it when the box changes size
+const ResizeWith = ({ expanded }) => {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 0);
+    return () => clearTimeout(t);
+  }, [map, expanded]);
+  return null;
+};
+
 const VIEWS = [
   { key: 'active', label: 'Active' },
   { key: 'cleaned', label: 'Cleaned up' },
@@ -118,18 +131,31 @@ export const usePublicDumpingReports = () => {
   return { reports, status, reload };
 };
 
-const PublicDumpingMap = ({ lp, isDark, data, children }) => {
+const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup', expandable = false }) => {
   const { reports, status, reload } = data;
   const [view, setView] = useState('all');
   const [selectedId, setSelectedId] = useState(null);
   const [lightbox, setLightbox] = useState(null);
+  const [expanded, setExpanded] = useState(false);
 
+  // Escape closes the photo first, then leaves full screen
   useEffect(() => {
-    if (!lightbox) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
+    if (!lightbox && !expanded) return undefined;
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (lightbox) setLightbox(null); else setExpanded(false);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [lightbox]);
+  }, [lightbox, expanded]);
+
+  // The page behind doesn't scroll while the map fills the screen
+  useEffect(() => {
+    if (!expanded) return undefined;
+    const before = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = before; };
+  }, [expanded]);
 
   const counts = useMemo(() => ({
     active: reports.filter(r => !r.isCleanedUp).length,
@@ -149,8 +175,14 @@ const PublicDumpingMap = ({ lp, isDark, data, children }) => {
 
   const emptyText = view === 'cleaned' ? 'No cleaned-up reports yet' : view === 'active' ? 'No active reports right now' : 'No reports yet';
 
+  const fullScreen = expanded
+    ? { position: 'fixed', inset: 0, zIndex: 3500, padding: 12, background: isDark ? '#0a0f0a' : '#f4f7f2' }
+    : { height: '100%' };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
+    <div data-testid="public-map" data-expanded={expanded ? 'true' : 'false'}
+      role={expanded ? 'dialog' : undefined} aria-modal={expanded ? 'true' : undefined} aria-label={expanded ? 'Trash map, full screen' : undefined}
+      style={{ display: 'flex', flexDirection: 'column', gap: 12, ...fullScreen }}>
       <style>{`
         .td-pub-marker, .td-pub-cluster { background: transparent; border: none; }
         .td-pub-card { position: absolute; top: 14px; left: 58px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; z-index: 1150; }
@@ -177,13 +209,14 @@ const PublicDumpingMap = ({ lp, isDark, data, children }) => {
         })}
       </div>
 
-      <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(168,230,61,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: 500 }}>
-        <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} style={{ height: '100%', width: '100%', minHeight: 500 }} scrollWheelZoom>
+      <div style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(168,230,61,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
+        <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} style={{ height: '100%', width: '100%', minHeight: expanded ? 0 : 500 }} scrollWheelZoom>
           <TileLayer
             url={appConfig.services.maps.tileProviders.openStreetMap.url}
             attribution={appConfig.services.maps.tileProviders.openStreetMap.attribution}
           />
           <FitToReports reports={shown} />
+          <ResizeWith expanded={expanded} />
           <MarkerClusterGroup chunkedLoading showCoverageOnHover={false} spiderfyOnMaxZoom maxClusterRadius={45} iconCreateFunction={clusterIcon}>
             {shown.map(r => (
               <Marker
@@ -271,7 +304,21 @@ const PublicDumpingMap = ({ lp, isDark, data, children }) => {
                   <><dt style={{ color: card.sub }}>Cleanup</dt><dd style={{ margin: 0 }}>{cleanupDurationText(selected.createdAt, selected.completedAt)}</dd></>
                 )}
               </dl>
+              <Link to={detailsHref} data-testid="view-more-details"
+                style={{ display: 'block', marginTop: 14, textAlign: 'center', fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, background: '#1b6e35', color: '#fff', borderRadius: 10, padding: '9px 14px', textDecoration: 'none' }}>
+                View more details <i className="fas fa-arrow-right" style={{ marginLeft: 6, fontSize: 11 }} aria-hidden="true" />
+              </Link>
             </div>
+          </div>
+        )}
+
+        {expandable && (
+          <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 1100 }}>
+            <button type="button" onClick={() => setExpanded(e => !e)} aria-pressed={expanded}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1b6e35', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, padding: '10px 18px', borderRadius: 10, boxShadow: '0 4px 20px rgba(27,110,53,0.38)' }}>
+              <i className={`fas ${expanded ? 'fa-compress-arrows-alt' : 'fa-expand-arrows-alt'}`} aria-hidden="true" />
+              {expanded ? 'Exit full screen' : 'Full Analytics Map'}
+            </button>
           </div>
         )}
 

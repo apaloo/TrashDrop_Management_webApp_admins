@@ -46,7 +46,9 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
           full_name: name,
           role,
           ...metadata,
-          onboardingCompleted: false // Default to false for new users
+          // New accounts finish setting up in onboarding, except people joining
+          // a volunteer group by invite (the group already has those details)
+          onboardingCompleted: metadata.onboardingCompleted === true
         }
       }
     });
