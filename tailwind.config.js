@@ -28,6 +28,7 @@ module.exports = {
         // docs/DESIGN_SYSTEM.md; the same values as src/theme/brand.js
         'td': {
           'lime': '#b6ee69',
+          'orange': '#f98b38',
           'forest': '#1b6e35',
           'forest-dk': '#155a2b',
           'tonal': '#e6f2e9',

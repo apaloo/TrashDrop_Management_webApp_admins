@@ -16,24 +16,27 @@ import {
   wasteRows, bucketLabel, seriesTotal, normalizeDashboardAlert, durationSince,
 } from '../utils/dashboardUtils';
 import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
+import { CHART } from '../theme/brand';
+import { applyChartTheme, describeValues } from '../theme/chartTheme';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
+applyChartTheme(ChartJS);
 
 const NO_DATA = 'No data for this period';
 const STALE_DAYS = 30;
 
 const Empty = ({ text = NO_DATA }) => (
-  <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-gray-400" data-testid="empty-state">
+  <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-td-sage" data-testid="empty-state">
     <i className="far fa-chart-bar text-3xl mb-2" aria-hidden="true"></i>
     <p className="text-sm">{text}</p>
   </div>
 );
 
 const Help = ({ text }) => (
-  <span className="relative ml-1 inline-flex items-center text-gray-400 cursor-help group" tabIndex={0} aria-label={text}>
+  <button type="button" className="relative ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full align-middle text-td-sage cursor-help group" aria-label={text}>
     <i className="fas fa-info-circle" aria-hidden="true"></i>
-    <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-72 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block group-focus:block">{text}</span>
-  </span>
+    <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-72 -translate-x-1/2 rounded-lg bg-td-ink px-3 py-2 text-left text-xs font-normal text-white shadow-lg group-hover:block group-focus:block">{text}</span>
+  </button>
 );
 
 const Skeleton = ({ className = 'h-full min-h-[160px]' }) => (
@@ -46,8 +49,8 @@ const Skeleton = ({ className = 'h-full min-h-[160px]' }) => (
 
 // A real failure (network, server): a plain message and a retry, never the backend's own text
 const Failed = ({ onRetry, text = 'Couldn’t load these numbers. Try Refresh.' }) => (
-  <div role="alert" data-testid="load-failed" className="h-full min-h-[120px] flex flex-col items-center justify-center text-center text-gray-500 gap-2">
-    <i className="fas fa-exclamation-circle text-2xl text-amber-500" aria-hidden="true"></i>
+  <div role="alert" data-testid="load-failed" className="h-full min-h-[120px] flex flex-col items-center justify-center text-center text-td-sage gap-2">
+    <i className="fas fa-exclamation-circle text-2xl text-td-orange" aria-hidden="true"></i>
     <p className="text-sm">{text}</p>
     {onRetry && <button type="button" onClick={onRetry} className="text-sm text-green-700 hover:underline">Retry</button>}
   </div>
@@ -55,33 +58,37 @@ const Failed = ({ onRetry, text = 'Couldn’t load these numbers. Try Refresh.' 
 
 // The database refused this role even though the page allowed the call
 const Locked = ({ role, what = 'these stats' }) => (
-  <div data-testid="locked" className="bg-white rounded-lg shadow-sm p-6 flex items-center gap-4 text-gray-600">
-    <i className="fas fa-lock text-2xl text-gray-400" aria-hidden="true"></i>
+  <div data-testid="locked" className="bg-white rounded-xl border border-td-border p-6 flex items-center gap-4 text-td-sage">
+    <i className="fas fa-lock text-2xl text-td-sage" aria-hidden="true"></i>
     <p className="text-sm">Your role ({ROLE_LABELS[role] || role}) doesn’t include {what}. Ask an admin if you need access.</p>
   </div>
 );
 
-const Kpi = ({ icon, iconBg, iconColor, label, value, change, sub, help, onClick, loading, failed, testid }) => (
-  <button type="button" onClick={onClick} data-testid={testid} disabled={!onClick}
-    className={`bg-white rounded-lg shadow-sm border-0 p-6 flex items-center text-left transition-shadow w-full ${onClick ? 'hover:shadow-md' : 'cursor-default'}`}>
-    <div className={`p-3 rounded-full mr-4 ${iconBg}`}><i className={`fas fa-${icon} text-2xl`} style={{ color: iconColor }} aria-hidden="true"></i></div>
-    <div className="min-w-0">
-      <p className="text-gray-600 text-sm">{label}{help && <Help text={help} />}</p>
-      {loading ? <div className="animate-pulse bg-gray-200 h-6 w-20 rounded mt-1"></div> : (
-        <div className="flex items-baseline flex-wrap gap-x-2">
-          <h3 className="text-2xl font-bold text-gray-800">{failed ? '—' : value}</h3>
-          {!failed && change !== undefined && <span className="text-sm text-gray-500" title="Compared with the previous period of the same length">{change}</span>}
-        </div>
-      )}
-      {(failed || sub) && !loading && <p className="text-xs text-gray-500 mt-0.5">{failed ? 'Couldn’t load. Try Refresh.' : sub}</p>}
-    </div>
-  </button>
+// A number card. The help button sits beside it, not inside, so the card stays one control.
+const Kpi = ({ icon, label, value, change, sub, help, onClick, loading, failed, testid }) => (
+  <div className={`relative bg-white rounded-xl border border-td-border transition-colors ${onClick ? 'hover:border-td-forest' : ''}`}>
+    <button type="button" onClick={onClick} data-testid={testid} disabled={!onClick}
+      className={`w-full p-6 flex items-center text-left rounded-xl ${onClick ? '' : 'cursor-default'}`}>
+      <div className="h-12 w-12 shrink-0 rounded-full mr-4 bg-td-tonal flex items-center justify-center"><i className={`fas fa-${icon} text-xl text-td-forest`} aria-hidden="true"></i></div>
+      <div className="min-w-0">
+        <p className="text-td-sage text-sm pr-6">{label}</p>
+        {loading ? <div className="animate-pulse bg-gray-200 h-6 w-20 rounded mt-1"></div> : (
+          <div className="flex items-baseline flex-wrap gap-x-2">
+            <h3 className="text-[28px] leading-tight font-bold text-td-ink tabular-nums">{failed ? '—' : value}</h3>
+            {!failed && change !== undefined && <span className="text-sm text-td-sage" title="Compared with the previous period of the same length">{change}</span>}
+          </div>
+        )}
+        {(failed || sub) && !loading && <p className="text-xs text-td-sage mt-0.5">{failed ? 'Couldn’t load. Try Refresh.' : sub}</p>}
+      </div>
+    </button>
+    {help && <span className="absolute top-5 right-4"><Help text={help} /></span>}
+  </div>
 );
 
 const Panel = ({ title, help, action, children, className = '', testid }) => (
-  <div className={`bg-white rounded-lg shadow-sm border-0 p-6 ${className}`} data-testid={testid}>
+  <div className={`bg-white rounded-xl border border-td-border p-6 ${className}`} data-testid={testid}>
     <div className="flex items-center justify-between mb-4 gap-2">
-      <h3 className="text-lg font-semibold text-gray-800">{title}{help && <Help text={help} />}</h3>
+      <h2 className="text-lg font-semibold text-td-ink">{title}{help && <Help text={help} />}</h2>
       {action}
     </div>
     {children}
@@ -89,10 +96,10 @@ const Panel = ({ title, help, action, children, className = '', testid }) => (
 );
 
 const SEVERITY = {
-  critical: { icon: 'exclamation-triangle', color: '#dc3545', bg: 'rgba(220, 53, 69, 0.1)' },
-  high: { icon: 'exclamation-circle', color: '#ea580c', bg: 'rgba(234, 88, 12, 0.1)' },
-  medium: { icon: 'exclamation-circle', color: '#d97706', bg: 'rgba(255, 193, 7, 0.15)' },
-  low: { icon: 'info-circle', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
+  critical: { icon: 'exclamation-triangle', color: '#b91c1c', bg: '#fdecec' },
+  high: { icon: 'exclamation-circle', color: '#b4530e', bg: '#fef0e5' },
+  medium: { icon: 'exclamation-circle', color: '#92400e', bg: '#fdf6e3' },
+  low: { icon: 'info-circle', color: '#1d4ed8', bg: '#eaf0fd' },
 };
 
 const Dashboard = () => {
@@ -245,7 +252,7 @@ const Dashboard = () => {
   };
   const sourceChart = {
     labels: ['Pickup requests', 'Digital bins'],
-    datasets: [{ data: [Number(bySource.pickup_requests) || 0, Number(bySource.digital_bins) || 0], backgroundColor: ['#2196F3', '#10b981'], borderWidth: 1 }],
+    datasets: [{ data: [Number(bySource.pickup_requests) || 0, Number(bySource.digital_bins) || 0], backgroundColor: [CHART.green, CHART.orange], borderWidth: 1 }],
   };
   const wasteChart = {
     labels: waste.map(w => w.key),
@@ -254,14 +261,14 @@ const Dashboard = () => {
   const bagChart = {
     labels: bagSeries.map(b => bucketLabel(b.start, bucket)),
     datasets: [
-      { label: 'Generated', data: bagSeries.map(b => b.generated), borderColor: '#6B7280', backgroundColor: 'rgba(107, 114, 128, 0.1)', tension: 0.3 },
-      { label: 'Distributed', data: bagSeries.map(b => b.distributed), borderColor: '#2196F3', backgroundColor: 'rgba(33, 150, 243, 0.1)', tension: 0.3 },
-      { label: 'Collected', data: bagSeries.map(b => b.collected), borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.1)', tension: 0.3 },
+      { label: 'Generated', data: bagSeries.map(b => b.generated), borderColor: CHART.grey, backgroundColor: CHART.grey, tension: 0.3 },
+      { label: 'Distributed', data: bagSeries.map(b => b.distributed), borderColor: CHART.orange, backgroundColor: CHART.orange, tension: 0.3 },
+      { label: 'Collected', data: bagSeries.map(b => b.collected), borderColor: CHART.green, backgroundColor: CHART.green, tension: 0.3 },
     ],
   };
   const dumpingChart = {
     labels: dumping.map(d => bucketLabel(d.start, bucket)),
-    datasets: [{ label: 'Reports', data: dumping.map(d => d.reports), backgroundColor: '#FF5722', borderColor: '#E64A19', borderWidth: 1 }],
+    datasets: [{ label: 'Reports', data: dumping.map(d => d.reports), backgroundColor: CHART.red, borderWidth: 0 }],
   };
   const axisOpts = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } };
 
@@ -273,15 +280,15 @@ const Dashboard = () => {
 
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600">Welcome to TrashDrop Management Portal</p>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Dashboard</h1>
+          <p className="text-td-sage">Welcome to TrashDrop Management Portal</p>
         </div>
         <div className="flex flex-wrap items-end gap-2" data-testid="range-picker">
           <div className="inline-flex rounded-md border border-gray-300 overflow-hidden bg-white" role="group" aria-label="Period">
             {RANGE_PRESETS.map(p => (
               <button key={p.key} type="button" aria-pressed={period.key === p.key}
                 onClick={() => setRange(p.key, period.fromDay, period.toDay)}
-                className={`px-3 py-1.5 text-sm ${period.key === p.key ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{p.label}</button>
+                className={`px-3 py-1.5 text-sm ${period.key === p.key ? 'bg-green-600 text-white' : 'text-td-ink hover:bg-td-cream'}`}>{p.label}</button>
             ))}
           </div>
           {period.key === 'custom' && (
@@ -290,7 +297,7 @@ const Dashboard = () => {
               <input type="date" aria-label="To" value={period.toDay} min={period.fromDay} onChange={e => setRange('custom', period.fromDay, e.target.value)} className="border border-gray-300 rounded-md px-2 py-1 text-sm" />
             </>
           )}
-          <span className="text-xs text-gray-500 self-center" data-testid="last-updated">
+          <span className="text-xs text-td-sage self-center" data-testid="last-updated">
             Last updated {updatedAt ? updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}
           </span>
           <button type="button" onClick={() => setReloadKey(k => k + 1)} disabled={loading}
@@ -299,7 +306,7 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-      <p className="text-sm text-gray-500 -mt-4 mb-4">
+      <p className="text-sm text-td-sage -mt-4 mb-4">
         Showing {period.fromDay} to {period.toDay}; changes compare with the {Math.round((period.to - period.from) / 864e5) || 1} days before.
       </p>
 
@@ -309,24 +316,24 @@ const Dashboard = () => {
       {/* KPI cards */}
       {canStats && status !== 'locked' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Kpi testid="kpi-total" icon="truck-loading" iconBg="bg-green-100" iconColor="#4CAF50" label="Total Requests" loading={status === 'loading'} failed={status === 'error'}
+          <Kpi testid="kpi-total" icon="truck-loading" label="Total Requests" loading={status === 'loading'} failed={status === 'error'}
             value={req.total ?? 0} change={pctChange(req.total, req.prev_total)}
             sub="Pickup requests + digital bins" help="Requests created in this period (pickup requests and digital bins)."
             onClick={go(canOpenRequests, totalLink)} />
           {showQueueKpis && (
-            <Kpi testid="kpi-pending" icon="clock" iconBg="bg-yellow-100" iconColor="#FFC107" label="Pending Requests" loading={status === 'loading'} failed={status === 'error'}
+            <Kpi testid="kpi-pending" icon="clock" label="Pending Requests" loading={status === 'loading'} failed={status === 'error'}
               value={req.pending ?? 0} change={pctChange(req.pending, req.prev_pending)}
               sub={req.pending_all_dates ? `${req.pending_all_dates} waiting in total${req.oldest_pending_at ? `, oldest ${durationSince(req.oldest_pending_at)}` : ''}` : 'None waiting'}
               help="No collector assigned and not completed or cancelled (the same rule as the alerts). The number is for this period; the line below counts every date."
               onClick={go(canOpenRequests, requestListUrl(period, { status: 'status:pending', unassigned: '1' }))} />
           )}
           {showQueueKpis && (
-            <Kpi testid="kpi-collectors" icon="users" iconBg="bg-blue-100" iconColor="#2196F3" label="Collectors Online" loading={status === 'loading'} failed={status === 'error'}
+            <Kpi testid="kpi-collectors" icon="users" label="Collectors Online" loading={status === 'loading'} failed={status === 'error'}
               value={`${online}/${col.total ?? 0}`} sub={`${col.active ?? 0} on a job · ${col.idle ?? 0} idle`}
               help="Online = location reported in the last 10 minutes (same rule as the Live Map). This is right now, not the selected period."
               onClick={go(canOpenCollectors, '/request-pickup/collectors')} />
           )}
-          <Kpi testid="kpi-sla" icon="check-circle" iconBg="bg-purple-100" iconColor="#9C27B0" label="SLA Compliance" loading={status === 'loading'} failed={status === 'error'}
+          <Kpi testid="kpi-sla" icon="check-circle" label="SLA Compliance" loading={status === 'loading'} failed={status === 'error'}
             value={slaNow === null ? '—' : `${slaNow}%`} change={ptsChange(slaNow, slaPrev)}
             sub={sla.measured ? `${sla.met} of ${sla.measured} completed requests` : 'No completed requests to measure'}
             help={SLA_HELP} onClick={go(canOpenRequests, requestListUrl(period, { status: 'status:disposed' }))} />
@@ -338,10 +345,10 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Panel testid="panel-status" className="lg:col-span-2" title="Pickup Requests by Status"
             help="Every request created in this period, in exactly one group. The groups add up to Total Requests. Click a bar to open those requests."
-            action={status === 'ok' && <span className="text-xs text-gray-500" data-testid="status-sum">Total {statusSum}</span>}>
+            action={status === 'ok' && <span className="text-xs text-td-sage" data-testid="status-sum">Total {statusSum}</span>}>
             <div className="h-64">
               {body(statusSum === 0 ? <Empty /> : (
-                <Bar data={statusChart} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
+                <Bar data={statusChart} role="img" aria-label={`Bar chart, requests by status: ${describeValues(statusChart.labels, statusChart.datasets[0].data)}`} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
                   scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
                   ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, rows[i].filter))) : {}) }} />
               ))}
@@ -350,7 +357,7 @@ const Dashboard = () => {
           <Panel testid="panel-source" title="Pickup Requests vs Digital Bins" help="Where this period's requests came from. Click a slice to open them.">
             <div className="h-64">
               {body((req.total || 0) === 0 ? <Empty /> : (
-                <Doughnut data={sourceChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+                <Doughnut data={sourceChart} role="img" aria-label={`Doughnut chart, requests by source: ${describeValues(sourceChart.labels, sourceChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
                   ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, { source: i === 0 ? 'pickup_requests' : 'digital_bins' }))) : {}) }} />
               ))}
             </div>
@@ -383,8 +390,8 @@ const Dashboard = () => {
                       <strong>{col.unassigned_waiting ?? 0}</strong> unassigned request{col.unassigned_waiting === 1 ? '' : 's'} waiting (all dates)
                     </p>
                   )}
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Completed today</p>
-                  {(col.completed_today || []).length === 0 ? <p className="text-sm text-gray-400">No collector online or with completions today</p> : (
+                  <p className="text-xs font-semibold text-td-sage uppercase tracking-wider mb-1">Completed today</p>
+                  {(col.completed_today || []).length === 0 ? <p className="text-sm text-td-sage">No collector online or with completions today</p> : (
                     <ul className="divide-y divide-gray-100 text-sm max-h-40 overflow-y-auto">
                       {col.completed_today.map(c => (
                         <li key={c.id} className="py-1.5 flex items-center gap-2">
@@ -406,7 +413,7 @@ const Dashboard = () => {
                 <span className="text-xs rounded-full bg-gray-100 text-gray-700 px-2 py-0.5" data-testid="unclassified">Unclassified {waste.find(w => w.key === 'Unclassified').value}</span>)}>
               <div className="h-64">
                 {body(wasteTotal === 0 ? <Empty /> : (
-                  <Doughnut data={wasteChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
+                  <Doughnut data={wasteChart} role="img" aria-label={`Doughnut chart, bags by waste type: ${describeValues(wasteChart.labels, wasteChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
                     ...clickable(() => navigate('/bin-management/manage')) }} />
                 ))}
               </div>
@@ -424,22 +431,22 @@ const Dashboard = () => {
               action={<button type="button" onClick={() => navigate('/bin-management/history')} className="text-sm text-green-700 hover:underline">Bag History →</button>}>
               <div className="h-56">
                 {body(seriesTotal(bagSeries, 'generated') + seriesTotal(bagSeries, 'distributed') + seriesTotal(bagSeries, 'collected') === 0 ? <Empty /> : (
-                  <Line data={bagChart} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
+                  <Line data={bagChart} role="img" aria-label={`Line chart of bags generated (${seriesTotal(bagSeries, 'generated')}), distributed (${seriesTotal(bagSeries, 'distributed')}) and collected (${seriesTotal(bagSeries, 'collected')}) in this period`} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
                 ))}
               </div>
               {status === 'ok' && bags.all_time && (
-                <p className="text-xs text-gray-500 mt-3" data-testid="bags-all-time">
+                <p className="text-xs text-td-sage mt-3" data-testid="bags-all-time">
                   All time (not archived): {bags.all_time.batches} batches · {bags.all_time.bags} bags · {bags.all_time.distributed} distributed · {bags.all_time.collected} collected
-                  <span className="text-gray-400"> — same totals as Bag History</span>
+                  <span> — same totals as Bag History</span>
                 </p>
               )}
             </Panel>
           )}
           <Panel testid="panel-dumping" className={canBags ? '' : 'lg:col-span-2'} title="Dumping Reports" help="Illegal dumping reports by the date they were submitted (created_at)."
-            action={status === 'ok' && <span className="text-xs text-gray-500">Total {data?.dumping_total ?? 0}</span>}>
+            action={status === 'ok' && <span className="text-xs text-td-sage">Total {data?.dumping_total ?? 0}</span>}>
             <div className="h-56">
               {body((data?.dumping_total || 0) === 0 ? <Empty /> : (
-                <Bar data={dumpingChart} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...(canOpenDumping ? clickable(() => navigate('/illegal-dumping/reports')) : {}) }} />
+                <Bar data={dumpingChart} role="img" aria-label={`Bar chart, dumping reports over time: ${describeValues(dumpingChart.labels, dumpingChart.datasets[0].data)}`} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...(canOpenDumping ? clickable(() => navigate('/illegal-dumping/reports')) : {}) }} />
               ))}
             </div>
           </Panel>
@@ -464,7 +471,7 @@ const Dashboard = () => {
                             <p className="text-sm font-medium text-gray-900">{a.title}</p>
                             <span className="text-xs font-medium px-2 py-0.5 rounded-full capitalize whitespace-nowrap" style={{ backgroundColor: sev.bg, color: sev.color }}>{a.severity}</span>
                           </div>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-td-sage">
                             {a.requestAge && <><strong className="text-gray-700">Request waiting {a.requestAge}</strong> · </>}
                             Alert raised {a.raisedAgo} ago
                           </p>
@@ -495,7 +502,7 @@ const Dashboard = () => {
                     <li key={`${r.source}-${r.id}`} className="py-2 flex items-center gap-3" data-testid="stale-row">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{r.customer_name || 'Customer'} · <span className="font-mono text-xs">{r.id.slice(0, 8)}</span>{r.source === 'digital_bins' ? ' · bin' : ''}</p>
-                        <p className="text-xs text-gray-500 truncate">Since {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ({r.days_waiting} days){r.address ? ` · ${r.address}` : ''}</p>
+                        <p className="text-xs text-td-sage truncate">Since {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ({r.days_waiting} days){r.address ? ` · ${r.address}` : ''}</p>
                       </div>
                       {canOpenRequests && <button type="button" onClick={() => navigate(`/request-pickup/requests?q=${r.id}&open=${r.id}`)} className="text-xs text-green-700 hover:underline">View</button>}
                       {canCancel && <button type="button" onClick={() => { setCancelReason(CANCEL_REASONS[0]); setCancelling(r); }} className="text-xs text-red-600 hover:underline">Cancel</button>}

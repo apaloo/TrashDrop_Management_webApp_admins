@@ -4,6 +4,7 @@
  * All numbers come from admin_dashboard_stats (supabase/migrations/20261022_dashboard.sql).
  */
 import { TRASH_TYPES } from '../constants/bagStatus';
+import { CHART } from '../theme/brand';
 
 export const RANGE_PRESETS = [
   { key: 'today', label: 'Today' },
@@ -69,12 +70,12 @@ export const SLA_HELP = `SLA: of the completed requests in this period that have
 
 /** Status groups in display order, with the request-list filter each opens */
 export const REQUEST_GROUPS = [
-  { key: 'pending', label: 'Pending', color: '#F59E0B', filter: { status: 'status:pending', unassigned: '1' }, help: 'No collector yet, not completed or cancelled' },
-  { key: 'assigned', label: 'Assigned', color: '#3B82F6', filter: { status: 'status:accepted' }, help: 'A collector is set but has not started' },
-  { key: 'in_progress', label: 'In Progress', color: '#8B5CF6', filter: { status: 'status:en_route,arrived,collecting' }, help: 'En route, arrived or collecting' },
-  { key: 'completed', label: 'Completed', color: '#10B981', filter: { status: 'status:disposed' }, help: 'Collected and disposed' },
-  { key: 'cancelled', label: 'Cancelled', color: '#9CA3AF', filter: { status: 'group:cancelled' }, help: 'Cancelled, rejected or expired' },
-  { key: 'other', label: 'Other', color: '#64748B', filter: {}, help: 'A status value the admin does not recognise' },
+  { key: 'pending', label: 'Pending', color: CHART.orange, filter: { status: 'status:pending', unassigned: '1' }, help: 'No collector yet, not completed or cancelled' },
+  { key: 'assigned', label: 'Assigned', color: CHART.blue, filter: { status: 'status:accepted' }, help: 'A collector is set but has not started' },
+  { key: 'in_progress', label: 'In Progress', color: CHART.purple, filter: { status: 'status:en_route,arrived,collecting' }, help: 'En route, arrived or collecting' },
+  { key: 'completed', label: 'Completed', color: CHART.green, filter: { status: 'status:disposed' }, help: 'Collected and disposed' },
+  { key: 'cancelled', label: 'Cancelled', color: CHART.grey, filter: { status: 'group:cancelled' }, help: 'Cancelled, rejected or expired' },
+  { key: 'other', label: 'Other', color: CHART.dark, filter: {}, help: 'A status value the admin does not recognise' },
 ];
 
 /** Rows for the status chart; "Other" only when it has requests. Sum = total. */
@@ -92,7 +93,7 @@ export const requestListUrl = (period, extra = {}) => {
 
 /* ── waste ────────────────────────────────────────────────────────────── */
 
-const WASTE_COLORS = { Organic: '#22C55E', Recyclable: '#3B82F6', Hazardous: '#EF4444', General: '#6B7280', Electronic: '#A855F7', Other: '#F59E0B', Unclassified: '#D1D5DB' };
+const WASTE_COLORS = { Organic: CHART.green, Recyclable: CHART.blue, Hazardous: CHART.red, General: CHART.grey, Electronic: CHART.purple, Other: CHART.orange, Unclassified: CHART.light };
 
 /**
  * Bags by type: the four main types always, Electronic / Other only when
@@ -111,7 +112,7 @@ export const wasteRows = (waste = {}) => {
     if (other) other.value += extra; else rows.push({ key: 'Other', value: extra });
   }
   rows.push({ key: 'Unclassified', value: Number(waste.Unclassified) || 0 });
-  return rows.map(r => ({ ...r, color: WASTE_COLORS[r.key] || '#94A3B8' }));
+  return rows.map(r => ({ ...r, color: WASTE_COLORS[r.key] || CHART.grey }));
 };
 
 /* ── time series ──────────────────────────────────────────────────────── */

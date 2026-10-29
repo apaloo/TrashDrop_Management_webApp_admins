@@ -67,3 +67,19 @@ export const BTN = {
   // Header-sized: the same pill, a little shorter
   small:         { minHeight: 40, padding: '0 18px', fontSize: 15 },
 };
+
+/**
+ * Chart colours for the dashboard: the design colours plus the status
+ * blue, purple and red. Every chart also names its values in labels or a
+ * legend, so colour is never the only key.
+ */
+export const CHART = {
+  green:  TD.forest,   // completed, collected, organic, pickup requests
+  orange: TD.orange,   // pending, distributed, digital bins
+  blue:   '#1d4ed8',   // assigned, recyclable
+  purple: '#7c3aed',   // in progress, electronic
+  red:    '#b91c1c',   // hazardous, dumping reports
+  grey:   '#8a8f9c',   // cancelled, generated, general
+  dark:   TD.sage,     // other
+  light:  '#dfe4dc',   // unclassified
+};

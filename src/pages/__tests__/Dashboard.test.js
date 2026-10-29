@@ -14,9 +14,11 @@ jest.mock('../../services/pickupAdminService', () => ({ cancelRequest: jest.fn()
 jest.mock('../../services/alertAdminService', () => ({ setAlertStatus: jest.fn() }));
 jest.mock('../../context/AuthContext', () => ({ useAuth: jest.fn() }));
 // Charts need a canvas; the tests look at the page, not the drawing
-jest.mock('react-chartjs-2', () => ({
-  Bar: () => <div data-testid="chart" />, Doughnut: () => <div data-testid="chart" />, Line: () => <div data-testid="chart" />,
-}));
+// (the stand-ins keep the role and label the page gives each chart)
+jest.mock('react-chartjs-2', () => {
+  const Chart = ({ role, 'aria-label': label }) => <div data-testid="chart" role={role} aria-label={label} />;
+  return { Bar: Chart, Doughnut: Chart, Line: Chart };
+});
 
 const stats = {
   requests: { total: 12, prev_total: 10, pending: 3, prev_pending: 2, pending_all_dates: 5, by_status: { pending: 3, completed: 9 }, by_source: { pickup_requests: 8, digital_bins: 4 } },
@@ -118,5 +120,21 @@ describe('Dashboard states', () => {
     await waitFor(() => expect(screen.getByTestId('kpi-total')).toHaveTextContent('12'));
     expect(screen.getByTestId('kpi-total')).not.toBeDisabled();       // requests.view
     expect(screen.getByTestId('kpi-collectors')).toBeDisabled();      // collectors.view is Admin only
+  });
+});
+
+describe('Dashboard for screen readers', () => {
+  it('describes each chart in words, with its numbers', async () => {
+    renderAs('admin');
+    await waitFor(() => expect(screen.getByTestId('kpi-total')).toHaveTextContent('12'));
+    expect(screen.getByRole('img', { name: /requests by status: Pending 3,.*Completed 9/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Doughnut chart, requests by source: Pickup requests 8, Digital bins 4' })).toBeInTheDocument();
+  });
+
+  it('each info icon is a named button, outside the card it explains', async () => {
+    renderAs('admin');
+    await waitFor(() => expect(screen.getByTestId('kpi-total')).toHaveTextContent('12'));
+    const help = screen.getByRole('button', { name: /Requests created in this period/ });
+    expect(screen.getByTestId('kpi-total')).not.toContainElement(help);
   });
 });
