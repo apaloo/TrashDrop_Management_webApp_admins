@@ -8,6 +8,7 @@ import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
 import { TD, FF, TYPE, BTN } from '../theme/brand';
+import { QrScanScreen, BookScreen, TrackScreen, ReportFlowScreen } from '../components/landing/AppScreens';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 
 /* ─── Brand tokens: src/theme/brand.js ─────────────────────────────────────── */
@@ -482,6 +483,11 @@ const TrustRow = () => (
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICES
    ═══════════════════════════════════════════════════════════════════════════════ */
+const APP_SCREENS = [
+  { Screen: QrScanScreen, title: 'Scan your QR bags', body: 'Scan the code on a new pack once and every bag in it is on your account.' },
+  { Screen: BookScreen, title: 'Book a pickup', body: 'Choose the waste and the time. You see the price before you confirm.' },
+  { Screen: TrackScreen, title: 'Follow your collector', body: 'See who is coming and watch them on the map until your waste is collected.' },
+];
 const ServicesSection = () => {
   const { ref, visible } = useReveal(0.08);
   const { lp } = useLpTheme();
@@ -556,283 +562,54 @@ const ServicesSection = () => {
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em' }}>📍 Live Tracking</div>
           </div>
         </div>
+        {/* The same services in the app */}
+        <ul className="td-app-screens" style={{ listStyle:'none', margin:'48px 0 0', padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(260px,100%),1fr))', gap:'8px 24px' }}>
+          {APP_SCREENS.map(({ Screen, title, body }) => (
+            <li key={title} style={{ textAlign:'center' }}>
+              <Screen />
+              <h3 style={{ ...TYPE.card, color:lp.ink2Heading, margin:'4px 0 6px' }}>{title}</h3>
+              <p style={{ ...TYPE.small, color:lp.sageText, margin:'0 auto', maxWidth:300 }}>{body}</p>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   MOBILE REPORT MOCKUP
+   TRUST (recommendation 11 of the design review, wording approved by the owner)
    ═══════════════════════════════════════════════════════════════════════════════ */
-const MobileReportMockup = () => {
-  const [step, setStep] = useState(1);
-  const [photoTaken, setPhotoTaken] = useState(false);
-  
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStep(s => {
-        if (s === 1 && photoTaken) return 2;
-        if (s === 2) return 3;
-        if (s === 3) { setPhotoTaken(false); return 1; }
-        setPhotoTaken(true);
-        return s;
-      });
-    }, 2500);
-    return () => clearInterval(timer);
-  }, [photoTaken]);
+const TRUST_POINTS = [
+  { icon:'fa-id-card', title:'Verified collectors', body:'Every collector is ID-checked and has their vehicle checked before they join. You see who is coming before they arrive.' },
+  { icon:'fa-map-marker-alt', title:'Follow your pickup live', body:'Watch your collector on the map from the moment they accept until your waste is collected.' },
+  { icon:'fa-tag', title:'The price comes first', body:'Digital Bin pickups show the price before you confirm, and QR Bag pickups are free. Pay with MoMo or cash at collection.' },
+  { icon:'fa-user-secret', title:'Reports stay anonymous', body:'The public dumping map shows where a dump is and what\'s in it. It never shows who reported it.' },
+  { icon:'fa-recycle', title:'Licensed disposal', body:'Collected waste goes only to sites with a valid Ghana EPA permit, never to a roadside or drain.' },
+];
 
-  return (
-    <div style={{ position:'relative', width:280, flexShrink:0 }}>
-      {/* Phone Frame */}
-      <div style={{ 
-        background:'#1a1a1a', 
-        borderRadius:40, 
-        padding:12, 
-        boxShadow:'0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
-        border:'2px solid #333'
-      }}>
-        {/* Screen */}
-        <div style={{ 
-          background:'#0a0a0a', 
-          borderRadius:28, 
-          overflow:'hidden',
-          position:'relative'
-        }}>
-          {/* Notch */}
-          <div style={{ 
-            position:'absolute', 
-            top:0, 
-            left:'50%', 
-            transform:'translateX(-50%)',
-            width:120, 
-            height:28, 
-            background:'#1a1a1a',
-            borderRadius:'0 0 20px 20px',
-            zIndex:10
-          }} />
-          
-          {/* Status Bar */}
-          <div style={{ 
-            display:'flex', 
-            justifyContent:'space-between', 
-            alignItems:'center',
-            padding:'8px 20px 4px',
-            background:'#0f1210'
-          }}>
-            <span style={{ ...FF.label, fontSize:13, color:'#fff', fontWeight:600 }}>9:41</span>
-            <div style={{ display:'flex', gap:4 }}>
-              <i className="fas fa-signal" style={{ color:'#fff', fontSize:13 }}></i>
-              <i className="fas fa-wifi" style={{ color:'#fff', fontSize:13 }}></i>
-              <i className="fas fa-battery-full" style={{ color:TD.lime, fontSize:13 }}></i>
-            </div>
-          </div>
-
-          {/* App Header */}
-          <div style={{ 
-            background:TD.forest, 
-            padding:'12px 16px',
-            display:'flex',
-            alignItems:'center',
-            gap:10
-          }}>
-            <div style={{ width:32, height:32, borderRadius:8, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <img src="/logo.svg" alt="" style={{ width:18, height:18 }} />
-            </div>
-            <span style={{ ...FF.label, fontSize:13, color:'#fff', fontWeight:700 }}>Report Dump</span>
-          </div>
-
-          {/* App Content */}
-          <div style={{ padding:'16px 16px 12px', minHeight:380, maxHeight:420, background:'#0f1210', position:'relative', overflow:'hidden' }}>
-            {/* Step 1: Photo */}
-            <div style={{ 
-              opacity:step===1?1:0, 
-              transition:'opacity 0.3s ease',
-              position:step===1?'relative':'absolute',
-              inset:step===1?'auto':'16px 16px 12px',
-              pointerEvents:step===1?'auto':'none'
-            }}>
-              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 1 of 3</p>
-              <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Take a photo of the illegal dumping site</p>
-              
-              {/* Camera Viewfinder */}
-              <div style={{ 
-                height:160, 
-                background:photoTaken?'rgba(182,238,105,0.08)':'#1a1a1a', 
-                borderRadius:14, 
-                border:`1.5px dashed ${photoTaken?TD.lime:'rgba(255,255,255,0.15)'}`,
-                display:'flex',
-                flexDirection:'column',
-                alignItems:'center',
-                justifyContent:'center',
-                gap:8,
-                marginBottom:12,
-                transition:'all 0.3s'
-              }}>
-                {photoTaken ? (
-                  <>
-                    <div style={{ width:52, height:52, borderRadius:10, background:'rgba(182,238,105,0.12)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <i className="fas fa-image" style={{ color:TD.lime, fontSize:22 }}></i>
-                    </div>
-                    <span style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:600 }}>Photo captured!</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-camera" aria-hidden="true" style={{ color:'rgba(255,255,255,0.25)', fontSize:28 }}></i>
-                    <span style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)' }}>Tap to capture</span>
-                  </>
-                )}
-              </div>
-
-              <div style={{ display:'flex', gap:6 }}>
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:'rgba(255,255,255,0.08)', borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:'rgba(255,255,255,0.08)', borderRadius:2 }} />
-              </div>
-            </div>
-
-            {/* Step 2: Location */}
-            <div style={{ 
-              opacity:step===2?1:0, 
-              transition:'opacity 0.3s ease',
-              position:step===2?'relative':'absolute',
-              inset:step===2?'auto':'16px 16px 12px',
-              pointerEvents:step===2?'auto':'none'
-            }}>
-              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 2 of 3</p>
-              <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Confirm location</p>
-              
-              <div style={{ 
-                height:140, 
-                background:'#1a1a1a', 
-                borderRadius:12, 
-                border:'1px solid rgba(255,255,255,0.08)',
-                display:'flex',
-                alignItems:'center',
-                justifyContent:'center',
-                marginBottom:12,
-                position:'relative',
-                overflow:'hidden'
-              }}>
-                <div style={{ 
-                  position:'absolute', 
-                  inset:0,
-                  background:'radial-gradient(circle at 50% 50%, rgba(182,238,105,0.08) 0%, transparent 60%)'
-                }} />
-                <div style={{ textAlign:'center', position:'relative', zIndex:1 }}>
-                  <i className="fas fa-map-marker-alt" style={{ color:TD.lime, fontSize:26, marginBottom:4, display:'block' }}></i>
-                  <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:'4px 0' }}>Accra, Ghana</p>
-                  <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:600, letterSpacing:'0.5px' }}>GPS Accurate</p>
-                </div>
-              </div>
-
-              <div style={{ display:'flex', gap:6 }}>
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:'rgba(255,255,255,0.08)', borderRadius:2 }} />
-              </div>
-            </div>
-
-            {/* Step 3: Submit */}
-            <div style={{ 
-              opacity:step===3?1:0, 
-              transition:'opacity 0.3s ease',
-              position:step===3?'relative':'absolute',
-              inset:step===3?'auto':'16px 16px 12px',
-              pointerEvents:step===3?'auto':'none'
-            }}>
-              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 3 of 3</p>
-              <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Review and submit</p>
-              
-              <div style={{ 
-                background:'rgba(182,238,105,0.06)', 
-                borderRadius:12, 
-                border:`1px solid ${TD.lime}25`,
-                padding:12,
-                marginBottom:12
-              }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                  <div style={{ width:40, height:40, borderRadius:8, background:'rgba(182,238,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <i className="fas fa-image" style={{ color:TD.lime, fontSize:16 }}></i>
-                  </div>
-                  <div style={{ minWidth:0 }}>
-                    <p style={{ ...FF.label, fontSize:13, color:'#fff', fontWeight:600, margin:0 }}>Photo attached</p>
-                    <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:'2px 0 0' }}>Accra, Ghana</p>
-                  </div>
-                </div>
-                <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                  {['Mixed Waste', 'Large', 'Critical'].map((tag, i) => (
-                    <span key={tag} style={{ 
-                      ...FF.label, 
-                      fontSize:13, 
-                      color:i===2?'#ef4444':TD.lime, 
-                      background:i===2?'rgba(239,68,68,0.12)':'rgba(182,238,105,0.12)',
-                      padding:'3px 8px',
-                      borderRadius:4,
-                      fontWeight:600,
-                      whiteSpace:'nowrap'
-                    }}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-
-              <button style={{ 
-                width:'100%', 
-                padding:'11px', 
-                background:TD.lime, 
-                color:TD.ink, 
-                border:'none', 
-                borderRadius:10, 
-                ...FF.label, 
-                fontSize:13, 
-                fontWeight:700,
-                cursor:'pointer',
-                marginBottom:10
-              }}>
-                Submit Report
-              </button>
-
-              <div style={{ display:'flex', gap:6 }}>
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-                <div style={{ flex:1, height:3, background:TD.lime, borderRadius:2 }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Home Indicator */}
-          <div style={{ 
-            height:18, 
-            background:'#0f1210',
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            flexShrink:0
-          }}>
-            <div style={{ width:100, height:3, background:'rgba(255,255,255,0.25)', borderRadius:2 }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Badge */}
-      <div style={{ 
-        position:'absolute', 
-        bottom:-10, 
-        right:-20, 
-        background:TD.lime, 
-        color:TD.ink,
-        padding:'8px 14px',
-        borderRadius:20,
-        ...FF.label,
-        fontSize:13,
-        fontWeight:700,
-        boxShadow:'0 4px 20px rgba(182,238,105,0.4)',
-        transform:'rotate(-5deg)'
-      }}>
-        <i className="fas fa-bolt" style={{ marginRight:4 }}></i> 30 sec report
-      </div>
+const TrustSection = () => (
+  <section id="trust" aria-labelledby="trust-title" style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
+    <div style={{ maxWidth:1200, margin:'0 auto' }}>
+      <p style={{ ...TYPE.eyebrow, color:TD.forest, margin:'0 0 12px' }}>Why people trust TrashDrop</p>
+      <h2 id="trust-title" style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 14px' }}>Safe for your home and your street</h2>
+      <p style={{ ...TYPE.lead, color:TD.sage, maxWidth:620, margin:0 }}>
+        You know who is coming, what it costs and where your waste goes. Reporting a dump never puts your name on the map.
+      </p>
+      <ul style={{ listStyle:'none', padding:0, margin:'40px 0 0', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:16 }}>
+        {TRUST_POINTS.map(t => (
+          <li key={t.title} style={{ background:TD.cream, border:'1px solid var(--td-border)', borderRadius:12, padding:22, display:'flex', flexDirection:'column', gap:8 }}>
+            <span aria-hidden="true" style={{ width:44, height:44, borderRadius:10, background:'#e6f2e9', display:'grid', placeItems:'center', color:TD.forest, fontSize:18 }}>
+              <i className={`fas ${t.icon}`}></i>
+            </span>
+            <h3 style={{ ...TYPE.card, fontSize:18, color:TD.ink, margin:'6px 0 0' }}>{t.title}</h3>
+            <p style={{ ...TYPE.small, fontSize:15, color:TD.sage, margin:0 }}>{t.body}</p>
+          </li>
+        ))}
+      </ul>
     </div>
-  );
-};
+  </section>
+);
 
 const RISK_PILL = { Critical:'#dc2626', High:'#ea580c', Medium:'#eab308', Low:'#22c55e' };
 
@@ -1015,7 +792,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
             minWidth:300,
             maxWidth:320
           }}>
-            <MobileReportMockup />
+            <ReportFlowScreen />
             
             {/* Feature List below phone */}
             <div style={{ 
@@ -1688,6 +1465,7 @@ const LpPageInner = ({ auth }) => {
       <HeroSection />
       <TrustRow />
       <ServicesSection />
+      <TrustSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds home />
       <ServiceAreasSection />
       <CollectorsLine />

@@ -4,6 +4,7 @@ import PublicPageLayout, { TD, FAQAccordion, SectionNav } from '../components/Pu
 import { HouseholdPricing } from './HomePageNew';
 import { TYPE, BTN } from '../theme/brand';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
+import { QrScanScreen } from '../components/landing/AppScreens';
 
 /* ─── FAQPage JSON-LD schema ────────────────────────────────────────────────── */
 /* All questions here MUST be visible on the page — Google Rich Results requirement */
@@ -277,7 +278,8 @@ const HowItWorksPage = () => {
 
       {/* ── QR Bag System, in a paragraph ────────────────────────────────── */}
       <section id="qr" className="td-hiw-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:760, margin:'0 auto' }}>
+        <div className="td-with-phone" style={{ maxWidth:1100, margin:'0 auto' }}>
+        <div>
           <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>QR Bag System</span>
           <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 16px' }}>
             How does the TrashDrop QR bag system work?
@@ -287,6 +289,8 @@ const HowItWorksPage = () => {
             The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap "Request Pickup" to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra.
           </p>
           <Link to="/#book-app" style={BTN.primary}>Book a pickup</Link>
+        </div>
+        <QrScanScreen />
         </div>
       </section>
 
