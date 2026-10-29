@@ -15,7 +15,7 @@ import logger from './utils/logger';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
 import { can, landingPathFor } from './lib/permissions';
 import PendingInviteRedirect from './components/PendingInviteRedirect';
-import HomePage from './pages/HomePage';
+import HomePage from './pages/HomePageNew';
 
 // Public marketing pages
 const FAQPage                = lazy(() => import('./pages/FAQPage'));
