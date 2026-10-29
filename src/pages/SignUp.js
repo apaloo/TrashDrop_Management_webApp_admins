@@ -4,12 +4,39 @@ import { signUp } from '../utils/auth';
 import { deriveRoleForUser, COMPANY_TYPES, ROLES } from '../constants/accessControl';
 import { validateAccountDetails } from '../constants/accountTypeFields';
 import AccountDetailsFields from '../components/AccountDetailsFields';
+import { getInviteInfo } from '../services/teamService';
+import { isInviteToken, rememberInvite, forgetInvite, INVITE_PROBLEMS } from '../utils/teamInvite';
 import { Fragment } from 'react';
+
+// Only a real duplicate says "account exists"; other problems say what happened
+export const signUpProblem = (err) => {
+  const message = err?.message || '';
+  const code = err?.code || '';
+  if (code === 'user_already_exists' || code === 'email_exists' || /already (been )?registered|already exists/i.test(message)) {
+    return { duplicate: true, text: '❌ An account with this email already exists. Please try logging in or reset your password.' };
+  }
+  if (code === 'over_email_send_rate_limit' || err?.status === 429 || /rate limit/i.test(message)) {
+    return { text: '❌ Too many sign-up emails have been sent in a short time. Please wait a while (up to an hour) and try again.' };
+  }
+  if (code === 'email_address_invalid' || /invalid format|email address .* is invalid/i.test(message)) {
+    return { text: '❌ That email address can’t be used. Check it for typos, or use another address.' };
+  }
+  if (/sending confirmation email/i.test(message)) {
+    return { text: '❌ We couldn’t send the confirmation email right now. Please try again in a few minutes.' };
+  }
+  if (code === 'weak_password' || message.includes('Password')) return { text: `❌ ${message}` };
+  return { text: `❌ Failed to sign up: ${message || 'Unknown error. Please try again.'}` };
+};
 
 const SignUp = () => {
   // /signup?type=volunteer_group (links on /volunteers/, /media/) picks the account type
   const [searchParams] = useSearchParams();
   const typeFromLink = searchParams.get('type');
+  // /signup?invite=TOKEN (from a volunteer group's invite link): the group
+  // already has the organisation and area details, so ask only for the person's own
+  const inviteToken = isInviteToken(searchParams.get('invite')) ? searchParams.get('invite') : null;
+  const [invite, setInvite] = useState(null);
+  const joining = Boolean(inviteToken) && invite?.valid !== false;
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +57,16 @@ const SignUp = () => {
   // Password strength criteria
   const strengthLabels = ['Very Weak', 'Weak', 'Medium', 'Strong', 'Very Strong'];
   const strengthColors = ['red', 'orange', 'yellow', 'light-green', 'green'];
+
+  useEffect(() => {
+    if (!inviteToken) return undefined;
+    let live = true;
+    rememberInvite(inviteToken);
+    getInviteInfo(inviteToken)
+      .then(info => { if (live) setInvite(info); })
+      .catch(() => { if (live) setInvite({ valid: null }); }); // still sign up; the link is checked again on joining
+    return () => { live = false; };
+  }, [inviteToken]);
 
   useEffect(() => {
     // Check password strength whenever password changes
@@ -80,9 +117,11 @@ const SignUp = () => {
       errors.confirmPassword = 'Passwords do not match';
     }
     
-    if (!companyName.trim()) errors.companyName = 'Organisation or group name is required';
-    if (!companyType) errors.companyType = 'Company type is required';
-    if (companyType) Object.assign(errors, validateAccountDetails(companyType, accountDetails).errors);
+    if (!joining) {
+      if (!companyName.trim()) errors.companyName = 'Organisation or group name is required';
+      if (!companyType) errors.companyType = 'Company type is required';
+      if (companyType) Object.assign(errors, validateAccountDetails(companyType, accountDetails).errors);
+    }
     if (!agreeToTerms) errors.agreeToTerms = 'You must agree to the terms of service';
     
     setValidationErrors(errors);
@@ -99,6 +138,30 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      if (joining) {
+        // A member's own account: they work under the group's account once
+        // they join, so there is nothing more to set up. The invite rides in
+        // the account so joining happens on first sign-in, on any device.
+        const { error } = await signUp({
+          email,
+          password,
+          name: `${firstName} ${lastName}`,
+          role: ROLES.USER,
+          metadata: {
+            firstName,
+            lastName,
+            companyType: 'other',
+            role: ROLES.USER,
+            inviteToken,
+            onboardingCompleted: true,
+          },
+        });
+        if (error) throw error;
+        setSuccess(`✅ Account created! Check your email inbox and click the verification link, then sign in to join ${invite?.group_name || 'the group'}. Check your spam folder if you don't see it.`);
+        setTimeout(() => navigate('/login'), 5000);
+        return;
+      }
+
       const derivedRole = deriveRoleForUser({ email, companyType });
       
       const { data, error } = await signUp({ 
@@ -141,15 +204,9 @@ const SignUp = () => {
       }, 5000);
     } catch (err) {
       setSuccess(null);
-      const message = err?.message || '';
-      if (err?.status === 400 || message.toLowerCase().includes('email') || message.includes('already registered')) {
-        setError('❌ An account with this email already exists. Please try logging in or reset your password.');
-        setShowDuplicateModal(true);
-      } else if (message.includes('Password')) {
-        setError(`❌ ${message}`);
-      } else {
-        setError(`❌ Failed to sign up: ${message || 'Unknown error. Please try again.'}`);
-      }
+      const problem = signUpProblem(err);
+      setError(problem.text);
+      if (problem.duplicate) setShowDuplicateModal(true);
     } finally {
       setLoading(false);
     }
@@ -166,7 +223,9 @@ const SignUp = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Account Already Exists</h3>
             <p className="text-sm text-gray-600 text-center mb-6">
-              An account with this email already exists. Please try logging in or reset your password if you can't access your account.
+              {joining
+                ? `You already have a TrashDrop account with this email. Sign in with it and you'll join ${invite?.group_name || 'the group'} straight away; there's no need for a new account.`
+                : 'An account with this email already exists. Please try logging in or reset your password if you can\'t access your account.'}
             </p>
             <div className="flex gap-3">
               <Link
@@ -174,7 +233,7 @@ const SignUp = () => {
                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors text-center"
                 onClick={() => setShowDuplicateModal(false)}
               >
-                Go to Login
+                {joining ? 'Sign in to join' : 'Go to Login'}
               </Link>
               <Link
                 to="/forgot-password"
@@ -223,12 +282,20 @@ const SignUp = () => {
               <img src="/logo.svg" alt="TrashDrop Logo" className="h-16 w-16 transition-transform group-hover:scale-105" />
             </Link>
             <h2 className="mt-5 text-2xl font-bold text-gray-900">
-              Create your account
+              {joining ? `Join ${invite?.group_name || 'your volunteer group'}` : 'Create your account'}
             </h2>
-            <p className="mt-1.5 text-sm text-gray-500">
-              Join TrashDrop to streamline your waste management operations
+            <p className="mt-1.5 text-sm text-gray-500" data-testid="signup-subtitle">
+              {joining
+                ? 'Just your name, email and a password. You’ll work under the group’s account, so there’s nothing else to fill in.'
+                : 'Join TrashDrop to streamline your waste management operations'}
             </p>
           </div>
+
+          {inviteToken && invite && invite.valid === false && (
+            <div role="alert" className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg text-sm text-amber-800">
+              {INVITE_PROBLEMS[invite.reason] || INVITE_PROBLEMS.not_found} You can still create your own account below.
+            </div>
+          )}
           
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
@@ -390,6 +457,7 @@ const SignUp = () => {
                 </div>
               </div>
 
+              {!joining && (<>
               {/* Divider */}
               <div className="relative pt-2">
                 <div className="absolute inset-0 flex items-center">
@@ -452,6 +520,7 @@ const SignUp = () => {
                 </div>
               </div>
               <AccountDetailsFields companyType={companyType} value={accountDetails} onChange={setAccountDetails} errors={validationErrors} />
+              </>)}
 
               <div className="flex items-start mt-2">
                 <div className="flex items-center h-5">
@@ -505,7 +574,14 @@ const SignUp = () => {
                 <Link to="/login" className="font-semibold text-green-600 hover:text-green-500 transition-colors">
                   Sign in
                 </Link>
+                {joining && ' — you’ll join the group after signing in.'}
               </p>
+              {joining && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Not joining a group?{' '}
+                  <Link to="/signup" onClick={forgetInvite} className="font-medium text-green-600 hover:text-green-500">Create a full account instead</Link>
+                </p>
+              )}
             </div>
           </form>
         </div>

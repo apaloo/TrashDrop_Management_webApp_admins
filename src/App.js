@@ -160,6 +160,7 @@ const NOINDEX_PATHS = [
   '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding',
   '/dashboard', '/settings', '/request-pickup', '/bin-management',
   '/illegal-dumping/map', '/illegal-dumping/reports', '/illegal-dumping/history',
+  '/accounts', '/media-data', '/performance', '/team', '/join',
 ];
 
 const RobotsMeta = () => {

@@ -47,3 +47,8 @@ it('does nothing on sign-up and onboarding pages, or without a remembered invite
   renderAt('/settings');
   expect(screen.getByText('Other page')).toBeInTheDocument();
 });
+
+it('follows the invite kept in the account by a sign-up through the link (another device)', async () => {
+  renderAt('/dashboard', { user: { user_metadata: { inviteToken: token } } });
+  expect(await screen.findByText('Join page')).toBeInTheDocument();
+});
