@@ -47,7 +47,7 @@ const AlertsTable = ({ alerts, ctx, staffName, selected, onToggle, onToggleAll, 
                 <td className="px-2 py-2.5 max-w-[22rem]">
                   <button type="button" className="font-medium text-left hover:underline line-clamp-2" onClick={e => { e.stopPropagation(); onOpen(a); }}>{a.title}</button>
                   <AlertTypeLabel type={a.type} />
-                  {a.ruleKey && <span className="ml-2 text-[11px]" style={muted}>· automatic</span>}
+                  {a.ruleKey && <span className="ml-2 text-xs" style={muted}>· automatic</span>}
                 </td>
                 <td className="px-2 py-2.5 max-w-[16rem]"><Related rel={relatedRecord(a, ctx)} /></td>
                 <td className="px-2 py-2.5 whitespace-nowrap">{a.assignedTo ? staffName(a.assignedTo) : <span style={muted}>Unassigned</span>}</td>

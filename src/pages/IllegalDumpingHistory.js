@@ -121,7 +121,7 @@ const IllegalDumpingHistory = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Illegal Dumping History</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal Dumping History</h1>
           <p className="text-sm text-gray-500 mt-0.5">Resolved and cancelled illegal dumping reports</p>
         </div>
         <div className="relative w-full sm:w-72">

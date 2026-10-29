@@ -66,7 +66,7 @@ const MediaReports = () => {
       {toast && <div role="status" className="fixed bottom-4 right-4 z-[60] px-4 py-2 rounded shadow-lg text-white bg-gray-800">{toast}</div>}
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="mr-auto">
-          <h1 className="text-2xl font-semibold text-gray-800">Illegal dumping: reports data</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal dumping: reports data</h1>
           <p className="text-sm text-gray-600">Reports across Ghana, read-only. Nothing that identifies the people who reported them is included.</p>
         </div>
         <button type="button" onClick={download} disabled={!rows || rows.length === 0}

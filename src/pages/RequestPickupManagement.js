@@ -250,9 +250,9 @@ const RequestPickupManagement = () => {
     const dups = duplicatesOf(row);
     return (
       <span className="inline-flex flex-wrap gap-1">
-        {isOverdue(row) && <span className="text-[11px] px-1.5 rounded bg-red-100 text-red-800" title="Pending for more than 24 hours">Overdue</span>}
-        {dups.length > 0 && <span className="text-[11px] px-1.5 rounded bg-amber-100 text-amber-900" title={`Also: ${dups.map(d => '#' + shortId(d.id)).join(', ')}`}>Possible duplicate</span>}
-        {outside(row) && <span className="text-[11px] px-1.5 rounded bg-orange-100 text-orange-900">Outside service area</span>}
+        {isOverdue(row) && <span className="text-xs px-1.5 rounded bg-red-100 text-red-800" title="Pending for more than 24 hours">Overdue</span>}
+        {dups.length > 0 && <span className="text-xs px-1.5 rounded bg-amber-100 text-amber-900" title={`Also: ${dups.map(d => '#' + shortId(d.id)).join(', ')}`}>Possible duplicate</span>}
+        {outside(row) && <span className="text-xs px-1.5 rounded bg-orange-100 text-orange-900">Outside service area</span>}
       </span>
     );
   };
@@ -376,7 +376,7 @@ const RequestPickupManagement = () => {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--td-text-primary)' }}>Pickup Requests</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Pickup Requests</h1>
           <p className="text-sm" style={muted}>Requests, digital bins and scheduled pickups{pageData?.mode === 'browser' ? ' · loaded in the browser (run migration 20261015 for server paging)' : ''}</p>
         </div>
         <div className="flex gap-2">
@@ -421,7 +421,7 @@ const RequestPickupManagement = () => {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c.online ? '#16A34A' : '#9CA3AF' }}></span>
                   <span className="font-medium text-sm truncate">{c.name}</span>
-                  <span className={`ml-auto text-[11px] px-1.5 rounded ${c.online ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>{c.online ? 'Online' : 'Offline'}</span>
+                  <span className={`ml-auto text-xs px-1.5 rounded ${c.online ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>{c.online ? 'Online' : 'Offline'}</span>
                 </div>
                 <p className="text-xs mt-1 truncate" style={muted}>{c.vehicleRegistration ? `${c.vehicle?.type || 'Vehicle'} · ${c.vehicleRegistration}` : 'No vehicle info'}</p>
                 <p className="text-xs mt-1">
@@ -554,8 +554,8 @@ const RequestPickupManagement = () => {
                           onChange={e => setSelected(prev => { const n = new Set(prev); if (e.target.checked) n.add(keyOf(row)); else n.delete(keyOf(row)); return n; })} /></td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <button type="button" className="font-mono text-xs underline decoration-dotted" title={row.id} onClick={() => setDetail(row)}>{shortId(row.id)}</button>
-                          <button type="button" className="ml-1" style={muted} onClick={() => copyId(row.id)} aria-label="Copy request ID" title="Copy full ID"><i className="far fa-copy text-xs"></i></button>
-                          <span className="block text-[11px]" style={muted}>{row.source === 'digital_bins' ? 'Digital Bin' : row.source === 'scheduled_pickups' ? 'Scheduled' : 'Request'}</span>
+                          <button type="button" className="ml-0.5 inline-flex h-6 w-6 items-center justify-center rounded align-middle hover:bg-td-cream" style={muted} onClick={() => copyId(row.id)} aria-label="Copy request ID" title="Copy full ID"><i className="far fa-copy text-xs" aria-hidden="true"></i></button>
+                          <span className="block text-xs" style={muted}>{row.source === 'digital_bins' ? 'Digital Bin' : row.source === 'scheduled_pickups' ? 'Scheduled' : 'Request'}</span>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap" title={fullDate(row.createdAt)}>{relativeAge(row.createdAt)}</td>
                         <td className="px-3 py-2"><StatusBadge status={row.status} /><div className="mt-1"><Flags row={row} /></div></td>

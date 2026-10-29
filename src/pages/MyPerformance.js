@@ -46,7 +46,7 @@ const MetricCard = ({ metric, role, area, period }) => {
     <div className="bg-white rounded-lg shadow-sm p-5 flex flex-col" data-testid={`metric-${metric.key}`}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-gray-600 text-sm font-medium">{metric.label}</p>
-        {metric.live && <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">Right now</span>}
+        {metric.live && <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">Right now</span>}
       </div>
       <p className="text-3xl font-bold text-gray-800 mt-1" data-testid="metric-value">{formatValue(metric.value, metric.unit)}</p>
       {metric.description && <p className="text-xs text-gray-500 mt-1">{metric.description}</p>}
@@ -174,7 +174,7 @@ const MyPerformance = () => {
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
           {accountId && <Link to="/performance/accounts" className="text-sm text-green-700 hover:underline">← All accounts</Link>}
-          <h1 className="text-3xl font-bold text-gray-800">{accountId ? (data?.name || 'Account performance') : 'My performance'}</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">{accountId ? (data?.name || 'Account performance') : 'My performance'}</h1>
           {data && (
             <p className="text-gray-600" data-testid="account-line">
               {[kind ? kind.one.replace(/^./, c => c.toUpperCase()) : null, data.district, data.region].filter(Boolean).join(' · ')}

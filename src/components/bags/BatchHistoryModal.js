@@ -108,7 +108,7 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
                       </button>
                       {isOpen && (
                         <div className="px-4 pb-3 bg-gray-50" data-testid="bag-timeline">
-                          <p className="text-[11px] text-gray-500 font-mono break-all pt-2">{bag.qrCode || bag.id}</p>
+                          <p className="text-xs text-gray-500 font-mono break-all pt-2">{bag.qrCode || bag.id}</p>
                           {events.length === 0 ? <p className="text-gray-500 py-2">No events recorded for this bag yet.</p> : (
                             <ol className="mt-2 space-y-2">
                               {events.map((e, i) => (

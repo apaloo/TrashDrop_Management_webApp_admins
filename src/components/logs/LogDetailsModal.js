@@ -30,7 +30,7 @@ const LogDetailsModal = ({ log, onOpenRecord, onClose }) => {
         role="dialog" aria-modal="true" aria-labelledby="log-details-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 border-b px-5 py-3 flex items-start gap-3" style={{ ...card, ...border }}>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-1"><LogLevelBadge level={log.level} />{log.isSample && <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Sample</span>}</div>
+            <div className="flex items-center gap-2 mb-1"><LogLevelBadge level={log.level} />{log.isSample && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Sample</span>}</div>
             <h2 id="log-details-title" className="font-semibold">{log.actionLabel}</h2>
           </div>
           <button type="button" onClick={onClose} className="text-xl leading-none" style={muted} aria-label="Close">&times;</button>

@@ -120,7 +120,7 @@ const BatchDetailsModal = ({ batch: b, email, busy, paused = false, onDownloadAl
                   <tbody className="divide-y divide-gray-100">
                     {bags.map(bag => (
                       <tr key={bag.id} className="align-top">
-                        <td className="px-2 py-2"><span className="font-medium">#{bag.bagNo}</span><span className="block text-[11px] text-gray-500 font-mono truncate" title={bag.qrCode || ''}>{bag.qrCode || '—'}</span></td>
+                        <td className="px-2 py-2"><span className="font-medium">#{bag.bagNo}</span><span className="block text-xs text-gray-500 font-mono truncate" title={bag.qrCode || ''}>{bag.qrCode || '—'}</span></td>
                         <td className="px-2 py-2"><BagStageBadge stage={bag.stage} /></td>
                         <td className="px-2 py-2 truncate" title={[bag.householdName, bag.address].filter(Boolean).join(' · ')}>
                           {bag.householdName || '—'}{bag.address && <span className="block text-xs text-gray-500 truncate">{bag.address}</span>}

@@ -177,7 +177,7 @@ const GenerateBag = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Generate Bags</h1>
+      <h1 className="text-[28px] leading-tight font-bold text-td-ink mb-6">Generate Bags</h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-start mb-4" role="alert" data-testid="generate-error">

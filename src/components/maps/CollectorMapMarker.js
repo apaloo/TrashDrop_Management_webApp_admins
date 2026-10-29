@@ -34,7 +34,8 @@ const CollectorMapMarker = ({ collector, onViewDetails, markerRef }) => {
 
   return (
     // Online collectors sit above offline ones at the same spot
-    <Marker position={collector.position} icon={collectorIcon(collector.online)} ref={markerRef} zIndexOffset={collector.online ? 1000 : 0}>
+    <Marker position={collector.position} icon={collectorIcon(collector.online)} ref={markerRef} zIndexOffset={collector.online ? 1000 : 0}
+      title={`Collector ${collector.name || ''}, ${collector.online ? 'online' : 'offline'}`}>
       <Tooltip direction="top" offset={[0, -16]}>{collector.name}</Tooltip>
       <Popup>
         <div className="text-sm min-w-[200px]">

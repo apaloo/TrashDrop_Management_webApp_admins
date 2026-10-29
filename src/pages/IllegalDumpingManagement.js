@@ -213,7 +213,7 @@ const IllegalDumpingManagement = () => {
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Illegal Dumping Management</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal Dumping Management</h1>
           <p className="text-sm text-gray-500 mt-0.5">Track and manage illegal dumping reports and cleanups</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">

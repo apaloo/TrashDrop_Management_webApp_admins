@@ -51,9 +51,9 @@ const EnhancedImage = ({ src: rawSrc, alt = 'Evidence photo', className = '', en
         <button
           onClick={(e) => { e.stopPropagation(); setShowEnhanced(v => !v); }}
           title={showEnhanced ? 'View original' : 'View enhanced'}
-          className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-black bg-opacity-60 hover:bg-opacity-80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full transition-all opacity-0 group-hover:opacity-100"
+          className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-black bg-opacity-60 hover:bg-opacity-80 text-white text-xs font-medium px-1.5 py-0.5 rounded-full transition-all opacity-0 group-hover:opacity-100"
         >
-          <i className={`fas ${showEnhanced ? 'fa-eye-slash' : 'fa-magic'} text-[9px]`}></i>
+          <i className={`fas ${showEnhanced ? 'fa-eye-slash' : 'fa-magic'} text-xs`}></i>
           {showEnhanced ? 'Original' : 'Enhance'}
         </button>
       )}

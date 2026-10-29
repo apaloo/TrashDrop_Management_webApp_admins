@@ -50,7 +50,7 @@ const ScansChart = ({ series, days, onDays }) => {
               </div>
             ))}
           </div>
-          <div className="flex gap-px mt-1 text-[10px] text-gray-500">
+          <div className="flex gap-px mt-1 text-xs text-gray-500">
             {series.map((d, i) => <div key={d.day} className="flex-1 text-center truncate">{i % every === 0 ? label(d.day) : ''}</div>)}
           </div>
         </div>
@@ -158,7 +158,7 @@ const BagHistory = () => {
   return (
     <div className="p-4">
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Bag History</h1>
+        <h1 className="text-[28px] leading-tight font-bold text-td-ink">Bag History</h1>
         <span className="text-sm text-gray-500" data-testid="last-updated">
           Last updated: {updatedAt ? updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}
         </span>

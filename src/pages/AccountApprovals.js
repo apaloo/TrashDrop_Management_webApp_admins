@@ -114,7 +114,7 @@ const AccountApprovals = () => {
       {toast && <div role="status" className="fixed bottom-4 right-4 z-[60] px-4 py-2 rounded shadow-lg text-white bg-gray-800">{toast}</div>}
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="mr-auto">
-          <h1 className="text-2xl font-semibold text-gray-800">Account approvals</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Account approvals</h1>
           <p className="text-sm text-gray-600">People who asked for Volunteer, Media, Manager or Authority access at sign-up. Until approved they work as Users.</p>
         </div>
         <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email, organisation, district"

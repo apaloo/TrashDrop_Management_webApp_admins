@@ -250,7 +250,7 @@ const PerformanceMetrics = () => {
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
           <Link to="/performance/accounts" className="text-sm text-green-700 hover:underline">← Account performance</Link>
-          <h1 className="text-3xl font-bold text-gray-800">Performance metrics</h1>
+          <h1 className="text-[28px] leading-tight font-bold text-td-ink">Performance metrics</h1>
           <p className="text-gray-600">What volunteer groups and MMDAs see on their My Performance page.</p>
         </div>
         {!editing && (

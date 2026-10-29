@@ -318,7 +318,7 @@ const CollectorsManagement = () => {
   return (
     <div className="p-4 space-y-4" style={{ color: 'var(--td-text-primary)' }}>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">Collectors</h1>
+        <h1 className="text-[28px] leading-tight font-bold text-td-ink">Collectors</h1>
         <button type="button" onClick={load} disabled={loading} className="ml-auto px-3 py-2 rounded border text-sm" style={{ ...border, ...muted }}>
           <i className={`fas fa-sync-alt mr-1.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true"></i>Refresh
         </button>
@@ -436,8 +436,8 @@ const CollectorsManagement = () => {
                     <p className="text-sm truncate" style={muted}>{c.zone || 'Unassigned'}</p>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
                       <PresenceBadge presence={c.presence} showLastSeen />
-                      {c.status !== 'active' && <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 capitalize">{c.status}</span>}
-                      {type && <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-800 whitespace-nowrap"><i className={`${type.icon} mr-1`} aria-hidden="true"></i>{type.label}</span>}
+                      {c.status !== 'active' && <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 capitalize">{c.status}</span>}
+                      {type && <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-800 whitespace-nowrap"><i className={`${type.icon} mr-1`} aria-hidden="true"></i>{type.label}</span>}
                     </div>
                   </div>
                 </div>
