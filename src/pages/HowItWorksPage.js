@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
-import { HouseholdSections } from './HomePageNew';
+import PublicPageLayout, { TD, FAQAccordion, SectionNav } from '../components/PublicPageLayout';
+import { HouseholdPricing } from './HomePageNew';
+import { TYPE, BTN } from '../theme/brand';
+import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
 /* ─── FAQPage JSON-LD schema ────────────────────────────────────────────────── */
 /* All questions here MUST be visible on the page — Google Rich Results requirement */
@@ -102,13 +104,14 @@ const STEPS = [
   { n:'06', icon:'fa-star',             title:'Earn & Confirm',     body:'Waste is transported to an authorised disposal site. You receive a completion notification plus reward points credited to your account.' },
 ];
 
-const QR_STEPS = [
-  { n:'01', icon:'fa-shopping-bag',   title:'Buy TrashDrop Bags',    body:'Purchase official bag bundles from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bundle carries a printed QR code.' },
-  { n:'02', icon:'fa-qrcode',         title:'Scan to Activate',      body:'Open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code. This registers the bags to your account and updates your inventory.' },
-  { n:'03', icon:'fa-trash-alt',      title:'Fill Your Bags',        body:'Fill the bags with household or business waste. Separate recyclables where possible to maximise your reward points.' },
-  { n:'04', icon:'fa-hand-pointer',   title:'Request Free Pickup',   body:'Open the app and tap "Request Pickup." TrashDrop matches you with the nearest available verified collector instantly.' },
-  { n:'05', icon:'fa-map-marked-alt', title:'Live GPS Tracking',     body:'Your collector travels to your location. Track them in real time on the map — visible directly in the app.' },
-  { n:'06', icon:'fa-clipboard-check','title':'Collection Confirmed', body:'The collector scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility.' },
+
+// The page's sections, for the links bar under the hero
+const SECTIONS = [
+  { id:'steps',    label:'Steps' },
+  { id:'services', label:'Services' },
+  { id:'pricing',  label:'Pricing' },
+  { id:'qr',       label:'QR Bags' },
+  { id:'faq',      label:'FAQ' },
 ];
 
 const FAQ_ITEMS = [
@@ -174,176 +177,143 @@ const HowItWorksPage = () => {
           .td-hiw-photos { height:440px!important; max-width:480px; width:100%; margin:0 auto; }
           .td-hiw-photos img { height:330px!important; }
         }
+        .td-hiw-section { scroll-margin-top: 132px; }
       `}</style>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 40%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', pointerEvents:'none' }} />
-        <div className="td-hiw-hero" style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1, display:'grid', gridTemplateColumns:'1.15fr 0.85fr', gap:56, alignItems:'center' }}>
-          <div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:24 }}>
-              <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>How It Works</span>
-            </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(44px,6vw,80px)', color:'#f0f5f0', lineHeight:1, letterSpacing:'-2px', margin:'0 0 28px' }}>
-              Bin full? <em style={{ color:TD.lime, textShadow:`0 0 40px ${TD.lime}55` }}>Request pickup.</em>
+      <section data-surface="dark" style={{ background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
+        <div className="td-hiw-hero" style={{ maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1.15fr 0.85fr', gap:56, alignItems:'center' }}>
+          <div style={{ minWidth:0 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.lime, display:'block', marginBottom:16 }}>How it works</span>
+            <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 24px' }}>
+              Bin full? <em style={{ color:TD.lime }}>Request pickup.</em>
             </h1>
-            <h2 style={{ ...FF.label, fontSize:'clamp(16px,2vw,20px)', fontWeight:700, color:'#f0f5f0', margin:'0 0 14px' }}>
-              How does TrashDrop work?
-            </h2>
+            <h2 style={{ ...TYPE.h3, color:'#f0f5f0', margin:'0 0 12px' }}>How does TrashDrop work?</h2>
             {/* ── AI ANSWER PARAGRAPH — first 100–150 words extracted by AI ── */}
-            <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.8, maxWidth:620, margin:'0 0 36px', fontWeight:400 }}>
+            <p style={{ ...TYPE.body, color:TD.sageOnDark, maxWidth:620, margin:'0 0 32px' }}>
               TrashDrop is a Progressive Web App available at trashdrops.com that connects Ghanaian households and businesses with verified waste collectors in six simple steps. Users sign up with their email, set their location, and choose between the QR Bag System (purchase official TrashDrop bags, scan the QR code to activate them, then request a free pickup when ready) or the Digital Bin service (enter waste details, receive an instant GPS-location based quote, schedule collection — you only pay via MoMo or cash at the point of waste collection). A verified collector accepts the request within 2 hours, travels to the location with live GPS tracking visible to the user, arrives and scans a soft QR code to confirm collection, delivers waste to an authorised disposal site, and the user receives confirmation plus reward points. Collectors are paid directly to their mobile money wallet, earning an average of ₵32.43 per completed pickup.
             </p>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
-                Get Started Free
-              </Link>
-              <a href="#qr" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
-                QR Bag System ↓
-              </a>
+              <Link to="/#book-app" style={BTN.primaryOnDark}>Book a pickup</Link>
+              <a href="#qr" style={BTN.ghostOnDark}>How QR Bags work</a>
             </div>
           </div>
           {/* Bin full -> collector at the gate */}
           <div className="td-hiw-photos" style={{ position:'relative', height:560 }}>
             <figure style={{ position:'absolute', top:0, left:0, width:'64%', margin:0 }}>
               <img src="/images/how-it-works/bin-full.jpg" width="608" height="1080" alt="An overflowing household wheelie bin with rubbish piled beside it"
-                style={{ width:'100%', height:420, objectFit:'cover', borderRadius:20, border:'1px solid rgba(255,255,255,0.12)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)', display:'block' }} />
-              <figcaption style={{ position:'absolute', top:16, left:16, ...FF.label, fontSize:13, fontWeight:700, color:'#fff', background:'rgba(10,15,10,0.78)', padding:'7px 14px', borderRadius:99 }}>Bin full?</figcaption>
+                style={{ width:'100%', height:420, objectFit:'cover', borderRadius:'var(--td-radius-panel)', display:'block' }} />
+              <figcaption style={{ position:'absolute', top:16, left:16, ...TYPE.small, fontWeight:600, color:'#fff', background:'rgba(10,15,10,0.78)', padding:'6px 14px', borderRadius:999 }}>Bin full?</figcaption>
             </figure>
             <figure style={{ position:'absolute', bottom:0, right:0, width:'58%', margin:0 }}>
               <img src="/images/how-it-works/pickup-at-gate.jpg" width="720" height="1073" alt="A TrashDrop collector in a hi-vis vest meets a resident at his gate to collect bagged waste"
-                style={{ width:'100%', height:380, objectFit:'cover', objectPosition:'center top', borderRadius:20, border:`2px solid ${TD.lime}`, boxShadow:`0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${TD.lime}30`, display:'block' }} />
-              <figcaption style={{ position:'absolute', bottom:16, left:16, ...FF.label, fontSize:13, fontWeight:700, color:TD.ink, background:TD.lime, padding:'7px 14px', borderRadius:99 }}>Request pickup.</figcaption>
+                style={{ width:'100%', height:380, objectFit:'cover', objectPosition:'center top', borderRadius:'var(--td-radius-panel)', border:`3px solid ${TD.ink}`, display:'block' }} />
+              <figcaption style={{ position:'absolute', bottom:16, left:16, ...TYPE.small, fontWeight:600, color:TD.ink, background:TD.lime, padding:'6px 14px', borderRadius:999 }}>Request pickup.</figcaption>
             </figure>
           </div>
         </div>
       </section>
 
-      {/* ── From the homepage: steps, the two services, bag pricing ──────── */}
-      <HouseholdSections />
+      <SectionNav items={SECTIONS} />
 
-      {/* ── 6 Steps ──────────────────────────────────────────────────────── */}
-      <section id="steps" style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
+      {/* ── The steps, once ─────────────────────────────────────────────── */}
+      <section id="steps" className="td-hiw-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:64 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>The Process</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Six steps from door to disposal</h2>
+          <div style={{ maxWidth:720, marginBottom:48 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>The process</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Six steps from door to disposal</h2>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:24 }}>
-            {STEPS.map((s,i) => (
-              <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px', transition:'all 0.25s', position:'relative', overflow:'hidden' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>
-                <div aria-hidden="true" style={{ position:'absolute', top:16, right:20, ...FF.data, fontSize:52, color:'rgba(182,238,105,0.07)', pointerEvents:'none' }}>{s.n}</div>
-                <div style={{ width:48, height:48, borderRadius:14, background:`${TD.lime}15`, border:`1px solid ${TD.lime}25`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20 }}>
-                  <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:18 }}></i>
+          <ol style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:16 }}>
+            {STEPS.map(s => (
+              <li key={s.n} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'24px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+                  <span style={{ ...TYPE.small, fontWeight:700, color:TD.forest, fontVariantNumeric:'tabular-nums' }}>{s.n}</span>
+                  <i className={`fas ${s.icon}`} aria-hidden="true" style={{ color:TD.forest, fontSize:18 }}></i>
                 </div>
-                <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', marginBottom:10 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
-              </div>
+                <h3 style={{ ...TYPE.card, color:TD.ink, margin:'0 0 8px' }}>{s.title}</h3>
+                <p style={{ ...TYPE.small, color:TD.sage, margin:0 }}>{s.body}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
       {/* ── Services Comparison ──────────────────────────────────────────── */}
       {/* The menu's "Two ways to drop your waste" opens here (/how-it-works/#services) */}
-      <section id="services" style={{ background:'#0c1a0c', padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:960, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:56 }}>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,3.5vw,46px)', color:'#f0f5f0', letterSpacing:'-1px', margin:0 }}>Two services. One platform.</h2>
+      <section id="services" className="td-hiw-section" style={{ background:TD.cream, padding:'0 24px var(--td-section-y)' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
+          <div style={{ maxWidth:720, marginBottom:40 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Services</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Two services. One platform.</h2>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:16 }}>
             {[
-              { title:'QR Bag System', badge:'FREE PICKUPS', icon:'fa-qrcode', color:TD.lime, features:['Buy official bags from authorised vendors','Scan QR code to register bags to your account','Fill bags with household or business waste','Request free pickup when bags are full','Track collector live on GPS','Earn reward points on every pickup'] },
-              { title:'Digital Bin',   badge:'ON-DEMAND',   icon:'fa-mobile-alt', color:TD.orange, features:['Enter waste details and location','Receive instant GPS-based price quote','Schedule collection at your preferred time','Pay only at point of collection (MoMo or cash)','Matched with nearest verified collector','Real-time tracking and completion notification'] },
+              { title:'QR Bag System', badge:'Free pickups', icon:'fa-qrcode', color:TD.forest, features:['Buy official bags from authorised vendors','Scan QR code to register bags to your account','Fill bags with household or business waste','Request free pickup when bags are full','Track collector live on GPS','Earn reward points on every pickup'] },
+              { title:'Digital Bin',   badge:'On demand',   icon:'fa-mobile-alt', color:TD.orangeText, features:['Enter waste details and location','Receive instant GPS-based price quote','Schedule collection at your preferred time','Pay only at point of collection (MoMo or cash)','Matched with nearest verified collector','Real-time tracking and completion notification'] },
             ].map(svc => (
-              <div key={svc.title} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${svc.color}20`, borderRadius:20, padding:'36px 32px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
-                  <div style={{ width:48, height:48, borderRadius:14, background:`${svc.color}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <i className={`fas ${svc.icon}`} style={{ color:svc.color, fontSize:20 }}></i>
-                  </div>
+              <div key={svc.title} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'28px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+                  <i className={`fas ${svc.icon}`} aria-hidden="true" style={{ color:svc.color, fontSize:22, width:28, textAlign:'center' }}></i>
                   <div>
-                    <h3 style={{ ...FF.label, fontSize:16, fontWeight:700, color:'#f0f5f0', margin:0 }}>{svc.title}</h3>
-                    <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', color:svc.color }}>{svc.badge}</span>
+                    <h3 style={{ ...TYPE.card, color:TD.ink, margin:0 }}>{svc.title}</h3>
+                    <span style={{ ...TYPE.eyebrow, color:svc.color }}>{svc.badge}</span>
                   </div>
                 </div>
-                {svc.features.map((f,i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
-                    <i className="fas fa-check" style={{ color:svc.color, fontSize:12, marginTop:4, flexShrink:0 }}></i>
-                    <span style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.62)', lineHeight:1.6 }}>{f}</span>
-                  </div>
-                ))}
+                <ul style={{ listStyle:'none', margin:0, padding:0, display:'grid', gap:10 }}>
+                  {svc.features.map(f => (
+                    <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+                      <i className="fas fa-check" aria-hidden="true" style={{ color:svc.color, fontSize:13, marginTop:5, flexShrink:0 }}></i>
+                      <span style={{ ...TYPE.small, color:TD.sage }}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── QR Bag System deep-dive ──────────────────────────────────────── */}
-      <section id="qr" style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:1200, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:64 }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
-              <i className="fas fa-qrcode" style={{ color:TD.lime, fontSize:12 }}></i>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>QR Bag System</span>
-            </div>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,50px)', color:'#f0f5f0', letterSpacing:'-1px', margin:'0 0 16px' }}>
-              How does the TrashDrop QR bag system work?
-            </h2>
-            {/* ── AI ANSWER PARAGRAPH for #qr anchor ── */}
-            <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.8, maxWidth:740, margin:'0 auto' }}>
-              The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap "Request Pickup" to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra.
-            </p>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
-            {QR_STEPS.map((s,i) => (
-              <div key={i} style={{ background:`rgba(182,238,105,0.04)`, border:`1px solid ${TD.lime}18`, borderRadius:18, padding:'28px 24px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-                  <div style={{ width:38, height:38, borderRadius:10, background:`${TD.lime}18`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:15 }}></i>
-                  </div>
-                  <span style={{ ...FF.data, fontSize:28, color:TD.lime }}>{s.n}</span>
-                </div>
-                <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign:'center', marginTop:56 }}>
-            <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 36px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
-              Get Started — It's Free
-            </Link>
-          </div>
+      {/* ── Bag pricing (shared with the homepage design) ─────────────────── */}
+      <HouseholdPricing />
+
+      {/* ── QR Bag System, in a paragraph ────────────────────────────────── */}
+      <section id="qr" className="td-hiw-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
+        <div style={{ maxWidth:760, margin:'0 auto' }}>
+          <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>QR Bag System</span>
+          <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 16px' }}>
+            How does the TrashDrop QR bag system work?
+          </h2>
+          {/* ── AI ANSWER PARAGRAPH for #qr anchor ── */}
+          <p style={{ ...TYPE.body, color:TD.sage, margin:'0 0 32px' }}>
+            The TrashDrop QR Bag System is a free prepaid waste collection service that uses QR-coded bags purchased from authorised vendors across Accra, Kumasi, Takoradi and Tamale. Each bag bundle carries a printed QR code. To activate it, open the TrashDrop app at app.trashdrops.com, tap the QR scanner, and scan the code — this registers the bags to your account and updates your inventory. Fill the bags with household or business waste, then open the app and tap "Request Pickup" to enjoy FREE PICKUPS. TrashDrop matches you with the nearest available verified collector, who travels to your location (visible on live GPS tracking), scans the same QR code on arrival to confirm authenticity and location, loads the waste, and transports it to an authorised disposal facility. You receive a completion notification and reward points credited to your account. The entire process from request to collection typically completes within 8 hours in urban Accra.
+          </p>
+          <Link to="/#book-app" style={BTN.primary}>Book a pickup</Link>
         </div>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
+      <section id="faq" className="td-hiw-section" style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:48 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>FAQ</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-0.5px' }}>Frequently asked questions</h2>
+          <div style={{ maxWidth:780, margin:'0 auto 32px' }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>FAQ</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Frequently asked questions</h2>
           </div>
-          <FAQAccordion items={FAQ_ITEMS} />
+          <FAQAccordion items={FAQ_ITEMS} surface="light" />
         </div>
       </section>
 
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
-        <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Ready to clean up your community?</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. Scan the code to get the app.</p>
-        {/* Household app QR code: the page's "Get Started" buttons scroll here */}
-        <div id="download-app" data-scroll-align="center" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14, margin:'0 auto 32px' }}>
-          <div style={{ background:'#fff', borderRadius:18, padding:12, boxShadow:`0 16px 48px rgba(0,0,0,0.35), 0 0 0 4px ${TD.lime}40` }}>
+      <section data-surface="dark" style={{ background:TD.ink, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
+        <h2 style={{ ...TYPE.h2, color:'#f0f5f0', margin:'0 0 16px' }}>Ready to clean up your community?</h2>
+        <p style={{ ...TYPE.body, color:TD.sageOnDark, margin:'0 auto 32px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. Scan the code to get the app.</p>
+        {/* Household app QR code: the page's buttons used to scroll here; links to it still land here */}
+        <div id="download-app" data-scroll-align="center" className="td-hiw-qr" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14, margin:'0 auto 32px' }}>
+          <div style={{ background:'#fff', borderRadius:18, padding:12 }}>
             <img src="/images/how-it-works/household-app-qr.png" width="640" height="640" alt="QR code: scan to download the TrashDrop app"
               style={{ width:200, height:200, display:'block', borderRadius:10 }} />
           </div>
-          <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, letterSpacing:'2.5px', textTransform:'uppercase' }}>Scan to download</span>
+          <span style={{ ...TYPE.eyebrow, color:TD.lime }}>Scan to download</span>
         </div>
-        <Link to="/how-it-works/#download-app" style={{ ...FF.label, fontSize:15, fontWeight:700, background:TD.lime, color:TD.ink, padding:'16px 40px', borderRadius:12, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
-          Create Free Account
-        </Link>
+        <a href={HOUSEHOLD_APP_URL} style={BTN.primaryOnDark}>Open the TrashDrop app</a>
       </section>
     </PublicPageLayout>
   );

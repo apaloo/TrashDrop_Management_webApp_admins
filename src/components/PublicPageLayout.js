@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
 import { PublicMenuDesktop, PublicMenuMobile } from './PublicMenu';
-import { TD, FF, BTN } from '../theme/brand';
+import { TD, FF, BTN, TYPE } from '../theme/brand';
 
 /* ─── Brand tokens: src/theme/brand.js (re-exported for the pages) ─────────── */
 export { TD, FF };
@@ -40,7 +40,7 @@ export const PublicNavbar = () => {
           {isAuthenticated
             ? <Link to="/dashboard" className="td-pub-btn" style={{ ...BTN.primaryOnDark, ...BTN.small }}>Dashboard</Link>
             : <>
-                <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:15, fontWeight:600, color:'#f0f5f0', textDecoration:'none', padding:'9px 14px' }}>Sign in</Link>
+                <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:16, fontWeight:600, color:'#f0f5f0', textDecoration:'none', padding:'9px 14px' }}>Sign in</Link>
                 <Link to="/#book-app" className="td-pub-btn" style={{ ...BTN.primaryOnDark, ...BTN.small }}>Book a pickup</Link>
               </>}
         </div>
@@ -73,7 +73,7 @@ export const PublicFooter = () => (
         <div>
           <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', marginBottom:16 }}>
             <img src="/logo.svg" alt="TrashDrop" style={{ height:32 }} onError={e=>{e.target.style.display='none'}} />
-            <span style={{ ...FF.label, fontSize:17, fontWeight:700, color:'#fff' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
+            <span style={{ ...FF.label, fontSize:18, fontWeight:700, color:'#fff' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </Link>
           <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, maxWidth:240 }}>
             Ghana's leading mobile waste management platform. Connecting households with verified collectors across Accra, Kumasi, Takoradi and Tamale.
@@ -96,7 +96,7 @@ export const PublicFooter = () => (
           { title:'Resources', links:[['FAQ','/faq/'],['Blog','/blog/'],['About Us','/about/'],['Partners','/partners/'],['Report Illegal Dump','/illegal-dumping/'],['WhatsApp +233 20 933 8885','https://wa.me/233209338885'],['Contact','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.68)', marginBottom:18 }}>{col.title}</h4>
+            <h4 style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'rgba(255,255,255,0.68)', marginBottom:18 }}>{col.title}</h4>
             {col.links.map(([label, href]) => (
               href.startsWith('mailto') || href.startsWith('http')
                 ? <a key={label} href={href} style={{ display:'block', ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}
@@ -114,10 +114,10 @@ export const PublicFooter = () => (
         ))}
       </div>
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-        <p style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', margin:0 }}>© 2026 Infobrix Limited. All rights reserved. TrashDrop® is a registered trademark.</p>
+        <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:0 }}>© 2026 Infobrix Limited. All rights reserved. TrashDrop® is a registered trademark.</p>
         <div style={{ display:'flex', gap:20 }}>
           {[['Privacy Policy','#'],['Terms of Service','#'],['Cookie Policy','#']].map(([l,h]) => (
-            <a key={l} href={h} style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'color 0.2s' }}
+            <a key={l} href={h} style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'color 0.2s' }}
               onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
               onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.68)'}>
               {l}
@@ -130,27 +130,62 @@ export const PublicFooter = () => (
 );
 
 /* ─── FAQ Accordion ─────────────────────────────────────────────────────────── */
-export const FAQAccordion = ({ items, accentColor }) => {
+export const FAQAccordion = ({ items, accentColor, surface = 'dark' }) => {
   const [open, setOpen] = useState(null);
-  const accent = accentColor || TD.lime;
+  const light = surface === 'light';
+  const accent = accentColor || (light ? TD.forest : TD.lime);
   return (
     <div style={{ maxWidth:780, margin:'0 auto' }}>
       {items.map((item, i) => (
-        <div key={i} style={{ borderBottom:`1px solid rgba(255,255,255,0.07)`, overflow:'hidden' }}>
+        <div key={i} style={{ borderBottom:`1px solid ${light ? 'var(--td-border)' : 'rgba(255,255,255,0.1)'}`, overflow:'hidden' }}>
           <button
-            onClick={() => setOpen(open === i ? null : i)}
+            onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}
             style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'22px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }}>
-            <span style={{ ...FF.body, fontSize:16, fontWeight:600, color:'#f0f5f0', lineHeight:1.5 }}>{item.q}</span>
-            <span style={{ width:28, height:28, borderRadius:'50%', border:`1.5px solid ${accent}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: open===i ? `${accent}15` : 'transparent' }}>
-              <i className={`fas fa-chevron-${open===i?'up':'down'}`} style={{ fontSize:11, color:accent }}></i>
+            <span style={{ ...TYPE.body, fontWeight:600, color: light ? TD.ink : '#f0f5f0' }}>{item.q}</span>
+            <span style={{ width:32, height:32, borderRadius:'50%', border:`1.5px solid ${accent}55`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.25s', background: open===i ? `${accent}18` : 'transparent' }}>
+              <i className={`fas fa-chevron-${open===i?'up':'down'}`} aria-hidden="true" style={{ fontSize:13, color:accent }}></i>
             </span>
           </button>
-          <div style={{ maxHeight: open===i ? 400 : 0, overflow:'hidden', transition:'max-height 0.35s cubic-bezier(.22,1,.36,1)' }}>
-            <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.62)', lineHeight:1.75, paddingBottom:22, margin:0 }}>{item.a}</p>
+          <div style={{ maxHeight: open===i ? 600 : 0, overflow:'hidden', transition:'max-height 0.35s cubic-bezier(.22,1,.36,1)' }}>
+            <p style={{ ...TYPE.body, color: light ? TD.sage : TD.sageOnDark, paddingBottom:22, margin:0, maxWidth:680 }}>{item.a}</p>
           </div>
         </div>
       ))}
     </div>
+  );
+};
+
+/**
+ * Links to a long page's sections, kept under the header while you scroll;
+ * the one you are reading is marked. `items`: [{ id, label }]
+ */
+export const SectionNav = ({ items, label = 'On this page' }) => {
+  const [current, setCurrent] = useState(items[0]?.id);
+  useEffect(() => {
+    if (!('IntersectionObserver' in window)) return undefined;
+    const els = items.map(it => document.getElementById(it.id)).filter(Boolean);
+    const obs = new IntersectionObserver(entries => {
+      const seen = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (seen[0]) setCurrent(seen[0].target.id);
+    }, { rootMargin: '-140px 0px -55% 0px' });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [items]);
+  return (
+    <nav aria-label={label} className="td-section-nav" style={{ position:'sticky', top:'var(--td-header-h)', zIndex:1400, background:'rgba(246,248,244,0.96)', backdropFilter:'blur(12px)', borderBottom:'1px solid var(--td-border)' }}>
+      <ul style={{ listStyle:'none', margin:'0 auto', maxWidth:1200, padding:'10px 24px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
+        {items.map(it => (
+          <li key={it.id} style={{ flexShrink:0 }}>
+            <a href={`#${it.id}`} aria-current={current === it.id ? 'location' : undefined}
+              onClick={e => { const el = document.getElementById(it.id); if (el) { e.preventDefault(); el.scrollIntoView({ behavior:'smooth', block:'start' }); window.history.replaceState(null, '', `#${it.id}`); } }}
+              style={{ display:'inline-flex', alignItems:'center', minHeight:40, padding:'0 16px', borderRadius:999, ...TYPE.small, fontWeight:600, textDecoration:'none',
+                color: current === it.id ? TD.forest : TD.sage, background: current === it.id ? '#e6f2e9' : 'transparent' }}>
+              {it.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 };
 
