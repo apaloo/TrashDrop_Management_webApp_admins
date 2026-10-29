@@ -60,17 +60,17 @@ const MenuItem = ({ item, colors, onPick, pathname }) => (
     <span aria-hidden="true" style={{ width:30, height:30, flexShrink:0, borderRadius:8, display:'inline-flex', alignItems:'center', justifyContent:'center', background:'rgba(182,238,105,0.12)', color:colors.accent, fontSize:13 }}>
       <i className={`fas ${item.icon}`}></i>
     </span>
-    <span className="td-menu-label" style={{ fontFamily:FONT_LABEL, fontSize:13.5, fontWeight:600, color:colors.panelText, lineHeight:1.3, transition:'color 0.15s' }}>{item.label}</span>
+    <span className="td-menu-label" style={{ fontFamily:FONT_LABEL, fontSize:14, fontWeight:600, color:colors.panelText, lineHeight:1.3, transition:'color 0.15s' }}>{item.label}</span>
   </Link>
 );
 
 const GroupHeading = ({ group, colors, onPick }) => {
   if (!group.title) return null;
-  const style = { display:'block', fontFamily:FONT_LABEL, fontSize:10.5, fontWeight:700, letterSpacing:'1.8px', textTransform:'uppercase', color:colors.panelMuted, margin:'6px 10px 8px', textDecoration:'none' };
+  const style = { display:'block', fontFamily:FONT_LABEL, fontSize:13, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:colors.panelMuted, margin:'6px 10px 8px', textDecoration:'none' };
   if (group.titleTo) {
     return (
       <Link to={group.titleTo} onClick={onPick} className="td-menu-heading" style={{ ...style, color:colors.accent }}>
-        {group.title} <i aria-hidden="true" className="fas fa-arrow-right" style={{ fontSize:9, marginLeft:4 }}></i>
+        {group.title} <i aria-hidden="true" className="fas fa-arrow-right" style={{ fontSize:13, marginLeft:4 }}></i>
       </Link>
     );
   }
@@ -106,7 +106,7 @@ export const PublicMenuDesktop = ({ colors, className = '' }) => {
   const hoverClose = () => { clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setOpen(null), 180); };
   const canHover = () => typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(hover: hover)').matches;
 
-  const topStyle = { fontFamily:FONT_LABEL, fontSize:13, fontWeight:600, letterSpacing:'0.3px', color:colors.link, textDecoration:'none', transition:'color 0.2s' };
+  const topStyle = { fontFamily:FONT_LABEL, fontSize:15, fontWeight:500, letterSpacing:'0', color:colors.link, textDecoration:'none', transition:'color 0.2s' };
 
   return (
     <div ref={barRef} className={`td-menu-bar ${className}`} style={{ display:'flex', alignItems:'center', gap:30 }}>
@@ -137,7 +137,7 @@ export const PublicMenuDesktop = ({ colors, className = '' }) => {
               onClick={() => setOpen(o => (o === entry.label && !canHover() ? null : entry.label))}
               style={{ ...topStyle, color:isOpen || active ? colors.linkHover : colors.link, background:'none', border:'none', padding:'8px 0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 }}>
               {entry.label}
-              <i aria-hidden="true" className="fas fa-chevron-down" style={{ fontSize:9, transform:isOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}></i>
+              <i aria-hidden="true" className="fas fa-chevron-down" style={{ fontSize:13, transform:isOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}></i>
             </button>
             {isOpen && (
               <div id={panelId} className="td-menu-panel"
@@ -163,7 +163,7 @@ export const PublicMenuDesktop = ({ colors, className = '' }) => {
 export const PublicMenuMobile = ({ colors, onNavigate }) => {
   const [open, setOpen] = useState(null);
   const { pathname } = useLocation();
-  const rowStyle = { display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', fontFamily:FONT_LABEL, fontSize:15, fontWeight:600, color:colors.panelText, textDecoration:'none', padding:'13px 0', background:'none', border:'none', borderBottom:`1px solid ${colors.divider}`, cursor:'pointer', textAlign:'left' };
+  const rowStyle = { display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', fontFamily:FONT_LABEL, fontSize:16, fontWeight:600, color:colors.panelText, textDecoration:'none', padding:'13px 0', background:'none', border:'none', borderBottom:`1px solid ${colors.divider}`, cursor:'pointer', textAlign:'left' };
   return (
     <div>
       {PUBLIC_NAV.map(entry => {
@@ -176,7 +176,7 @@ export const PublicMenuMobile = ({ colors, onNavigate }) => {
           <div key={entry.label}>
             <button type="button" style={rowStyle} aria-expanded={isOpen} aria-controls={panelId} onClick={() => setOpen(o => (o === entry.label ? null : entry.label))}>
               {entry.label}
-              <i aria-hidden="true" className="fas fa-chevron-down" style={{ fontSize:11, color:colors.accent, transform:isOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}></i>
+              <i aria-hidden="true" className="fas fa-chevron-down" style={{ fontSize:13, color:colors.accent, transform:isOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}></i>
             </button>
             {isOpen && (
               <div id={panelId} style={{ padding:'8px 0 10px', borderBottom:`1px solid ${colors.divider}` }}>
