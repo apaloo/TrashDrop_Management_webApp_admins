@@ -244,13 +244,6 @@ const GlobalStyles = () => (
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
     @media(max-width:768px) { .td-book-qr{display:none!important} .td-app-qr{display:none!important} .td-app-button{display:inline-flex!important} }
     @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-photo{display:none!important} .td-hero-facts{grid-template-columns:1fr!important; gap:16px!important; margin-top:40px!important} }
-    .td-step-card:hover { transform:translateY(-6px)!important; border-color:rgba(182,238,105,0.55)!important; background:rgba(182,238,105,0.06)!important; }
-    @media(max-width:1100px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important} .td-steps-line{display:none} }
-    @media(max-width:640px) {
-      .td-steps6{grid-template-columns:1fr!important; gap:12px!important}
-      .td-step-card{display:flex; align-items:center; gap:16px; text-align:left!important; padding:18px!important}
-      .td-step-icon{margin:0!important; flex-shrink:0; width:54px!important; height:54px!important}
-    }
     @media(max-width:768px) { .td-services-grid{grid-template-columns:1fr!important} .td-map-stats{grid-template-columns:repeat(2,1fr)!important} .td-impact-grid{grid-template-columns:repeat(2,1fr)!important} }
     @media(max-width:480px) { .td-map-stats{grid-template-columns:1fr!important} .td-impact-grid{grid-template-columns:1fr!important} }
     @media(max-width:800px) { .td-trashwalk{grid-template-columns:1fr!important; gap:28px!important} .td-trashwalk img{max-width:420px; margin:0 auto} }
@@ -485,61 +478,6 @@ const TrustRow = () => (
     </ul>
   </section>
 );
-
-/* ═══════════════════════════════════════════════════════════════════════════════
-   HOW IT WORKS
-   ═══════════════════════════════════════════════════════════════════════════════ */
-const HOW_STEPS = [
-  { icon:'fa-shopping-bag',   title:'Get bags',          text:'Buy official TrashDrop QR bags from an authorised vendor near you.' },
-  { icon:'fa-qrcode',         title:'Scan code',         text:'Scan the pack’s QR code once to add every bag to your account.' },
-  { icon:'fa-trash-alt',      title:'Fill bag',          text:'Fill your bags with recyclable, general or organic waste.' },
-  { icon:'fa-hand-pointer',   title:'Request pickup',    text:'Bag full? Tap to request a pickup — collection is free.' },
-  { icon:'fa-truck',          title:'Collector arrives', text:'A verified collector near you accepts and comes to your door.' },
-  { icon:'fa-map-marker-alt', title:'Track it',          text:'Follow your collector live on the map until the job is done.' },
-];
-
-const HowItWorksSection = () => {
-  const { ref, visible } = useReveal(0.1);
-  return (
-    <section id="how" style={{ position:'relative', overflow:'hidden', background:`linear-gradient(180deg, #0c1f10 0%, ${TD.ink} 100%)` }}>
-      {/* grid texture and a soft lime glow behind the steps */}
-      <div aria-hidden="true" style={{ position:'absolute', inset:0, opacity:0.05, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'48px 48px', pointerEvents:'none' }} />
-      <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:'55%', width:900, height:420, transform:'translate(-50%,-50%)', background:`radial-gradient(ellipse at center, ${TD.lime}22 0%, transparent 70%)`, filter:'blur(30px)', pointerEvents:'none' }} />
-      <div ref={ref} style={{ position:'relative', maxWidth:1280, margin:'0 auto', padding:'96px 24px 104px' }}>
-        <div style={{ textAlign:'center', marginBottom:56 }}>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}35`, borderRadius:99, padding:'6px 16px', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime }} /> 6 simple steps
-          </span>
-          <h2 style={{ ...TYPE.h2, color:'#f0f5f0', margin:'18px 0 14px' }}>
-            How it <em style={{ color:TD.lime }}>works</em>
-          </h2>
-          <p style={{ ...FF.body, fontSize:18, color:'rgba(255,255,255,0.65)', maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
-            From an empty bag to a clean street — free collection, tracked every step of the way.
-          </p>
-        </div>
-        <div style={{ position:'relative' }}>
-          {/* the line that links the six steps (wide screens) */}
-          <div aria-hidden="true" className="td-steps-line" style={{ position:'absolute', top:58, left:'8%', right:'8%', height:2, background:`linear-gradient(90deg, transparent, ${TD.lime}80 12%, ${TD.lime}80 88%, transparent)` }} />
-          <ol className="td-steps6" style={{ position:'relative', listStyle:'none', padding:0, margin:0, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:18 }}>
-            {HOW_STEPS.map((s,i) => (
-              <li key={s.title} className="td-step-card" style={{ position:'relative', textAlign:'center', background:'rgba(255,255,255,0.035)', border:`1px solid ${TD.lime}22`, borderRadius:20, padding:'26px 18px 24px', backdropFilter:'blur(6px)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:`opacity 0.7s ease ${i*0.09}s, transform 0.7s cubic-bezier(.22,1,.36,1) ${i*0.09}s, border-color 0.25s, background 0.25s` }}>
-                <span aria-hidden="true" style={{ position:'absolute', top:10, right:14, ...FF.data, fontSize:34, lineHeight:1, color:'transparent', WebkitTextStroke:`1px ${TD.lime}55` }}>{String(i + 1).padStart(2, '0')}</span>
-                <div className="td-step-icon" style={{ width:64, height:64, borderRadius:'50%', background:TD.lime, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px', boxShadow:`0 0 0 6px ${TD.lime}1f, 0 10px 30px ${TD.lime}45` }}>
-                  <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.ink }}></i>
-                </div>
-                <div className="td-step-body">
-                  <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:6 }}>Step {i + 1}</span>
-                  <h3 style={{ ...FF.label, fontSize:16, fontWeight:700, color:'#f0f5f0', margin:'0 0 8px' }}>{s.title}</h3>
-                  <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.6, margin:0 }}>{s.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    SERVICES
@@ -1646,7 +1584,7 @@ const PricingGuideSection = () => {
     { pct:'15%', tier:'HOUSEHOLD', items:['6 batches','Quarterly prepay','Full mix & match'],                ex:'e.g. 6× Recyclable Small — ₵586/qtr' },
   ];
   return (
-    <section id="pricing" style={{ background:lp.sectionPricing }}>
+    <section id="pricing" style={{ background:lp.sectionPricing, scrollMarginTop:132 }}>
       <div style={{ position:'relative', overflow:'hidden', minHeight:340, display:'flex', alignItems:'center', background:'#0a1a0a' }}>
         {/* 3-image row — right 50% of the banner, full height */}
         <div style={{ position:'absolute', top:0, right:0, height:'100%', display:'flex', alignItems:'stretch', gap:2, zIndex:1 }}>
@@ -1817,10 +1755,10 @@ const PartnersPageInner = ({ auth }) => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    /how-it-works — the household sections: steps and bag pricing (the two services stay on the homepage)
    ═══════════════════════════════════════════════════════════════════════════════ */
-export const HouseholdSections = () => (
+// Bag pricing for /how-it-works/ (its steps are on that page already)
+export const HouseholdPricing = () => (
   <LpThemeProvider mode="dark">
     <GlobalStyles />
-    <HowItWorksSection />
     <PricingGuideSection />
   </LpThemeProvider>
 );
