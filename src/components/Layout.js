@@ -69,7 +69,7 @@ const Layout = ({ children }) => {
           {/* Mobile sidebar overlay */}
           <div className={`fixed inset-0 z-40 md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
-            <div className="relative flex-1 flex flex-col max-w-xs w-64 bg-green-700">
+            <div className="relative flex-1 flex flex-col max-w-xs w-64" style={{ background: 'var(--td-sidebar-bg)' }}>
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
                   className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
@@ -108,7 +108,7 @@ const Layout = ({ children }) => {
           
           {loading ? (
             <div className="flex items-center justify-center h-full" style={{ background: 'var(--td-page-bg)' }}>
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-td-forest"></div>
             </div>
           ) : (
             <>
