@@ -31,7 +31,7 @@ const EntityHistory = ({ entityId, includeAssignments = false, defaultOpen = fal
           <span>History</span>
           <span className="text-xs font-normal" style={muted}>{open ? 'Hide ▴' : 'Show ▾'}</span>
         </button>
-        <Link to={`/request-pickup/logs?entity=${encodeURIComponent(entityId)}&range=all`} className="text-xs text-blue-600 hover:underline whitespace-nowrap" data-testid="view-history">
+        <Link to={`/request-pickup/logs?entity=${encodeURIComponent(entityId)}&range=all`} className="text-xs text-td-forest hover:underline whitespace-nowrap" data-testid="view-history">
           View history →
         </Link>
       </div>

@@ -396,7 +396,7 @@ const RequestPickupManagement = () => {
           {statCards.map(s => (
             summaryRows === null ? <SkeletonBlock key={s.label} className="h-[72px]" /> : (
               <button type="button" key={s.label} onClick={() => setFilters({ status: s.filter })} aria-pressed={filters.status === s.filter}
-                className={`text-left rounded-lg border px-4 py-3 transition-shadow hover:shadow ${filters.status === s.filter ? 'ring-2 ring-green-500' : ''}`} style={card}>
+                className={`text-left rounded-xl border px-4 py-3 transition-shadow hover:shadow ${filters.status === s.filter ? 'ring-2 ring-green-500' : ''}`} style={card}>
                 <p className="text-xs flex items-center gap-1.5" style={muted}><span className="w-2 h-2 rounded-full" style={{ background: s.color }}></span>{s.label}</p>
                 <p className="text-2xl font-bold" data-testid={`stat-${s.label.toLowerCase().replace(/\s+/g, '-')}`}>{s.value}</p>
               </button>
@@ -406,7 +406,7 @@ const RequestPickupManagement = () => {
       </div>
 
       {/* Collectors */}
-      <div className="rounded-lg border p-4" style={card}>
+      <div className="rounded-xl border p-4" style={card}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold">Active Collectors</h2>
           <span className="text-xs" style={muted}>{collectors.filter(c => c.online).length} online · click a collector to see their requests</span>
@@ -421,7 +421,7 @@ const RequestPickupManagement = () => {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c.online ? '#16A34A' : '#9CA3AF' }}></span>
                   <span className="font-medium text-sm truncate">{c.name}</span>
-                  <span className={`ml-auto text-xs px-1.5 rounded ${c.online ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>{c.online ? 'Online' : 'Offline'}</span>
+                  <span className={`ml-auto text-xs px-1.5 rounded ${c.online ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-td-sage'}`}>{c.online ? 'Online' : 'Offline'}</span>
                 </div>
                 <p className="text-xs mt-1 truncate" style={muted}>{c.vehicleRegistration ? `${c.vehicle?.type || 'Vehicle'} · ${c.vehicleRegistration}` : 'No vehicle info'}</p>
                 <p className="text-xs mt-1">
@@ -435,7 +435,7 @@ const RequestPickupManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+      <div className="rounded-xl border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
         <label className="flex-1 min-w-[200px]">
           <span className="block text-xs mb-1" style={muted}>Search</span>
           <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Request ID (full or partial), customer, address, collector"
@@ -493,7 +493,7 @@ const RequestPickupManagement = () => {
 
       {/* Bulk actions */}
       {selectedRows.length > 0 && (
-        <div className="rounded-lg border px-4 py-2 flex flex-wrap items-center gap-3 text-sm" style={card} role="region" aria-label="Bulk actions">
+        <div className="rounded-xl border px-4 py-2 flex flex-wrap items-center gap-3 text-sm" style={card} role="region" aria-label="Bulk actions">
           <strong>{selectedRows.length} selected</strong>
           {assignScope.canAssign && (
             <button type="button" disabled={!assignable.length} onClick={() => openAssign(assignable)} className="px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-40">
@@ -509,15 +509,15 @@ const RequestPickupManagement = () => {
 
       {/* Table / cards */}
       {loadError && !pageData ? (
-        <div className="rounded-lg border p-8 text-center" style={card} role="alert">
+        <div className="rounded-xl border p-8 text-center" style={card} role="alert">
           <p className="font-semibold mb-1">Couldn't load requests</p>
           <p className="text-sm mb-3" style={muted}>{loadError}</p>
           <button type="button" onClick={() => loadPage({ force: true })} className="px-4 py-2 rounded bg-green-600 text-white">Retry</button>
         </div>
       ) : initialLoading ? (
-        <div className="rounded-lg border p-4 space-y-3" style={card} aria-busy="true">{[...Array(8)].map((_, i) => <SkeletonBlock key={i} className="h-9" />)}</div>
+        <div className="rounded-xl border p-4 space-y-3" style={card} aria-busy="true">{[...Array(8)].map((_, i) => <SkeletonBlock key={i} className="h-9" />)}</div>
       ) : (
-        <div className={`rounded-lg border ${tableLoading ? 'opacity-60' : ''}`} style={card}>
+        <div className={`rounded-xl border ${tableLoading ? 'opacity-60' : ''}`} style={card}>
           {loadError && <p className="px-4 py-2 text-sm text-red-700 bg-red-50 border-b border-red-200">Couldn't refresh: {loadError}</p>}
 
           {rows.length === 0 ? (

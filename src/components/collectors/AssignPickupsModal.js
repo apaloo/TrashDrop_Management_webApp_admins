@@ -44,7 +44,7 @@ const AssignPickupsModal = ({ collector, requests, loading, busy, onAssign, onCl
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={() => !busy && onClose()}>
-      <div className="rounded-lg shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col border" style={card}
+      <div className="rounded-xl shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="assign-title" onClick={e => e.stopPropagation()}>
         <div className="border-b px-5 py-3 flex items-center gap-2" style={border}>
           <div className="min-w-0">

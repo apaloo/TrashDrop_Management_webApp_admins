@@ -26,11 +26,11 @@ const LogDetailsModal = ({ log, onOpenRecord, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={onClose}>
-      <div className="rounded-lg shadow-xl w-full max-w-2xl max-h-[92vh] overflow-y-auto border" style={card}
+      <div className="rounded-xl shadow-xl w-full max-w-2xl max-h-[92vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="log-details-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 border-b px-5 py-3 flex items-start gap-3" style={{ ...card, ...border }}>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-1"><LogLevelBadge level={log.level} />{log.isSample && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Sample</span>}</div>
+            <div className="flex items-center gap-2 mb-1"><LogLevelBadge level={log.level} />{log.isSample && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-td-ink">Sample</span>}</div>
             <h2 id="log-details-title" className="font-semibold">{log.actionLabel}</h2>
           </div>
           <button type="button" onClick={onClose} className="text-xl leading-none" style={muted} aria-label="Close">&times;</button>
@@ -47,7 +47,7 @@ const LogDetailsModal = ({ log, onOpenRecord, onClose }) => {
             {log.entityId && (
               <Field label="Record">
                 <span className="font-normal">{entityLabel} </span><span className="font-mono text-xs">{log.entityId}</span>
-                {link && <button type="button" className="ml-2 text-xs text-blue-600 underline" onClick={() => onOpenRecord(link)}>Open record</button>}
+                {link && <button type="button" className="ml-2 text-xs text-td-forest underline" onClick={() => onOpenRecord(link)}>Open record</button>}
               </Field>
             )}
           </div>

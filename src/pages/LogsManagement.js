@@ -35,7 +35,7 @@ const RecordCell = ({ log, onOpen }) => {
   return (
     <span className="whitespace-nowrap">
       {link
-        ? <button type="button" className="font-mono text-xs text-blue-600 hover:underline" title={`${label} ${log.entityId}`} onClick={e => { e.stopPropagation(); onOpen(link); }}>#{shortRef(log.entityId)}</button>
+        ? <button type="button" className="font-mono text-xs text-td-forest hover:underline" title={`${label} ${log.entityId}`} onClick={e => { e.stopPropagation(); onOpen(link); }}>#{shortRef(log.entityId)}</button>
         : <span className="font-mono text-xs" title={log.entityId}>#{shortRef(log.entityId)}</span>}
       <span className="block text-xs" style={muted}>{label}</span>
     </span>
@@ -149,7 +149,7 @@ const LogsManagement = () => {
           ['Warnings', stats?.warnings, '#D97706', 'counter-warnings'],
           ['Last 24 h', stats?.last24h, '#2563EB', 'counter-24h'],
         ].map(([label, value, color, id]) => (
-          <div key={label} className="rounded-lg border px-4 py-3" style={card}>
+          <div key={label} className="rounded-xl border px-4 py-3" style={card}>
             <p className="text-xs flex items-center gap-1.5" style={muted}>{color && <span className="w-2 h-2 rounded-full" style={{ background: color }}></span>}{label}</p>
             <p className="text-2xl font-bold" data-testid={id}>{value ?? '…'}</p>
           </div>
@@ -157,7 +157,7 @@ const LogsManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+      <div className="rounded-xl border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
         <label className="flex-1 min-w-[220px]">
           <span className="block text-xs mb-1" style={muted}>Search</span>
           <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Message, action, source, person or record ID"
@@ -215,7 +215,7 @@ const LogsManagement = () => {
         </div>
       )}
 
-      <div className={`rounded-lg border ${loading && page ? 'opacity-60' : ''}`} style={card}>
+      <div className={`rounded-xl border ${loading && page ? 'opacity-60' : ''}`} style={card}>
         {!page && loading ? (
           <div className="p-4 space-y-2">{[0, 1, 2, 3, 4, 5].map(i => <SkeletonBlock key={i} className="h-9" />)}</div>
         ) : rows.length === 0 ? (
@@ -242,7 +242,7 @@ const LogsManagement = () => {
                     <td className="px-2 py-2 truncate" title={`${l.actorName || 'System'} (${actorRoleLabel(l.actorRole)})`}>
                       {l.actorName || 'System'}<span className="block text-xs" style={muted}>{actorRoleLabel(l.actorRole)}</span>
                     </td>
-                    <td className="px-2 py-2 truncate" title={l.action || ''}>{l.actionLabel}{l.isSample && <span className="ml-1 text-xs px-1 rounded bg-gray-200 text-gray-700">sample</span>}</td>
+                    <td className="px-2 py-2 truncate" title={l.action || ''}>{l.actionLabel}{l.isSample && <span className="ml-1 text-xs px-1 rounded bg-gray-200 text-td-ink">sample</span>}</td>
                     <td className="px-2 py-2"><RecordCell log={l} onOpen={openRecord} /></td>
                     <td className="px-2 py-2 truncate" title={l.message}>{l.message}</td>
                   </tr>

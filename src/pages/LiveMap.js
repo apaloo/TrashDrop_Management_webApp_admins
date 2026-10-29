@@ -251,12 +251,12 @@ const LiveMap = () => {
     return (
       <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading live map">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map(i => <div key={i} className="h-16 rounded-lg border" style={card} />)}
+          {[0, 1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl border" style={card} />)}
         </div>
-        <div className="h-10 rounded-lg border" style={card} />
+        <div className="h-10 rounded-xl border" style={card} />
         <div className="h-[60vh] min-h-[360px] rounded-lg bg-gray-300 opacity-40" />
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {[0, 1, 2].map(i => <div key={i} className="h-24 rounded-lg border" style={card} />)}
+          {[0, 1, 2].map(i => <div key={i} className="h-24 rounded-xl border" style={card} />)}
         </div>
       </div>
     );
@@ -264,7 +264,7 @@ const LiveMap = () => {
 
   if (loadError && !lastUpdated) {
     return (
-      <div className="rounded-lg border p-8 text-center" style={card} role="alert">
+      <div className="rounded-xl border p-8 text-center" style={card} role="alert">
         <i className="fas fa-exclamation-triangle text-3xl text-red-500 mb-3"></i>
         <h2 className="text-lg font-semibold mb-1">Couldn't load the live map</h2>
         <p className="text-sm mb-4" style={muted}>{loadError}</p>
@@ -289,7 +289,7 @@ const LiveMap = () => {
           { label: 'In progress', value: counts.inProgress, icon: 'fa-truck-moving', color: STATUS_GROUPS[2].color },
           { label: 'Collectors online', value: `${counts.collectorsOnline} / ${counts.collectorsTotal}`, icon: 'fa-user-check', color: COLLECTOR_ONLINE_COLOR },
         ].map(s => (
-          <div key={s.label} className="rounded-lg border px-4 py-3 flex items-center gap-3" style={card}>
+          <div key={s.label} className="rounded-xl border px-4 py-3 flex items-center gap-3" style={card}>
             <i className={`fas ${s.icon}`} style={{ color: s.color }}></i>
             <div>
               <p className="text-xs" style={muted}>{s.label}</p>
@@ -300,7 +300,7 @@ const LiveMap = () => {
       </div>
 
       {/* Filters */}
-      <div className="rounded-lg border px-4 py-3 flex flex-wrap items-end gap-x-5 gap-y-3" style={card}>
+      <div className="rounded-xl border px-4 py-3 flex flex-wrap items-end gap-x-5 gap-y-3" style={card}>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={muted}>Status</p>
           <div className="flex flex-wrap gap-1.5">
@@ -388,19 +388,19 @@ const LiveMap = () => {
                 <Popup>
                   <div className="text-sm min-w-[220px] space-y-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs text-gray-500" title={request.id}>#{String(request.id).slice(0, 8)}</span>
+                      <span className="font-mono text-xs text-td-sage" title={request.id}>#{String(request.id).slice(0, 8)}</span>
                       <StatusPill status={request.status} />
                     </div>
-                    <p className="font-semibold text-gray-900">{request.requestedBy?.name || 'Unknown customer'}</p>
-                    <p className="text-gray-700">{request.location?.address && request.location.address !== 'Unknown Location' ? request.location.address : 'No address given'}</p>
-                    <p className="text-gray-700">
+                    <p className="font-semibold text-td-ink">{request.requestedBy?.name || 'Unknown customer'}</p>
+                    <p className="text-td-ink">{request.location?.address && request.location.address !== 'Unknown Location' ? request.location.address : 'No address given'}</p>
+                    <p className="text-td-ink">
                       {request.wasteType || 'General'}{request.bags ? ` · ${request.bags} bag${request.bags > 1 ? 's' : ''}` : ''}
                       {request.source === 'digital_bins' ? ' · Digital bin' : request.source === 'scheduled_pickups' ? ' · Scheduled' : ''}
                     </p>
-                    <p className="text-gray-500 text-xs">Requested {formatDateTime(request.requestTime)} ({relativeTime(request.requestTime, now)})</p>
-                    <p className="text-gray-700 text-xs">Collector: {request.collectorName || 'Not assigned'}</p>
+                    <p className="text-td-sage text-xs">Requested {formatDateTime(request.requestTime)} ({relativeTime(request.requestTime, now)})</p>
+                    <p className="text-td-ink text-xs">Collector: {request.collectorName || 'Not assigned'}</p>
                     {request.swapped && <p className="text-amber-700 text-xs">Stored with latitude/longitude swapped; shown corrected.</p>}
-                    <button type="button" className="text-blue-600 hover:underline text-xs font-medium" onClick={() => setSelectedRequest(request)}>
+                    <button type="button" className="text-td-forest hover:underline text-xs font-medium" onClick={() => setSelectedRequest(request)}>
                       View request →
                     </button>
                   </div>
@@ -477,9 +477,9 @@ const LiveMap = () => {
       {selectedCollector ? (
         <CollectorDetailPanel collector={selectedCollector} onClose={() => setSelectedCollector(null)} onStatusChange={handleStatusChange} />
       ) : (
-        <div className="rounded-lg border p-4" style={card}>
+        <div className="rounded-xl border p-4" style={card}>
           <div className="flex items-center mb-3">
-            <i className="fas fa-truck-moving text-blue-500 text-lg mr-2"></i>
+            <i className="fas fa-truck-moving text-td-forest text-lg mr-2"></i>
             <h3 className="font-semibold">Collector Status</h3>
             <span className="ml-2 text-xs" style={muted}>{counts.collectorsOnline} online of {counts.collectorsTotal}</span>
           </div>
@@ -514,7 +514,7 @@ const LiveMap = () => {
                       <span style={muted}>Updated {relativeTime(collectorLastSeen(collector), now)}</span>
                     </div>
                     {!collector.position && (
-                      <span className="mt-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700" title={collector.locationIssue || ''}>
+                      <span className="mt-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-gray-100 text-td-ink" title={collector.locationIssue || ''}>
                         <i className="fas fa-map-marker-alt"></i> No location{collector.locationIssue && collector.locationIssue !== 'Missing coordinates' ? ` (${collector.locationIssue.toLowerCase()})` : ''}
                       </span>
                     )}
@@ -533,7 +533,7 @@ const LiveMap = () => {
       {/* Request details */}
       {selectedRequest && (
         <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setSelectedRequest(null)}>
-          <div className="rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border" style={card}
+          <div className="rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border" style={card}
             role="dialog" aria-modal="true" aria-labelledby="request-details-title" onClick={e => e.stopPropagation()}>
             <div className="border-b p-4 flex justify-between items-center" style={{ borderColor: 'var(--td-card-border)' }}>
               <h3 className="text-lg font-semibold" id="request-details-title">Pickup Request Details</h3>
@@ -559,7 +559,7 @@ const LiveMap = () => {
               ))}
             </div>
             <div className="px-6 pb-6 flex justify-end">
-              <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300" onClick={() => setSelectedRequest(null)}>Close</button>
+              <button type="button" className="px-4 py-2 rounded bg-gray-200 text-td-ink hover:bg-gray-300" onClick={() => setSelectedRequest(null)}>Close</button>
             </div>
           </div>
         </div>

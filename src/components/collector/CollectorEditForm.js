@@ -15,16 +15,16 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
   return (
     <div className="grid grid-cols-1 gap-6">
       {/* Personal Information */}
-      <div className="bg-white rounded-lg shadow-sm border p-4">
-        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-          <i className="fas fa-user text-blue-500 mr-2"></i>
+      <div className="bg-white rounded-xl shadow-sm border p-4">
+        <h5 className="text-sm font-medium text-td-ink mb-3 flex items-center">
+          <i className="fas fa-user text-td-forest mr-2"></i>
           Personal Information
         </h5>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-td-ink mb-1">
               Name*
             </label>
             <input
@@ -33,8 +33,8 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                errors.name ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm ${
+                errors.name ? 'border-red-300' : 'border-td-border-strong'
               }`}
               placeholder="Enter full name"
             />
@@ -45,7 +45,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
           
           {/* Status */}
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="status" className="block text-sm font-medium text-td-ink mb-1">
               Status*
             </label>
             <select
@@ -53,7 +53,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
@@ -65,7 +65,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
           
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-td-ink mb-1">
               Email*
             </label>
             <input
@@ -74,8 +74,8 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                errors.email ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm ${
+                errors.email ? 'border-red-300' : 'border-td-border-strong'
               }`}
               placeholder="email@example.com"
             />
@@ -86,7 +86,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
           
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="phone" className="block text-sm font-medium text-td-ink mb-1">
               Phone*
             </label>
             <input
@@ -95,8 +95,8 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                errors.phone ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm ${
+                errors.phone ? 'border-red-300' : 'border-td-border-strong'
               }`}
               placeholder="(xxx) xxx-xxxx"
             />
@@ -107,7 +107,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
           
           {/* Alternative Contact */}
           <div>
-            <label htmlFor="alternativeContact" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="alternativeContact" className="block text-sm font-medium text-td-ink mb-1">
               Alternative Contact
             </label>
             <input
@@ -116,14 +116,14 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="alternativeContact"
               value={formData.alternativeContact || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
               placeholder="Emergency contact"
             />
           </div>
           
           {/* Region */}
           <div>
-            <label htmlFor="region" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="region" className="block text-sm font-medium text-td-ink mb-1">
               Region*
             </label>
             <select
@@ -131,8 +131,8 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="region"
               value={formData.region}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                errors.region ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm ${
+                errors.region ? 'border-red-300' : 'border-td-border-strong'
               }`}
             >
               <option value="">Select Region</option>
@@ -150,16 +150,16 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
       </div>
       
       {/* Vehicle Information */}
-      <div className="bg-white rounded-lg shadow-sm border p-4">
-        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-          <i className="fas fa-truck text-blue-500 mr-2"></i>
+      <div className="bg-white rounded-xl shadow-sm border p-4">
+        <h5 className="text-sm font-medium text-td-ink mb-3 flex items-center">
+          <i className="fas fa-truck text-td-forest mr-2"></i>
           Vehicle Information
         </h5>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Vehicle Type */}
           <div>
-            <label htmlFor="vehicleType" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="vehicleType" className="block text-sm font-medium text-td-ink mb-1">
               Vehicle Type
             </label>
             <select
@@ -167,7 +167,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="vehicleType"
               value={formData.vehicleType || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
             >
               <option value="">Select Vehicle Type</option>
               {vehicleTypes.map((type) => (
@@ -180,7 +180,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
           
           {/* Vehicle ID */}
           <div>
-            <label htmlFor="vehicleId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="vehicleId" className="block text-sm font-medium text-td-ink mb-1">
               Vehicle ID
             </label>
             <input
@@ -189,14 +189,14 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="vehicleId"
               value={formData.vehicleId || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
               placeholder="Vehicle identification"
             />
           </div>
           
           {/* Capacity */}
           <div>
-            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="capacity" className="block text-sm font-medium text-td-ink mb-1">
               Capacity (kg)
             </label>
             <input
@@ -205,7 +205,7 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
               name="capacity"
               value={formData.capacity || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
               placeholder="Maximum capacity"
             />
           </div>
@@ -213,14 +213,14 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
       </div>
       
       {/* Notes */}
-      <div className="bg-white rounded-lg shadow-sm border p-4">
-        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-          <i className="fas fa-sticky-note text-blue-500 mr-2"></i>
+      <div className="bg-white rounded-xl shadow-sm border p-4">
+        <h5 className="text-sm font-medium text-td-ink mb-3 flex items-center">
+          <i className="fas fa-sticky-note text-td-forest mr-2"></i>
           Additional Notes
         </h5>
         
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="notes" className="block text-sm font-medium text-td-ink mb-1">
             Notes
           </label>
           <textarea
@@ -229,13 +229,13 @@ const CollectorEditForm = ({ formData, errors, handleChange }) => {
             value={formData.notes || ''}
             onChange={handleChange}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="w-full px-3 py-2 border border-td-border-strong rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600 sm:text-sm"
             placeholder="Additional information about this collector"
           ></textarea>
         </div>
       </div>
       
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-td-sage">
         * Required fields
       </div>
     </div>

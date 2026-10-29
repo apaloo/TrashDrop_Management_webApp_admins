@@ -10,14 +10,14 @@ const MapControls = ({
   centerMap
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border-0 p-4 mb-4">
+    <div className="bg-white rounded-xl shadow-sm border-0 p-4 mb-4">
       <div className="flex flex-col md:flex-row justify-between">
         <div>
           <h3 className="font-semibold mb-3">Map Display</h3>
           <div className="flex flex-wrap gap-3">
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                mapMode === 'default' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-gray-700 border-gray-300'
+                mapMode === 'default' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-td-ink border-td-border-strong'
               }`}
               onClick={() => setMapMode('default')}
             >
@@ -25,14 +25,14 @@ const MapControls = ({
             </button>
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                mapMode === 'satellite' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-gray-700 border-gray-300'
+                mapMode === 'satellite' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-td-ink border-td-border-strong'
               }`}
               onClick={() => setMapMode('satellite')}
             >
               <i className="fas fa-satellite mr-1.5"></i> Satellite
             </button>
             <button
-              className="inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              className="inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium bg-white text-td-ink border-td-border-strong hover:bg-td-cream"
               onClick={centerMap}
             >
               <i className="fas fa-compress-arrows-alt mr-1.5"></i> Reset View
@@ -45,7 +45,7 @@ const MapControls = ({
           <div className="flex flex-wrap gap-3">
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                showCollectors ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-gray-500 border-gray-300'
+                showCollectors ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-td-sage border-td-border-strong'
               }`}
               onClick={() => setShowCollectors(!showCollectors)}
             >
@@ -53,7 +53,7 @@ const MapControls = ({
             </button>
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                showPickups ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-gray-500 border-gray-300'
+                showPickups ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-td-sage border-td-border-strong'
               }`}
               onClick={() => setShowPickups(!showPickups)}
             >

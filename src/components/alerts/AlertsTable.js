@@ -65,7 +65,7 @@ const AlertsTable = ({ alerts, ctx, staffName, selected, onToggle, onToggleAll, 
           <input type="checkbox" checked={allSelected} onChange={() => onToggleAll(!allSelected)} /> Select all
         </label>
         {alerts.map(a => (
-          <div key={a.id} className="rounded-lg border p-3" style={card} data-testid="alert-card">
+          <div key={a.id} className="rounded-xl border p-3" style={card} data-testid="alert-card">
             <div className="flex items-start gap-2">
               <input type="checkbox" className="mt-1" aria-label={`Select ${a.title}`} checked={selected.has(a.id)} onChange={() => onToggle(a.id)} />
               <button type="button" className="text-left flex-1 min-w-0" onClick={() => onOpen(a)}>

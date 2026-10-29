@@ -10,7 +10,7 @@ const ConfirmDialog = ({ title, children, confirmLabel = 'Confirm', danger = fal
   }, [busy, onClose]);
   return (
     <div className="fixed inset-0 z-[3000] bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => !busy && onClose()}>
-      <div className="w-full max-w-md rounded-lg shadow-xl border" style={card} role="dialog" aria-modal="true" aria-labelledby="confirm-title" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-xl shadow-xl border" style={card} role="dialog" aria-modal="true" aria-labelledby="confirm-title" onClick={e => e.stopPropagation()}>
         <div className="px-5 py-4 border-b" style={border}><h3 id="confirm-title" className="font-semibold">{title}</h3></div>
         <div className="px-5 py-4 text-sm space-y-3">{children}</div>
         <div className="px-5 py-3 border-t flex justify-end gap-2" style={border}>

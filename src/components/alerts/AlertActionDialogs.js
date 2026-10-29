@@ -28,7 +28,7 @@ export const ContactCollectorDialog = ({ collector, context, busy, onConfirm, on
     <ConfirmDialog title={`Contact ${collector?.name || 'collector'}`} confirmLabel="Send app message" busy={busy}
       confirmDisabled={!collector?.userId || !message.trim()} onConfirm={() => onConfirm(message.trim())} onClose={onClose}>
       {collector?.phone
-        ? <p>Phone: <a className="underline text-blue-600" href={`tel:${collector.phone}`}>{formatGhanaPhone(collector.phone)}</a> <span style={muted}>(tap to call)</span></p>
+        ? <p>Phone: <a className="underline text-td-forest" href={`tel:${collector.phone}`}>{formatGhanaPhone(collector.phone)}</a> <span style={muted}>(tap to call)</span></p>
         : <p className="text-amber-700">No phone number on file.</p>}
       {collector?.userId ? (
         <label className="block">
@@ -60,7 +60,7 @@ export const FixLocationDialog = ({ request, problem, busy, onConfirm, onClose }
       onConfirm={() => onConfirm(point)} onClose={onClose}>
       <p style={muted}>{problem ? `Problem: ${problem}. ` : ''}Search the address or click the map.</p>
       {swapped && /swapped/i.test(problem || '') && (
-        <button type="button" className="text-sm underline text-blue-600" onClick={() => setPoint({ ...swapped, address: null })}>
+        <button type="button" className="text-sm underline text-td-forest" onClick={() => setPoint({ ...swapped, address: null })}>
           Use the swapped coordinates ({swapped.lat}, {swapped.lng})
         </button>
       )}

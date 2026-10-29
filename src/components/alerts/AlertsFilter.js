@@ -17,7 +17,7 @@ const Select = ({ label, value, onChange, children, className = '' }) => (
 const AlertsFilter = ({ filters, setFilters, searchText, setSearchText, staff }) => {
   const changed = Object.keys(DEFAULT_ALERT_FILTERS).some(k => filters[k] !== DEFAULT_ALERT_FILTERS[k]) || searchText;
   return (
-    <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+    <div className="rounded-xl border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
       <label className="flex-1 min-w-[220px]">
         <span className="block text-xs mb-1" style={muted}>Search</span>
         <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)}

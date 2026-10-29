@@ -78,7 +78,7 @@ const RequestDetailsModal = ({
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={onClose}>
-      <div className="rounded-lg shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto border" style={card}
+      <div className="rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="request-details-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-center gap-3" style={{ ...card, ...border }}>
           <h3 id="request-details-title" className="font-semibold">Request <span className="font-mono">#{shortId(row.id)}</span></h3>
@@ -198,7 +198,7 @@ const RequestDetailsModal = ({
         {/* Actions: only the next steps the status allows */}
         {(status !== 'disposed' && status !== 'cancelled' && status !== 'expired') && (
           <div className="sticky bottom-0 border-t px-5 py-3 flex flex-wrap justify-end gap-2" style={{ ...card, ...border }}>
-            {status === 'pending' && action('Start Pickup', 'en_route', 'bg-purple-600', true, 'Assign a collector first')}
+            {status === 'pending' && action('Start Pickup', 'en_route', 'bg-green-600', true, 'Assign a collector first')}
             {status === 'accepted' && action('Start Pickup', 'en_route', 'bg-green-600 hover:bg-green-700', !hasCollector, hasCollector ? '' : 'Assign a collector first')}
             {status === 'en_route' && action('Mark Arrived', 'arrived', 'bg-green-600 hover:bg-green-700', !hasCollector)}
             {status === 'arrived' && action('Start Collecting', 'collecting', 'bg-green-600 hover:bg-green-700', !hasCollector)}

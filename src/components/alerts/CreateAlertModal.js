@@ -38,7 +38,7 @@ const CreateAlertModal = ({ requests, collectors, zones, staff, busy, error, onC
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={() => !busy && onClose()}>
-      <form onSubmit={submit} noValidate className="rounded-lg shadow-xl w-full max-w-2xl max-h-[94vh] overflow-y-auto border" style={card}
+      <form onSubmit={submit} noValidate className="rounded-xl shadow-xl w-full max-w-2xl max-h-[94vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="create-alert-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-center" style={{ ...card, ...border }}>
           <h2 id="create-alert-title" className="font-semibold">Create alert</h2>
