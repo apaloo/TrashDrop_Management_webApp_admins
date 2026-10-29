@@ -39,33 +39,33 @@ const CollectorMapMarker = ({ collector, onViewDetails, markerRef }) => {
       <Tooltip direction="top" offset={[0, -16]}>{collector.name}</Tooltip>
       <Popup>
         <div className="text-sm min-w-[200px]">
-          <p className="font-semibold text-gray-900">{collector.name || 'Unknown collector'}</p>
+          <p className="font-semibold text-td-ink">{collector.name || 'Unknown collector'}</p>
           <p className="text-xs mb-2">
-            <span className={`inline-flex items-center gap-1 font-medium ${collector.online ? 'text-green-700' : 'text-gray-500'}`}>
+            <span className={`inline-flex items-center gap-1 font-medium ${collector.online ? 'text-green-700' : 'text-td-sage'}`}>
               <span className="inline-block w-2 h-2 rounded-full" style={{ background: collector.online ? COLLECTOR_ONLINE_COLOR : COLLECTOR_OFFLINE_COLOR }}></span>
               {collector.online ? 'Online (On-Duty)' : 'Off duty'}
             </span>
-            <span className="text-gray-500"> · {collector.status === 'active' ? 'Active' : 'Inactive'} account</span>
+            <span className="text-td-sage"> · {collector.status === 'active' ? 'Active' : 'Inactive'} account</span>
           </p>
-          <div className="grid grid-cols-3 gap-2 text-center text-xs bg-gray-50 rounded p-2 mb-2">
+          <div className="grid grid-cols-3 gap-2 text-center text-xs bg-td-cream rounded p-2 mb-2">
             <div>
-              <p className="text-gray-500">Capacity</p>
+              <p className="text-td-sage">Capacity</p>
               <span className={`inline-block mt-0.5 px-1.5 rounded font-semibold ${capacityBadgeClass(capacity)}`}>{capacity}%</span>
             </div>
             <div>
-              <p className="text-gray-500">Completed</p>
-              <p className="font-semibold text-gray-900">{collector.stats?.completedToday || 0}</p>
+              <p className="text-td-sage">Completed</p>
+              <p className="font-semibold text-td-ink">{collector.stats?.completedToday || 0}</p>
             </div>
             <div>
-              <p className="text-gray-500">Pending</p>
-              <p className="font-semibold text-gray-900">{collector.stats?.pendingPickups || 0}</p>
+              <p className="text-td-sage">Pending</p>
+              <p className="font-semibold text-td-ink">{collector.stats?.pendingPickups || 0}</p>
             </div>
           </div>
-          <p className={`text-xs ${oldLocation ? 'text-amber-700' : 'text-gray-500'}`}>
+          <p className={`text-xs ${oldLocation ? 'text-amber-700' : 'text-td-sage'}`}>
             Location {relativeTime(locationAt)}{oldLocation ? ' (the phone has not sent a newer location)' : ''}
           </p>
           {typeof onViewDetails === 'function' && (
-            <button className="mt-2 text-blue-600 text-xs hover:underline" onClick={() => onViewDetails(collector)}>
+            <button className="mt-2 text-td-forest text-xs hover:underline" onClick={() => onViewDetails(collector)}>
               View details
             </button>
           )}

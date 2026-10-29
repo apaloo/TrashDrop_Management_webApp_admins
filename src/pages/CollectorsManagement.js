@@ -332,13 +332,13 @@ const CollectorsManagement = () => {
         {[
           { label: 'Collectors', value: counts.total, onClick: () => setFilters({ status: 'all', presence: 'all', zone: 'all' }) },
           { label: 'Active', value: counts.active, onClick: () => setFilters({ status: 'active' }) },
-          { label: 'Online now', value: counts.online, color: '#16A34A', onClick: () => setFilters({ presence: 'online' }) },
-          { label: 'Active jobs', value: statsReady ? counts.activeJobs : '…', color: '#8B5CF6' },
+          { label: 'Online now', value: counts.online, color: '#1B6E35', onClick: () => setFilters({ presence: 'online' }) },
+          { label: 'Active jobs', value: statsReady ? counts.activeJobs : '…', color: '#7C3AED' },
           { label: 'No service zone', value: counts.unassigned, onClick: () => setFilters({ zone: UNASSIGNED }) },
         ].map(s => (
           loading ? <SkeletonBlock key={s.label} className="h-[68px]" /> : (
             <button type="button" key={s.label} onClick={s.onClick} disabled={!s.onClick}
-              className="text-left rounded-lg border px-4 py-3 transition-shadow hover:shadow disabled:cursor-default disabled:hover:shadow-none" style={card}>
+              className="text-left rounded-xl border px-4 py-3 transition-shadow hover:shadow disabled:cursor-default disabled:hover:shadow-none" style={card}>
               <p className="text-xs flex items-center gap-1.5" style={muted}>{s.color && <span className="w-2 h-2 rounded-full" style={{ background: s.color }}></span>}{s.label}</p>
               <p className="text-2xl font-bold">{s.value}</p>
             </button>
@@ -347,7 +347,7 @@ const CollectorsManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="rounded-lg border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
+      <div className="rounded-xl border px-4 py-3 flex flex-wrap gap-3 items-end" style={card}>
         <label className="flex-1 min-w-[200px]">
           <span className="block text-xs mb-1" style={muted}>Search</span>
           <input type="search" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Name, phone (024…, +233…), email or ID"
@@ -416,7 +416,7 @@ const CollectorsManagement = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">{[0, 1, 2].map(i => <SkeletonBlock key={i} className="h-56" />)}</div>
       ) : visible.length === 0 ? (
-        <div className="rounded-lg border p-8 text-center" style={card}>
+        <div className="rounded-xl border p-8 text-center" style={card}>
           <i className="fas fa-user-slash text-3xl mb-3" style={muted} aria-hidden="true"></i>
           <h3 className="font-medium">No collectors found</h3>
           <p className="text-sm mt-1" style={muted}>{filtered ? 'Try other filters or search terms' : 'Add a collector to get started'}</p>
@@ -426,7 +426,7 @@ const CollectorsManagement = () => {
           {visible.map(c => {
             const type = vehicleTypeInfo(c.vehicleType);
             return (
-              <article key={c.id} className="rounded-lg border flex flex-col hover:shadow-md transition-shadow" style={card} data-testid="collector-card">
+              <article key={c.id} className="rounded-xl border flex flex-col hover:shadow-md transition-shadow" style={card} data-testid="collector-card">
                 <div className="flex items-start gap-3 p-4 border-b" style={border}>
                   <Avatar c={c} />
                   <div className="min-w-0 flex-1">
@@ -479,7 +479,7 @@ const CollectorsManagement = () => {
           })}
         </div>
       ) : (
-        <div className="rounded-lg border overflow-x-auto" style={card}>
+        <div className="rounded-xl border overflow-x-auto" style={card}>
           <table className="w-full text-sm min-w-[760px]" data-testid="collector-table">
             <thead className="text-xs text-left" style={muted}>
               <tr className="border-b" style={border}>

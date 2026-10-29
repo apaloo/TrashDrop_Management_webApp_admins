@@ -52,7 +52,7 @@ const CollectorDetailsModal = ({ collector: c, requests, onClose, onCopy, action
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={onClose}>
-      <div className="rounded-lg shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto border" style={card}
+      <div className="rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="collector-details-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-center gap-3" style={{ ...card, ...border }}>
           <h2 id="collector-details-title" className="font-semibold truncate">{c.name}</h2>
@@ -144,7 +144,7 @@ const CollectorDetailsModal = ({ collector: c, requests, onClose, onCopy, action
 
           <EntityHistory entityId={c.id} includeAssignments />
 
-          <Link to={`/request-pickup/requests?collector=${encodeURIComponent(c.id)}`} className="inline-block text-sm text-blue-600 hover:underline">
+          <Link to={`/request-pickup/requests?collector=${encodeURIComponent(c.id)}`} className="inline-block text-sm text-td-forest hover:underline">
             See all of {c.name.split(' ')[0]}'s requests on the Pickup Requests page →
           </Link>
         </div>

@@ -4,7 +4,7 @@ import { alertType } from '../../constants/alerts';
 
 const Card = ({ label, value, sub, accent, onClick, active, testId }) => (
   <button type="button" onClick={onClick} aria-pressed={!!active}
-    className={`text-left rounded-lg border px-4 py-3 transition-shadow hover:shadow flex flex-col justify-between min-h-[96px] ${active ? 'ring-2 ring-green-500' : ''}`} style={card}>
+    className={`text-left rounded-xl border px-4 py-3 transition-shadow hover:shadow flex flex-col justify-between min-h-[96px] ${active ? 'ring-2 ring-green-500' : ''}`} style={card}>
     <p className="text-xs flex items-center gap-1.5" style={muted}>
       {accent && <span className="w-2 h-2 rounded-full" style={{ background: accent }} aria-hidden="true"></span>}{label}
     </p>
@@ -35,7 +35,7 @@ const AlertStats = ({ stats, filters, setFilters, autoResolved = 0 }) => {
           sub={`${autoResolved} resolved automatically by rules`} onClick={() => setFilters({ status: 'resolved', priority: 'all' })} active={filters.status === 'resolved'} />
       </div>
 
-      <div className="rounded-lg border px-4 py-3 flex flex-col" style={card}>
+      <div className="rounded-xl border px-4 py-3 flex flex-col" style={card}>
         <div className="flex items-baseline justify-between mb-2">
           <h2 className="font-semibold text-sm">Alerts by type</h2>
           <span className="text-xs" style={muted}>all alerts · open in brackets</span>

@@ -22,10 +22,10 @@ const AlertRulesPanel = ({ userId, onToast, onRan }) => {
       .catch(error => { setSettings(null); onToast(error.message, 'error'); });
   }, [onToast]);
 
-  if (settings === undefined) return <div className="rounded-lg border p-4 text-sm" style={card}>Loading rule settings…</div>;
+  if (settings === undefined) return <div className="rounded-xl border p-4 text-sm" style={card}>Loading rule settings…</div>;
   if (settings === null) {
     return (
-      <div className="rounded-lg border p-4 text-sm" style={card}>
+      <div className="rounded-xl border p-4 text-sm" style={card}>
         <p className="font-medium">Alert rules aren't set up yet.</p>
         <p style={muted}>Run supabase/migrations/20261017_alerts_rules.sql, then enable pg_cron, to turn on automatic alerts.</p>
       </div>
@@ -72,7 +72,7 @@ const AlertRulesPanel = ({ userId, onToast, onRan }) => {
   };
 
   return (
-    <div className="rounded-lg border" style={card} data-testid="rules-panel">
+    <div className="rounded-xl border" style={card} data-testid="rules-panel">
       <div className="px-4 py-3 border-b flex flex-wrap items-center gap-2" style={border}>
         <div className="mr-auto">
           <h2 className="font-semibold">Alert rules</h2>

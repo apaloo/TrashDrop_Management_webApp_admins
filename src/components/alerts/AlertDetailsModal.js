@@ -49,7 +49,7 @@ const AlertDetailsModal = ({
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={() => !busy && onClose()}>
-      <div className="rounded-lg shadow-xl w-full max-w-3xl max-h-[94vh] overflow-y-auto border" style={card}
+      <div className="rounded-xl shadow-xl w-full max-w-3xl max-h-[94vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="alert-details-title" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-start gap-3" style={{ ...card, ...border }}>
           <div className="min-w-0 flex-1">
@@ -141,7 +141,7 @@ const AlertDetailsModal = ({
           <div className="sticky bottom-0 border-t px-5 py-3 flex flex-wrap justify-end gap-2" style={{ ...card, ...border }}>
             {statusActions.map(to => (
               <button key={to} type="button" disabled={busy} onClick={() => onStatus(to)}
-                className={`px-4 py-2 rounded text-sm font-medium disabled:opacity-40 ${to === 'resolved' ? 'text-white bg-green-600 hover:bg-green-700' : to === 'open' ? 'border text-blue-600' : 'border'}`}
+                className={`px-4 py-2 rounded text-sm font-medium disabled:opacity-40 ${to === 'resolved' ? 'text-white bg-green-600 hover:bg-green-700' : to === 'open' ? 'border text-td-forest' : 'border'}`}
                 style={to === 'resolved' ? undefined : { ...border, color: to === 'open' ? undefined : 'var(--td-text-primary)' }}>
                 {STATUS_ACTION_LABELS[to]}
               </button>
