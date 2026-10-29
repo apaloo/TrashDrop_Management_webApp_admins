@@ -232,7 +232,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
         })}
       </div>
 
-      <div data-card-open={selected ? 'true' : 'false'} style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(182,238,105,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
+      <div data-testid="public-map-frame" data-card-open={selected ? 'true' : 'false'} style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(182,238,105,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
         <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} style={{ height: '100%', width: '100%', minHeight: expanded ? 0 : 500 }} scrollWheelZoom>
           <TileLayer
             url={appConfig.services.maps.tileProviders.openStreetMap.url}

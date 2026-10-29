@@ -45,7 +45,7 @@ it('opens the details at the clicked report, and closes them with the button or 
   fireEvent.click(screen.getByRole('button', { name: 'High risk · Osu, Accra' }));
   expect(screen.getByTestId('popup')).toHaveAttribute('data-position', '5.55,-0.18');
   // The legend low on the map steps aside so it can't cover the card
-  expect(screen.getByTestId('public-map-legend').closest('[data-card-open]')).toHaveAttribute('data-card-open', 'true');
+  expect(screen.getByTestId('public-map-frame')).toHaveAttribute('data-card-open', 'true');
   fireEvent.click(screen.getByRole('button', { name: 'Close details' }));
   expect(screen.queryByTestId('public-report-card')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'High risk · Osu, Accra' }));
