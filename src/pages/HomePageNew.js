@@ -1029,7 +1029,7 @@ const LatestReportsOverlay = ({ data }) => {
   const pillBg     = 'rgba(255,255,255,0.07)';
 
   return (
-    <div data-testid="latest-reports-overlay" style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, maxHeight:'calc(100% - 80px)', maxWidth:'calc(100% - 32px)' }}>
+    <div data-testid="latest-reports-overlay" className="td-map-hide-with-card" style={{ position:'absolute', bottom:16, right:16, zIndex:1150, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, maxHeight:'calc(100% - 80px)', maxWidth:'calc(100% - 32px)' }}>
       {open && (
         <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'100%', minHeight:0, flex:'0 1 auto', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${borderCol}`, display:'flex', alignItems:'center', gap:8 }}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
@@ -80,6 +80,24 @@ const FitToReports = ({ reports }) => {
   return null;
 };
 
+// The selected report's details, pinned to its marker with a pointer. The page
+// owns opening and closing (close button, a click on the map, Escape), so
+// Leaflet's own auto-close is off. It still pans the map to fit the card,
+// clear of the full-screen button above it.
+const PopupAtReport = ({ report, isDark, onClose, children }) => {
+  useMapEvents({ click: onClose });
+  const { lat, lng } = report.location;
+  // A new array each render would reopen the popup; only a new place should
+  const position = useMemo(() => [lat, lng], [lat, lng]);
+  return (
+    <Popup position={position} offset={[0, -8]} closeButton={false} closeOnClick={false} autoClose={false}
+      closeOnEscapeKey={false} autoPanPaddingTopLeft={[16, 64]} autoPanPaddingBottomRight={[16, 16]} maxWidth={360} minWidth={280}
+      className={`td-pub-popup${isDark ? ' td-pub-popup-dark' : ''}`}>
+      {children}
+    </Popup>
+  );
+};
+
 // Leaflet measures its box once; tell it when the box changes size
 const ResizeWith = ({ expanded }) => {
   const map = useMap();
@@ -141,14 +159,16 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
 
   // Escape closes the photo first, then leaves full screen
   useEffect(() => {
-    if (!lightbox && !expanded) return undefined;
+    if (!lightbox && !expanded && !selectedId) return undefined;
     const onKey = (e) => {
       if (e.key !== 'Escape') return;
-      if (lightbox) setLightbox(null); else setExpanded(false);
+      if (lightbox) setLightbox(null);
+      else if (selectedId) setSelectedId(null);
+      else setExpanded(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [lightbox, expanded]);
+  }, [lightbox, expanded, selectedId]);
 
   // The page behind doesn't scroll while the map fills the screen
   useEffect(() => {
@@ -186,10 +206,12 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
       style={{ display: 'flex', flexDirection: 'column', gap: 12, ...fullScreen }}>
       <style>{`
         .td-pub-marker, .td-pub-cluster { background: transparent; border: none; }
-        .td-pub-card { position: absolute; top: 14px; left: 58px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; z-index: 1150; }
-        @media (max-width: 640px) {
-          .td-pub-card { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 70vh; border-radius: 18px 18px 0 0 !important; z-index: 3000; }
-        }
+        .td-pub-popup .leaflet-popup-content-wrapper { padding: 0; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 50px rgba(0,0,0,0.35); overflow: hidden; }
+        .td-pub-popup .leaflet-popup-content { margin: 0; width: min(340px, calc(100vw - 80px)) !important; font: inherit; line-height: 1.5; }
+        .td-pub-popup .leaflet-popup-tip { background: #ffffff; }
+        /* Map popups sit below the map's own buttons, so the ones low on the map step aside while a card is open */
+        [data-card-open="true"] .td-map-hide-with-card { display: none !important; }
+        .td-pub-popup-dark .leaflet-popup-content-wrapper, .td-pub-popup-dark .leaflet-popup-tip { background: #111a13; }
       `}</style>
 
       {/* View toggle */}
@@ -210,7 +232,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
         })}
       </div>
 
-      <div style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(182,238,105,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
+      <div data-card-open={selected ? 'true' : 'false'} style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(182,238,105,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
         <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} style={{ height: '100%', width: '100%', minHeight: expanded ? 0 : 500 }} scrollWheelZoom>
           <TileLayer
             url={appConfig.services.maps.tileProviders.openStreetMap.url}
@@ -218,6 +240,55 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
           />
           <FitToReports reports={shown} />
           <ResizeWith expanded={expanded} />
+          {selected && (
+            <PopupAtReport report={selected} isDark={isDark} onClose={() => setSelectedId(null)}>
+            <div className="td-pub-card" role="dialog" aria-label="Report details" data-testid="public-report-card"
+              style={{ background: card.bg, fontFamily: FONT_BODY, color: card.text }}>
+              <div style={{ position: 'relative' }}>
+                {selected.photos.length > 0 ? (
+                  <button onClick={() => setLightbox(selected.photos[0])} title="View larger photo" style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: card.photoBg, cursor: 'zoom-in' }}>
+                    <img src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported, ${describeArea(selected)}`} loading="lazy" decoding="async"
+                      style={{ display: 'block', width: '100%', height: 140, objectFit: 'cover' }} />
+                  </button>
+                ) : (
+                  <div data-testid="no-photo-strip" style={{ height: 44, background: card.photoBg, display: 'flex', alignItems: 'center', padding: '0 18px', fontSize: 13, color: card.sub }}>
+                    <i className="fas fa-camera" style={{ marginRight: 6 }} />No photo
+                  </div>
+                )}
+                <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', top: selected.photos.length ? 10 : 6, right: 10, width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer' }}>
+                  <i className="fas fa-times" />
+                </button>
+              </div>
+              <div style={{ padding: '16px 18px 18px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {selected.isCleanedUp ? (
+                    <span style={{ fontSize: 13, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: CLEANED_COLOR, color: '#fff' }}>✓ Cleaned up</span>
+                  ) : (
+                    <span style={{ fontSize: 13, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: `${RISK_COLORS[selected.severity] || UNKNOWN_COLOR}22`, color: RISK_COLORS[selected.severity] || UNKNOWN_COLOR, border: `1px solid ${RISK_COLORS[selected.severity] || UNKNOWN_COLOR}55` }}>
+                      {toTitle(selected.severity)} risk
+                    </span>
+                  )}
+                  <span style={{ fontSize: 13, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: card.chipBg, color: card.sub }}>{toTitle(selected.status)}</span>
+                </div>
+                <p style={{ fontFamily: FONT_LABEL, fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>{toTitle(selected.wasteType)} waste</p>
+                <p style={{ fontSize: 15, color: card.sub, margin: '0 0 14px' }}>
+                  <i className="fas fa-map-marker-alt" style={{ marginRight: 6 }} />{describeArea(selected)}
+                </p>
+                <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 14px', fontSize: 15, margin: 0 }}>
+                  <dt style={{ color: card.sub }}>Severity</dt><dd style={{ margin: 0 }}>{toTitle(selected.severity)}</dd>
+                  <dt style={{ color: card.sub }}>Reported</dt><dd style={{ margin: 0 }} title={new Date(selected.createdAt).toLocaleString()}>{timeAgo(selected.createdAt)}</dd>
+                  {selected.isCleanedUp && cleanupDurationText(selected.createdAt, selected.completedAt) && (
+                    <><dt style={{ color: card.sub }}>Cleanup</dt><dd style={{ margin: 0 }}>{cleanupDurationText(selected.createdAt, selected.completedAt)}</dd></>
+                  )}
+                </dl>
+                <Link to={detailsHref} data-testid="view-more-details"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, marginTop: 16, fontFamily: FONT_LABEL, fontSize: 16, fontWeight: 700, background: isDark ? '#b6ee69' : '#1b6e35', color: isDark ? '#0a0f0a' : '#fff', borderRadius: 12, padding: '12px 16px', textDecoration: 'none' }}>
+                  View more details <i className="fas fa-arrow-right" style={{ fontSize: 13 }} aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+            </PopupAtReport>
+          )}
           <MarkerClusterGroup chunkedLoading showCoverageOnHover={false} spiderfyOnMaxZoom maxClusterRadius={45} iconCreateFunction={clusterIcon}>
             {shown.map(r => (
               <Marker
@@ -250,7 +321,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
         ) : null}
 
         {/* Legend */}
-        <div data-testid="public-map-legend" style={{ position: 'absolute', bottom: 16, left: 16, background: lp.mapLegendBg, backdropFilter: 'blur(14px)', border: `1px solid ${lp.mapLegendBorder}`, borderRadius: 12, padding: '12px 16px', zIndex: 1100 }}>
+        <div data-testid="public-map-legend" className="td-map-hide-with-card" style={{ position: 'absolute', bottom: 16, left: 16, background: lp.mapLegendBg, backdropFilter: 'blur(14px)', border: `1px solid ${lp.mapLegendBorder}`, borderRadius: 12, padding: '12px 16px', zIndex: 1100 }}>
           <p style={{ fontFamily: FONT_LABEL, fontSize: 10, fontWeight: 700, letterSpacing: '2px', color: lp.mapLegendLabel, textTransform: 'uppercase', margin: '0 0 8px' }}>Risk Level</p>
           {['critical', 'high', 'medium', 'low'].map(s => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -264,54 +335,6 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
           </div>
         </div>
 
-        {/* Read-only details card */}
-        {selected && (
-          <div className="td-pub-card" role="dialog" aria-label="Report details" data-testid="public-report-card"
-            style={{ background: card.bg, border: `1px solid ${card.border}`, borderRadius: 16, boxShadow: '0 20px 50px rgba(0,0,0,0.35)', fontFamily: FONT_BODY, color: card.text }}>
-            <div style={{ position: 'relative' }}>
-              {selected.photos.length > 0 ? (
-                <button onClick={() => setLightbox(selected.photos[0])} title="View larger photo" style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: card.photoBg, cursor: 'zoom-in' }}>
-                  <img src={selected.photos[0]} alt={`${toTitle(selected.wasteType)} waste reported, ${describeArea(selected)}`} loading="lazy" decoding="async"
-                    style={{ display: 'block', width: '100%', height: 160, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
-                </button>
-              ) : (
-                <div data-testid="no-photo-strip" style={{ height: 34, background: card.photoBg, borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 11, color: card.sub }}>
-                  <i className="fas fa-camera" style={{ marginRight: 6 }} />No photo
-                </div>
-              )}
-              <button onClick={() => setSelectedId(null)} aria-label="Close details" style={{ position: 'absolute', top: selected.photos.length ? 8 : 3, right: 8, width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer' }}>
-                <i className="fas fa-times" />
-              </button>
-            </div>
-            <div style={{ padding: '14px 16px 16px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                {selected.isCleanedUp ? (
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: CLEANED_COLOR, color: '#fff' }}>✓ Cleaned up</span>
-                ) : (
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: `${RISK_COLORS[selected.severity] || UNKNOWN_COLOR}22`, color: RISK_COLORS[selected.severity] || UNKNOWN_COLOR, border: `1px solid ${RISK_COLORS[selected.severity] || UNKNOWN_COLOR}55` }}>
-                    {toTitle(selected.severity)} risk
-                  </span>
-                )}
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: card.chipBg, color: card.sub }}>{toTitle(selected.status)}</span>
-              </div>
-              <p style={{ fontFamily: FONT_LABEL, fontSize: 15, fontWeight: 700, margin: '0 0 2px' }}>{toTitle(selected.wasteType)} waste</p>
-              <p style={{ fontSize: 13, color: card.sub, margin: '0 0 12px' }}>
-                <i className="fas fa-map-marker-alt" style={{ marginRight: 6 }} />{describeArea(selected)}
-              </p>
-              <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 12px', fontSize: 13, margin: 0 }}>
-                <dt style={{ color: card.sub }}>Severity</dt><dd style={{ margin: 0 }}>{toTitle(selected.severity)}</dd>
-                <dt style={{ color: card.sub }}>Reported</dt><dd style={{ margin: 0 }} title={new Date(selected.createdAt).toLocaleString()}>{timeAgo(selected.createdAt)}</dd>
-                {selected.isCleanedUp && cleanupDurationText(selected.createdAt, selected.completedAt) && (
-                  <><dt style={{ color: card.sub }}>Cleanup</dt><dd style={{ margin: 0 }}>{cleanupDurationText(selected.createdAt, selected.completedAt)}</dd></>
-                )}
-              </dl>
-              <Link to={detailsHref} data-testid="view-more-details"
-                style={{ display: 'block', marginTop: 14, textAlign: 'center', fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, background: '#1b6e35', color: '#fff', borderRadius: 10, padding: '9px 14px', textDecoration: 'none' }}>
-                View more details <i className="fas fa-arrow-right" style={{ marginLeft: 6, fontSize: 11 }} aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
-        )}
 
         {expandable && (
           <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 1100 }}>
