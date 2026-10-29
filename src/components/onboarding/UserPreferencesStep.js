@@ -53,7 +53,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-gray-900">User Preferences</h3>
+        <h2 className="text-2xl font-bold text-td-ink">User Preferences</h2>
         <p className="mt-2 text-md text-gray-600 max-w-md mx-auto">
           Customize your TrashDrop experience with these personalized settings
         </p>
@@ -81,7 +81,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   type="checkbox"
                   checked={notificationPreferences.email}
                   onChange={handleNotificationChange}
-                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -98,7 +98,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   type="checkbox"
                   checked={notificationPreferences.push}
                   onChange={handleNotificationChange}
-                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -115,7 +115,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   type="checkbox"
                   checked={notificationPreferences.sms}
                   onChange={handleNotificationChange}
-                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -147,7 +147,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   type="checkbox"
                   checked={dashboardPreferences.showKpis}
                   onChange={handleDashboardChange}
-                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -164,7 +164,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   type="checkbox"
                   checked={dashboardPreferences.showRecentActivity}
                   onChange={handleDashboardChange}
-                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-td-border-strong rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -184,7 +184,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                   name="defaultView"
                   value={dashboardPreferences.defaultView}
                   onChange={handleDashboardChange}
-                  className="block w-full pl-10 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                  className="block w-full pl-10 pr-10 py-2.5 text-base border border-td-border-strong bg-white focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
                 >
                 <option value="map">Map View</option>
                 <option value="list">List View</option>

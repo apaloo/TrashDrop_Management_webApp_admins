@@ -3,7 +3,7 @@ import React from 'react';
 const CompletionStep = ({ formData, onComplete, onPrevious, isLoading, error }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-gray-900">Review and Complete</h3>
+      <h2 className="text-2xl font-bold text-td-ink">Review and Complete</h2>
       <p className="mt-1 text-sm text-gray-600">
         Please review your information before completing setup
       </p>

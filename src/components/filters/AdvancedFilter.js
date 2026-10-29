@@ -183,7 +183,7 @@ const AdvancedFilter = ({
         >
           <span>Clear Filters</span>
           {activeFiltersCount > 0 && (
-            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-blue-600 text-white">
+            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-green-600 text-white">
               {activeFiltersCount}
             </span>
           )}

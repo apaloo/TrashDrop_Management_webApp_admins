@@ -394,7 +394,7 @@ const IllegalDumpingMap = () => {
     const s = normalizeEnum(report.status);
     const actions = [];
     if (s === 'pending' && canVerify) actions.push({ key: 'verify', label: 'Verify Report', icon: 'fa-check-circle', className: 'bg-yellow-500 text-white hover:bg-yellow-600', run: () => updateReportStatus(report, 'verified') });
-    if (canAssign && (s === 'pending' || s === 'verified') && !report.cleanupAssigned) actions.push({ key: 'assign', label: 'Assign Cleanup Team', icon: 'fa-user-plus', className: 'bg-blue-600 text-white hover:bg-blue-700', run: () => openCollectorModal(report) });
+    if (canAssign && (s === 'pending' || s === 'verified') && !report.cleanupAssigned) actions.push({ key: 'assign', label: 'Assign Cleanup Team', icon: 'fa-user-plus', className: 'bg-green-600 text-white hover:bg-green-700', run: () => openCollectorModal(report) });
     if (s === 'in_progress' && canMarkCleaned) actions.push({ key: 'complete', label: 'Mark Completed', icon: 'fa-broom', className: 'bg-green-600 text-white hover:bg-green-700', run: () => updateReportStatus(report, 'completed') });
     if (canManageReports && (s === 'pending' || s === 'verified')) actions.push({ key: 'cancel', label: 'Cancel Report', icon: 'fa-ban', className: 'border border-gray-300 text-gray-600 hover:bg-gray-50', run: () => updateReportStatus(report, 'cancelled') });
     return actions;
@@ -1043,7 +1043,7 @@ const IllegalDumpingMap = () => {
                     setShowDetailsModal(false);
                     openCollectorModal(detailsReport);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
                 >
                   Assign Cleanup Team
                 </button>

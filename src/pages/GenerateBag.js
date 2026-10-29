@@ -369,7 +369,7 @@ const GenerateBag = () => {
                         <FontAwesomeIcon icon={faEye} /> View
                       </button>
                       <button type="button" onClick={() => handleDownloadClick(b)} disabled={isDownloading && downloadingBatch === b.id}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">
                         <FontAwesomeIcon icon={isDownloading && downloadingBatch === b.id ? faSpinner : faDownload} className={isDownloading && downloadingBatch === b.id ? 'animate-spin' : ''} /> QR
                       </button>
                     </td>
@@ -423,7 +423,7 @@ const GenerateBag = () => {
                 ))}
                 <div className="pt-3 space-y-2">
                   <button onClick={() => { handleDownloadClick(viewQRModal.batch); setViewQRModal({ visible: false, batch: null }); }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                     <FontAwesomeIcon icon={faDownload} /> Download QR Code
                   </button>
                   <Link to={`/bin-management/manage?batch=${viewQRModal.batch.id}`} className="block text-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">

@@ -54,7 +54,7 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-gray-900">Company Information</h3>
+        <h2 className="text-2xl font-bold text-td-ink">Company Information</h2>
         <p className="mt-2 text-md text-gray-600 max-w-md mx-auto">
           Tell us about your company to help personalize your TrashDrop experience
         </p>
@@ -75,8 +75,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
               name="company-name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className={`block w-full pl-10 rounded-md shadow-sm py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                validationErrors.companyName ? 'border-red-500' : 'border-gray-300'
+              className={`block w-full pl-10 rounded-lg border bg-white py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                validationErrors.companyName ? 'border-red-500' : 'border-td-border-strong'
               }`}
               placeholder="Enter your company name"
             />
@@ -99,8 +99,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
               name="company-type"
               value={companyType}
               onChange={(e) => setCompanyType(e.target.value)}
-              className={`block w-full pl-10 rounded-md shadow-sm py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                validationErrors.companyType ? 'border-red-500' : 'border-gray-300'
+              className={`block w-full pl-10 rounded-lg border bg-white py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                validationErrors.companyType ? 'border-red-500' : 'border-td-border-strong'
               }`}
             >
             <option value="">Select Company Type</option>
@@ -127,8 +127,8 @@ const CompanyInfoStep = ({ formData, updateFormData, onNext }) => {
               value={operatingArea}
               onChange={(e) => setOperatingArea(e.target.value)}
               placeholder="Describe your service area (e.g., 'City of Portland', 'Greater Chicago Area')"
-              className={`block w-full pl-10 rounded-md shadow-sm py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                validationErrors.operatingArea ? 'border-red-500' : 'border-gray-300'
+              className={`block w-full pl-10 rounded-lg border bg-white py-2.5 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                validationErrors.operatingArea ? 'border-red-500' : 'border-td-border-strong'
               }`}
             />
           </div>

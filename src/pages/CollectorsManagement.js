@@ -65,7 +65,7 @@ const AssignButton = ({ c, onClick, compact = false }) => {
   return (
     <span title={blocked || 'Assign pending pickups'} className="inline-flex">
       <button type="button" disabled={!!blocked} onClick={onClick} aria-label={`Assign pickups to ${c.name}`}
-        className="px-3 py-1.5 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
+        className="px-3 py-1.5 rounded text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
         <i className="fas fa-tasks mr-1" aria-hidden="true"></i>{compact ? 'Assign' : 'Assign pickups'}
       </button>
     </span>

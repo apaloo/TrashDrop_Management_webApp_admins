@@ -123,7 +123,7 @@ const ModalDemo = () => {
           </p>
           <button
             onClick={() => openModal('qrCode', mockQrData)}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             Show QR Code
           </button>
@@ -178,7 +178,7 @@ const ModalDemo = () => {
               collector: mockCollector,
               onSave: handleSaveCollector
             })}
-            className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             View Collector
           </button>
@@ -206,7 +206,7 @@ const ModalDemo = () => {
           </p>
           <button
             onClick={() => openModal('messages')}
-            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             Open Messages
           </button>
