@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FAQAccordion, SectionNav } from '../components/PublicPageLayout';
+import { TYPE, BTN } from '../theme/brand';
+import { COLLECTOR_APP_URL } from '../config/homepage';
 import { BUSINESS } from '../utils/seo';
 
 const FAQ_SCHEMA = {
@@ -51,6 +52,15 @@ const EARNINGS = [
   { label:'Tips (100% yours)',          desc:'Any tip a user adds goes entirely to you — TrashDrop takes nothing from tips.',       color:'#22c55e' },
   { label:'Recyclables Revenue (60%)',  desc:'You keep 60% of the value of any recyclable materials in the waste you collect.',    color:'#3b82f6' },
   { label:'Authority Assignments',      desc:'Government and municipal contracts paying ₵50–₵500 per assignment.',                 color:'#a78bfa' },
+];
+
+// The page's sections, for the links bar under the hero
+const SECTIONS = [
+  { id:'join',         label:'Join' },
+  { id:'steps',        label:'Steps' },
+  { id:'earnings',     label:'Pay' },
+  { id:'requirements', label:'What you need' },
+  { id:'faq',          label:'FAQ' },
 ];
 
 const FAQ_ITEMS = [
@@ -122,71 +132,69 @@ const CollectorsPage = () => {
 
   return (
     <PublicPageLayout>
-      <style>{`@media(max-width:1000px){ .td-steps-poster{grid-template-columns:1fr!important} .td-steps-poster figure{position:static!important; max-width:440px; width:100%; margin:0 auto!important} }`}</style>
+      <style>{`
+        @media(max-width:1000px){ .td-steps-poster{grid-template-columns:1fr!important} .td-steps-poster figure{position:static!important; max-width:440px; width:100%; margin:0 auto!important} }
+        @media(max-width:820px){ .td-carter-flyer{grid-template-columns:1fr!important; gap:32px!important} .td-carter-flyer > img{max-width:420px; margin:0 auto} }
+        @media(max-width:768px){ .td-carter-qr{display:none!important} }
+        .td-carter-section { scroll-margin-top: 132px; }
+      `}</style>
       {/* ── Hero ── */}
-      <section style={{ background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
+      <section data-surface="dark" style={{ background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         {/* TrashDrop-branded tricycle behind a dark overlay so the text stays readable */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/collectors/hero-tricycle.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', opacity:0.6 }} />
         <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(180deg, rgba(9,21,9,0.88) 0%, rgba(9,21,9,0.8) 45%, ${TD.ink} 100%)` }} />
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
-            <i className="fas fa-truck" style={{ color:TD.lime, fontSize:11 }}></i>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Earn as a Carter</span>
-          </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,64px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
+          <span style={{ ...TYPE.eyebrow, color:TD.lime, display:'block', marginBottom:16 }}>Earn as a carter</span>
+          <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 20px' }}>
             How can I earn money collecting waste in Ghana?
           </h1>
-          <p style={{ ...FF.body, fontSize:19, color:'rgba(255,255,255,0.9)', lineHeight:1.7, maxWidth:620, margin:'0 auto 40px' }}>
+          <p style={{ ...TYPE.lead, color:'rgba(255,255,255,0.9)', maxWidth:620, margin:'0 auto 32px' }}>
             Earn with your aboboyaa or tricycle. Accept pickups near you and get paid to MoMo — ₵32.43 a pickup on average.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            {/* Collectors join in the Carter app: scroll to its QR code at the bottom of the page */}
-            <Link to="/collectors/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
-              Join as a Collector
-            </Link>
-            <a href="#earnings" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
-              See Earnings Breakdown
-            </a>
+            <a href={COLLECTOR_APP_URL} style={BTN.primaryOnDark}>Join as a collector</a>
+            <a href="#earnings" style={BTN.ghostOnDark}>How pay works</a>
           </div>
           {/* ── Stat bar ── */}
-          <div style={{ display:'flex', gap:40, justifyContent:'center', flexWrap:'wrap', marginTop:56 }}>
-            {[{v:'₵32.43', l:'Avg Per Pickup'},{v:'480+',l:'Active Collectors'}].map(s => (
+          <div style={{ display:'flex', gap:48, justifyContent:'center', flexWrap:'wrap', margin:'48px 0 0' }}>
+            {[{v:'₵32.43', l:'Average per pickup'},{v:'480+',l:'Active collectors'}].map(s => (
               <div key={s.l} style={{ textAlign:'center' }}>
-                <div style={{ ...FF.data, fontSize:28, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-                <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
+                <div style={{ ...TYPE.stat, color:TD.lime }}>{s.v}</div>
+                <div style={{ ...TYPE.small, color:TD.sageOnDark }}>{s.l}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      <SectionNav items={SECTIONS} />
+
       {/* ── Join flyer ── */}
-      <style>{`@media(max-width:820px){ .td-carter-flyer{grid-template-columns:1fr!important; gap:32px!important} .td-carter-flyer > img{max-width:420px; margin:0 auto} }`}</style>
-      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
+      <section id="join" className="td-carter-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
         <div className="td-carter-flyer" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'minmax(0,420px) minmax(0,1fr)', gap:48, alignItems:'center' }}>
           <img src="/images/collectors/earn-flyer.jpg" alt="TrashDrop carter flyer: a rider on a TrashDrop tricycle. What you'll earn: steady pay, your tricycle, ID verified. Collector gets free GHC 250 worth of PPE. WhatsApp +233 20 933 8885."
             width="760" height="1048" loading="lazy" decoding="async"
-            style={{ width:'100%', height:'auto', aspectRatio:'760 / 1048', borderRadius:18, boxShadow:'0 24px 60px rgba(0,0,0,0.45)', display:'block' }} />
+            style={{ width:'100%', height:'auto', aspectRatio:'760 / 1048', borderRadius:'var(--td-radius-panel)', display:'block' }} />
           <div style={{ minWidth:0 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Join as a carter</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 16px', letterSpacing:'-1px', lineHeight:1.1 }}>Earn more on every pickup with your own tricycle</h2>
-            <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.75, margin:'0 0 24px', maxWidth:520 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Join as a carter</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 16px' }}>Earn more on every pickup with your own tricycle</h2>
+            <p style={{ ...TYPE.body, color:TD.sage, margin:'0 0 24px', maxWidth:520 }}>
               Bring your aboboyaa or tricycle. We send you pickup jobs near you and pay you to mobile money.
             </p>
-            <ul style={{ listStyle:'none', padding:0, margin:'0 0 32px', display:'grid', gap:14 }}>
+            <ul style={{ listStyle:'none', padding:0, margin:'0 0 32px', display:'grid', gap:16 }}>
               {[['fa-hand-holding-usd','Steady pay','Jobs near you every day, paid straight to MoMo.'],
                 ['fa-truck','Your tricycle','Use the vehicle you already ride.'],
                 ['fa-id-card','ID verified','Every carter is checked, so households trust you at the door.']].map(([icon, t, d]) => (
                 <li key={t} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-                  <span style={{ width:40, height:40, borderRadius:12, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className={`fas ${icon}`} style={{ color:TD.lime, fontSize:16 }} aria-hidden="true"></i></span>
-                  <span><strong style={{ ...FF.label, fontSize:14, color:'#f0f5f0', display:'block', marginBottom:2 }}>{t}</strong><span style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)' }}>{d}</span></span>
+                  <i className={`fas ${icon}`} style={{ color:TD.forest, fontSize:18, width:24, textAlign:'center', marginTop:3 }} aria-hidden="true"></i>
+                  <span><strong style={{ ...TYPE.body, fontWeight:600, color:TD.ink, display:'block' }}>{t}</strong><span style={{ ...TYPE.small, color:TD.sage }}>{d}</span></span>
                 </li>
               ))}
             </ul>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <Link to="/collectors/#download-app" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none' }}>Join as a Collector</Link>
-              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 22px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.18)', display:'inline-flex', alignItems:'center', gap:8 }}>
-                <i className="fab fa-whatsapp" style={{ color:'#25D366' }} aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
+              <a href={COLLECTOR_APP_URL} style={BTN.primary}>Join as a collector</a>
+              <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={BTN.tonal}>
+                <i className="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
               </a>
             </div>
           </div>
@@ -194,153 +202,131 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── How to Sign Up ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
+      <section id="steps" className="td-carter-section" style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Getting Started</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Six steps to your first pickup</h2>
+          <div style={{ maxWidth:720, marginBottom:40 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Getting started</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Six steps to your first pickup</h2>
           </div>
           <div className="td-steps-poster" style={{ display:'grid', gridTemplateColumns:'1fr 380px', gap:32, alignItems:'start' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:20 }}>
-            {SIGNUP_STEPS.map((s,i) => (
-              <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'28px 24px', position:'relative', overflow:'hidden' }}>
-                <div aria-hidden="true" style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:`${TD.lime}08` }}>{s.n}</div>
-                <div style={{ width:44, height:44, borderRadius:12, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
-                  <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:17 }}></i>
-                </div>
-                <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
-              </div>
-            ))}
-          </div>
-          {/* The TrashDrop network poster: every region, one network */}
-          <figure style={{ margin:0, position:'sticky', top:96 }}>
-            <img src="/images/collectors/trashdrop-network-poster.jpg" width="800" height="1132" loading="lazy" decoding="async"
-              alt="TrashDrop poster: Ghana's on-demand waste collection network linking collectors in every region, from Accra and Kumasi to Takoradi and Tamale. One network. Every street. Zero waste."
-              style={{ width:'100%', height:'auto', borderRadius:16, border:`1px solid ${TD.lime}30`, boxShadow:`0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${TD.lime}18`, display:'block' }} />
-          </figure>
+            <ol style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:16 }}>
+              {SIGNUP_STEPS.map(s => (
+                <li key={s.n} style={{ background:TD.cream, border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'24px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+                    <span style={{ ...TYPE.small, fontWeight:700, color:TD.forest, fontVariantNumeric:'tabular-nums' }}>{s.n}</span>
+                    <i className={`fas ${s.icon}`} aria-hidden="true" style={{ color:TD.forest, fontSize:18 }}></i>
+                  </div>
+                  <h3 style={{ ...TYPE.card, color:TD.ink, margin:'0 0 8px' }}>{s.title}</h3>
+                  <p style={{ ...TYPE.small, color:TD.sage, margin:0 }}>{s.body}</p>
+                </li>
+              ))}
+            </ol>
+            {/* The TrashDrop network poster: every region, one network */}
+            <figure style={{ margin:0, position:'sticky', top:140 }}>
+              <img src="/images/collectors/trashdrop-network-poster.jpg" width="800" height="1132" loading="lazy" decoding="async"
+                alt="TrashDrop poster: Ghana's on-demand waste collection network linking collectors in every region, from Accra and Kumasi to Takoradi and Tamale. One network. Every street. Zero waste."
+                style={{ width:'100%', height:'auto', borderRadius:'var(--td-radius-card)', display:'block' }} />
+            </figure>
           </div>
         </div>
       </section>
 
       {/* ── Earnings Breakdown ── */}
-      <section id="earnings" style={{ background:`linear-gradient(160deg,#0d1a0d 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px' }}>
+      <section id="earnings" className="td-carter-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:960, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Earnings Formula</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 12px', letterSpacing:'-1px' }}>Exactly how your pay is calculated</h2>
-            <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', maxWidth:560, margin:'0 auto' }}>Full-time collectors earn between <strong style={{ color:'#fff' }}>₵2,500 and ₵8,000 per month</strong> not counting surge bonuses and authority assignments.</p>
+          <div style={{ maxWidth:720, marginBottom:40 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Earnings formula</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 12px' }}>Exactly how your pay is calculated</h2>
+            <p style={{ ...TYPE.body, color:TD.sage, margin:0 }}>Full-time collectors earn between <strong style={{ color:TD.ink }}>₵2,500 and ₵8,000 per month</strong> not counting surge bonuses and authority assignments.</p>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:16 }}>
-            {EARNINGS.map((e,i) => (
-              <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${e.color}20`, borderRadius:16, padding:'24px 22px', display:'flex', alignItems:'flex-start', gap:16 }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0, marginTop:6 }} />
-                <div>
-                  <div style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{e.label}</div>
-                  <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{e.desc}</div>
-                </div>
-              </div>
+          <ul style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:16 }}>
+            {EARNINGS.map(e => (
+              <li key={e.label} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'22px', display:'flex', alignItems:'flex-start', gap:14 }}>
+                <span aria-hidden="true" style={{ width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0, marginTop:8 }} />
+                <span>
+                  <span style={{ ...TYPE.body, fontWeight:600, color:TD.ink, display:'block', marginBottom:4 }}>{e.label}</span>
+                  <span style={{ ...TYPE.small, color:TD.sage }}>{e.desc}</span>
+                </span>
+              </li>
             ))}
-          </div>
-          <div style={{ marginTop:40, background:`${TD.lime}10`, border:`1px solid ${TD.lime}25`, borderRadius:16, padding:'28px 32px', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
-            <i className="fas fa-calculator" style={{ color:TD.lime, fontSize:28 }}></i>
-            <div>
-              <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, marginBottom:4 }}>Example: 10 pickups/day × 5 days/week</div>
-              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.7 }}>10 pickups × ₵32.43 avg × 20 working days = <strong style={{ color:'#fff' }}>₵6,486/month</strong> before bonuses, tips, and recyclables.</div>
+          </ul>
+          {[
+            { icon:'fa-calculator', title:'Example: 10 pickups/day × 5 days/week', body:<>10 pickups × ₵32.43 avg × 20 working days = <strong style={{ color:TD.ink }}>₵6,486/month</strong> before bonuses, tips, and recyclables.</> },
+            { icon:'fa-wallet', title:'Cash out to MoMo any time', body:<>Earnings reach your balance as soon as the disposal step is confirmed. Withdraw to MTN, Telecel or AirtelTigo mobile money: <strong style={{ color:TD.ink }}>minimum ₵10, up to ₵5,000 a day</strong>.</> },
+          ].map(n => (
+            <div key={n.title} style={{ marginTop:16, background:'#e6f2e9', borderRadius:'var(--td-radius-card)', padding:'24px 28px', display:'flex', alignItems:'center', gap:20, flexWrap:'wrap' }}>
+              <i className={`fas ${n.icon}`} style={{ color:TD.forest, fontSize:24 }} aria-hidden="true"></i>
+              <div style={{ minWidth:0, flex:1 }}>
+                <div style={{ ...TYPE.body, fontWeight:600, color:TD.forest, marginBottom:4 }}>{n.title}</div>
+                <div style={{ ...TYPE.small, color:TD.sage }}>{n.body}</div>
+              </div>
             </div>
-          </div>
-          <div style={{ marginTop:16, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'28px 32px', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap' }}>
-            <i className="fas fa-wallet" style={{ color:TD.lime, fontSize:28 }} aria-hidden="true"></i>
-            <div>
-              <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, marginBottom:4 }}>Cash out to MoMo any time</div>
-              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.7 }}>Earnings reach your balance as soon as the disposal step is confirmed. Withdraw to MTN, Telecel or AirtelTigo mobile money: <strong style={{ color:'#fff' }}>minimum ₵10, up to ₵5,000 a day</strong>.</div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* ── Electric tricycles (partnership) ── */}
-      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
+      <section style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:36 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Coming for TrashDrop carters</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.1 }}>From manual lifting to electric bin-lifter tricycles</h2>
-            <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.62)', lineHeight:1.75, maxWidth:640, margin:'0 auto' }}>
+          <div style={{ maxWidth:720, marginBottom:32 }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Coming for TrashDrop carters</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 12px' }}>From manual lifting to electric bin-lifter tricycles</h2>
+            <p style={{ ...TYPE.body, color:TD.sage, margin:0 }}>
               TrashDrop is working with a partner provider to help carters move to electric tricycles with automatic hydraulic bin lifters: less heavy lifting, safer work and faster pickups.
             </p>
           </div>
           <img src="/images/collectors/ev-bin-lifter.jpg" alt="Left: TrashDrop carters lifting a bin by hand onto a motor tricycle. Right: an electric TrashDrop tricycle with an automatic hydraulic bin lifter. Manual lifting, labour intensive; automated lifting, smarter, safer, faster."
             width="1600" height="900" loading="lazy" decoding="async"
-            style={{ width:'100%', height:'auto', aspectRatio:'16 / 9', objectFit:'cover', borderRadius:20, display:'block', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }} />
+            style={{ width:'100%', height:'auto', aspectRatio:'16 / 9', objectFit:'cover', borderRadius:'var(--td-radius-panel)', display:'block' }} />
         </div>
       </section>
 
       {/* ── Requirements ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
-          <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', letterSpacing:'-1px', margin:'0 0 40px' }}>What you need to join</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:16 }}>
+      <section id="requirements" className="td-carter-section" style={{ background:TD.cream, padding:'var(--td-section-y) 24px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto' }}>
+          <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 32px' }}>What you need to join</h2>
+          <ul style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:16 }}>
             {[
               { icon:'fa-id-card',    title:'Valid Ghana ID', body:'Ghana Card, Passport, or Voters ID — front and back photos required.' },
               { icon:'fa-phone',      title:'Ghana Phone Number', body:'+233 format. Used as your login. No email address required.' },
               { icon:'fa-truck',      title:'Vehicle Details', body:'Type, licence plate, colour, and a vehicle photo. Tricycles (aboboyaa) accepted.' },
               { icon:'fa-building',   title:'Company / Org ID', body:'Organisation or company ID to verify professional affiliation where applicable.' },
-            ].map((r,i) => (
-              <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px 20px' }}>
-                <i className={`fas ${r.icon}`} style={{ color:TD.lime, fontSize:22, marginBottom:14, display:'block' }}></i>
-                <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{r.title}</div>
-                <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{r.body}</div>
-              </div>
+            ].map(r => (
+              <li key={r.title} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'22px' }}>
+                <i className={`fas ${r.icon}`} aria-hidden="true" style={{ color:TD.forest, fontSize:20, marginBottom:12, display:'block' }}></i>
+                <div style={{ ...TYPE.body, fontWeight:600, color:TD.ink, marginBottom:6 }}>{r.title}</div>
+                <div style={{ ...TYPE.small, color:TD.sage }}>{r.body}</div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
+      <section id="faq" className="td-carter-section" style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:48 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>FAQ</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-0.5px' }}>Collector questions answered</h2>
+          <div style={{ maxWidth:780, margin:'0 auto 32px' }}>
+            <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>FAQ</span>
+            <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Collector questions answered</h2>
           </div>
-          <FAQAccordion items={FAQ_ITEMS} />
+          <FAQAccordion items={FAQ_ITEMS} surface="light" />
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
-        <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Start earning today</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
-        
-        {/* ── Carter app QR code (the "Join as a Collector" buttons scroll here) ── */}
+      <section data-surface="dark" style={{ background:TD.ink, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
+        <h2 style={{ ...TYPE.h2, color:'#f0f5f0', margin:'0 0 16px' }}>Start earning today</h2>
+        <p style={{ ...TYPE.body, color:TD.sageOnDark, margin:'0 auto 32px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
+        {/* ── Carter app QR code for a second screen; links to #download-app still land here ── */}
         <div id="download-app" data-scroll-align="center" style={{ margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
-          <div style={{ 
-            width:200, 
-            height:200, 
-            background:'rgba(255,255,255,0.95)', 
-            borderRadius:16, 
-            display:'flex', 
-            alignItems:'center', 
-            justifyContent:'center',
-            boxShadow:'0 12px 48px rgba(0,0,0,0.25)',
-            border:`2px solid ${TD.lime}30`
-          }}>
-            <img 
-              src="/images/TrashDrop Carter App QR code.jpeg" 
-              alt="Scan to download TrashDrop Carter App" 
-              style={{ width:180, height:180, borderRadius:8, objectFit:'cover' }}
-            />
+          <div className="td-carter-qr" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
+            <div style={{ background:'#fff', borderRadius:18, padding:10 }}>
+              <img src="/images/TrashDrop Carter App QR code.jpeg" alt="Scan to open the TrashDrop Carter app"
+                style={{ width:180, height:180, borderRadius:8, objectFit:'cover', display:'block' }} />
+            </div>
+            <span style={{ ...TYPE.eyebrow, color:TD.lime }}>Scan to open the Carter app</span>
           </div>
-          <div style={{ 
-            ...FF.label, 
-            fontSize:13, 
-            fontWeight:700, 
-            color:TD.lime, 
-            letterSpacing:'2.5px', 
-            textTransform:'uppercase' 
-          }}>
-            SCAN TO DOWNLOAD
-          </div>
+          <a href={COLLECTOR_APP_URL} style={BTN.primaryOnDark}>Open the Carter app</a>
         </div>
       </section>
     </PublicPageLayout>

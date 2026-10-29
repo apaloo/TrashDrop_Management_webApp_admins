@@ -15,6 +15,9 @@ export const PUBLIC_STAT_THRESHOLDS = {
 // Where households book: the TrashDrop household app (the booking card's QR code opens it too)
 export const HOUSEHOLD_APP_URL = process.env.REACT_APP_HOUSEHOLD_APP_URL || 'https://app.trashdrops.com/';
 
+// Where collectors sign up and work: the TrashDrop Carter app
+export const COLLECTOR_APP_URL = process.env.REACT_APP_COLLECTOR_APP_URL || 'https://collector.trashdrops.com/';
+
 // Cities on the booking card, with a centre point for "use my location"
 export const BOOKING_CITIES = [
   { name: 'Accra',    lat: 5.6037, lng: -0.1870 },
