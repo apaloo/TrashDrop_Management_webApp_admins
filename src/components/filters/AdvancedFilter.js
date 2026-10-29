@@ -74,7 +74,7 @@ const AdvancedFilter = ({
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-400"></i>
+                <i className="fas fa-search text-gray-500"></i>
               </div>
               <input
                 type="text"

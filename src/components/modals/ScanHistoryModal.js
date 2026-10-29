@@ -76,7 +76,7 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
           </h3>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-500 hover:text-gray-600 transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
@@ -87,7 +87,7 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">
               <div className="inline-block rounded-full bg-gray-100 p-4 mb-4">
-                <i className="fas fa-history text-gray-400 text-3xl"></i>
+                <i className="fas fa-history text-gray-500 text-3xl"></i>
               </div>
               <p className="text-gray-500">No scan history available for this bag</p>
             </div>

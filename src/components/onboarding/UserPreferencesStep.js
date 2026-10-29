@@ -177,7 +177,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
               <label htmlFor="default-view" className="block text-sm font-medium text-gray-700">Default Dashboard View</label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-desktop text-gray-400"></i>
+                  <i className="fas fa-desktop text-gray-500"></i>
                 </div>
                 <select
                   id="default-view"

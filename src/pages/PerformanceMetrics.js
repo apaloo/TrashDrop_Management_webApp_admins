@@ -293,7 +293,7 @@ const PerformanceMetrics = () => {
                   </thead>
                   <tbody>
                     {list.map((m, i) => (
-                      <tr key={m.key} className={`border-t border-gray-100 ${m.enabled ? '' : 'text-gray-400'}`} data-testid={`row-${r.key}-${m.key}`}>
+                      <tr key={m.key} className={`border-t border-gray-100 ${m.enabled ? '' : 'text-gray-500'}`} data-testid={`row-${r.key}-${m.key}`}>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <button type="button" onClick={() => move(list, i, -1)} disabled={saving || i === 0}
                             aria-label={`Move ${m.label} up`} className="px-1.5 disabled:opacity-30"><i className="fas fa-arrow-up" aria-hidden="true"></i></button>

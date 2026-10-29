@@ -18,7 +18,7 @@ const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : null);
 const Card = ({ label, value, sub, testid }) => (
   <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200" data-testid={testid}>
     <p className="text-sm text-gray-500">{label}</p>
-    <p className={value === NO_DATA ? 'text-lg font-semibold text-gray-400 mt-1' : 'text-2xl font-bold text-gray-800 mt-1'}>{value}</p>
+    <p className={value === NO_DATA ? 'text-lg font-semibold text-gray-500 mt-1' : 'text-2xl font-bold text-gray-800 mt-1'}>{value}</p>
     {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
   </div>
 );
@@ -41,7 +41,7 @@ const ScansChart = ({ series, days, onDays }) => {
           ))}
         </div>
       </div>
-      {total === 0 ? <p className="h-28 flex items-center justify-center text-sm text-gray-400">{NO_DATA}</p> : (
+      {total === 0 ? <p className="h-28 flex items-center justify-center text-sm text-gray-500">{NO_DATA}</p> : (
         <div>
           <div className="h-28 flex items-end gap-px" role="img" aria-label={`Bags scanned per day, last ${days} days, ${total} in total`}>
             {series.map(d => (

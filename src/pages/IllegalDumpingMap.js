@@ -432,7 +432,7 @@ const IllegalDumpingMap = () => {
       }}
       onClick={onClick}
     >
-      {label} <span className={active ? 'opacity-80' : 'text-gray-400'}>{count || 0}</span>
+      {label} <span className={active ? 'opacity-80' : 'text-gray-500'}>{count || 0}</span>
     </button>
   );
 
@@ -448,7 +448,7 @@ const IllegalDumpingMap = () => {
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {lastUpdated && (
-            <span className="text-xs text-gray-400" title={lastUpdated.toLocaleString()}>
+            <span className="text-xs text-gray-500" title={lastUpdated.toLocaleString()}>
               Updated {lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -465,7 +465,7 @@ const IllegalDumpingMap = () => {
             onClick={() => refreshData(false)}
             disabled={loading}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+              loading ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
             }`}
           >
             <i className={`fas fa-sync-alt text-xs ${loading ? 'fa-spin' : ''}`}></i>
@@ -484,7 +484,7 @@ const IllegalDumpingMap = () => {
             <div>
               <p className="text-xs text-gray-500 mb-0.5">{label}</p>
               <p className="text-2xl font-bold text-gray-800 leading-tight">{hasLoaded ? value : '—'}</p>
-              {hasLoaded && sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+              {hasLoaded && sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
             </div>
           </div>
         ))}
@@ -495,7 +495,7 @@ const IllegalDumpingMap = () => {
         <div className="fixed top-20 right-4 bg-gray-800 text-white shadow-xl rounded-lg px-4 py-3 z-[10000] flex items-center gap-3 max-w-sm">
           <i className="fas fa-info-circle text-blue-300 flex-shrink-0"></i>
           <span className="text-sm">{toastMessage}</span>
-          <button className="ml-auto text-gray-400 hover:text-white" onClick={() => setShowToast(false)}>
+          <button className="ml-auto text-gray-500 hover:text-white" onClick={() => setShowToast(false)}>
             <i className="fas fa-times text-xs"></i>
           </button>
         </div>
@@ -505,7 +505,7 @@ const IllegalDumpingMap = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
-            <i className="fas fa-filter text-gray-400 text-sm"></i>
+            <i className="fas fa-filter text-gray-500 text-sm"></i>
             <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
             {activeFilterTotal > 0 && (
               <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
@@ -577,18 +577,20 @@ const IllegalDumpingMap = () => {
         <div className="flex flex-wrap items-end gap-3 pt-3 border-t border-gray-100">
           <div className="flex items-end gap-2 flex-1 min-w-[260px]">
             <div className="flex-1">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">From</p>
+              <label htmlFor="dump-date-start" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">From</label>
               <input
+                id="dump-date-start"
                 type="date"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50"
                 value={dateRange.start || ''}
                 onChange={(e) => handleDateRangeChange('start', e.target.value)}
               />
             </div>
-            <span className="text-gray-400 mb-2 text-sm">→</span>
+            <span className="text-gray-500 mb-2 text-sm">→</span>
             <div className="flex-1">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To</p>
+              <label htmlFor="dump-date-end" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To</label>
               <input
+                id="dump-date-end"
                 type="date"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50"
                 value={dateRange.end || ''}
@@ -657,13 +659,14 @@ const IllegalDumpingMap = () => {
                     position={[report.location.lat, report.location.lng]}
                     icon={getMarkerIcon(report.severity)}
                     severity={report.severity}
+                    title={`Dumping report, ${report.severity || 'unknown'} severity`}
                     eventHandlers={{
                       click: () => setSelectedId(report.id)
                     }}
                   >
                     <Popup className="custom-popup" minWidth={220}>
                       <div className="p-2">
-                        <p className="text-xs text-gray-400 font-mono truncate mb-1" style={{maxWidth: 200}}>{report.id}</p>
+                        <p className="text-xs text-gray-500 font-mono truncate mb-1" style={{maxWidth: 200}}>{report.id}</p>
                         <div className="space-y-1 text-sm mb-2">
                           <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${statusBadgeClass(report.status)}`}>
                             {statusLabel(report.status)}
@@ -807,7 +810,7 @@ const IllegalDumpingMap = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="mb-3 h-24 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-400">
+                  <div className="mb-3 h-24 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-500">
                     <i className="fas fa-camera mr-1.5"></i> No photo submitted
                   </div>
                 )}
@@ -823,13 +826,13 @@ const IllegalDumpingMap = () => {
                   {/* Status + Severity badges */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-gray-50 rounded-lg p-2.5">
-                      <p className="text-xs text-gray-400 mb-1">Status</p>
+                      <p className="text-xs text-gray-500 mb-1">Status</p>
                       <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${statusBadgeClass(selectedDumping.status)}`}>
                         {statusLabel(selectedDumping.status)}
                       </span>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2.5">
-                      <p className="text-xs text-gray-400 mb-1">Severity</p>
+                      <p className="text-xs text-gray-500 mb-1">Severity</p>
                       <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${severityBadgeClass(selectedDumping.severity)}`}>
                         {toTitle(selectedDumping.severity) || 'Unknown'}
                       </span>
@@ -838,54 +841,54 @@ const IllegalDumpingMap = () => {
 
                   <div className="border-t border-gray-100 pt-3 space-y-2.5">
                     <div>
-                      <p className="text-xs text-gray-400">Description</p>
+                      <p className="text-xs text-gray-500">Description</p>
                       <p className="text-sm font-medium text-gray-800 mt-0.5">{selectedDumping.description || 'No description provided'}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-xs text-gray-400">Waste Type</p>
+                        <p className="text-xs text-gray-500">Waste Type</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5">{toTitle(selectedDumping.wasteType) || 'N/A'}</p>
                       </div>
                       {selectedDumping.size && (
                         <div>
-                          <p className="text-xs text-gray-400">Size</p>
+                          <p className="text-xs text-gray-500">Size</p>
                           <p className="text-sm font-medium text-gray-800 mt-0.5">{toTitle(selectedDumping.size)}</p>
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400">Location</p>
+                      <p className="text-xs text-gray-500">Location</p>
                       <p className="text-sm font-medium text-gray-800 mt-0.5 leading-snug">{selectedDumping.location.address}</p>
                       {hasCoordinates(selectedDumping) && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-gray-500 mt-0.5">
                           {selectedDumping.location.lat.toFixed(5)}, {selectedDumping.location.lng.toFixed(5)}
                         </p>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-xs text-gray-400">Reported</p>
+                        <p className="text-xs text-gray-500">Reported</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5">
                           {selectedDumping.reportedAt ? new Date(selectedDumping.reportedAt).toLocaleString() : 'N/A'}
                         </p>
                       </div>
                       {selectedDumping.reportedBy && <div>
-                        <p className="text-xs text-gray-400">Reporter</p>
+                        <p className="text-xs text-gray-500">Reporter</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5 break-words">{selectedDumping.reportedBy}</p>
                         {selectedDumping.reporterEmail && selectedDumping.reporterEmail !== selectedDumping.reportedBy && (
-                          <p className="text-xs text-gray-400 break-words">{selectedDumping.reporterEmail}</p>
+                          <p className="text-xs text-gray-500 break-words">{selectedDumping.reporterEmail}</p>
                         )}
                       </div>}
                     </div>
                     {selectedDumping.cleanupTeam && (
                       <div>
-                        <p className="text-xs text-gray-400">Assigned Collector</p>
+                        <p className="text-xs text-gray-500">Assigned Collector</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5">{selectedDumping.cleanupTeam}</p>
                       </div>
                     )}
                     {selectedDumping.resolvedAt && (
                       <div>
-                        <p className="text-xs text-gray-400">Completed</p>
+                        <p className="text-xs text-gray-500">Completed</p>
                         <p className="text-sm font-medium text-gray-800 mt-0.5">{new Date(selectedDumping.resolvedAt).toLocaleString()}</p>
                       </div>
                     )}
@@ -920,7 +923,7 @@ const IllegalDumpingMap = () => {
               <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <i className="fas fa-map-marker-alt text-3xl text-gray-300"></i>
               </div>
-              <p className="text-sm font-medium text-gray-400 text-center">Click a marker on the map</p>
+              <p className="text-sm font-medium text-gray-500 text-center">Click a marker on the map</p>
               <p className="text-xs text-gray-300 text-center mt-1">Report details will appear here</p>
             </div>
           )}
@@ -977,7 +980,7 @@ const IllegalDumpingMap = () => {
                   <p className="text-xs text-gray-500">Location</p>
                   <p className="font-medium text-sm mt-0.5">{detailsReport.location?.address || 'Unknown Location'}</p>
                   {hasCoordinates(detailsReport) && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       Lat: {detailsReport.location.lat.toFixed(4)}, Lng: {detailsReport.location.lng.toFixed(4)}
                     </p>
                   )}

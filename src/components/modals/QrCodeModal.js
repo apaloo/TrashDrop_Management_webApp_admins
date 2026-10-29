@@ -48,7 +48,7 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
           </h3>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-500 hover:text-gray-600 transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
@@ -63,7 +63,7 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
             />
           ) : (
             <div className="w-48 h-48 border p-2 flex items-center justify-center bg-gray-50">
-              <span className="text-gray-400">QR Preview</span>
+              <span className="text-gray-500">QR Preview</span>
             </div>
           )}
           
@@ -71,7 +71,7 @@ const QrCodeModal = ({ isOpen, onClose, qrData }) => {
             <p className="text-sm text-gray-500 mb-1">
               {qrData?.description || 'Scan this code with the TrashDrop app'}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               Prefix: {qrData?.prefix || 'TD-'}
             </p>
           </div>
