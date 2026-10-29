@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD, FAQAccordion } from '../components/PublicPageLayout';
+import { Hero, Section, H2, P, Breadcrumb, StepList, CardGrid, ChipLink, linkStyle } from '../components/PublicSections';
+import { TYPE, BTN } from '../theme/brand';
 import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, cityLocalBusinessJsonLd } from '../utils/seo';
 import { CITY_CONTENT } from './cityContent';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
@@ -21,27 +23,12 @@ const BAG_TYPES = [
   ['Recyclable', 'plastic bottles, cans, paper and cartons'],
 ];
 
-const H2 = ({ children }) => (
-  <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,40px)', color:'#f0f5f0', margin:'0 0 18px', letterSpacing:'-0.8px', lineHeight:1.1 }}>{children}</h2>
-);
-const P = ({ children }) => (
-  <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', lineHeight:1.8, margin:'0 0 16px' }}>{children}</p>
-);
-const Section = ({ bg, children }) => (
-  <section style={{ background:bg, padding:'var(--td-section-y) 24px' }}>
-    <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
-  </section>
-);
-const linkStyle = { color:TD.lime, textDecoration:'underline', textUnderlineOffset:3 };
-
-const CtaButtons = ({ city }) => (
+const CtaButtons = ({ city, dark }) => (
   <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-    <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
-      style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
-      <i className="fab fa-whatsapp"></i> WhatsApp {BUSINESS.phoneDisplay}
+    <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={dark ? BTN.primaryOnDark : BTN.primary}>
+      <i className="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
     </a>
-    <a href={HOUSEHOLD_APP_URL} data-testid="city-book-app"
-      style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 26px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.22)' }}>
+    <a href={HOUSEHOLD_APP_URL} data-testid="city-book-app" style={dark ? BTN.ghostOnDark : BTN.tonal}>
       Sign up to book in {city}
     </a>
   </div>
@@ -74,90 +61,70 @@ const CityWasteCollectionPage = ({ slug }) => {
   return (
     <PublicPageLayout>
       {/* Hero */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
-        <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.68)', marginBottom:20 }}>
-            <Link to="/" style={{ color:'rgba(255,255,255,0.68)', textDecoration:'none' }}>Home</Link> / Waste collection / {c.name}
-          </nav>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            Waste Collection &amp; Trash Pickup in {c.name}
-          </h1>
-          {c.intro.map((t, i) => <P key={i}>{t}</P>)}
-          <div style={{ marginTop:28 }}><CtaButtons city={c.name} /></div>
-        </div>
-      </section>
+      <Hero>
+        <Breadcrumb trail={`Waste collection / ${c.name}`} />
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 24px' }}>
+          Waste Collection &amp; Trash Pickup in {c.name}
+        </h1>
+        {c.intro.map((t, i) => <P key={i} dark>{t}</P>)}
+        <div style={{ marginTop:28 }}><CtaButtons city={c.name} dark /></div>
+      </Hero>
 
       {/* QR Bag */}
-      <Section bg={TD.ink2}>
+      <Section tone="white">
         <H2>How the QR Bag works in {c.name}</H2>
         <P>{c.qrIntro}</P>
-        <ol style={{ listStyle:'none', padding:0, margin:'24px 0 0', display:'grid', gap:14 }}>
-          {QR_STEPS.map(([t, d], i) => (
-            <li key={t} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, color:TD.ink, background:TD.lime, borderRadius:'50%', width:28, height:28, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>{i + 1}</span>
-              <span style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', lineHeight:1.7 }}>
-                <strong style={{ color:'#f0f5f0', fontWeight:600 }}>{t}.</strong> {d}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div style={{ marginTop:24 }}><StepList steps={QR_STEPS} /></div>
       </Section>
 
       {/* Digital Bin */}
-      <Section bg="#0c1a0c">
+      <Section>
         <H2>Digital Bin: on-demand pickup in {c.name}</H2>
         <P>{c.digitalBin}</P>
         <P>See how to <Link to={WASTE_PICKUP_PATH} style={linkStyle}>book a rubbish collector on demand</Link>, from request to disposal confirmation.</P>
       </Section>
 
       {/* Bags */}
-      <Section bg={TD.ink2}>
+      <Section tone="white">
         <H2>Bag sizes and waste types</H2>
         <P>QR Bags come in three sizes: {BAG_SIZES.map(([n, s]) => `${n} ${s}`).join(', ')}. Each size is available for three waste types, and pickup is free on every bag. Bags start from ₵115 for a batch of five.</P>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12, margin:'8px 0 20px' }}>
-          {BAG_TYPES.map(([t, d]) => (
-            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(182,238,105,0.04)' }}>
-              <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', margin:'0 0 4px' }}>{t}</h3>
-              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', margin:0 }}>{d}</p>
-            </div>
-          ))}
-        </div>
+        <div style={{ margin:'8px 0 20px' }}><CardGrid items={BAG_TYPES} /></div>
         <P>{c.bagsNote}</P>
       </Section>
 
       {/* Areas */}
-      <Section bg="#0c1a0c">
+      <Section>
         <H2>Neighbourhoods we serve in {c.name}</H2>
         <P>{c.areasIntro}</P>
         <ul style={{ listStyle:'none', padding:0, margin:'8px 0 20px', display:'flex', flexWrap:'wrap', gap:10 }}>
           {c.areas.map(a => (
-            <li key={a} style={{ ...FF.label, fontSize:13, fontWeight:600, color:'#f0f5f0', background:'rgba(182,238,105,0.07)', border:`1px solid ${TD.lime}20`, borderRadius:99, padding:'7px 16px' }}>{a}</li>
+            <li key={a} style={{ ...TYPE.small, fontWeight:500, color:TD.ink, background:'#fff', border:'1px solid var(--td-border)', borderRadius:999, padding:'6px 14px' }}>{a}</li>
           ))}
         </ul>
         <P>{c.local}</P>
       </Section>
 
       {/* CTA */}
-      <Section bg={TD.ink2}>
+      <Section tone="white">
         <H2>Book waste collection in {c.name} today</H2>
         <P>Message us on WhatsApp at {BUSINESS.phoneDisplay} or sign up to request your first trash pickup. New to TrashDrop? Read <Link to="/how-it-works/" style={linkStyle}>how TrashDrop works</Link> or the <Link to="/faq/" style={linkStyle}>full FAQ</Link>.</P>
         <CtaButtons city={c.name} />
       </Section>
 
       {/* FAQ */}
-      <Section bg={TD.ink}>
+      <Section>
         <H2>{c.name} waste collection FAQ</H2>
-        <FAQAccordion items={c.faq} />
+        <FAQAccordion items={c.faq} surface="light" />
       </Section>
 
       {/* Other cities */}
-      <Section bg="#0c1a0c">
+      <Section tone="white">
         <H2>Waste collection in other cities</H2>
         <ul style={{ listStyle:'none', padding:0, margin:0, display:'flex', flexWrap:'wrap', gap:12 }}>
           {others.map(o => (
-            <li key={o.slug}><Link to={o.path} style={{ ...FF.label, fontSize:14, fontWeight:700, color:TD.lime, textDecoration:'none', border:`1px solid ${TD.lime}35`, borderRadius:10, padding:'10px 18px', display:'inline-block' }}>Waste collection in {o.name} →</Link></li>
+            <li key={o.slug}><ChipLink to={o.path}>Waste collection in {o.name} →</ChipLink></li>
           ))}
-          <li><Link to="/" style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', textDecoration:'none', border:'1px solid rgba(255,255,255,0.2)', borderRadius:10, padding:'10px 18px', display:'inline-block' }}>TrashDrop home</Link></li>
+          <li><ChipLink to="/">TrashDrop home</ChipLink></li>
         </ul>
       </Section>
     </PublicPageLayout>

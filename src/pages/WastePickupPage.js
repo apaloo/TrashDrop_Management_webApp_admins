@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../components/PublicPageLayout';
+import PublicPageLayout, { FAQAccordion } from '../components/PublicPageLayout';
+import { Hero, Section, H2, P, Breadcrumb, StepList, CardGrid, ChipLink, linkStyle } from '../components/PublicSections';
+import { TYPE, BTN } from '../theme/brand';
 import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, localBusinessJsonLd } from '../utils/seo';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
@@ -34,28 +36,13 @@ const FAQ = [
   { q: 'Where does TrashDrop offer waste pickup?', a: 'In Accra, Kumasi, Takoradi and Tamale. Each city page lists the neighbourhoods collectors currently cover.' },
 ];
 
-const H2 = ({ children }) => (
-  <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,40px)', color:'#f0f5f0', margin:'0 0 18px', letterSpacing:'-0.8px', lineHeight:1.1 }}>{children}</h2>
-);
-const P = ({ children }) => (
-  <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', lineHeight:1.8, margin:'0 0 16px' }}>{children}</p>
-);
-const Section = ({ bg, children }) => (
-  <section style={{ background:bg, padding:'var(--td-section-y) 24px' }}>
-    <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
-  </section>
-);
-const linkStyle = { color:TD.lime, textDecoration:'underline', textUnderlineOffset:3 };
-
-const CtaButtons = () => (
+const CtaButtons = ({ dark }) => (
   <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-    <a href={HOUSEHOLD_APP_URL}
-      style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 26px', borderRadius:10, textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+    <a href={HOUSEHOLD_APP_URL} style={dark ? BTN.primaryOnDark : BTN.primary}>
       Request a waste pickup
     </a>
-    <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
-      style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#fff', padding:'14px 26px', borderRadius:10, textDecoration:'none', border:'1.5px solid rgba(255,255,255,0.22)', display:'inline-flex', alignItems:'center', gap:8 }}>
-      <i className="fab fa-whatsapp"></i> WhatsApp {BUSINESS.phoneDisplay}
+    <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer" style={dark ? BTN.ghostOnDark : BTN.tonal}>
+      <i className="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp {BUSINESS.phoneDisplay}
     </a>
   </div>
 );
@@ -81,50 +68,30 @@ const WastePickupPage = () => {
 
   return (
     <PublicPageLayout>
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)' }}>
-        <div style={{ maxWidth:860, margin:'0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ ...FF.label, fontSize:12, color:'rgba(255,255,255,0.68)', marginBottom:20 }}>
-            <Link to="/" style={{ color:'rgba(255,255,255,0.68)', textDecoration:'none' }}>Home</Link> / Waste pickup
-          </nav>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            On-Demand Waste Pickup & Rubbish Collectors in Ghana
-          </h1>
-          <P>
-            Need trash gone today? TrashDrop's Digital Bin service gives you an on-demand waste pickup anywhere we operate.
-            Enter your waste details, get an instant GPS price quote, and a nearby verified rubbish collector accepts within 2 hours.
-            Track them live and pay with MoMo or cash at collection.
-          </P>
-          <div style={{ marginTop:28 }}><CtaButtons /></div>
-        </div>
-      </section>
+      <Hero>
+        <Breadcrumb trail="Waste pickup" />
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 24px' }}>
+          On-Demand Waste Pickup & Rubbish Collectors in Ghana
+        </h1>
+        <P dark>
+          Need trash gone today? TrashDrop's Digital Bin service gives you an on-demand waste pickup anywhere we operate.
+          Enter your waste details, get an instant GPS price quote, and a nearby verified rubbish collector accepts within 2 hours.
+          Track them live and pay with MoMo or cash at collection.
+        </P>
+        <div style={{ marginTop:28 }}><CtaButtons dark /></div>
+      </Hero>
 
-      <Section bg={TD.ink2}>
+      <Section tone="white">
         <H2>What we pick up</H2>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
-          {WASTE_TYPES.map(([t, d]) => (
-            <div key={t} style={{ border:`1px solid ${TD.lime}25`, borderRadius:14, padding:'16px 18px', background:'rgba(182,238,105,0.04)' }}>
-              <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', margin:'0 0 4px' }}>{t}</h3>
-              <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', margin:0 }}>{d}</p>
-            </div>
-          ))}
-        </div>
+        <CardGrid items={WASTE_TYPES} />
       </Section>
 
-      <Section bg="#0c1a0c">
+      <Section>
         <H2>How a waste pickup works</H2>
-        <ol style={{ listStyle:'none', padding:0, margin:0, display:'grid', gap:14 }}>
-          {STEPS.map(([t, d], i) => (
-            <li key={t} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-              <span style={{ ...FF.label, fontSize:12, fontWeight:700, color:TD.ink, background:TD.lime, borderRadius:'50%', width:28, height:28, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>{i + 1}</span>
-              <span style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', lineHeight:1.7 }}>
-                <strong style={{ color:'#f0f5f0', fontWeight:600 }}>{t}.</strong> {d}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <StepList steps={STEPS} />
       </Section>
 
-      <Section bg={TD.ink2}>
+      <Section tone="white">
         <H2>Want free pickups instead?</H2>
         <P>
           If you need regular rubbish collection, the QR Bag System is cheaper over time: buy a batch of official TrashDrop bags
@@ -133,22 +100,18 @@ const WastePickupPage = () => {
         </P>
       </Section>
 
-      <Section bg="#0c1a0c">
+      <Section>
         <H2>Waste pickup near you</H2>
         <ul style={{ listStyle:'none', padding:0, margin:0, display:'flex', flexWrap:'wrap', gap:12 }}>
           {CITY_PAGES.map(c => (
-            <li key={c.slug}>
-              <Link to={c.path} style={{ ...FF.label, fontSize:14, fontWeight:700, color:TD.lime, textDecoration:'none', border:`1px solid ${TD.lime}35`, borderRadius:10, padding:'10px 18px', display:'inline-block' }}>
-                Waste collection in {c.name} →
-              </Link>
-            </li>
+            <li key={c.slug}><ChipLink to={c.path}>Waste collection in {c.name} →</ChipLink></li>
           ))}
         </ul>
       </Section>
 
-      <Section bg={TD.ink}>
+      <Section tone="white">
         <H2>Waste pickup FAQ</H2>
-        <FAQAccordion items={FAQ} />
+        <FAQAccordion items={FAQ} surface="light" />
         <div style={{ marginTop:28 }}><CtaButtons /></div>
       </Section>
     </PublicPageLayout>

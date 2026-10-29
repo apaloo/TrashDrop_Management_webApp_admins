@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
-import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD } from '../components/PublicPageLayout';
+import { Hero, Section, H2, P, Eyebrow, DarkCta, cardStyle } from '../components/PublicSections';
+import { TYPE, BTN } from '../theme/brand';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
 
 const TEAM = [
@@ -50,128 +52,102 @@ const AboutPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0a1510 40%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }} />
-        <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>About TrashDrop</span>
-          </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,64px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 24px' }}>
-            What is TrashDrop?
-          </h1>
-          {/* ── AI ANSWER PARAGRAPH ── */}
-          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.72)', lineHeight:1.82, maxWidth:740, margin:'0 auto 40px' }}>
-            TrashDrop is Ghana's leading mobile waste management platform, by Infobrix Limited. The product was co-founded by Otis Apaloo (Operations Lead &amp; Co-founder), Simone Fuga (CEO &amp; Co-founder), Xose Ahlijah (CTO &amp; Co-founder). TrashDrop operates a Progressive Web App — accessible at app.trashdrops.com (households) and collector.trashdrops.com (carters) with no app store download required — that connects households and businesses in Accra, Kumasi, Takoradi and Tamale with a network of over 480 ID-verified waste collectors. The platform processes more than 3,400 pickup requests monthly, has achieved a 98%+ completion rate, and diverts over 55 tonnes of waste from Ghanaian landfills every month. Collectors earn an average of ₵32.43 per completed pickup, paid directly to their mobile money wallet. TrashDrop is raising a Series A round to expand across Ghana and into Lagos and Abidjan.
-          </p>
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 28px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45` }}>
-              Get Started Free
-            </a>
-            <a href="mailto:hello@trashdrops.com" style={{ ...FF.label, fontSize:14, fontWeight:700, background:'transparent', color:'#fff', padding:'14px 28px', borderRadius:10, textDecoration:'none', border:`1.5px solid rgba(255,255,255,0.18)` }}>
-              Contact Us
-            </a>
-          </div>
+      <Hero width={820} center>
+        <Eyebrow dark>About TrashDrop</Eyebrow>
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 24px' }}>
+          What is TrashDrop?
+        </h1>
+        {/* ── AI ANSWER PARAGRAPH ── */}
+        <p style={{ ...TYPE.body, color:TD.sageOnDark, maxWidth:740, margin:'0 auto 40px' }}>
+          TrashDrop is Ghana's leading mobile waste management platform, by Infobrix Limited. The product was co-founded by Otis Apaloo (Operations Lead &amp; Co-founder), Simone Fuga (CEO &amp; Co-founder), Xose Ahlijah (CTO &amp; Co-founder). TrashDrop operates a Progressive Web App — accessible at app.trashdrops.com (households) and collector.trashdrops.com (carters) with no app store download required — that connects households and businesses in Accra, Kumasi, Takoradi and Tamale with a network of over 480 ID-verified waste collectors. The platform processes more than 3,400 pickup requests monthly, has achieved a 98%+ completion rate, and diverts over 55 tonnes of waste from Ghanaian landfills every month. Collectors earn an average of ₵32.43 per completed pickup, paid directly to their mobile money wallet. TrashDrop is raising a Series A round to expand across Ghana and into Lagos and Abidjan.
+        </p>
+        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <a href={HOUSEHOLD_APP_URL} style={BTN.primaryOnDark}>Get started free</a>
+          <a href="mailto:hello@trashdrops.com" style={BTN.ghostOnDark}>Contact us</a>
         </div>
-      </section>
+      </Hero>
 
       {/* ── Stats ── */}
-      <section style={{ background:'#0c1a0c', padding:'var(--td-section-y-compact) 24px', borderBottom:`1px solid rgba(182,238,105,0.08)` }}>
-        <div style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:32, textAlign:'center' }}>
+      <section style={{ background:'#fff', padding:'var(--td-section-y-compact) 24px', borderBottom:'1px solid var(--td-border)' }}>
+        <dl style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:32, textAlign:'center' }}>
           {STATS.map(s => (
-            <div key={s.l}>
-              <div style={{ ...FF.data, fontSize:34, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-              <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', marginTop:4 }}>{s.l}</div>
+            <div key={s.l} style={{ display:'flex', flexDirection:'column-reverse' }}>
+              <dt style={{ ...TYPE.small, color:TD.sage, marginTop:4 }}>{s.l}</dt>
+              <dd style={{ ...TYPE.stat, color:TD.forest, margin:0 }}>{s.v}</dd>
             </div>
           ))}
-        </div>
+        </dl>
       </section>
 
       {/* ── Mission ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:900, margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:48, alignItems:'center' }}>
-            <div>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase', display:'block', marginBottom:16 }}>Our Mission</span>
-              <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 20px', letterSpacing:'-1px' }}>Eliminate waste dumping from Ghanaian communities</h2>
-              <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.62)', lineHeight:1.8, margin:'0 0 16px' }}>
-                Ghana generates over 12 million tonnes of solid waste annually, with less than 60% collected in urban areas. Uncollected waste ends up in illegal dump sites, drainage channels, and waterways — contaminating drinking water and spreading disease.
-              </p>
-              <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.62)', lineHeight:1.8, margin:0 }}>
-                TrashDrop's approach is simple: make waste collection easier to request than illegal dumping. By connecting households directly with verified collectors, providing real-time GPS tracking, and rewarding good behaviour with points, we change the economics of waste disposal in Ghana.
-              </p>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              {[
-                { icon:'fa-check-circle', title:'Verified Collectors',   body:'Every collector is ID-checked, vehicle-verified, and operationally licenced before they join the platform.' },
-                { icon:'fa-map-marked-alt',title:'Authorised Disposal',  body:'Waste is delivered only to sites with valid Ghana EPA environmental permits. No illegal dumping in the chain.' },
-                { icon:'fa-star',          title:'Reward-Based System',  body:'Users earn points for pickups and dumping reports. Collectors earn bonuses and recycling revenue shares.' },
-              ].map((p,i) => (
-                <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:16, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px 22px' }}>
-                  <i className={`fas ${p.icon}`} style={{ color:TD.lime, fontSize:18, marginTop:2, flexShrink:0 }}></i>
-                  <div>
-                    <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{p.title}</div>
-                    <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{p.body}</div>
-                  </div>
+      <Section width={1000}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(300px,100%),1fr))', gap:48, alignItems:'center' }}>
+          <div>
+            <Eyebrow>Our mission</Eyebrow>
+            <H2>Eliminate waste dumping from Ghanaian communities</H2>
+            <P>
+              Ghana generates over 12 million tonnes of solid waste annually, with less than 60% collected in urban areas. Uncollected waste ends up in illegal dump sites, drainage channels, and waterways — contaminating drinking water and spreading disease.
+            </P>
+            <P>
+              TrashDrop's approach is simple: make waste collection easier to request than illegal dumping. By connecting households directly with verified collectors, providing real-time GPS tracking, and rewarding good behaviour with points, we change the economics of waste disposal in Ghana.
+            </P>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {[
+              { icon:'fa-check-circle', title:'Verified Collectors',   body:'Every collector is ID-checked, vehicle-verified, and operationally licenced before they join the platform.' },
+              { icon:'fa-map-marked-alt',title:'Authorised Disposal',  body:'Waste is delivered only to sites with valid Ghana EPA environmental permits. No illegal dumping in the chain.' },
+              { icon:'fa-star',          title:'Reward-Based System',  body:'Users earn points for pickups and dumping reports. Collectors earn bonuses and recycling revenue shares.' },
+            ].map(p => (
+              <div key={p.title} style={{ ...cardStyle, display:'flex', alignItems:'flex-start', gap:16 }}>
+                <i className={`fas ${p.icon}`} aria-hidden="true" style={{ color:TD.forest, fontSize:20, marginTop:3, flexShrink:0 }}></i>
+                <div>
+                  <h3 style={{ ...TYPE.body, fontWeight:600, color:TD.ink, margin:'0 0 4px' }}>{p.title}</h3>
+                  <p style={{ ...TYPE.small, color:TD.sage, margin:0 }}>{p.body}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
+      </Section>
 
       {/* ── Team ── */}
-      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase', display:'block', marginBottom:16 }}>The Team</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:'0 0 48px', letterSpacing:'-1px' }}>Founded by Infobrix Limited</h2>
-          <div style={{ display:'flex', gap:24, justifyContent:'center', flexWrap:'wrap' }}>
+      <Section tone="white">
+        <div style={{ textAlign:'center' }}>
+          <Eyebrow>The team</Eyebrow>
+          <H2 center>Founded by Infobrix Limited</H2>
+          <ul style={{ listStyle:'none', padding:0, margin:'28px 0 0', display:'flex', gap:24, justifyContent:'center', flexWrap:'wrap' }}>
             {TEAM.map(t => (
-              <div key={t.name} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${TD.lime}18`, borderRadius:20, padding:'32px 28px', minWidth:220, textAlign:'center' }}>
-                <div style={{ width:64, height:64, borderRadius:'50%', background:`linear-gradient(135deg,${TD.forestDk},${TD.lime}40)`, border:`2px solid ${TD.lime}30`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', ...FF.label, fontSize:18, fontWeight:800, color:'#f0f5f0' }}>
+              <li key={t.name} style={{ ...cardStyle, background:TD.cream, padding:'32px 28px', minWidth:220 }}>
+                <div aria-hidden="true" style={{ width:64, height:64, borderRadius:'50%', background:TD.forest, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', ...TYPE.card, fontWeight:700, color:'#fff' }}>
                   {t.initial}
                 </div>
-                <div style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{t.name}</div>
-                <div style={{ ...FF.body, fontSize:13, color:TD.sageOnDark, lineHeight:1.5 }}>{t.role}</div>
-              </div>
+                <div style={{ ...TYPE.card, color:TD.ink, marginBottom:4 }}>{t.name}</div>
+                <div style={{ ...TYPE.small, color:TD.sage }}>{t.role}</div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
-      </section>
+      </Section>
 
       {/* ── Timeline ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:760, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:48 }}>
-            <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:0, letterSpacing:'-1px' }}>Our journey</h2>
-          </div>
-          <div style={{ position:'relative', paddingLeft:40 }}>
-            <div style={{ position:'absolute', left:12, top:0, bottom:0, width:2, background:`linear-gradient(to bottom,${TD.lime}60,transparent)` }} />
-            {MILESTONES.map((m,i) => (
-              <div key={i} style={{ position:'relative', marginBottom:32 }}>
-                <div style={{ position:'absolute', left:-34, top:4, width:12, height:12, borderRadius:'50%', background:TD.lime, border:`2px solid ${TD.ink2}` }} />
-                <div style={{ ...FF.data, fontSize:20, color:TD.lime, letterSpacing:'1px', marginBottom:6 }}>{m.year}</div>
-                <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.62)', lineHeight:1.7, margin:0 }}>{m.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Section width={760}>
+        <H2 center>Our journey</H2>
+        <ol style={{ listStyle:'none', margin:'32px 0 0', padding:'0 0 0 40px', background:'linear-gradient(var(--td-border),var(--td-border)) 12px 0 / 2px 100% no-repeat' }}>
+          {MILESTONES.map(m => (
+            <li key={m.year} style={{ position:'relative', marginBottom:32 }}>
+              <div aria-hidden="true" style={{ position:'absolute', left:-34, top:6, width:12, height:12, borderRadius:'50%', background:TD.forest, border:`2px solid ${TD.cream}` }} />
+              <div style={{ ...TYPE.card, color:TD.forest, marginBottom:4 }}>{m.year}</div>
+              <p style={{ ...TYPE.body, color:TD.sage, margin:0 }}>{m.text}</p>
+            </li>
+          ))}
+        </ol>
+      </Section>
 
       {/* ── Series A ── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
-        <div style={{ maxWidth:680, margin:'0 auto' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
-            <i className="fas fa-chart-line" style={{ color:TD.lime, fontSize:11 }}></i>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Series A Fundraising</span>
-          </div>
-          <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Expanding across Ghana and into Lagos &amp; Abidjan</h2>
-          <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:500 }}>TrashDrop is raising a Series A round to scale collector networks, build logistics infrastructure, and expand to new cities. Investor enquiries welcome.</p>
-          <a href="mailto:invest@trashdrops.com" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 32px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
-            Investor Enquiries →
-          </a>
-        </div>
-      </section>
+      <DarkCta title="Expanding across Ghana and into Lagos & Abidjan">
+        <p style={{ ...TYPE.body, color:TD.sageOnDark, margin:'0 auto 32px', maxWidth:520 }}>TrashDrop is raising a Series A round to scale collector networks, build logistics infrastructure, and expand to new cities. Investor enquiries welcome.</p>
+        <a href="mailto:invest@trashdrops.com" style={BTN.primaryOnDark}>Investor enquiries →</a>
+      </DarkCta>
     </PublicPageLayout>
   );
 };
