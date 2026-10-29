@@ -99,7 +99,7 @@ const createClusterIcon = (cluster) => {
   const size = count < 10 ? 34 : count < 50 ? 40 : 46;
   return L.divIcon({
     className: 'dumping-cluster-icon',
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#1F2937;color:#fff;border:4px solid ${ring};display:flex;align-items:center;justify-content:center;font:600 13px/1 system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.35)">${count}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#0A0F0A;color:#fff;border:4px solid ${ring};display:flex;align-items:center;justify-content:center;font:600 13px/1 'DM Sans',system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.35)">${count}</div>`,
     iconSize: [size, size],
   });
 };
@@ -396,28 +396,28 @@ const IllegalDumpingMap = () => {
     if (s === 'pending' && canVerify) actions.push({ key: 'verify', label: 'Verify Report', icon: 'fa-check-circle', className: 'bg-yellow-500 text-white hover:bg-yellow-600', run: () => updateReportStatus(report, 'verified') });
     if (canAssign && (s === 'pending' || s === 'verified') && !report.cleanupAssigned) actions.push({ key: 'assign', label: 'Assign Cleanup Team', icon: 'fa-user-plus', className: 'bg-green-600 text-white hover:bg-green-700', run: () => openCollectorModal(report) });
     if (s === 'in_progress' && canMarkCleaned) actions.push({ key: 'complete', label: 'Mark Completed', icon: 'fa-broom', className: 'bg-green-600 text-white hover:bg-green-700', run: () => updateReportStatus(report, 'completed') });
-    if (canManageReports && (s === 'pending' || s === 'verified')) actions.push({ key: 'cancel', label: 'Cancel Report', icon: 'fa-ban', className: 'border border-gray-300 text-gray-600 hover:bg-gray-50', run: () => updateReportStatus(report, 'cancelled') });
+    if (canManageReports && (s === 'pending' || s === 'verified')) actions.push({ key: 'cancel', label: 'Cancel Report', icon: 'fa-ban', className: 'border border-td-border-strong text-td-sage hover:bg-td-cream', run: () => updateReportStatus(report, 'cancelled') });
     return actions;
   };
 
   const activeFilterTotal = filters.status.length + filters.severity.length + filters.wasteType.length + (dateRange.start ? 1 : 0) + (dateRange.end ? 1 : 0);
 
   const kpiCards = [
-    { label: 'Total Reports', value: stats.total, sub: activeFilterTotal ? `of ${dumpingReportData.length} (filtered)` : 'all reports', icon: 'fa-flag', bg: 'bg-blue-50', color: 'text-blue-600', border: 'border-blue-100' },
+    { label: 'Total Reports', value: stats.total, sub: activeFilterTotal ? `of ${dumpingReportData.length} (filtered)` : 'all reports', icon: 'fa-flag', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
     {
       label: 'Verification Rate',
       value: stats.verificationRate === null ? '—' : `${stats.verificationRate.toFixed(1)}%`,
       sub: `${stats.confirmed} of ${stats.eligibleForVerification} non-cancelled`,
       title: 'Reports verified, in progress or completed, as a share of all reports except cancelled ones',
-      icon: 'fa-shield-alt', bg: 'bg-green-50', color: 'text-green-600', border: 'border-green-100'
+      icon: 'fa-shield-alt', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border'
     },
-    { label: 'Cleaned Up', value: stats.cleanedUp, sub: 'status completed', icon: 'fa-broom', bg: 'bg-emerald-50', color: 'text-emerald-600', border: 'border-emerald-100' },
+    { label: 'Cleaned Up', value: stats.cleanedUp, sub: 'status completed', icon: 'fa-broom', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
     {
       label: 'Avg Cleanup Time',
       value: formatHours(stats.avgCleanupHours),
       sub: stats.cleanupSampleSize ? `from ${stats.cleanupSampleSize} completed` : 'no completed reports',
       title: 'Average time from report to completion, for completed reports only',
-      icon: 'fa-clock', bg: 'bg-orange-50', color: 'text-orange-600', border: 'border-orange-100'
+      icon: 'fa-clock', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border'
     },
   ];
 
@@ -426,33 +426,33 @@ const IllegalDumpingMap = () => {
       key={key}
       className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full border font-medium transition-all whitespace-nowrap ${active ? 'shadow-sm' : 'hover:shadow-sm'}`}
       style={{
-        backgroundColor: active ? color : '#F9FAFB',
-        borderColor: active ? color : '#E5E7EB',
-        color: active ? 'white' : '#374151',
+        backgroundColor: active ? color : '#F6F8F4',
+        borderColor: active ? color : '#DFE4DC',
+        color: active ? 'white' : '#0A0F0A',
       }}
       onClick={onClick}
     >
-      {label} <span className={active ? 'opacity-80' : 'text-gray-500'}>{count || 0}</span>
+      {label} <span className={active ? 'opacity-80' : 'text-td-sage'}>{count || 0}</span>
     </button>
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-td-cream min-h-screen">
 
       <AreaScopeNote area={privateView && role === 'user' ? { level: 'home' } : area} readOnly={!(canVerify || canAssign || canMarkCleaned)} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal Dumping Map</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Monitor and manage illegal dumping reports geographically</p>
+          <p className="text-sm text-td-sage mt-0.5">Monitor and manage illegal dumping reports geographically</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {lastUpdated && (
-            <span className="text-xs text-gray-500" title={lastUpdated.toLocaleString()}>
+            <span className="text-xs text-td-sage" title={lastUpdated.toLocaleString()}>
               Updated {lastUpdated.toLocaleTimeString()}
             </span>
           )}
-          <label className="inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none bg-white border border-gray-200 rounded-md px-3 py-2">
+          <label className="inline-flex items-center gap-1.5 text-xs text-td-sage cursor-pointer select-none bg-white border border-td-border rounded-md px-3 py-2">
             <input
               type="checkbox"
               className="accent-green-600 h-3.5 w-3.5"
@@ -465,7 +465,7 @@ const IllegalDumpingMap = () => {
             onClick={() => refreshData(false)}
             disabled={loading}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              loading ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+              loading ? 'bg-gray-100 text-td-sage cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
             }`}
           >
             <i className={`fas fa-sync-alt text-xs ${loading ? 'fa-spin' : ''}`}></i>
@@ -482,9 +482,9 @@ const IllegalDumpingMap = () => {
               <i className={`fas ${icon} ${color}`}></i>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-              <p className="text-2xl font-bold text-gray-800 leading-tight">{hasLoaded ? value : '—'}</p>
-              {hasLoaded && sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+              <p className="text-xs text-td-sage mb-0.5">{label}</p>
+              <p className="text-2xl font-bold text-td-ink leading-tight">{hasLoaded ? value : '—'}</p>
+              {hasLoaded && sub && <p className="text-xs text-td-sage mt-0.5">{sub}</p>}
             </div>
           </div>
         ))}
@@ -495,18 +495,18 @@ const IllegalDumpingMap = () => {
         <div className="fixed top-20 right-4 bg-gray-800 text-white shadow-xl rounded-lg px-4 py-3 z-[10000] flex items-center gap-3 max-w-sm">
           <i className="fas fa-info-circle text-blue-300 flex-shrink-0"></i>
           <span className="text-sm">{toastMessage}</span>
-          <button className="ml-auto text-gray-500 hover:text-white" onClick={() => setShowToast(false)}>
+          <button className="ml-auto text-td-sage hover:text-white" onClick={() => setShowToast(false)}>
             <i className="fas fa-times text-xs"></i>
           </button>
         </div>
       )}
 
       {/* Filters section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
+      <div className="bg-white rounded-xl shadow-sm border border-td-border px-4 py-3 mb-5">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
-            <i className="fas fa-filter text-gray-500 text-sm"></i>
-            <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
+            <i className="fas fa-filter text-td-sage text-sm"></i>
+            <h3 className="text-sm font-semibold text-td-ink">Filters</h3>
             {activeFilterTotal > 0 && (
               <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
                 {activeFilterTotal} active
@@ -514,7 +514,7 @@ const IllegalDumpingMap = () => {
             )}
           </div>
           <button
-            className="text-xs text-gray-500 flex items-center gap-1 hover:text-red-500 transition-colors"
+            className="text-xs text-td-sage flex items-center gap-1 hover:text-red-500 transition-colors"
             onClick={resetFilters}
           >
             <i className="fas fa-times-circle text-xs"></i> Clear All
@@ -524,16 +524,16 @@ const IllegalDumpingMap = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
           {/* Status filters */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Status</p>
+            <p className="text-xs font-semibold text-td-sage uppercase tracking-wider mb-1.5">Status</p>
             <div className="flex flex-nowrap overflow-x-auto gap-1 pb-0.5" style={{scrollbarWidth:'none'}}>
               {Object.values(STATUS.ILLEGAL_DUMPING).map((value) => renderChip({
                 key: value,
                 active: filters.status.includes(value),
                 color:
-                  value === STATUS.ILLEGAL_DUMPING.REPORTED ? '#F59E0B' :
-                  value === STATUS.ILLEGAL_DUMPING.VERIFIED ? '#14B8A6' :
-                  value === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? '#3B82F6' :
-                  value === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#10B981' :
+                  value === STATUS.ILLEGAL_DUMPING.REPORTED ? '#B4530E' :
+                  value === STATUS.ILLEGAL_DUMPING.VERIFIED ? '#1D4ED8' :
+                  value === STATUS.ILLEGAL_DUMPING.CLEANUP_SCHEDULED ? '#7C3AED' :
+                  value === STATUS.ILLEGAL_DUMPING.CLEANED_UP ? '#1B6E35' :
                   '#6B7280',
                 label: statusLabel(value),
                 count: statusCounts[value],
@@ -544,7 +544,7 @@ const IllegalDumpingMap = () => {
 
           {/* Severity filters */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Severity</p>
+            <p className="text-xs font-semibold text-td-sage uppercase tracking-wider mb-1.5">Severity</p>
             <div className="flex flex-nowrap overflow-x-auto gap-1 pb-0.5" style={{scrollbarWidth:'none'}}>
               {SEVERITY_OPTIONS.map(({ value, label, color }) => renderChip({
                 key: value,
@@ -559,12 +559,12 @@ const IllegalDumpingMap = () => {
 
           {/* Waste type filters */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Waste Type</p>
+            <p className="text-xs font-semibold text-td-sage uppercase tracking-wider mb-1.5">Waste Type</p>
             <div className="flex flex-nowrap overflow-x-auto gap-1 pb-0.5" style={{scrollbarWidth:'none'}}>
               {wasteTypeOptions.map(({ value, label }) => renderChip({
                 key: value,
                 active: filters.wasteType.includes(value),
-                color: '#2563EB',
+                color: '#1B6E35',
                 label,
                 count: wasteTypeCounts[value],
                 onClick: () => handleFilterChange('wasteType', value),
@@ -574,25 +574,25 @@ const IllegalDumpingMap = () => {
         </div>
 
         {/* Date range + report count */}
-        <div className="flex flex-wrap items-end gap-3 pt-3 border-t border-gray-100">
+        <div className="flex flex-wrap items-end gap-3 pt-3 border-t border-td-border">
           <div className="flex items-end gap-2 flex-1 min-w-[260px]">
             <div className="flex-1">
-              <label htmlFor="dump-date-start" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">From</label>
+              <label htmlFor="dump-date-start" className="block text-xs font-semibold text-td-sage uppercase tracking-wider mb-1.5">From</label>
               <input
                 id="dump-date-start"
                 type="date"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-td-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-td-cream"
                 value={dateRange.start || ''}
                 onChange={(e) => handleDateRangeChange('start', e.target.value)}
               />
             </div>
-            <span className="text-gray-500 mb-2 text-sm">→</span>
+            <span className="text-td-sage mb-2 text-sm">→</span>
             <div className="flex-1">
-              <label htmlFor="dump-date-end" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To</label>
+              <label htmlFor="dump-date-end" className="block text-xs font-semibold text-td-sage uppercase tracking-wider mb-1.5">To</label>
               <input
                 id="dump-date-end"
                 type="date"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-td-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-td-cream"
                 value={dateRange.end || ''}
                 onChange={(e) => handleDateRangeChange('end', e.target.value)}
               />
@@ -614,7 +614,7 @@ const IllegalDumpingMap = () => {
       {/* Map + Sidebar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Map container */}
-        <div className="md:col-span-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm relative" style={{ height: "600px" }}>
+        <div className="md:col-span-2 rounded-xl overflow-hidden border border-td-border shadow-sm relative" style={{ height: "600px" }}>
           {!hasLoaded ? (
             <div className="bg-gray-100 h-full flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -666,16 +666,16 @@ const IllegalDumpingMap = () => {
                   >
                     <Popup className="custom-popup" minWidth={220}>
                       <div className="p-2">
-                        <p className="text-xs text-gray-500 font-mono truncate mb-1" style={{maxWidth: 200}}>{report.id}</p>
+                        <p className="text-xs text-td-sage font-mono truncate mb-1" style={{maxWidth: 200}}>{report.id}</p>
                         <div className="space-y-1 text-sm mb-2">
                           <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${statusBadgeClass(report.status)}`}>
                             {statusLabel(report.status)}
                           </span>
-                          <p className="text-gray-600"><span className="font-medium">Type:</span> {toTitle(report.wasteType)}</p>
-                          <p className="text-gray-600"><span className="font-medium">Severity:</span>{' '}
+                          <p className="text-td-sage"><span className="font-medium">Type:</span> {toTitle(report.wasteType)}</p>
+                          <p className="text-td-sage"><span className="font-medium">Severity:</span>{' '}
                             <span className="font-semibold" style={{ color: getSeverityColor(report.severity) }}>{toTitle(report.severity)}</span>
                           </p>
-                          <p className="text-gray-600 text-xs leading-snug">{report.location.address}</p>
+                          <p className="text-td-sage text-xs leading-snug">{report.location.address}</p>
                         </div>
                         <button
                           className="w-full bg-green-600 text-white text-xs px-2 py-1.5 rounded-md hover:bg-green-700 font-medium"
@@ -695,9 +695,9 @@ const IllegalDumpingMap = () => {
           {hasLoaded && filteredReports.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-[500] pointer-events-none">
               <div className="text-center p-8">
-                <i className="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Reports Found</h3>
-                <p className="text-gray-500">
+                <i className="fas fa-map-marked-alt text-6xl text-td-border mb-4" aria-hidden="true"></i>
+                <h3 className="text-xl font-semibold text-td-sage mb-2">No Reports Found</h3>
+                <p className="text-td-sage">
                   {dumpingReportData.length === 0
                     ? 'No illegal dumping reports in the database yet.'
                     : 'No reports match the current filters. Try adjusting your filters.'}
@@ -718,12 +718,12 @@ const IllegalDumpingMap = () => {
                 {outsideGhanaReports.length} outside Ghana
               </button>
               {showOutsideList && (
-                <div className="mt-2 bg-white rounded-lg shadow-lg border border-amber-200 p-2 text-xs space-y-1 max-h-64 overflow-y-auto">
-                  <p className="text-gray-500 px-1 pb-1">Check these coordinates (test data or wrong location?)</p>
+                <div className="mt-2 bg-white rounded-xl shadow-lg border border-amber-200 p-2 text-xs space-y-1 max-h-64 overflow-y-auto">
+                  <p className="text-td-sage px-1 pb-1">Check these coordinates (test data or wrong location?)</p>
                   {outsideGhanaReports.map(r => (
                     <button key={r.id} onClick={() => focusReport(r)} className="block w-full text-left px-1.5 py-1 rounded hover:bg-amber-50">
-                      <span className="font-mono text-gray-700 block truncate">{r.id}</span>
-                      <span className="text-gray-500">{r.location.lat.toFixed(5)}, {r.location.lng.toFixed(5)}</span>
+                      <span className="font-mono text-td-ink block truncate">{r.id}</span>
+                      <span className="text-td-sage">{r.location.lat.toFixed(5)}, {r.location.lng.toFixed(5)}</span>
                     </button>
                   ))}
                 </div>
@@ -733,15 +733,15 @@ const IllegalDumpingMap = () => {
 
           {/* Severity legend */}
           {hasLoaded && (
-            <div data-testid="severity-legend" className="absolute bottom-4 right-4 bg-white bg-opacity-95 rounded-lg shadow-md px-3 py-2 z-[400] text-xs text-gray-700">
-              <p className="font-semibold text-gray-500 uppercase tracking-wider text-xs mb-1">Severity</p>
+            <div data-testid="severity-legend" className="absolute bottom-4 right-4 bg-white bg-opacity-95 rounded-lg shadow-md px-3 py-2 z-[400] text-xs text-td-ink">
+              <p className="font-semibold text-td-sage uppercase tracking-wider text-xs mb-1">Severity</p>
               {[...SEVERITY_OPTIONS, { value: 'unknown', label: 'Unknown', color: UNKNOWN_SEVERITY_COLOR }].map(o => (
                 <div key={o.value} className="flex items-center gap-1.5 leading-5">
                   <span className="inline-block w-3 h-3 rounded-full border border-white shadow" style={{ backgroundColor: o.color }}></span>
                   {o.label}
                 </div>
               ))}
-              <div className="flex items-center gap-1.5 leading-5 mt-1 pt-1 border-t border-gray-100">
+              <div className="flex items-center gap-1.5 leading-5 mt-1 pt-1 border-t border-td-border">
                 <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-800 text-white text-xs font-semibold">5</span>
                 Cluster (ring = most severe)
               </div>
@@ -749,23 +749,23 @@ const IllegalDumpingMap = () => {
           )}
 
           {/* Map mode controls */}
-          <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-1.5 z-[400] flex gap-1">
+          <div className="absolute bottom-4 left-4 bg-white rounded-xl shadow-md p-1.5 z-[400] flex gap-1">
             <button
-              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'default' ? 'bg-green-100 text-green-700' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'default' ? 'bg-green-100 text-green-700' : 'bg-white text-td-sage hover:bg-gray-100'}`}
               onClick={() => setMapMode('default')}
               title="Default map view"
             >
               <i className="fas fa-map"></i>
             </button>
             <button
-              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'satellite' ? 'bg-green-100 text-green-700' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm transition-colors ${mapMode === 'satellite' ? 'bg-green-100 text-green-700' : 'bg-white text-td-sage hover:bg-gray-100'}`}
               onClick={() => setMapMode('satellite')}
               title="Satellite view"
             >
               <i className="fas fa-satellite"></i>
             </button>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-md text-sm bg-white text-gray-500 hover:bg-gray-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-md text-sm bg-white text-td-sage hover:bg-gray-100 transition-colors"
               onClick={centerMap}
               title="Center map"
             >
@@ -775,7 +775,7 @@ const IllegalDumpingMap = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-y-auto" style={{ height: '600px' }}>
+        <div className="bg-white rounded-xl shadow-sm border border-td-border overflow-y-auto" style={{ height: '600px' }}>
           {selectedDumping ? (
             <div>
               <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 rounded-t-xl flex items-start justify-between gap-2">
@@ -795,7 +795,7 @@ const IllegalDumpingMap = () => {
                       <EnhancedImage
                         src={selectedDumping.images[0]}
                         alt="Reported dumping site"
-                        className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                        className="w-full h-40 object-cover rounded-lg border border-td-border"
                         style={{ width: '100%', height: '160px', objectFit: 'cover' }}
                       />
                     </a>
@@ -803,14 +803,14 @@ const IllegalDumpingMap = () => {
                       <div className="flex gap-1.5 mt-1.5">
                         {selectedDumping.images.slice(1, 5).map((img, idx) => (
                           <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="block w-12 h-12">
-                            <EnhancedImage src={img} alt={`Photo ${idx + 2}`} className="w-12 h-12 object-cover rounded border border-gray-200" style={{ width: '48px', height: '48px', objectFit: 'cover' }} />
+                            <EnhancedImage src={img} alt={`Photo ${idx + 2}`} className="w-12 h-12 object-cover rounded border border-td-border" style={{ width: '48px', height: '48px', objectFit: 'cover' }} />
                           </a>
                         ))}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="mb-3 h-24 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-500">
+                  <div className="mb-3 h-24 rounded-lg bg-td-cream border border-dashed border-td-border flex items-center justify-center text-xs text-td-sage">
                     <i className="fas fa-camera mr-1.5"></i> No photo submitted
                   </div>
                 )}
@@ -825,71 +825,71 @@ const IllegalDumpingMap = () => {
                 <div className="space-y-3">
                   {/* Status + Severity badges */}
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 rounded-lg p-2.5">
-                      <p className="text-xs text-gray-500 mb-1">Status</p>
+                    <div className="bg-td-cream rounded-lg p-2.5">
+                      <p className="text-xs text-td-sage mb-1">Status</p>
                       <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${statusBadgeClass(selectedDumping.status)}`}>
                         {statusLabel(selectedDumping.status)}
                       </span>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-2.5">
-                      <p className="text-xs text-gray-500 mb-1">Severity</p>
+                    <div className="bg-td-cream rounded-lg p-2.5">
+                      <p className="text-xs text-td-sage mb-1">Severity</p>
                       <span className={`px-2 py-0.5 inline-flex text-xs font-semibold rounded-full ${severityBadgeClass(selectedDumping.severity)}`}>
                         {toTitle(selectedDumping.severity) || 'Unknown'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100 pt-3 space-y-2.5">
+                  <div className="border-t border-td-border pt-3 space-y-2.5">
                     <div>
-                      <p className="text-xs text-gray-500">Description</p>
-                      <p className="text-sm font-medium text-gray-800 mt-0.5">{selectedDumping.description || 'No description provided'}</p>
+                      <p className="text-xs text-td-sage">Description</p>
+                      <p className="text-sm font-medium text-td-ink mt-0.5">{selectedDumping.description || 'No description provided'}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-xs text-gray-500">Waste Type</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">{toTitle(selectedDumping.wasteType) || 'N/A'}</p>
+                        <p className="text-xs text-td-sage">Waste Type</p>
+                        <p className="text-sm font-medium text-td-ink mt-0.5">{toTitle(selectedDumping.wasteType) || 'N/A'}</p>
                       </div>
                       {selectedDumping.size && (
                         <div>
-                          <p className="text-xs text-gray-500">Size</p>
-                          <p className="text-sm font-medium text-gray-800 mt-0.5">{toTitle(selectedDumping.size)}</p>
+                          <p className="text-xs text-td-sage">Size</p>
+                          <p className="text-sm font-medium text-td-ink mt-0.5">{toTitle(selectedDumping.size)}</p>
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Location</p>
-                      <p className="text-sm font-medium text-gray-800 mt-0.5 leading-snug">{selectedDumping.location.address}</p>
+                      <p className="text-xs text-td-sage">Location</p>
+                      <p className="text-sm font-medium text-td-ink mt-0.5 leading-snug">{selectedDumping.location.address}</p>
                       {hasCoordinates(selectedDumping) && (
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-td-sage mt-0.5">
                           {selectedDumping.location.lat.toFixed(5)}, {selectedDumping.location.lng.toFixed(5)}
                         </p>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-xs text-gray-500">Reported</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">
+                        <p className="text-xs text-td-sage">Reported</p>
+                        <p className="text-sm font-medium text-td-ink mt-0.5">
                           {selectedDumping.reportedAt ? new Date(selectedDumping.reportedAt).toLocaleString() : 'N/A'}
                         </p>
                       </div>
                       {selectedDumping.reportedBy && <div>
-                        <p className="text-xs text-gray-500">Reporter</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5 break-words">{selectedDumping.reportedBy}</p>
+                        <p className="text-xs text-td-sage">Reporter</p>
+                        <p className="text-sm font-medium text-td-ink mt-0.5 break-words">{selectedDumping.reportedBy}</p>
                         {selectedDumping.reporterEmail && selectedDumping.reporterEmail !== selectedDumping.reportedBy && (
-                          <p className="text-xs text-gray-500 break-words">{selectedDumping.reporterEmail}</p>
+                          <p className="text-xs text-td-sage break-words">{selectedDumping.reporterEmail}</p>
                         )}
                       </div>}
                     </div>
                     {selectedDumping.cleanupTeam && (
                       <div>
-                        <p className="text-xs text-gray-500">Assigned Collector</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">{selectedDumping.cleanupTeam}</p>
+                        <p className="text-xs text-td-sage">Assigned Collector</p>
+                        <p className="text-sm font-medium text-td-ink mt-0.5">{selectedDumping.cleanupTeam}</p>
                       </div>
                     )}
                     {selectedDumping.resolvedAt && (
                       <div>
-                        <p className="text-xs text-gray-500">Completed</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">{new Date(selectedDumping.resolvedAt).toLocaleString()}</p>
+                        <p className="text-xs text-td-sage">Completed</p>
+                        <p className="text-sm font-medium text-td-ink mt-0.5">{new Date(selectedDumping.resolvedAt).toLocaleString()}</p>
                       </div>
                     )}
                   </div>
@@ -919,12 +919,12 @@ const IllegalDumpingMap = () => {
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-gray-300 p-6">
+            <div className="h-full flex flex-col items-center justify-center text-td-sage p-6">
               <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <i className="fas fa-map-marker-alt text-3xl text-gray-300"></i>
+                <i className="fas fa-map-marker-alt text-3xl text-td-border" aria-hidden="true"></i>
               </div>
-              <p className="text-sm font-medium text-gray-500 text-center">Click a marker on the map</p>
-              <p className="text-xs text-gray-300 text-center mt-1">Report details will appear here</p>
+              <p className="text-sm font-medium text-td-sage text-center">Click a marker on the map</p>
+              <p className="text-xs text-td-sage text-center mt-1">Report details will appear here</p>
             </div>
           )}
         </div>
@@ -934,7 +934,7 @@ const IllegalDumpingMap = () => {
       {/* Report Details Modal */}
       {showDetailsModal && detailsReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" onClick={() => setShowDetailsModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
             {/* Modal Header */}
             <div className="bg-green-600 text-white px-6 py-4 flex justify-between items-center flex-shrink-0">
               <div>
@@ -950,14 +950,14 @@ const IllegalDumpingMap = () => {
             <div className="p-6 overflow-y-auto">
               {/* Status + Severity row */}
               <div className="grid grid-cols-2 gap-4 mb-5">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Status</p>
+                <div className="bg-td-cream rounded-lg p-3">
+                  <p className="text-xs text-td-sage mb-1">Status</p>
                   <span className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full ${statusBadgeClass(detailsReport.status)}`}>
                     {statusLabel(detailsReport.status)}
                   </span>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Severity</p>
+                <div className="bg-td-cream rounded-lg p-3">
+                  <p className="text-xs text-td-sage mb-1">Severity</p>
                   <span className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full ${severityBadgeClass(detailsReport.severity)}`}>
                     {toTitle(detailsReport.severity) || 'Unknown'}
                   </span>
@@ -967,49 +967,49 @@ const IllegalDumpingMap = () => {
               {/* Details grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500">Reported At</p>
+                  <p className="text-xs text-td-sage">Reported At</p>
                   <p className="font-medium text-sm mt-0.5">
                     {detailsReport.reportedAt ? new Date(detailsReport.reportedAt).toLocaleString() : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Waste Type</p>
+                  <p className="text-xs text-td-sage">Waste Type</p>
                   <p className="font-medium text-sm mt-0.5">{toTitle(detailsReport.wasteType) || 'N/A'}</p>
                 </div>
                 <div className="sm:col-span-2">
-                  <p className="text-xs text-gray-500">Location</p>
+                  <p className="text-xs text-td-sage">Location</p>
                   <p className="font-medium text-sm mt-0.5">{detailsReport.location?.address || 'Unknown Location'}</p>
                   {hasCoordinates(detailsReport) && (
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-td-sage mt-0.5">
                       Lat: {detailsReport.location.lat.toFixed(4)}, Lng: {detailsReport.location.lng.toFixed(4)}
                     </p>
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <p className="text-xs text-gray-500">Description</p>
+                  <p className="text-xs text-td-sage">Description</p>
                   <p className="font-medium text-sm mt-0.5">{detailsReport.description || 'No description provided'}</p>
                 </div>
                 {detailsReport.reportedBy && (
                   <div>
-                    <p className="text-xs text-gray-500">Reported By</p>
+                    <p className="text-xs text-td-sage">Reported By</p>
                     <p className="font-medium text-sm mt-0.5">{detailsReport.reportedBy}</p>
                   </div>
                 )}
                 {detailsReport.cleanupTeam && (
                   <div>
-                    <p className="text-xs text-gray-500">Assigned Collector</p>
+                    <p className="text-xs text-td-sage">Assigned Collector</p>
                     <p className="font-medium text-sm mt-0.5">{detailsReport.cleanupTeam}</p>
                   </div>
                 )}
                 {detailsReport.estimatedCleanupDate && (
                   <div>
-                    <p className="text-xs text-gray-500">Est. Cleanup Date</p>
+                    <p className="text-xs text-td-sage">Est. Cleanup Date</p>
                     <p className="font-medium text-sm mt-0.5">{new Date(detailsReport.estimatedCleanupDate).toLocaleDateString()}</p>
                   </div>
                 )}
                 {detailsReport.resolvedAt && (
                   <div>
-                    <p className="text-xs text-gray-500">Completed At</p>
+                    <p className="text-xs text-td-sage">Completed At</p>
                     <p className="font-medium text-sm mt-0.5">{new Date(detailsReport.resolvedAt).toLocaleString()}</p>
                   </div>
                 )}
@@ -1018,14 +1018,14 @@ const IllegalDumpingMap = () => {
               {/* Images */}
               {detailsReport.images && detailsReport.images.length > 0 && (
                 <div className="mt-5">
-                  <p className="text-xs text-gray-500 mb-2">Photos</p>
+                  <p className="text-xs text-td-sage mb-2">Photos</p>
                   <div className="flex flex-wrap gap-2">
                     {detailsReport.images.map((img, idx) => (
                       <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="block w-20 h-20">
                         <EnhancedImage
                           src={img}
                           alt={`Evidence ${idx + 1}`}
-                          className="w-20 h-20 object-cover rounded-md border border-gray-200"
+                          className="w-20 h-20 object-cover rounded-md border border-td-border"
                           style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                         />
                       </a>
@@ -1036,7 +1036,7 @@ const IllegalDumpingMap = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center flex-shrink-0">
+            <div className="px-6 py-4 bg-td-cream border-t flex justify-between items-center flex-shrink-0">
               {canAssign && !detailsReport.cleanupAssigned && ['pending', 'verified'].includes(normalizeEnum(detailsReport.status)) && (
                 <button
                   onClick={() => {
@@ -1050,7 +1050,7 @@ const IllegalDumpingMap = () => {
               )}
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="ml-auto px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 text-sm"
+                className="ml-auto px-4 py-2 border border-td-border-strong rounded text-td-ink hover:bg-gray-100 text-sm"
               >
                 Close
               </button>

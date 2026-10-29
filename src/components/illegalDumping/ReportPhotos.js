@@ -25,7 +25,7 @@ const ReportPhotos = ({ photos, enhanced = true, title = 'Photos', emptyText = '
         </p>
       )}
       {viewable.length === 0 && lost === 0 && (
-        <p className="text-sm text-gray-500 bg-gray-50 rounded p-3">{emptyText}</p>
+        <p className="text-sm text-td-sage bg-td-cream rounded p-3">{emptyText}</p>
       )}
     </div>
   );
