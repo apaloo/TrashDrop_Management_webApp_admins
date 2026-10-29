@@ -57,28 +57,28 @@ const InvitePanel = ({ isOwner, groupName, onChanged, setNotice, setError }) => 
 
   const open = invites.filter(i => i.open);
   return (
-    <section className="bg-white rounded-lg shadow-sm p-5 mb-6" aria-labelledby="invite-title">
-      <h2 id="invite-title" className="text-lg font-semibold text-gray-800">Invite members</h2>
-      <p className="text-sm text-gray-600">Each member signs in with their own account. Share a link; anyone with it can join until it expires or is used up.</p>
+    <section className="bg-white rounded-xl shadow-sm p-5 mb-6" aria-labelledby="invite-title">
+      <h2 id="invite-title" className="text-lg font-semibold text-td-ink">Invite members</h2>
+      <p className="text-sm text-td-sage">Each member signs in with their own account. Share a link; anyone with it can join until it expires or is used up.</p>
       <div className="flex flex-wrap items-end gap-3 mt-3">
         {isOwner && (
           <div>
-            <label htmlFor="invite-role" className="block text-xs text-gray-600">Joins as</label>
-            <select id="invite-role" value={teamRole} onChange={e => setTeamRole(e.target.value)} className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white">
+            <label htmlFor="invite-role" className="block text-xs text-td-sage">Joins as</label>
+            <select id="invite-role" value={teamRole} onChange={e => setTeamRole(e.target.value)} className="border border-td-border-strong rounded-md px-2 py-1.5 text-sm bg-white">
               <option value="member">Member</option>
               <option value="admin">Group admin (can invite and remove members)</option>
             </select>
           </div>
         )}
         <div>
-          <label htmlFor="invite-days" className="block text-xs text-gray-600">Works for</label>
-          <select id="invite-days" value={days} onChange={e => setDays(e.target.value)} className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white">
+          <label htmlFor="invite-days" className="block text-xs text-td-sage">Works for</label>
+          <select id="invite-days" value={days} onChange={e => setDays(e.target.value)} className="border border-td-border-strong rounded-md px-2 py-1.5 text-sm bg-white">
             {[1, 7, 14, 30].map(d => <option key={d} value={d}>{d === 1 ? '1 day' : `${d} days`}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="invite-uses" className="block text-xs text-gray-600">People who can use it</label>
-          <select id="invite-uses" value={maxUses} onChange={e => setMaxUses(e.target.value)} className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white">
+          <label htmlFor="invite-uses" className="block text-xs text-td-sage">People who can use it</label>
+          <select id="invite-uses" value={maxUses} onChange={e => setMaxUses(e.target.value)} className="border border-td-border-strong rounded-md px-2 py-1.5 text-sm bg-white">
             {[1, 5, 10, 25, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
@@ -89,17 +89,17 @@ const InvitePanel = ({ isOwner, groupName, onChanged, setNotice, setError }) => 
       </div>
 
       {open.length > 0 && (
-        <ul className="mt-4 divide-y divide-gray-100" aria-label="Open invite links">
+        <ul className="mt-4 divide-y divide-td-border" aria-label="Open invite links">
           {open.map(i => {
             const url = inviteUrl(i.token);
             return (
               <li key={i.id} className="py-2 flex flex-wrap items-center gap-2 text-sm" data-testid="invite-link">
-                <span className="text-gray-700">{TEAM_ROLE_LABELS[i.team_role]} link · used {i.uses} of {i.max_uses} · until {dateText(i.expires_at)}</span>
+                <span className="text-td-ink">{TEAM_ROLE_LABELS[i.team_role]} link · used {i.uses} of {i.max_uses} · until {dateText(i.expires_at)}</span>
                 <span className="ml-auto flex gap-2">
                   <button type="button" onClick={async () => setNotice(await copy(url) ? 'Link copied.' : `Copy this link: ${url}`)}
-                    className="px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50">Copy link</button>
+                    className="px-2 py-1 border border-td-border-strong rounded-md hover:bg-td-cream">Copy link</button>
                   <a href={whatsappUrl(groupName, url)} target="_blank" rel="noopener noreferrer"
-                    className="px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50">Share on WhatsApp</a>
+                    className="px-2 py-1 border border-td-border-strong rounded-md hover:bg-td-cream">Share on WhatsApp</a>
                   <button type="button" onClick={() => cancel(i.id)} className="px-2 py-1 text-red-700 hover:underline">Cancel link</button>
                 </span>
               </li>
@@ -166,30 +166,30 @@ const Team = () => {
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Team</h1>
-          <p className="text-gray-600">{team?.group_name || 'Your volunteer group'}{myRole ? ` · you are the ${TEAM_ROLE_LABELS[myRole].toLowerCase()}` : ''}</p>
+          <p className="text-td-sage">{team?.group_name || 'Your volunteer group'}{myRole ? ` · you are the ${TEAM_ROLE_LABELS[myRole].toLowerCase()}` : ''}</p>
         </div>
         {(myRole === 'member' || myRole === 'admin') && (
-          <button type="button" onClick={leave} className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">Leave group</button>
+          <button type="button" onClick={leave} className="px-3 py-1.5 text-sm border border-td-border-strong rounded-md bg-white hover:bg-td-cream">Leave group</button>
         )}
       </div>
 
       {error && <div role="alert" className="mb-4 rounded-md bg-red-50 text-red-800 px-4 py-3 text-sm">{error}</div>}
       {notice && <div role="status" className="mb-4 rounded-md bg-green-50 text-green-800 px-4 py-3 text-sm">{notice}</div>}
 
-      {status === 'loading' && <p className="text-gray-500">Loading…</p>}
+      {status === 'loading' && <p className="text-td-sage">Loading…</p>}
 
       {status === 'ready' && canManage && (
         <InvitePanel isOwner={myRole === 'owner'} groupName={team.group_name} setNotice={setNotice} setError={setError} />
       )}
 
       {status === 'ready' && (
-        <section className="bg-white rounded-lg shadow-sm overflow-x-auto" aria-labelledby="members-title">
-          <h2 id="members-title" className="text-lg font-semibold text-gray-800 px-5 pt-5">Members ({team.members.length})</h2>
+        <section className="bg-white rounded-xl shadow-sm overflow-x-auto" aria-labelledby="members-title">
+          <h2 id="members-title" className="text-lg font-semibold text-td-ink px-5 pt-5">Members ({team.members.length})</h2>
           {team.members.length === 0 ? (
-            <p className="px-5 py-4 text-sm text-gray-500" data-testid="no-members">No members yet. Make an invite link and share it with your group.</p>
+            <p className="px-5 py-4 text-sm text-td-sage" data-testid="no-members">No members yet. Make an invite link and share it with your group.</p>
           ) : (
             <table className="min-w-full text-sm mt-2">
-              <thead className="bg-gray-50 text-gray-600">
+              <thead className="bg-td-cream text-td-sage">
                 <tr>
                   <th scope="col" className="text-left px-5 py-2 font-medium">Name</th>
                   {canManage && <th scope="col" className="text-left px-3 py-2 font-medium">Email</th>}
@@ -203,11 +203,11 @@ const Team = () => {
                   // Owner manages everyone; group admins manage members only
                   const mayManage = canManage && !m.is_me && (myRole === 'owner' || m.team_role === 'member');
                   return (
-                    <tr key={m.member_id} className="border-t border-gray-100" data-testid="member-row">
-                      <td className="px-5 py-2 font-medium text-gray-800">{m.name}{m.is_me ? ' (you)' : ''}</td>
-                      {canManage && <td className="px-3 py-2 text-gray-600">{m.email || '—'}</td>}
+                    <tr key={m.member_id} className="border-t border-td-border" data-testid="member-row">
+                      <td className="px-5 py-2 font-medium text-td-ink">{m.name}{m.is_me ? ' (you)' : ''}</td>
+                      {canManage && <td className="px-3 py-2 text-td-sage">{m.email || '—'}</td>}
                       <td className="px-3 py-2">{TEAM_ROLE_LABELS[m.team_role]}</td>
-                      <td className="px-3 py-2 text-gray-600">{dateText(m.joined_at)}</td>
+                      <td className="px-3 py-2 text-td-sage">{dateText(m.joined_at)}</td>
                       {canManage && (
                         <td className="px-3 py-2 whitespace-nowrap text-right">
                           {myRole === 'owner' && !m.is_me && (

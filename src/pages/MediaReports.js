@@ -15,10 +15,10 @@ const date = (v) => (v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric
 const title = (v) => (v ? String(v).charAt(0).toUpperCase() + String(v).slice(1).replace(/_/g, ' ') : '—');
 
 const Kpi = ({ label, value, sub, testId }) => (
-  <div className="bg-white rounded-lg shadow p-4" data-testid={testId}>
-    <p className="text-xs uppercase text-gray-500">{label}</p>
-    <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
-    {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+  <div className="bg-white rounded-xl shadow p-4" data-testid={testId}>
+    <p className="text-xs uppercase text-td-sage">{label}</p>
+    <p className="text-2xl font-semibold text-td-ink mt-1">{value}</p>
+    {sub && <p className="text-xs text-td-sage mt-1">{sub}</p>}
   </div>
 );
 
@@ -59,7 +59,7 @@ const MediaReports = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const inputCls = 'border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white';
+  const inputCls = 'border border-td-border-strong rounded-lg px-3 py-2 text-sm bg-white';
 
   return (
     <div className="p-4">
@@ -67,7 +67,7 @@ const MediaReports = () => {
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="mr-auto">
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal dumping: reports data</h1>
-          <p className="text-sm text-gray-600">Reports across Ghana, read-only. Nothing that identifies the people who reported them is included.</p>
+          <p className="text-sm text-td-sage">Reports across Ghana, read-only. Nothing that identifies the people who reported them is included.</p>
         </div>
         <button type="button" onClick={download} disabled={!rows || rows.length === 0}
           className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50" data-testid="media-download">
@@ -75,26 +75,26 @@ const MediaReports = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 mb-4 grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="media-filters">
-        <label className="text-xs text-gray-600">From
+      <div className="bg-white rounded-xl shadow p-4 mb-4 grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="media-filters">
+        <label className="text-xs text-td-sage">From
           <input type="date" value={filters.from} max={filters.to || undefined} onChange={e => set({ from: e.target.value })} className={`${inputCls} w-full mt-1`} />
         </label>
-        <label className="text-xs text-gray-600">To
+        <label className="text-xs text-td-sage">To
           <input type="date" value={filters.to} min={filters.from || undefined} onChange={e => set({ to: e.target.value })} className={`${inputCls} w-full mt-1`} />
         </label>
-        <label className="text-xs text-gray-600">Region
+        <label className="text-xs text-td-sage">Region
           <select value={filters.region} onChange={e => set({ region: e.target.value, district: '' })} className={`${inputCls} w-full mt-1`} aria-label="Region">
             <option value="">All of Ghana</option>
             {GHANA_REGIONS.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
           </select>
         </label>
-        <label className="text-xs text-gray-600">District
+        <label className="text-xs text-td-sage">District
           <select value={filters.district} disabled={!filters.region} onChange={e => set({ district: e.target.value })} className={`${inputCls} w-full mt-1`} aria-label="District">
             <option value="">{filters.region ? 'All districts' : 'Choose a region first'}</option>
             {districtsOf(filters.region).map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </label>
-        <label className="text-xs text-gray-600">Status
+        <label className="text-xs text-td-sage">Status
           <select value={filters.status} onChange={e => set({ status: e.target.value })} className={`${inputCls} w-full mt-1`} aria-label="Status">
             {STATUSES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
@@ -104,7 +104,7 @@ const MediaReports = () => {
       {error && <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
       {rows === null ? (
-        <p className="py-10 text-center text-gray-500">Loading reports…</p>
+        <p className="py-10 text-center text-td-sage">Loading reports…</p>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -115,12 +115,12 @@ const MediaReports = () => {
           </div>
 
           {stats.regions.length > 1 && (
-            <div className="bg-white rounded-lg shadow overflow-hidden mb-4">
+            <div className="bg-white rounded-xl shadow overflow-hidden mb-4">
               <table className="w-full text-sm" data-testid="media-regions">
-                <thead className="bg-gray-50 text-xs uppercase text-gray-500 text-left">
+                <thead className="bg-td-cream text-xs uppercase text-td-sage text-left">
                   <tr><th className="px-3 py-2">Region</th><th className="px-3 py-2 text-right">Reports</th><th className="px-3 py-2 text-right">Open</th><th className="px-3 py-2 text-right">Cleaned</th></tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-td-border">
                   {stats.regions.map(r => (
                     <tr key={r.region}><td className="px-3 py-2">{r.region}</td><td className="px-3 py-2 text-right">{r.total}</td><td className="px-3 py-2 text-right">{r.open}</td><td className="px-3 py-2 text-right">{r.cleaned}</td></tr>
                   ))}
@@ -129,18 +129,18 @@ const MediaReports = () => {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <div className="bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full text-sm" data-testid="media-table">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-500 text-left">
+              <thead className="bg-td-cream text-xs uppercase text-td-sage text-left">
                 <tr>
                   <th className="px-3 py-2">Reported</th><th className="px-3 py-2">Where</th><th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Severity</th><th className="px-3 py-2">Waste</th><th className="px-3 py-2">Cleanup by</th>
                   <th className="px-3 py-2 text-right">Days to clean</th><th className="px-3 py-2">Photos</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-td-border">
                 {rows.length === 0 ? (
-                  <tr><td colSpan="8" className="py-10 text-center text-gray-500">No reports match these filters.</td></tr>
+                  <tr><td colSpan="8" className="py-10 text-center text-td-sage">No reports match these filters.</td></tr>
                 ) : rows.slice(0, SHOWN_ROWS).map(r => {
                   const d = daysToClean(r);
                   const photos = [...(r.photos || []), ...(r.cleanup_photos || [])];
@@ -149,7 +149,7 @@ const MediaReports = () => {
                       <td className="px-3 py-2 whitespace-nowrap">{date(r.reported_at)}</td>
                       <td className="px-3 py-2">
                         <div>{r.area_name || r.district || '—'}</div>
-                        <div className="text-xs text-gray-500">{[r.district, r.region].filter(Boolean).join(', ') || 'Outside Ghana'}</div>
+                        <div className="text-xs text-td-sage">{[r.district, r.region].filter(Boolean).join(', ') || 'Outside Ghana'}</div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">{STATUS_LABEL[r.status] || title(r.status)}</td>
                       <td className="px-3 py-2">{title(r.severity)}</td>
@@ -169,10 +169,10 @@ const MediaReports = () => {
               </tbody>
             </table>
           </div>
-          {rows.length > SHOWN_ROWS && <p className="text-xs text-gray-500 mt-2">Showing the latest {SHOWN_ROWS} of {rows.length}. The download has all of them.</p>}
+          {rows.length > SHOWN_ROWS && <p className="text-xs text-td-sage mt-2">Showing the latest {SHOWN_ROWS} of {rows.length}. The download has all of them.</p>}
         </>
       )}
-      <p className="text-xs text-gray-500 mt-4">
+      <p className="text-xs text-td-sage mt-4">
         Source: TrashDrop community reports. Regions and districts: geoBoundaries (CC BY 4.0) and OpenStreetMap (CC BY-SA 2.0).
         Downloads are recorded with your account.
       </p>
