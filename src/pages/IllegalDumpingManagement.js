@@ -205,27 +205,27 @@ const IllegalDumpingManagement = () => {
 
   // The next step each status allows (one primary action per row)
   const rowAction = (report) => {
-    if (report.status === 'pending' && canVerify) return { label: 'Verify', to: 'verified', cls: 'bg-teal-50 text-teal-700 hover:bg-teal-100' };
+    if (report.status === 'pending' && canVerify) return { label: 'Verify', to: 'verified', cls: 'bg-td-tonal text-td-forest hover:bg-[#d5eadb]' };
     if (report.status === 'in_progress' && canMarkCleaned) return { label: 'Mark Cleaned', to: 'completed', cls: 'bg-green-50 text-green-700 hover:bg-green-100' };
     return null;
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-td-cream min-h-screen">
       <AreaScopeNote area={privateView && role === 'user' ? { level: 'home' } : area} readOnly={!(canVerify || canAssign || canMarkCleaned)} />
       {/* Page Header + Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Illegal Dumping Management</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Track and manage illegal dumping reports and cleanups</p>
+          <p className="text-sm text-td-sage mt-0.5">Track and manage illegal dumping reports and cleanups</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {lastUpdated && (
-            <span className="text-xs text-gray-500 hidden sm:block">
+            <span className="text-xs text-td-sage hidden sm:block">
               Last updated: {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           )}
-          <label className="inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none bg-white border border-gray-200 rounded-md px-3 py-2">
+          <label className="inline-flex items-center gap-1.5 text-xs text-td-sage cursor-pointer select-none bg-white border border-td-border rounded-md px-3 py-2">
             <input
               type="checkbox"
               className="accent-green-600 h-3.5 w-3.5"
@@ -238,7 +238,7 @@ const IllegalDumpingManagement = () => {
             onClick={() => refreshReports(false)}
             disabled={loading}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              loading ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+              loading ? 'bg-gray-100 text-td-sage cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
             }`}
           >
             <i className={`fas fa-sync-alt text-xs ${loading ? 'fa-spin' : ''}`}></i>
@@ -252,49 +252,49 @@ const IllegalDumpingManagement = () => {
         <div className="fixed top-20 right-4 bg-gray-800 text-white shadow-xl rounded-lg px-4 py-3 z-[10000] flex items-center gap-3 max-w-sm" role="status">
           <i className="fas fa-info-circle text-blue-300 flex-shrink-0"></i>
           <span className="text-sm">{toastMessage}</span>
-          <button className="ml-auto text-gray-500 hover:text-white" onClick={() => setShowToast(false)} aria-label="Dismiss">
+          <button className="ml-auto text-td-sage hover:text-white" onClick={() => setShowToast(false)} aria-label="Dismiss">
             <i className="fas fa-times text-xs"></i>
           </button>
         </div>
       )}
 
       {/* KPI Cards — all reports, not affected by the filters below */}
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">All reports</p>
+      <p className="text-xs font-semibold text-td-sage uppercase tracking-wider mb-2">All reports</p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         {[
-          { label: 'Total Reports', value: metrics.total, icon: 'fa-flag', bg: 'bg-blue-50', color: 'text-blue-600', border: 'border-blue-100' },
-          { label: 'Verified or Beyond', value: metrics.confirmed, sub: `${metrics.verified} awaiting a collector`, title: 'Verified, in progress, completed or disposed', icon: 'fa-shield-alt', bg: 'bg-green-50', color: 'text-green-600', border: 'border-green-100' },
-          { label: 'Cleaned Up', value: metrics.cleanedUp, icon: 'fa-broom', bg: 'bg-emerald-50', color: 'text-emerald-600', border: 'border-emerald-100' },
-          { label: 'Avg Cleanup Time', value: formatDuration(metrics.avgCleanupHours), sub: metrics.cleanupSampleSize ? `from ${metrics.cleanupSampleSize} cleanups` : 'no cleanups yet', icon: 'fa-clock', bg: 'bg-orange-50', color: 'text-orange-600', border: 'border-orange-100' },
+          { label: 'Total Reports', value: metrics.total, icon: 'fa-flag', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
+          { label: 'Verified or Beyond', value: metrics.confirmed, sub: `${metrics.verified} awaiting a collector`, title: 'Verified, in progress, completed or disposed', icon: 'fa-shield-alt', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
+          { label: 'Cleaned Up', value: metrics.cleanedUp, icon: 'fa-broom', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
+          { label: 'Avg Cleanup Time', value: formatDuration(metrics.avgCleanupHours), sub: metrics.cleanupSampleSize ? `from ${metrics.cleanupSampleSize} cleanups` : 'no cleanups yet', icon: 'fa-clock', bg: 'bg-td-tonal', color: 'text-td-forest', border: 'border-td-border' },
         ].map(({ label, value, sub, title, icon, bg, color, border }) => (
           <div key={label} className={`bg-white rounded-xl shadow-sm border ${border} p-4 flex items-center gap-4`} title={title}>
             <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
               <i className={`fas ${icon} ${color}`}></i>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-              <p className="text-2xl font-bold text-gray-800 leading-tight" data-testid={`kpi-${label.toLowerCase().replace(/\s+/g, '-')}`}>{loading ? '—' : value}</p>
-              {sub && !loading && <p className="text-xs text-gray-500">{sub}</p>}
+              <p className="text-xs text-td-sage mb-0.5">{label}</p>
+              <p className="text-2xl font-bold text-td-ink leading-tight" data-testid={`kpi-${label.toLowerCase().replace(/\s+/g, '-')}`}>{loading ? '—' : value}</p>
+              {sub && !loading && <p className="text-xs text-td-sage">{sub}</p>}
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-5">
+      <div className="bg-white rounded-xl shadow-sm border border-td-border px-4 py-3 mb-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-td-sage text-sm"></i>
             <input
               type="text"
               placeholder="Search by ID, location, status, reporter or team..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-td-border rounded-lg bg-td-cream focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <select
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
+            className="py-2 px-3 text-sm border border-td-border rounded-lg bg-td-cream focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             aria-label="Status"
@@ -303,7 +303,7 @@ const IllegalDumpingManagement = () => {
             {STATUS_FILTERS.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
           </select>
           <select
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
+            className="py-2 px-3 text-sm border border-td-border rounded-lg bg-td-cream focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-w-[150px]"
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
             aria-label="Severity"
@@ -323,47 +323,47 @@ const IllegalDumpingManagement = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-td-border">
+          <table className="min-w-full divide-y divide-td-border">
+            <thead className="bg-td-cream">
               <tr>
                 {['Report ID', 'Reported', 'Location', 'Waste Type', 'Severity', 'Status', 'Assignee'].map(h => (
-                  <th key={h} className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-3 py-3 text-left text-xs font-medium text-td-sage uppercase tracking-wider">{h}</th>
                 ))}
-                <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">Actions</th>
+                <th className="px-3 py-3 text-right text-xs font-medium text-td-sage uppercase tracking-wider sticky right-0 bg-td-cream">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-td-border">
               {paginatedReports.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-10 text-center text-gray-500">
+                  <td colSpan="8" className="px-6 py-10 text-center text-td-sage">
                     {filteredReports.length === 0 ? 'No reports match your filters' : 'No entries on this page'}
                   </td>
                 </tr>
               ) : paginatedReports.map((report) => {
                 const action = rowAction(report);
                 return (
-                  <tr key={report.id} className="hover:bg-gray-50 group">
-                    <td className="px-3 py-3 whitespace-nowrap text-sm font-mono text-gray-900" title={report.id}>
+                  <tr key={report.id} className="hover:bg-td-cream group">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-mono text-td-ink" title={report.id}>
                       {report.id.slice(0, 8)}
-                      <button onClick={() => copyId(report.id)} className="ml-1 text-gray-300 hover:text-gray-600" aria-label="Copy report ID" title="Copy full ID">
+                      <button onClick={() => copyId(report.id)} className="ml-1 text-td-sage hover:text-td-ink" aria-label="Copy report ID" title="Copy full ID">
                         <i className="far fa-copy text-xs"></i>
                       </button>
                     </td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(report.reportedAt)}</td>
-                    <td className="px-3 py-3 text-sm text-gray-600">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-td-sage">{formatDate(report.reportedAt)}</td>
+                    <td className="px-3 py-3 text-sm text-td-sage">
                       <div className="truncate max-w-[14rem]" title={report.locationLabel}>{report.locationLabel}</div>
                     </td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">{toTitle(report.wasteType)}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-td-sage">{toTitle(report.wasteType)}</td>
                     <td className="px-3 py-3 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${severityBadgeClass(report.severity)}`}>{toTitle(report.severity)}</span>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap"><StatusBadge status={report.status} /></td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600">{report.cleanupTeam || '—'}{report.claimedByVolunteers && <span className="ml-1 text-xs text-teal-700" title="Claimed by a volunteer group">(volunteers)</span>}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-right sticky right-0 bg-white group-hover:bg-gray-50">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-td-sage">{report.cleanupTeam || '—'}{report.claimedByVolunteers && <span className="ml-1 text-xs text-teal-700" title="Claimed by a volunteer group">(volunteers)</span>}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-right sticky right-0 bg-white group-hover:bg-td-cream">
                       <button
                         onClick={() => handleViewDetails(report)}
-                        className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                        className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-td-ink hover:bg-gray-200 transition-colors"
                       >
                         Details
                       </button>
@@ -384,17 +384,17 @@ const IllegalDumpingManagement = () => {
           </table>
 
           {/* Pagination */}
-          <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="px-4 sm:px-6 py-4 border-t border-td-border bg-td-cream rounded-b-lg">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               {/* Left: rows per page + entry info */}
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-td-sage">
                 <div className="flex items-center gap-2">
                   <label htmlFor="idmRowsPerPage" className="whitespace-nowrap">Rows per page:</label>
                   <select
                     id="idmRowsPerPage"
                     value={itemsPerPage}
                     onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                    className="border border-gray-300 rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="border border-td-border-strong rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-white"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -402,7 +402,7 @@ const IllegalDumpingManagement = () => {
                     <option value={50}>50</option>
                   </select>
                 </div>
-                <span className="hidden sm:inline text-gray-500">|</span>
+                <span className="hidden sm:inline text-td-sage">|</span>
                 <span>
                   {totalCount === 0
                     ? 'No entries'
@@ -416,7 +416,7 @@ const IllegalDumpingManagement = () => {
                 <button
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-td-sage hover:bg-gray-200'}`}
                   title="First page"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
@@ -425,7 +425,7 @@ const IllegalDumpingManagement = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`p-2 rounded-md text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-td-sage hover:bg-gray-200'}`}
                   title="Previous page"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -447,7 +447,7 @@ const IllegalDumpingManagement = () => {
                   }
                   return pages.map((page, idx) =>
                     page === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-500 text-sm select-none">&hellip;</span>
+                      <span key={`ellipsis-${idx}`} className="px-2 text-td-sage text-sm select-none">&hellip;</span>
                     ) : (
                       <button
                         key={page}
@@ -455,7 +455,7 @@ const IllegalDumpingManagement = () => {
                         className={`min-w-[36px] h-9 rounded-md text-sm font-medium transition-colors ${
                           currentPage === page
                             ? 'bg-green-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-200'
+                            : 'text-td-sage hover:bg-gray-200'
                         }`}
                       >
                         {page}
@@ -468,7 +468,7 @@ const IllegalDumpingManagement = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage >= totalPages}
-                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-td-sage hover:bg-gray-200'}`}
                   title="Next page"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -477,7 +477,7 @@ const IllegalDumpingManagement = () => {
                 <button
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage >= totalPages}
-                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`p-2 rounded-md text-sm ${currentPage >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-td-sage hover:bg-gray-200'}`}
                   title="Last page"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
@@ -498,78 +498,78 @@ const IllegalDumpingManagement = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4 gap-4">
-              <h2 className="text-xl font-semibold break-all" id="report-details-title">Dumping Report <span className="font-mono text-base text-gray-500">{selectedReport.id}</span></h2>
-              <button onClick={closeDetails} className="text-gray-500 hover:text-gray-700 text-2xl leading-none" aria-label="Close">&times;</button>
+              <h2 className="text-xl font-semibold break-all" id="report-details-title">Dumping Report <span className="font-mono text-base text-td-sage">{selectedReport.id}</span></h2>
+              <button onClick={closeDetails} className="text-td-sage hover:text-td-ink text-2xl leading-none" aria-label="Close">&times;</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <p className="text-gray-600 text-sm">Reported At</p>
+                <p className="text-td-sage text-sm">Reported At</p>
                 <p className="font-medium">{formatDate(selectedReport.reportedAt, { withTime: true })}</p>
               </div>
               {!selectedReport.reporterHidden && (
                 <div>
-                  <p className="text-gray-600 text-sm">Reported By</p>
+                  <p className="text-td-sage text-sm">Reported By</p>
                   <p className="font-medium">{selectedReport.reportedBy}</p>
                 </div>
               )}
               <div>
-                <p className="text-gray-600 text-sm">Status</p>
+                <p className="text-td-sage text-sm">Status</p>
                 <StatusBadge status={selectedReport.status} />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Severity</p>
+                <p className="text-td-sage text-sm">Severity</p>
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${severityBadgeClass(selectedReport.severity)}`}>{toTitle(selectedReport.severity)}</span>
               </div>
               <div className="md:col-span-2">
-                <p className="text-gray-600 text-sm">Location</p>
+                <p className="text-td-sage text-sm">Location</p>
                 <p className="font-medium">{selectedReport.locationLabel}</p>
                 {selectedReport.location.lat !== null && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-td-sage">
                     {selectedReport.location.lat.toFixed(5)}, {selectedReport.location.lng.toFixed(5)}
                     {selectedReport.location.address && selectedReport.location.address !== selectedReport.locationLabel ? ` · ${selectedReport.location.address}` : ''}
                   </p>
                 )}
               </div>
               <div className="md:col-span-2">
-                <p className="text-gray-600 text-sm">Description</p>
+                <p className="text-td-sage text-sm">Description</p>
                 <p className="font-medium">{selectedReport.description || 'No description given'}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Waste Type</p>
+                <p className="text-td-sage text-sm">Waste Type</p>
                 <p className="font-medium">{toTitle(selectedReport.wasteType)}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Assigned Collector</p>
+                <p className="text-td-sage text-sm">Assigned Collector</p>
                 <p className="font-medium">{selectedReport.cleanupTeam || 'Not assigned'}{selectedReport.claimedByVolunteers && <span className="ml-1 text-xs font-normal text-teal-700">(volunteer group claim)</span>}</p>
               </div>
               {selectedReport.cleanupFee != null && (
                 <div>
-                  <p className="text-gray-600 text-sm">Cleanup Payment</p>
+                  <p className="text-td-sage text-sm">Cleanup Payment</p>
                   <p className="font-medium text-green-700">GHS {Number(selectedReport.cleanupFee).toFixed(2)}</p>
                 </div>
               )}
               {selectedReport.resolvedAt && (
                 <div>
-                  <p className="text-gray-600 text-sm">Resolved At</p>
+                  <p className="text-td-sage text-sm">Resolved At</p>
                   <p className="font-medium">{formatDate(selectedReport.resolvedAt, { withTime: true })}</p>
                 </div>
               )}
               {selectedReport.status === 'cancelled' && (
                 <div>
-                  <p className="text-gray-600 text-sm">Cancelled At</p>
+                  <p className="text-td-sage text-sm">Cancelled At</p>
                   <p className="font-medium">{formatDate(selectedReport.closedAt, { withTime: true })}</p>
                 </div>
               )}
               {selectedReport.disposedAt && (
                 <div>
-                  <p className="text-gray-600 text-sm">Disposed</p>
+                  <p className="text-td-sage text-sm">Disposed</p>
                   <p className="font-medium">{formatDate(selectedReport.disposedAt, { withTime: true })}{selectedReport.disposalSite ? ` · ${selectedReport.disposalSite}` : ''}</p>
                 </div>
               )}
               {selectedReport.notes && (
                 <div className="md:col-span-2">
-                  <p className="text-gray-600 text-sm">Notes</p>
+                  <p className="text-td-sage text-sm">Notes</p>
                   <p className="font-medium whitespace-pre-line">{selectedReport.notes}</p>
                 </div>
               )}
@@ -588,11 +588,11 @@ const IllegalDumpingManagement = () => {
             {selectedReportHistory.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-medium mb-2">Activity History</h3>
-                <div className="border-l-2 border-gray-200 ml-3">
+                <div className="border-l-2 border-td-border ml-3">
                   {selectedReportHistory.map((item) => (
                     <div key={item.id} className="ml-6 mb-4 relative">
                       <div className="absolute -left-9 mt-1.5 w-4 h-4 rounded-full bg-blue-500"></div>
-                      <p className="text-sm text-gray-500">{formatDate(item.at, { withTime: true })}</p>
+                      <p className="text-sm text-td-sage">{formatDate(item.at, { withTime: true })}</p>
                       <p className="font-medium">{statusLabel(item.status)}</p>
                       {item.notes && <p className="text-sm mt-1">{item.notes}</p>}
                     </div>
@@ -636,7 +636,7 @@ const IllegalDumpingManagement = () => {
             )}
 
             <div className="mt-4 flex justify-end">
-              <button onClick={closeDetails} className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Close</button>
+              <button onClick={closeDetails} className="px-4 py-2 bg-gray-300 text-td-ink rounded hover:bg-gray-400">Close</button>
             </div>
           </div>
         </div>
