@@ -14,7 +14,7 @@ const KIND_STYLE = {
 
 const Field = ({ label, children }) => (
   <div className="min-w-0">
-    <p className="text-gray-600 text-sm">{label}</p>
+    <p className="text-td-sage text-sm">{label}</p>
     <div className="font-medium break-words">{children}</div>
   </div>
 );
@@ -47,13 +47,13 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-2 sm:p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto" role="dialog" aria-modal="true"
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto" role="dialog" aria-modal="true"
         aria-labelledby="batch-history-title" onClick={e => e.stopPropagation()} data-testid="batch-history">
         <div className="sticky top-0 bg-white border-b px-5 py-3 flex items-center gap-3 z-10">
           <h2 id="batch-history-title" className="text-lg font-semibold">Batch history</h2>
           <CopyId id={b.id} />
           <BagStageBadge stage={b.stage} />
-          <button type="button" onClick={onClose} className="ml-auto text-2xl leading-none text-gray-500 hover:text-gray-700" aria-label="Close">&times;</button>
+          <button type="button" onClick={onClose} className="ml-auto text-2xl leading-none text-td-sage hover:text-td-ink" aria-label="Close">&times;</button>
         </div>
 
         <div className="p-5 space-y-6 text-sm">
@@ -64,31 +64,31 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
             <Field label="Size">{orDash(b.size)}</Field>
             <Field label="QR prefix"><span className="font-mono">{orDash(b.qrPrefix)}</span></Field>
             <Field label="Household">{orDash(b.householdName)}</Field>
-            <Field label="Price">{formatCedis(b.totalBatchPrice)}<span className="block text-xs text-gray-500 font-normal">{formatCedis(b.unitPrice)} per bag</span></Field>
+            <Field label="Price">{formatCedis(b.totalBatchPrice)}<span className="block text-xs text-td-sage font-normal">{formatCedis(b.unitPrice)} per bag</span></Field>
             <Field label="Scanned">{b.scannedCount} of {p.total} bags ({b.scannedPct}%)</Field>
             <Field label="Collected">{b.collected} of {p.total} bags</Field>
           </div>
           <div>
             <div className="relative w-full bg-gray-200 rounded-full h-2.5 overflow-hidden" aria-label="Bag progress">
-              <div className="absolute inset-y-0 left-0 bg-blue-500" style={{ width: `${p.distributedPct}%` }} />
-              <div className="absolute inset-y-0 left-0 bg-yellow-500" style={{ width: `${p.filledPct}%` }} />
+              <div className="absolute inset-y-0 left-0 bg-td-orange" style={{ width: `${p.distributedPct}%` }} />
+              <div className="absolute inset-y-0 left-0 bg-[#1d4ed8]" style={{ width: `${p.filledPct}%` }} />
               <div className="absolute inset-y-0 left-0 bg-green-600" style={{ width: `${p.collectedPct}%` }} />
             </div>
-            <div className="flex flex-wrap justify-between gap-2 text-gray-600 mt-2">
+            <div className="flex flex-wrap justify-between gap-2 text-td-sage mt-2">
               <span>{p.distributed} distributed</span><span>{p.filled} filled</span><span>{p.collected} collected</span><span>{p.total} total</span>
             </div>
           </div>
 
           <div>
             <h3 className="font-medium mb-2">Bags</h3>
-            {loading ? <p className="text-gray-500">Loading history…</p> : error ? (
+            {loading ? <p className="text-td-sage">Loading history…</p> : error ? (
               <div className="rounded border border-red-300 bg-red-50 text-red-800 p-3" role="alert" data-testid="history-error">
                 <p className="font-medium">History could not be loaded.</p>
                 <p className="text-xs mt-1 break-words">{error}</p>
                 <button type="button" onClick={load} className="mt-2 px-3 py-1 rounded bg-red-600 text-white text-xs hover:bg-red-700">Retry</button>
               </div>
             ) : data.bags.length === 0 ? (
-              <p className="text-gray-500">This batch has no bag records yet (bags are created when a household scans the batch QR).</p>
+              <p className="text-td-sage">This batch has no bag records yet (bags are created when a household scans the batch QR).</p>
             ) : (
               <ul className="border rounded divide-y" data-testid="history-bags">
                 {data.bags.map(bag => {
@@ -97,26 +97,26 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
                   return (
                     <li key={bag.id}>
                       <button type="button" onClick={() => setOpen(isOpen ? null : bag.id)} aria-expanded={isOpen}
-                        className="w-full text-left px-3 py-2 grid grid-cols-2 sm:grid-cols-[4rem_7rem_1fr_1fr_5rem] gap-x-3 gap-y-1 items-center hover:bg-gray-50">
+                        className="w-full text-left px-3 py-2 grid grid-cols-2 sm:grid-cols-[4rem_7rem_1fr_1fr_5rem] gap-x-3 gap-y-1 items-center hover:bg-td-cream">
                         <span className="font-medium">#{bag.bagNo}</span>
                         <span><BagStageBadge stage={bag.stage} /></span>
-                        <span className="text-gray-600 truncate" title={bag.lastScanAt ? fullDate(bag.lastScanAt) : ''}>
+                        <span className="text-td-sage truncate" title={bag.lastScanAt ? fullDate(bag.lastScanAt) : ''}>
                           {bag.lastScanAt ? `Scanned ${relativeAge(bag.lastScanAt)}` : 'Not scanned'}{bag.lastScannedByName ? ` · ${bag.lastScannedByName}` : ''}
                         </span>
-                        <span className="text-gray-600 truncate" title={bag.lastLocation || ''}>{bag.lastLocation || '—'}</span>
-                        <span className="text-gray-500 text-xs sm:text-right">{bag.scanCount} scan{bag.scanCount === 1 ? '' : 's'} {isOpen ? '▴' : '▾'}</span>
+                        <span className="text-td-sage truncate" title={bag.lastLocation || ''}>{bag.lastLocation || '—'}</span>
+                        <span className="text-td-sage text-xs sm:text-right">{bag.scanCount} scan{bag.scanCount === 1 ? '' : 's'} {isOpen ? '▴' : '▾'}</span>
                       </button>
                       {isOpen && (
-                        <div className="px-4 pb-3 bg-gray-50" data-testid="bag-timeline">
-                          <p className="text-xs text-gray-500 font-mono break-all pt-2">{bag.qrCode || bag.id}</p>
-                          {events.length === 0 ? <p className="text-gray-500 py-2">No events recorded for this bag yet.</p> : (
+                        <div className="px-4 pb-3 bg-td-cream" data-testid="bag-timeline">
+                          <p className="text-xs text-td-sage font-mono break-all pt-2">{bag.qrCode || bag.id}</p>
+                          {events.length === 0 ? <p className="text-td-sage py-2">No events recorded for this bag yet.</p> : (
                             <ol className="mt-2 space-y-2">
                               {events.map((e, i) => (
                                 <li key={`${e.kind}-${i}`} className="flex gap-3">
                                   <span className={`mt-1.5 w-2 h-2 rounded-full flex-none ${KIND_STYLE[e.kind] || 'bg-gray-400'}`} />
                                   <div className="min-w-0">
                                     <p className="font-medium">{e.label}</p>
-                                    <p className="text-xs text-gray-600">{fullDate(e.at)}{e.actor ? ` · ${e.actor}` : ''}{e.location ? ` · ${e.location}` : ''}</p>
+                                    <p className="text-xs text-td-sage">{fullDate(e.at)}{e.actor ? ` · ${e.actor}` : ''}{e.location ? ` · ${e.location}` : ''}</p>
                                   </div>
                                 </li>
                               ))}
@@ -129,7 +129,7 @@ const BatchHistoryModal = ({ batch: b, onClose }) => {
                 })}
               </ul>
             )}
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-td-sage mt-2">
               A scan is a household scanning the batch QR, or a scan saved by an app. Collector bag scans aren't saved by the collector app yet.
             </p>
           </div>

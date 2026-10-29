@@ -51,6 +51,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dropdowns are white fields like the inputs (the browser default is grey) */
+select:not([class*="bg-"]) {
+  background-color: var(--td-input-bg);
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
