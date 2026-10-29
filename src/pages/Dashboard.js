@@ -17,7 +17,8 @@ import {
 } from '../utils/dashboardUtils';
 import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
 import { CHART } from '../theme/brand';
-import { applyChartTheme, describeValues } from '../theme/chartTheme';
+import { applyChartTheme, chartColor, describeValues } from '../theme/chartTheme';
+import { useTheme } from '../context/ThemeContext';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 applyChartTheme(ChartJS);
@@ -101,10 +102,22 @@ const SEVERITY = {
   medium: { icon: 'exclamation-circle', color: '#92400e', bg: '#fdf6e3' },
   low: { icon: 'info-circle', color: '#1d4ed8', bg: '#eaf0fd' },
 };
+// Dark mode: deep fills and pale text, the same hues
+const SEVERITY_DARK = {
+  critical: { ...SEVERITY.critical, color: '#fca5a5', bg: '#3b1515' },
+  high: { ...SEVERITY.high, color: '#fdba74', bg: '#3d220f' },
+  medium: { ...SEVERITY.medium, color: '#fcd34d', bg: '#3a2a0c' },
+  low: { ...SEVERITY.low, color: '#a5c0fd', bg: '#14213f' },
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, role } = useAuth();
+  const { isDark } = useTheme();
+  applyChartTheme(ChartJS, isDark);
+  const tc = (c) => chartColor(c, isDark);
+  const chartKey = isDark ? 'dark' : 'light';
+  const severities = isDark ? SEVERITY_DARK : SEVERITY;
   const [params, setParams] = useSearchParams();
   const rangeKey = params.get('range') || '';
   const customFrom = params.get('from') || '';
@@ -248,27 +261,27 @@ const Dashboard = () => {
 
   const statusChart = {
     labels: rows.map(r => r.label),
-    datasets: [{ label: 'Requests', data: rows.map(r => r.value), backgroundColor: rows.map(r => r.color), borderWidth: 0 }],
+    datasets: [{ label: 'Requests', data: rows.map(r => r.value), backgroundColor: rows.map(r => tc(r.color)), borderWidth: 0 }],
   };
   const sourceChart = {
     labels: ['Pickup requests', 'Digital bins'],
-    datasets: [{ data: [Number(bySource.pickup_requests) || 0, Number(bySource.digital_bins) || 0], backgroundColor: [CHART.green, CHART.orange], borderWidth: 1 }],
+    datasets: [{ data: [Number(bySource.pickup_requests) || 0, Number(bySource.digital_bins) || 0], backgroundColor: [tc(CHART.green), tc(CHART.orange)], borderWidth: 1 }],
   };
   const wasteChart = {
     labels: waste.map(w => w.key),
-    datasets: [{ data: waste.map(w => w.value), backgroundColor: waste.map(w => w.color), borderWidth: 1 }],
+    datasets: [{ data: waste.map(w => w.value), backgroundColor: waste.map(w => tc(w.color)), borderWidth: 1 }],
   };
   const bagChart = {
     labels: bagSeries.map(b => bucketLabel(b.start, bucket)),
     datasets: [
-      { label: 'Generated', data: bagSeries.map(b => b.generated), borderColor: CHART.grey, backgroundColor: CHART.grey, tension: 0.3 },
-      { label: 'Distributed', data: bagSeries.map(b => b.distributed), borderColor: CHART.orange, backgroundColor: CHART.orange, tension: 0.3 },
-      { label: 'Collected', data: bagSeries.map(b => b.collected), borderColor: CHART.green, backgroundColor: CHART.green, tension: 0.3 },
+      { label: 'Generated', data: bagSeries.map(b => b.generated), borderColor: tc(CHART.grey), backgroundColor: tc(CHART.grey), tension: 0.3 },
+      { label: 'Distributed', data: bagSeries.map(b => b.distributed), borderColor: tc(CHART.orange), backgroundColor: tc(CHART.orange), tension: 0.3 },
+      { label: 'Collected', data: bagSeries.map(b => b.collected), borderColor: tc(CHART.green), backgroundColor: tc(CHART.green), tension: 0.3 },
     ],
   };
   const dumpingChart = {
     labels: dumping.map(d => bucketLabel(d.start, bucket)),
-    datasets: [{ label: 'Reports', data: dumping.map(d => d.reports), backgroundColor: CHART.red, borderWidth: 0 }],
+    datasets: [{ label: 'Reports', data: dumping.map(d => d.reports), backgroundColor: tc(CHART.red), borderWidth: 0 }],
   };
   const axisOpts = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } };
 
@@ -348,7 +361,7 @@ const Dashboard = () => {
             action={status === 'ok' && <span className="text-xs text-td-sage" data-testid="status-sum">Total {statusSum}</span>}>
             <div className="h-64">
               {body(statusSum === 0 ? <Empty /> : (
-                <Bar data={statusChart} role="img" aria-label={`Bar chart, requests by status: ${describeValues(statusChart.labels, statusChart.datasets[0].data)}`} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
+                <Bar key={chartKey} data={statusChart} role="img" aria-label={`Bar chart, requests by status: ${describeValues(statusChart.labels, statusChart.datasets[0].data)}`} options={{ ...axisOpts, indexAxis: 'y', plugins: { legend: { display: false } },
                   scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
                   ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, rows[i].filter))) : {}) }} />
               ))}
@@ -357,7 +370,7 @@ const Dashboard = () => {
           <Panel testid="panel-source" title="Pickup Requests vs Digital Bins" help="Where this period's requests came from. Click a slice to open them.">
             <div className="h-64">
               {body((req.total || 0) === 0 ? <Empty /> : (
-                <Doughnut data={sourceChart} role="img" aria-label={`Doughnut chart, requests by source: ${describeValues(sourceChart.labels, sourceChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+                <Doughnut key={chartKey} data={sourceChart} role="img" aria-label={`Doughnut chart, requests by source: ${describeValues(sourceChart.labels, sourceChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
                   ...(canOpenRequests ? clickable(i => navigate(requestListUrl(period, { source: i === 0 ? 'pickup_requests' : 'digital_bins' }))) : {}) }} />
               ))}
             </div>
@@ -413,7 +426,7 @@ const Dashboard = () => {
                 <span className="text-xs rounded-full bg-gray-100 text-gray-700 px-2 py-0.5" data-testid="unclassified">Unclassified {waste.find(w => w.key === 'Unclassified').value}</span>)}>
               <div className="h-64">
                 {body(wasteTotal === 0 ? <Empty /> : (
-                  <Doughnut data={wasteChart} role="img" aria-label={`Doughnut chart, bags by waste type: ${describeValues(wasteChart.labels, wasteChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
+                  <Doughnut key={chartKey} data={wasteChart} role="img" aria-label={`Doughnut chart, bags by waste type: ${describeValues(wasteChart.labels, wasteChart.datasets[0].data)}`} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } },
                     ...clickable(() => navigate('/bin-management/manage')) }} />
                 ))}
               </div>
@@ -431,7 +444,7 @@ const Dashboard = () => {
               action={<button type="button" onClick={() => navigate('/bin-management/history')} className="text-sm text-green-700 hover:underline">Bag History →</button>}>
               <div className="h-56">
                 {body(seriesTotal(bagSeries, 'generated') + seriesTotal(bagSeries, 'distributed') + seriesTotal(bagSeries, 'collected') === 0 ? <Empty /> : (
-                  <Line data={bagChart} role="img" aria-label={`Line chart of bags generated (${seriesTotal(bagSeries, 'generated')}), distributed (${seriesTotal(bagSeries, 'distributed')}) and collected (${seriesTotal(bagSeries, 'collected')}) in this period`} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
+                  <Line key={chartKey} data={bagChart} role="img" aria-label={`Line chart of bags generated (${seriesTotal(bagSeries, 'generated')}), distributed (${seriesTotal(bagSeries, 'distributed')}) and collected (${seriesTotal(bagSeries, 'collected')}) in this period`} options={{ ...axisOpts, plugins: { legend: { position: 'bottom' } }, ...clickable(() => navigate('/bin-management/history')) }} />
                 ))}
               </div>
               {status === 'ok' && bags.all_time && (
@@ -446,7 +459,7 @@ const Dashboard = () => {
             action={status === 'ok' && <span className="text-xs text-td-sage">Total {data?.dumping_total ?? 0}</span>}>
             <div className="h-56">
               {body((data?.dumping_total || 0) === 0 ? <Empty /> : (
-                <Bar data={dumpingChart} role="img" aria-label={`Bar chart, dumping reports over time: ${describeValues(dumpingChart.labels, dumpingChart.datasets[0].data)}`} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...(canOpenDumping ? clickable(() => navigate('/illegal-dumping/reports')) : {}) }} />
+                <Bar key={chartKey} data={dumpingChart} role="img" aria-label={`Bar chart, dumping reports over time: ${describeValues(dumpingChart.labels, dumpingChart.datasets[0].data)}`} options={{ ...axisOpts, plugins: { legend: { display: false } }, ...(canOpenDumping ? clickable(() => navigate('/illegal-dumping/reports')) : {}) }} />
               ))}
             </div>
           </Panel>
@@ -462,7 +475,7 @@ const Dashboard = () => {
               {status === 'loading' ? <Skeleton /> : status === 'error' ? <Failed onRetry={retry} /> : alerts.length === 0 ? <Empty text="No open alerts" /> : (
                 <ul className="divide-y divide-gray-200">
                   {alerts.map(a => {
-                    const sev = SEVERITY[a.severity] || SEVERITY.low;
+                    const sev = severities[a.severity] || severities.low;
                     return (
                       <li key={a.id} className="py-3 flex items-start gap-3" data-testid="alert-row">
                         <div className="rounded-full p-2" style={{ backgroundColor: sev.bg }}><i className={`fas fa-${sev.icon}`} style={{ color: sev.color }} aria-hidden="true"></i></div>

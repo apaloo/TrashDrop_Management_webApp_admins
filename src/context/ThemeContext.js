@@ -1,25 +1,40 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext();
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error('useTheme must be used within a ThemeProvider');
-  return context;
+// Outside a ThemeProvider (tests, a component drawn on its own) it is light
+const LIGHT = { theme: 'light', toggleTheme: () => {}, isDark: false };
+export const useTheme = () => useContext(ThemeContext) || LIGHT;
+
+// The dashboard is light unless the person switches dark mode on; the choice
+// is kept per browser. Only the dashboard shell (Layout) reads it: public
+// pages and sign-in stay light.
+export const THEME_KEY = 'trashdrop_theme';
+
+const readStored = () => {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
 };
 
-// The dashboard has one light theme for now: dark mode left parts of pages
-// unreadable, so it was removed until every page supports it.
-const LIGHT = { theme: 'light', toggleTheme: () => {}, isDark: false };
-
 export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState(readStored);
+
   useEffect(() => {
-    localStorage.removeItem('trashdrop_theme');
-    document.documentElement.setAttribute('data-theme', 'light');
-  }, []);
+    try {
+      if (theme === 'dark') localStorage.setItem(THEME_KEY, 'dark');
+      else localStorage.removeItem(THEME_KEY);
+    } catch {
+      // Private browsing: the choice lasts for this visit only
+    }
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => setTheme(t => (t === 'dark' ? 'light' : 'dark')), []);
 
   return (
-    <ThemeContext.Provider value={LIGHT}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
       {children}
     </ThemeContext.Provider>
   );
