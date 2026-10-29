@@ -91,6 +91,12 @@ footer :focus-visible {
   outline-color: var(--td-brand);
 }
 
+/* Map credits: Leaflet sets 12px Helvetica; keep the 13px floor and the site face */
+.leaflet-container .leaflet-control-attribution {
+  font-family: var(--td-font);
+  font-size: 13px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
