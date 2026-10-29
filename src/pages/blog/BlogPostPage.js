@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
-import PublicPageLayout, { TD, FF, FAQAccordion } from '../../components/PublicPageLayout';
+import PublicPageLayout, { TD, FAQAccordion } from '../../components/PublicPageLayout';
+import { Hero, Section, H2, TagPill, cardStyle, linkStyle } from '../../components/PublicSections';
+import { TYPE, BTN } from '../../theme/brand';
 import { BLOG_POSTS } from '../BlogPage';
 import { BUSINESS, SITE_URL, useSeo, withSlash } from '../../utils/seo';
 import { HOUSEHOLD_APP_URL } from '../../config/homepage';
@@ -309,40 +311,37 @@ const BlogPostPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
-        <div style={{ maxWidth:800, margin:'0 auto', position:'relative', zIndex:1 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
-            <Link to="/blog/" style={{ ...FF.label, fontSize:12, color:TD.sageOnDark, textDecoration:'none', fontWeight:600 }}>
-              ← Blog
-            </Link>
-            <span style={{ color:TD.sageOnDark }}>·</span>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'1.5px', color:post.tagColor, background:`${post.tagColor}15`, border:`1px solid ${post.tagColor}25`, borderRadius:99, padding:'3px 10px', textTransform:'uppercase' }}>{post.tag}</span>
-            <span style={{ color:TD.sageOnDark }}>·</span>
-            <span style={{ ...FF.label, fontSize:12, color:TD.sageOnDark }}>{post.readTime}</span>
-          </div>
-          <h1 style={{ ...FF.display, fontSize:'clamp(32px,5vw,58px)', color:'#f0f5f0', lineHeight:1.08, letterSpacing:'-1.5px', margin:0 }}>
-            {content.title}
-          </h1>
+      <Hero width={800}>
+        <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:12, marginBottom:24 }}>
+          <Link to="/blog/" style={{ ...TYPE.small, fontWeight:600, color:TD.sageOnDark, textDecoration:'none' }}>
+            ← Blog
+          </Link>
+          <span aria-hidden="true" style={{ color:TD.sageOnDark }}>·</span>
+          <TagPill tag={post.tag} color={post.tagColor} dark />
+          <span aria-hidden="true" style={{ color:TD.sageOnDark }}>·</span>
+          <span style={{ ...TYPE.small, color:TD.sageOnDark }}>{post.readTime}</span>
         </div>
-      </section>
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:0 }}>
+          {content.title}
+        </h1>
+      </Hero>
 
       {/* ── Article body ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:780, margin:'0 auto' }}>
+      <section style={{ background:'#fff', padding:'var(--td-section-y) 24px' }}>
+        <div style={{ maxWidth:720, margin:'0 auto' }}>
 
           {/* Opening paragraph — first 100-150 words extracted by AI */}
-          <p style={{ ...FF.body, fontSize:18, color:'rgba(255,255,255,0.82)', lineHeight:1.85, margin:'0 0 48px', fontWeight:400, borderLeft:`3px solid ${TD.lime}`, paddingLeft:24 }}>
+          <p style={{ ...TYPE.lead, color:TD.ink, margin:'0 0 48px', borderLeft:`3px solid ${TD.forest}`, paddingLeft:24 }}>
             {post.excerpt}
           </p>
 
           {post.image && (
             <figure style={{ margin:'0 0 48px' }}>
               <img src={post.image} alt={post.imageAlt} width={post.imageSize[0]} height={post.imageSize[1]} decoding="async"
-                style={{ display:'block', width:'100%', height:'auto', borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }} />
+                style={{ display:'block', width:'100%', height:'auto', borderRadius:12, border:'1px solid var(--td-border)' }} />
               {content.fromFacebook && (
-                <figcaption style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', marginTop:12 }}>
-                  First shared on the <a href={BUSINESS.facebookUrl} target="_blank" rel="noopener noreferrer" style={{ color:TD.lime }}>TrashDrop Facebook page</a>.
+                <figcaption style={{ ...TYPE.small, color:TD.sage, marginTop:12 }}>
+                  First shared on the <a href={BUSINESS.facebookUrl} target="_blank" rel="noopener noreferrer" style={linkStyle}>TrashDrop Facebook page</a>.
                 </figcaption>
               )}
             </figure>
@@ -351,19 +350,19 @@ const BlogPostPage = () => {
           {/* H2 sections */}
           {content.sections.map((sec, i) => (
             <div key={i} style={{ marginBottom:40 }}>
-              <h2 style={{ ...FF.display, fontSize:'clamp(22px,3vw,30px)', color:'#f0f5f0', margin:'0 0 14px', letterSpacing:'-0.5px' }}>{sec.h2}</h2>
-              <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.82, margin:0 }}>{sec.body}</p>
+              <h2 style={{ ...TYPE.h3, color:TD.ink, margin:'0 0 12px' }}>{sec.h2}</h2>
+              <p style={{ ...TYPE.body, color:TD.sage, margin:0 }}>{sec.body}</p>
             </div>
           ))}
 
           {/* CTA ── */}
-          <div style={{ marginTop:56, background:`${TD.lime}10`, border:`1px solid ${TD.lime}25`, borderRadius:16, padding:'32px 36px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
+          <div style={{ marginTop:56, background:TD.cream, border:'1px solid var(--td-border)', borderRadius:20, padding:'28px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
             <div>
-              <div style={{ ...FF.label, fontSize:14, fontWeight:700, color:TD.lime, marginBottom:6 }}>Ready to try TrashDrop?</div>
-              <div style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)' }}>No app download. Available at trashdrops.com</div>
+              <div style={{ ...TYPE.card, color:TD.ink, marginBottom:4 }}>Ready to try TrashDrop?</div>
+              <div style={{ ...TYPE.small, color:TD.sage }}>No app download. Available at trashdrops.com</div>
             </div>
-            <a href={HOUSEHOLD_APP_URL} style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'12px 28px', borderRadius:10, textDecoration:'none', whiteSpace:'nowrap' }}>
-              Get Started Free →
+            <a href={HOUSEHOLD_APP_URL} style={BTN.primary}>
+              Get started free →
             </a>
           </div>
         </div>
@@ -371,33 +370,25 @@ const BlogPostPage = () => {
 
       {/* ── FAQ ── */}
       {content.faq && content.faq.length > 0 && (
-        <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
-          <div style={{ maxWidth:780, margin:'0 auto' }}>
-            <h2 style={{ ...FF.display, fontSize:'clamp(24px,3.5vw,38px)', color:'#f0f5f0', margin:'0 0 40px', letterSpacing:'-0.5px' }}>Frequently asked questions</h2>
-            <FAQAccordion items={content.faq} />
-          </div>
-        </section>
+        <Section width={780}>
+          <H2>Frequently asked questions</H2>
+          <FAQAccordion items={content.faq} surface="light" />
+        </Section>
       )}
 
       {/* ── Related posts ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:1100, margin:'0 auto' }}>
-          <h2 style={{ ...FF.display, fontSize:'clamp(22px,3vw,32px)', color:'#f0f5f0', margin:'0 0 32px', letterSpacing:'-0.5px' }}>More from the blog</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-            {otherPosts.map(p => (
-              <Link key={p.slug} to={`/blog/${p.slug}/`} style={{ textDecoration:'none' }}>
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px 22px', transition:'all 0.22s' }}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>
-                  <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:p.tagColor, textTransform:'uppercase' }}>{p.tag}</span>
-                  <h3 style={{ ...FF.display, fontSize:'clamp(16px,2vw,19px)', color:'#f0f5f0', lineHeight:1.35, margin:'10px 0 10px', letterSpacing:'-0.2px' }}>{p.title}</h3>
-                  <span style={{ ...FF.label, fontSize:12, color:TD.lime, fontWeight:700 }}>Read →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+      <Section tone={content.faq && content.faq.length > 0 ? 'white' : 'cream'} width={1100}>
+        <H2>More from the blog</H2>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(280px,100%),1fr))', gap:20 }}>
+          {otherPosts.map(p => (
+            <Link key={p.slug} to={`/blog/${p.slug}/`} style={{ ...cardStyle, padding:'24px 22px', textDecoration:'none', display:'block' }}>
+              <TagPill tag={p.tag} color={p.tagColor} />
+              <h3 style={{ ...TYPE.card, color:TD.ink, margin:'14px 0 10px' }}>{p.title}</h3>
+              <span style={{ ...TYPE.small, fontWeight:600, color:TD.forest }}>Read →</span>
+            </Link>
+          ))}
         </div>
-      </section>
+      </Section>
     </PublicPageLayout>
   );
 };

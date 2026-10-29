@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PublicPageLayout, { TD, FF } from '../components/PublicPageLayout';
+import PublicPageLayout, { TD } from '../components/PublicPageLayout';
+import { Hero, Section, Eyebrow, TagPill, cardStyle } from '../components/PublicSections';
+import { TYPE } from '../theme/brand';
 
 // published: date the post first went up on trashdrops.com (from git); add
 // updated: 'YYYY-MM-DD' when a post's text changes. Both feed the Article JSON-LD.
@@ -176,48 +178,41 @@ const BlogPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 50%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:`radial-gradient(${TD.lime} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
-        <div style={{ maxWidth:760, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase', display:'block', marginBottom:16 }}>TrashDrop Blog</span>
-          <h1 style={{ ...FF.display, fontSize:'clamp(36px,5vw,60px)', color:'#f0f5f0', lineHeight:1.05, letterSpacing:'-1.5px', margin:'0 0 20px' }}>
-            Waste. Recycling. Ghana.
-          </h1>
-          <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto', maxWidth:520 }}>
-            Practical guides on waste collection, recycling, and environmental action across Ghana — from the TrashDrop team.
-          </p>
-        </div>
-      </section>
+      <Hero width={760} center>
+        <Eyebrow dark>TrashDrop blog</Eyebrow>
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 20px' }}>
+          Waste. Recycling. Ghana.
+        </h1>
+        <p style={{ ...TYPE.lead, color:TD.sageOnDark, margin:'0 auto', maxWidth:560 }}>
+          Practical guides on waste collection, recycling, and environmental action across Ghana — from the TrashDrop team.
+        </p>
+      </Hero>
 
       {/* ── Posts Grid ── */}
-      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
-        <div style={{ maxWidth:1200, margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:24 }}>
-            {BLOG_POSTS.map((post, i) => (
-              <Link key={post.slug} to={`/blog/${post.slug}/`} style={{ textDecoration:'none' }}>
-                <article style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px', height:'100%', transition:'all 0.25s', display:'flex', flexDirection:'column', boxSizing:'border-box' }}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;e.currentTarget.style.transform='translateY(-4px)';}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';e.currentTarget.style.transform='translateY(0)';}}>
-                  {post.image && (
-                    <img src={post.image} alt="" width={post.imageSize[0]} height={post.imageSize[1]} loading="lazy" decoding="async"
-                      style={{ display:'block', width:'100%', height:'auto', aspectRatio:'4 / 3', objectFit:'cover', objectPosition:'top', borderRadius:12, marginBottom:20, background:'rgba(255,255,255,0.04)' }} />
-                  )}
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                    <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'1.5px', color:post.tagColor, background:`${post.tagColor}15`, border:`1px solid ${post.tagColor}25`, borderRadius:99, padding:'4px 12px', textTransform:'uppercase' }}>{post.tag}</span>
-                    <span style={{ ...FF.label, fontSize:11, color:TD.sageOnDark, fontWeight:600 }}>{post.readTime}</span>
-                  </div>
-                  <h2 style={{ ...FF.display, fontSize:'clamp(18px,2vw,22px)', color:'#f0f5f0', lineHeight:1.3, letterSpacing:'-0.3px', margin:'0 0 14px', flex:1 }}>{post.title}</h2>
-                  <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:'0 0 24px' }}>{post.excerpt}</p>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ ...FF.label, fontSize:12, color:TD.lime, fontWeight:700 }}>Read article</span>
-                    <i className="fas fa-arrow-right" style={{ color:TD.lime, fontSize:11 }}></i>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
+      <Section width={1200}>
+        {/* min(): one column on phones narrower than a card */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(340px,100%),1fr))', gap:24 }}>
+          {BLOG_POSTS.map(post => (
+            <Link key={post.slug} to={`/blog/${post.slug}/`} style={{ textDecoration:'none', display:'block' }}>
+              <article style={{ ...cardStyle, padding:'24px 24px 28px', height:'100%', display:'flex', flexDirection:'column', boxSizing:'border-box' }}>
+                {post.image && (
+                  <img src={post.image} alt="" width={post.imageSize[0]} height={post.imageSize[1]} loading="lazy" decoding="async"
+                    style={{ display:'block', width:'100%', height:'auto', aspectRatio:'4 / 3', objectFit:'cover', objectPosition:'top', borderRadius:8, marginBottom:20, background:TD.cream }} />
+                )}
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, marginBottom:16 }}>
+                  <TagPill tag={post.tag} color={post.tagColor} />
+                  <span style={{ ...TYPE.small, color:TD.sage }}>{post.readTime}</span>
+                </div>
+                <h2 style={{ ...TYPE.card, color:TD.ink, margin:'0 0 12px' }}>{post.title}</h2>
+                <p style={{ ...TYPE.small, color:TD.sage, margin:'0 0 20px', flex:1 }}>{post.excerpt}</p>
+                <span style={{ ...TYPE.small, fontWeight:600, color:TD.forest }}>
+                  Read article <i className="fas fa-arrow-right" aria-hidden="true" style={{ marginLeft:6 }}></i>
+                </span>
+              </article>
+            </Link>
+          ))}
         </div>
-      </section>
+      </Section>
     </PublicPageLayout>
   );
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PublicPageLayout, { TD, FAQAccordion } from '../components/PublicPageLayout';
 import { TYPE, BTN } from '../theme/brand';
+import { Section, H2, P, linkStyle } from '../components/PublicSections';
 import { useSeo, faqJsonLd, organizationJsonLd } from '../utils/seo';
 
 // For journalists and newsrooms: targets "illegal dumping data Ghana" / "waste data for journalists" searches.
@@ -39,20 +40,6 @@ const PRESS_PHOTOS = [
   ['chocked_bridge', 'Accra'], ['chocked_drainage_1', 'Drain'], ['ksi_central_market', 'Kumasi'],
   ['chocked_pavement_1', 'Pavement'], ['chocked_drainage_2', 'Drain'], ['chocked_pavement_3', 'Roadside'],
 ];
-
-const H2 = ({ children }) => (
-  <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 20px' }}>{children}</h2>
-);
-// Body copy: light sections by default, `dark` in the hero
-const P = ({ children, dark }) => (
-  <p style={{ ...TYPE.body, color: dark ? TD.sageOnDark : TD.sage, margin:'0 0 16px', maxWidth:680 }}>{children}</p>
-);
-const Section = ({ tone = 'cream', children }) => (
-  <section style={{ background: tone === 'white' ? '#fff' : TD.cream, padding:'var(--td-section-y) 24px' }}>
-    <div style={{ maxWidth:860, margin:'0 auto' }}>{children}</div>
-  </section>
-);
-const linkStyle = { color:TD.forest, fontWeight:600, textDecoration:'underline', textUnderlineOffset:3 };
 
 const CtaButtons = ({ dark }) => (
   <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>

@@ -12,10 +12,10 @@ jest.mock('../../context/AuthContext', () => ({ useAuth: () => ({ isAuthenticate
 
 describe('household sign-up buttons open the household app', () => {
   it.each([
-    ['FAQ', FAQPage, 'Create Free Account'],
-    ['Users', UsersPage, 'Create Free Account'],
-    ['Users', UsersPage, 'Get Started Free'],
-    ['About', AboutPage, 'Get Started Free'],
+    ['FAQ', FAQPage, 'Create free account'],
+    ['Users', UsersPage, 'Create free account'],
+    ['Users', UsersPage, 'Get started free'],
+    ['About', AboutPage, 'Get started free'],
     ['Waste pickup', WastePickupPage, 'Request a waste pickup'],
   ])('%s: "%s"', (_page, Page, label) => {
     render(<MemoryRouter><Page /></MemoryRouter>);
