@@ -8,6 +8,26 @@ import { getInviteInfo } from '../services/teamService';
 import { isInviteToken, rememberInvite, forgetInvite, INVITE_PROBLEMS } from '../utils/teamInvite';
 import { Fragment } from 'react';
 
+// Only a real duplicate says "account exists"; other problems say what happened
+export const signUpProblem = (err) => {
+  const message = err?.message || '';
+  const code = err?.code || '';
+  if (code === 'user_already_exists' || code === 'email_exists' || /already (been )?registered|already exists/i.test(message)) {
+    return { duplicate: true, text: '❌ An account with this email already exists. Please try logging in or reset your password.' };
+  }
+  if (code === 'over_email_send_rate_limit' || err?.status === 429 || /rate limit/i.test(message)) {
+    return { text: '❌ Too many sign-up emails have been sent in a short time. Please wait a while (up to an hour) and try again.' };
+  }
+  if (code === 'email_address_invalid' || /invalid format|email address .* is invalid/i.test(message)) {
+    return { text: '❌ That email address can’t be used. Check it for typos, or use another address.' };
+  }
+  if (/sending confirmation email/i.test(message)) {
+    return { text: '❌ We couldn’t send the confirmation email right now. Please try again in a few minutes.' };
+  }
+  if (code === 'weak_password' || message.includes('Password')) return { text: `❌ ${message}` };
+  return { text: `❌ Failed to sign up: ${message || 'Unknown error. Please try again.'}` };
+};
+
 const SignUp = () => {
   // /signup?type=volunteer_group (links on /volunteers/, /media/) picks the account type
   const [searchParams] = useSearchParams();
@@ -184,15 +204,9 @@ const SignUp = () => {
       }, 5000);
     } catch (err) {
       setSuccess(null);
-      const message = err?.message || '';
-      if (err?.status === 400 || message.toLowerCase().includes('email') || message.includes('already registered')) {
-        setError('❌ An account with this email already exists. Please try logging in or reset your password.');
-        setShowDuplicateModal(true);
-      } else if (message.includes('Password')) {
-        setError(`❌ ${message}`);
-      } else {
-        setError(`❌ Failed to sign up: ${message || 'Unknown error. Please try again.'}`);
-      }
+      const problem = signUpProblem(err);
+      setError(problem.text);
+      if (problem.duplicate) setShowDuplicateModal(true);
     } finally {
       setLoading(false);
     }
@@ -209,7 +223,9 @@ const SignUp = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Account Already Exists</h3>
             <p className="text-sm text-gray-600 text-center mb-6">
-              An account with this email already exists. Please try logging in or reset your password if you can't access your account.
+              {joining
+                ? `You already have a TrashDrop account with this email. Sign in with it and you'll join ${invite?.group_name || 'the group'} straight away; there's no need for a new account.`
+                : 'An account with this email already exists. Please try logging in or reset your password if you can\'t access your account.'}
             </p>
             <div className="flex gap-3">
               <Link
@@ -217,7 +233,7 @@ const SignUp = () => {
                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors text-center"
                 onClick={() => setShowDuplicateModal(false)}
               >
-                Go to Login
+                {joining ? 'Sign in to join' : 'Go to Login'}
               </Link>
               <Link
                 to="/forgot-password"

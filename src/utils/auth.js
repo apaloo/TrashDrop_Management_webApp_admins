@@ -65,7 +65,8 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
         logger.log('No identities found - likely existing user');
         const duplicateError = { 
           message: 'An account with this email already exists. Please try logging in or reset your password.',
-          status: 400
+          status: 400,
+          code: 'user_already_exists'
         };
         throw duplicateError;
       }
@@ -75,13 +76,15 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
       logger.log('Signup error:', error.message);
       
       // Check for specific error patterns that indicate duplicate email
-      if (error.message.includes('already registered') || 
+      if (['user_already_exists', 'email_exists'].includes(error.code) ||
+          error.message.includes('already registered') || 
           error.message.includes('already been registered') ||
           error.message.includes('user_already_exists') ||
           error.message.includes('duplicate')) {
         const duplicateError = { 
           message: 'An account with this email already exists. Please try logging in or reset your password.',
-          status: 400
+          status: 400,
+          code: 'user_already_exists'
         };
         throw duplicateError;
       }

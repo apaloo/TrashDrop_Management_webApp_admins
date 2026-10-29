@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import SignUp from '../SignUp';
+import SignUp, { signUpProblem } from '../SignUp';
 import { signUp } from '../../utils/auth';
 import { getInviteInfo } from '../../services/teamService';
 import { pendingInvite } from '../../utils/teamInvite';
@@ -72,4 +72,40 @@ it('ignores a malformed invite value', () => {
   renderAt('/signup?invite=nope');
   expect(screen.getByLabelText('Account Type')).toBeInTheDocument();
   expect(getInviteInfo).not.toHaveBeenCalled();
+});
+
+it('an existing account through an invite: sign in to join instead', async () => {
+  signUp.mockResolvedValue({ data: null, error: { message: 'An account with this email already exists.', status: 400, code: 'user_already_exists' } });
+  renderAt(`/signup?invite=${token}`);
+  await screen.findByRole('heading', { name: 'Join Clean Accra' });
+  fillBasics();
+  fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
+  expect(await screen.findByRole('link', { name: 'Sign in to join' })).toHaveAttribute('href', '/login');
+  expect(screen.getByText(/Sign in with it and you'll join Clean Accra/)).toBeInTheDocument();
+  expect(pendingInvite()).toBe(token);
+});
+
+it('does not call other sign-up problems "account already exists"', async () => {
+  signUp.mockResolvedValue({ data: null, error: { message: 'email rate limit exceeded', status: 429, code: 'over_email_send_rate_limit' } });
+  renderAt(`/signup?invite=${token}`);
+  await screen.findByRole('heading', { name: 'Join Clean Accra' });
+  fillBasics();
+  fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
+  expect(await screen.findByText(/Too many sign-up emails/)).toBeInTheDocument();
+  expect(screen.queryByText('Account Already Exists')).not.toBeInTheDocument();
+});
+
+describe('signUpProblem', () => {
+  it.each([
+    [{ code: 'user_already_exists', status: 400, message: 'x' }, true, /already exists/],
+    [{ code: 'email_exists', status: 422, message: 'x' }, true, /already exists/],
+    [{ status: 429, message: 'email rate limit exceeded' }, false, /Too many sign-up emails/],
+    [{ status: 400, code: 'email_address_invalid', message: 'Email address "a@b" is invalid' }, false, /can’t be used/],
+    [{ status: 500, message: 'Error sending confirmation email' }, false, /couldn’t send the confirmation email/],
+    [{ status: 400, message: 'Signups not allowed for this instance' }, false, /Failed to sign up: Signups not allowed/],
+  ])('%j', (err, duplicate, text) => {
+    const p = signUpProblem(err);
+    expect(Boolean(p.duplicate)).toBe(duplicate);
+    expect(p.text).toMatch(text);
+  });
 });
