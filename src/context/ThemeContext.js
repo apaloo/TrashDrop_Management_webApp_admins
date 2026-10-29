@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
@@ -8,22 +8,18 @@ export const useTheme = () => {
   return context;
 };
 
+// The dashboard has one light theme for now: dark mode left parts of pages
+// unreadable, so it was removed until every page supports it.
+const LIGHT = { theme: 'light', toggleTheme: () => {}, isDark: false };
+
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('trashdrop_theme') || 'light';
-  });
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
-
   useEffect(() => {
-    localStorage.setItem('trashdrop_theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    localStorage.removeItem('trashdrop_theme');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={LIGHT}>
       {children}
     </ThemeContext.Provider>
   );

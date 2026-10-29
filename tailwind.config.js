@@ -5,7 +5,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // 13px is the smallest text (docs/DESIGN_SYSTEM.md); text-xs was 12px
+      fontSize: {
+        xs: ['0.8125rem', { lineHeight: '1.125rem' }],
+      },
       colors: {
+        // The greens used for buttons, links and green text become the
+        // design system's dark green, so white on them and them on white
+        // pass contrast (#16a34a was 3.3:1). Lighter greens are unchanged.
+        'green': {
+          '600': '#1b6e35',
+          '700': '#155a2b',
+          '800': '#114a23',
+        },
         'primary': '#38b2ac',
         'secondary': '#4fd1c5',
         'accent': '#2c7a7b',

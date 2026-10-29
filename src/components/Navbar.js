@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { ROLE_LABELS } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import MessagesModal from './modals/MessagesModal';
 import NotificationsModal from './modals/NotificationsModal';
 import { fetchNotifications, subscribeToNotifications, getUnreadNotificationsCount, markNotificationAsRead } from '../utils/notificationService';
@@ -11,7 +10,6 @@ import { fetchContacts, getUnreadMessageCount, markAllMessagesFromSenderAsRead, 
 
 const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
   const { user, role } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
@@ -161,7 +159,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 md:left-64 right-0 h-14 z-10" style={{ background: 'var(--td-navbar-bg)', borderBottom: '1px solid var(--td-navbar-border)', boxShadow: isDark ? '0 1px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.08)' }}>
+      <nav className="fixed top-0 left-0 md:left-64 right-0 h-14 z-10" style={{ background: 'var(--td-navbar-bg)', borderBottom: '1px solid var(--td-navbar-border)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="h-full px-4 flex justify-between items-center">
           {/* Mobile hamburger menu */}
           <button
@@ -179,7 +177,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
           <div className="flex items-center md:hidden">
             <Link to="/dashboard" className="flex items-center">
               <img src="/logo.svg" alt="TrashDrop Logo" className="h-8 w-auto" />
-              <span className="ml-2 text-lg font-semibold text-green-600">TrashDrop</span>
+              <span className="ml-2 text-lg font-semibold" style={{ color: 'var(--td-accent)' }}>TrashDrop</span>
             </Link>
           </div>
           
@@ -191,25 +189,13 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               style={{ background: 'var(--td-input-bg)', border: '1px solid var(--td-input-border)', color: 'var(--td-input-text)' }}
             />
-            <button className="absolute right-2 top-2" style={{ color: 'var(--td-navbar-icon)' }}>
-              <i className="fas fa-search"></i>
+            <button className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 inline-flex items-center justify-center" style={{ color: 'var(--td-navbar-icon)' }} aria-label="Search">
+              <i className="fas fa-search" aria-hidden="true"></i>
             </button>
           </div>
           
           {/* Right side icons */}
           <div className="flex items-center space-x-4">
-            {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="p-2 rounded-full transition-colors duration-200 focus:outline-none"
-              style={{ color: 'var(--td-navbar-icon)', background: isDark ? 'rgba(182,238,105,0.12)' : 'rgba(0,0,0,0.04)' }}
-            >
-              {isDark
-                ? <i className="fas fa-sun" style={{ fontSize: 16, color: '#b6ee69' }}></i>
-                : <i className="fas fa-moon" style={{ fontSize: 15 }}></i>
-              }
-            </button>
             {/* Messages icon */}
             <div className="relative">
               <button
@@ -229,7 +215,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               {/* Messages dropdown */}
               {showMessagesDropdown && (
                 <div className="absolute right-0 mt-2 w-80 rounded-lg shadow-lg overflow-hidden z-20" style={{ background: 'var(--td-dropdown-bg)', border: '1px solid var(--td-dropdown-border)' }}>
-                  <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: 'var(--td-dropdown-border)', background: isDark ? 'rgba(255,255,255,0.04)' : '#f9fafb' }}>
+                  <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: 'var(--td-dropdown-border)', background: 'var(--td-dropdown-hover)' }}>
                     <h3 className="font-semibold" style={{ color: 'var(--td-text-primary)' }}>Messages</h3>
                     <button 
                       onClick={openMessagesModal}

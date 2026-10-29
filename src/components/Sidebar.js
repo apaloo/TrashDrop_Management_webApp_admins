@@ -152,7 +152,7 @@ const Sidebar = () => {
                     <>
                       <button 
                         className="flex items-center w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150"
-                        style={isActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-text)' }}
+                        style={isActive ? { background: 'var(--td-sidebar-active)', color: 'var(--td-sidebar-active-text)' } : { color: 'var(--td-sidebar-text)' }}
                         onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
                         onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                         onClick={() => toggleMenu(index)}
@@ -180,7 +180,7 @@ const Sidebar = () => {
                               to={child.path} 
                               aria-current={isChildActive ? 'page' : undefined}
                               className="block py-2 px-2 text-sm rounded-md transition-colors duration-150"
-                              style={isChildActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-subtext)' }}
+                              style={isChildActive ? { background: 'var(--td-sidebar-active)', color: 'var(--td-sidebar-active-text)' } : { color: 'var(--td-sidebar-subtext)' }}
                               onMouseEnter={e => { if (!isChildActive) { e.currentTarget.style.background = 'var(--td-sidebar-hover)'; e.currentTarget.style.color = '#fff'; } }}
                               onMouseLeave={e => { if (!isChildActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--td-sidebar-subtext)'; } }}
                             >
@@ -194,7 +194,7 @@ const Sidebar = () => {
                     <Link 
                       to={item.path} 
                       className="flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150"
-                      style={isActive ? { background: 'var(--td-sidebar-active)', color: '#fff' } : { color: 'var(--td-sidebar-text)' }}
+                      style={isActive ? { background: 'var(--td-sidebar-active)', color: 'var(--td-sidebar-active-text)' } : { color: 'var(--td-sidebar-text)' }}
                       onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
                       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >

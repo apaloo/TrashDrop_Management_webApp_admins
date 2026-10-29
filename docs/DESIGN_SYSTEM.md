@@ -69,3 +69,17 @@ always with a text label. MTN MoMo keeps MTN's yellow.
 - **Radius:** 8px for controls, 12px for cards, 20px for panels, and pills.
 - **Focus:** every link and control shows a 3px focus ring, dark green on light surfaces and brand green in the header, footer and `[data-surface="dark"]`.
 - **Motion:** content is readable at rest; nothing waits for a scroll to appear. Animations stop when the visitor's device asks for reduced motion.
+
+## Dashboard
+
+The signed-in dashboard uses the same tokens, approved by the owner on
+29 Oct 2026:
+
+- **Shell:** a dark ink sidebar (`--td-sidebar-bg`, like the website header) with
+  white text and the current page in brand green; a white top bar; a pale
+  `#F6F8F4` page with white cards. The values are the `--td-*` variables in
+  `src/index.css`.
+- **One light theme.** Dark mode was removed until every page supports it.
+- **Tailwind:** `text-xs` is 13px, and `green-600/700/800` are the dark green
+  family (`#1B6E35`, `#155A2B`, `#114A23`), so green buttons, links and text
+  pass contrast. The `td-*` colours in `tailwind.config.js` match `TD`.

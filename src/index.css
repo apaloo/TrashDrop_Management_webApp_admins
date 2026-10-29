@@ -2,81 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Light theme (default) ─────────────────────────────────────── */
-:root,
-[data-theme="light"] {
-  --td-page-bg:        #f0fdf4;
+/* ── Dashboard shell ─────────────────────────────────────────────
+   One light theme on the design system (docs/DESIGN_SYSTEM.md): a dark
+   ink sidebar like the website header, a white top bar and a pale page.
+   Dark mode was removed until every page supports it. */
+:root {
+  --td-page-bg:        #f6f8f4;
   --td-card-bg:        #ffffff;
-  --td-card-border:    #e5e7eb;
+  --td-card-border:    #dfe4dc;
 
-  --td-sidebar-bg:     #15803d;
-  --td-sidebar-hover:  #166534;
-  --td-sidebar-active: #14532d;
-  --td-sidebar-text:   #dcfce7;
-  --td-sidebar-subtext:#bbf7d0;
-  --td-sidebar-border: #16a34a;
+  --td-sidebar-bg:     #0a0f0a;
+  --td-sidebar-hover:  rgba(255,255,255,0.06);
+  --td-sidebar-active: rgba(182,238,105,0.14);
+  --td-sidebar-active-text: #b6ee69;
+  --td-sidebar-text:   #ffffff;
+  --td-sidebar-subtext:#a9b2a9;
+  --td-sidebar-border: rgba(255,255,255,0.1);
 
   --td-navbar-bg:      #ffffff;
-  --td-navbar-border:  #e5e7eb;
-  --td-navbar-text:    #374151;
-  --td-navbar-icon:    #6b7280;
+  --td-navbar-border:  #dfe4dc;
+  --td-navbar-text:    #0a0f0a;
+  --td-navbar-icon:    #525c52;
 
-  --td-text-primary:   #111827;
-  --td-text-secondary: #6b7280;
-  --td-text-muted:     #9ca3af;
+  --td-text-primary:   #0a0f0a;
+  --td-text-secondary: #525c52;
+  --td-text-muted:     #525c52;
 
   --td-input-bg:       #ffffff;
-  --td-input-border:   #d1d5db;
-  --td-input-text:     #111827;
+  --td-input-border:   #8a8f9c;
+  --td-input-text:     #0a0f0a;
 
   --td-footer-bg:      #ffffff;
-  --td-footer-border:  #e5e7eb;
-  --td-footer-text:    #6b7280;
+  --td-footer-border:  #dfe4dc;
+  --td-footer-text:    #525c52;
 
   --td-dropdown-bg:    #ffffff;
-  --td-dropdown-hover: #f9fafb;
-  --td-dropdown-border:#e5e7eb;
+  --td-dropdown-hover: #f6f8f4;
+  --td-dropdown-border:#dfe4dc;
 
-  --td-accent:         #16a34a;
-  --td-accent-light:   #dcfce7;
-}
-
-/* ── Dark theme ─────────────────────────────────────────────────── */
-[data-theme="dark"] {
-  --td-page-bg:        #0d1117;
-  --td-card-bg:        #161b22;
-  --td-card-border:    #30363d;
-
-  --td-sidebar-bg:     #0f4020;
-  --td-sidebar-hover:  #1a5c32;
-  --td-sidebar-active: #0a2e16;
-  --td-sidebar-text:   #d1fae5;
-  --td-sidebar-subtext:#6ee7b7;
-  --td-sidebar-border: #1a5c32;
-
-  --td-navbar-bg:      #161b22;
-  --td-navbar-border:  #30363d;
-  --td-navbar-text:    #e6edf3;
-  --td-navbar-icon:    #8b949e;
-
-  --td-text-primary:   #e6edf3;
-  --td-text-secondary: #8b949e;
-  --td-text-muted:     #6e7681;
-
-  --td-input-bg:       #0d1117;
-  --td-input-border:   #30363d;
-  --td-input-text:     #e6edf3;
-
-  --td-footer-bg:      #161b22;
-  --td-footer-border:  #30363d;
-  --td-footer-text:    #8b949e;
-
-  --td-dropdown-bg:    #1c2128;
-  --td-dropdown-hover: #22272e;
-  --td-dropdown-border:#30363d;
-
-  --td-accent:         #b6ee69;
-  --td-accent-light:   #1a2e0a;
+  --td-accent:         #1b6e35;
+  --td-accent-light:   #e6f2e9;
 }
 
 body {
