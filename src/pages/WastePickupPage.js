@@ -5,6 +5,7 @@ import { Hero, Section, H2, P, Breadcrumb, StepList, CardGrid, ChipLink, linkSty
 import { TYPE, BTN } from '../theme/brand';
 import { useSeo, faqJsonLd, BUSINESS, CITY_PAGES, SITE_URL, WASTE_PICKUP_PATH, localBusinessJsonLd } from '../utils/seo';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
+import { BookScreen } from '../components/landing/AppScreens';
 
 // On-demand pickup page: targets "waste pickup" / "trash pickup" / "rubbish collector" searches.
 export const WASTE_PICKUP_SEO = {
@@ -86,9 +87,14 @@ const WastePickupPage = () => {
         <CardGrid items={WASTE_TYPES} />
       </Section>
 
-      <Section>
-        <H2>How a waste pickup works</H2>
-        <StepList steps={STEPS} />
+      <Section width={1100}>
+        <div className="td-with-phone">
+          <div>
+            <H2>How a waste pickup works</H2>
+            <StepList steps={STEPS} />
+          </div>
+          <BookScreen />
+        </div>
       </Section>
 
       <Section tone="white">

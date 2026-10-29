@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import PublicPageLayout, { TD, FAQAccordion } from '../components/PublicPageLayout';
 import { TYPE, BTN } from '../theme/brand';
 import { HOUSEHOLD_APP_URL } from '../config/homepage';
+import { ReportScreen } from '../components/landing/AppScreens';
 
 // The page's accent: the error red, readable on white (6.5:1)
 const RED = '#b91c1c';
@@ -142,7 +143,8 @@ const IllegalDumpingPublicPage = () => {
             <span style={{ ...TYPE.eyebrow, color:TD.sage, display:'block', marginBottom:12 }}>Step by step</span>
             <h2 style={{ ...TYPE.h2, color:TD.ink, margin:0 }}>Report in under two minutes</h2>
           </div>
-          <ol style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:16 }}>
+          <div className="td-with-phone">
+          <ol style={{ listStyle:'none', margin:0, padding:0, display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(280px,100%),1fr))', gap:16 }}>
             {REPORT_STEPS.map(s => (
               <li key={s.n} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'24px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
@@ -154,6 +156,8 @@ const IllegalDumpingPublicPage = () => {
               </li>
             ))}
           </ol>
+          <ReportScreen />
+          </div>
           <div style={{ marginTop:32 }}>
             <a href={HOUSEHOLD_APP_URL} style={BTN.primary}><i className="fas fa-camera" aria-hidden="true"></i> Report illegal dumping</a>
           </div>
