@@ -158,7 +158,7 @@ const Sidebar = () => {
                         onClick={() => toggleMenu(index)}
                         aria-expanded={isExpanded}
                       >
-                        <span className="inline-flex items-center justify-center mr-3 text-lg">
+                        <span className="inline-flex w-6 shrink-0 items-center justify-center mr-3 text-lg" aria-hidden="true">
                           <i className={item.icon}></i>
                         </span>
                         <span>{item.title}</span>
@@ -170,7 +170,7 @@ const Sidebar = () => {
                       </button>
                       
                       {/* Submenu */}
-                      <div className={`mt-1 pl-10 space-y-0.5 ${isExpanded ? 'block' : 'hidden'}`}>
+                      <div className={`mt-1 pl-11 space-y-0.5 ${isExpanded ? 'block' : 'hidden'}`}>
                         {item.children.map((child, childIndex) => {
                           const isChildActive = location.pathname === child.path || location.pathname.startsWith(`${child.path}/`);
                           
@@ -198,7 +198,7 @@ const Sidebar = () => {
                       onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--td-sidebar-hover)'; }}
                       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <span className="inline-flex items-center justify-center mr-3 text-lg">
+                      <span className="inline-flex w-6 shrink-0 items-center justify-center mr-3 text-lg" aria-hidden="true">
                         <i className={item.icon}></i>
                       </span>
                       <span>{item.title}</span>
