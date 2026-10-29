@@ -176,7 +176,7 @@ const HowItWorksPage = () => {
         }
       `}</style>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 40%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0d1a0d 40%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', pointerEvents:'none' }} />
         <div className="td-hiw-hero" style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1, display:'grid', gridTemplateColumns:'1.15fr 0.85fr', gap:56, alignItems:'center' }}>
           <div>
@@ -223,23 +223,23 @@ const HowItWorksPage = () => {
       <HouseholdSections />
 
       {/* ── 6 Steps ──────────────────────────────────────────────────────── */}
-      <section id="steps" style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section id="steps" style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:64 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>The Process</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>The Process</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,52px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Six steps from door to disposal</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:24 }}>
             {STEPS.map((s,i) => (
               <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px', transition:'all 0.25s', position:'relative', overflow:'hidden' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(168,230,61,0.04)`;}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=`${TD.lime}30`;e.currentTarget.style.background=`rgba(182,238,105,0.04)`;}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.03)';}}>
-                <div style={{ position:'absolute', top:16, right:20, ...FF.data, fontSize:52, color:'rgba(168,230,61,0.07)', pointerEvents:'none' }}>{s.n}</div>
+                <div aria-hidden="true" style={{ position:'absolute', top:16, right:20, ...FF.data, fontSize:52, color:'rgba(182,238,105,0.07)', pointerEvents:'none' }}>{s.n}</div>
                 <div style={{ width:48, height:48, borderRadius:14, background:`${TD.lime}15`, border:`1px solid ${TD.lime}25`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20 }}>
                   <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:18 }}></i>
                 </div>
                 <h3 style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', marginBottom:10 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{s.body}</p>
+                <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
               </div>
             ))}
           </div>
@@ -248,7 +248,7 @@ const HowItWorksPage = () => {
 
       {/* ── Services Comparison ──────────────────────────────────────────── */}
       {/* The menu's "Two ways to drop your waste" opens here (/how-it-works/#services) */}
-      <section id="services" style={{ background:'#0c1a0c', padding:'80px 24px' }}>
+      <section id="services" style={{ background:'#0c1a0c', padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:960, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,3.5vw,46px)', color:'#f0f5f0', letterSpacing:'-1px', margin:0 }}>Two services. One platform.</h2>
@@ -256,7 +256,7 @@ const HowItWorksPage = () => {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24 }}>
             {[
               { title:'QR Bag System', badge:'FREE PICKUPS', icon:'fa-qrcode', color:TD.lime, features:['Buy official bags from authorised vendors','Scan QR code to register bags to your account','Fill bags with household or business waste','Request free pickup when bags are full','Track collector live on GPS','Earn reward points on every pickup'] },
-              { title:'Digital Bin',   badge:'ON-DEMAND',   icon:'fa-mobile-alt', color:TD.gold, features:['Enter waste details and location','Receive instant GPS-based price quote','Schedule collection at your preferred time','Pay only at point of collection (MoMo or cash)','Matched with nearest verified collector','Real-time tracking and completion notification'] },
+              { title:'Digital Bin',   badge:'ON-DEMAND',   icon:'fa-mobile-alt', color:TD.orange, features:['Enter waste details and location','Receive instant GPS-based price quote','Schedule collection at your preferred time','Pay only at point of collection (MoMo or cash)','Matched with nearest verified collector','Real-time tracking and completion notification'] },
             ].map(svc => (
               <div key={svc.title} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${svc.color}20`, borderRadius:20, padding:'36px 32px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
@@ -281,7 +281,7 @@ const HowItWorksPage = () => {
       </section>
 
       {/* ── QR Bag System deep-dive ──────────────────────────────────────── */}
-      <section id="qr" style={{ background:TD.ink, padding:'96px 24px' }}>
+      <section id="qr" style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:64 }}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:16 }}>
@@ -298,15 +298,15 @@ const HowItWorksPage = () => {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
             {QR_STEPS.map((s,i) => (
-              <div key={i} style={{ background:`rgba(168,230,61,0.04)`, border:`1px solid ${TD.lime}18`, borderRadius:18, padding:'28px 24px' }}>
+              <div key={i} style={{ background:`rgba(182,238,105,0.04)`, border:`1px solid ${TD.lime}18`, borderRadius:18, padding:'28px 24px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
                   <div style={{ width:38, height:38, borderRadius:10, background:`${TD.lime}18`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:15 }}></i>
                   </div>
-                  <span style={{ ...FF.data, fontSize:28, color:`${TD.lime}50` }}>{s.n}</span>
+                  <span style={{ ...FF.data, fontSize:28, color:TD.lime }}>{s.n}</span>
                 </div>
                 <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{s.body}</p>
+                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
               </div>
             ))}
           </div>
@@ -319,10 +319,10 @@ const HowItWorksPage = () => {
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section style={{ background:TD.ink2, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>FAQ</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>FAQ</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-0.5px' }}>Frequently asked questions</h2>
           </div>
           <FAQAccordion items={FAQ_ITEMS} />
@@ -330,9 +330,9 @@ const HowItWorksPage = () => {
       </section>
 
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
+      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Ready to clean up your community?</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. Scan the code to get the app.</p>
+        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:520 }}>Join thousands of Ghanaian households using TrashDrop today. Scan the code to get the app.</p>
         {/* Household app QR code: the page's "Get Started" buttons scroll here */}
         <div id="download-app" data-scroll-align="center" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14, margin:'0 auto 32px' }}>
           <div style={{ background:'#fff', borderRadius:18, padding:12, boxShadow:`0 16px 48px rgba(0,0,0,0.35), 0 0 0 4px ${TD.lime}40` }}>

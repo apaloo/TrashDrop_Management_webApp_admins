@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { PUBLIC_NAV } from '../config/publicNav';
+import { FONT } from '../theme/brand';
 
 /*
  * The public site menu (src/config/publicNav.js), drawn the same way on the
@@ -10,7 +11,7 @@ import { PUBLIC_NAV } from '../config/publicNav';
  * `colors`: { link, linkHover, panelBg, panelBorder, panelText, panelMuted, accent, divider }
  */
 
-const FONT_LABEL = "'Syne', sans-serif";
+const FONT_LABEL = FONT;
 
 const pathOf = (to) => to.split('#')[0];
 
@@ -43,9 +44,9 @@ const MenuStyles = () => (
   <style>{`
     [id] { scroll-margin-top: 80px; }
     .td-menu-top { white-space:nowrap; }
-    .td-menu-item:hover, .td-menu-item:focus-visible { background:rgba(168,230,61,0.10); }
+    .td-menu-item:hover, .td-menu-item:focus-visible { background:rgba(182,238,105,0.10); }
     .td-menu-heading:hover { text-decoration:underline!important; }
-    .td-menu-item:hover .td-menu-label, .td-menu-item:focus-visible .td-menu-label { color:#a8e63d; }
+    .td-menu-item:hover .td-menu-label, .td-menu-item:focus-visible .td-menu-label { color:#b6ee69; }
     .td-menu-panel { animation: td-menu-in 0.16s ease-out both; }
     @keyframes td-menu-in { from{opacity:0;transform:translate(-50%,-6px)} to{opacity:1;transform:translate(-50%,0)} }
     @media(max-width:1279px) { .td-menu-bar { gap:22px!important; } .td-menu-top { font-size:12.5px!important; letter-spacing:0!important; } }
@@ -56,7 +57,7 @@ const MenuItem = ({ item, colors, onPick, pathname }) => (
   <Link to={item.to} className="td-menu-item" onClick={onPick}
     aria-current={isCurrent(item.to, pathname) ? 'page' : undefined}
     style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 10px', borderRadius:8, textDecoration:'none', transition:'background 0.15s' }}>
-    <span aria-hidden="true" style={{ width:30, height:30, flexShrink:0, borderRadius:8, display:'inline-flex', alignItems:'center', justifyContent:'center', background:'rgba(168,230,61,0.12)', color:colors.accent, fontSize:13 }}>
+    <span aria-hidden="true" style={{ width:30, height:30, flexShrink:0, borderRadius:8, display:'inline-flex', alignItems:'center', justifyContent:'center', background:'rgba(182,238,105,0.12)', color:colors.accent, fontSize:13 }}>
       <i className={`fas ${item.icon}`}></i>
     </span>
     <span className="td-menu-label" style={{ fontFamily:FONT_LABEL, fontSize:13.5, fontWeight:600, color:colors.panelText, lineHeight:1.3, transition:'color 0.15s' }}>{item.label}</span>

@@ -6,6 +6,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { appConfig } from '../../config';
+import { FONT } from '../../theme/brand';
 import { toTitle } from '../../utils/illegalDumpingReportUtils';
 import { fetchPublicDumpingReports, timeAgo, cleanupDurationText, describeArea } from '../../services/publicDumpingReportsService';
 
@@ -27,8 +28,8 @@ const REFRESH_MS = 60000;
 const DEFAULT_CENTER = appConfig.services.maps.defaultCenter;
 const DEFAULT_ZOOM = appConfig.services.maps.defaultZoom;
 
-const FONT_BODY = "'DM Sans', system-ui, sans-serif";
-const FONT_LABEL = "'Syne', sans-serif";
+const FONT_BODY = FONT;
+const FONT_LABEL = FONT;
 
 const CHECK_SVG = '<svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
 
@@ -170,7 +171,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
   const selected = useMemo(() => reports.find(r => r.id === selectedId) || null, [reports, selectedId]);
 
   const card = isDark
-    ? { bg: '#111a13', border: 'rgba(168,230,61,0.18)', text: '#f3f4f6', sub: 'rgba(255,255,255,0.55)', chipBg: 'rgba(255,255,255,0.06)', photoBg: 'rgba(255,255,255,0.04)' }
+    ? { bg: '#111a13', border: 'rgba(182,238,105,0.18)', text: '#f3f4f6', sub: 'rgba(255,255,255,0.55)', chipBg: 'rgba(255,255,255,0.06)', photoBg: 'rgba(255,255,255,0.04)' }
     : { bg: '#ffffff', border: 'rgba(22,101,52,0.15)', text: '#111827', sub: '#6b7280', chipBg: '#f3f4f6', photoBg: '#f3f4f6' };
 
   const emptyText = view === 'cleaned' ? 'No cleaned-up reports yet' : view === 'active' ? 'No active reports right now' : 'No reports yet';
@@ -201,7 +202,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
               role="tab"
               aria-selected={active}
               onClick={() => setView(v.key)}
-              style={{ fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? '#a8e63d' : 'transparent', color: active ? '#0a0f0a' : lp.mapLegendText }}
+              style={{ fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? '#b6ee69' : 'transparent', color: active ? '#0a0f0a' : lp.mapLegendText }}
             >
               {v.label} <span style={{ opacity: 0.7, fontWeight: 600 }}>{status === 'ready' ? counts[v.key] : ''}</span>
             </button>
@@ -209,7 +210,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
         })}
       </div>
 
-      <div style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(168,230,61,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
+      <div style={{ position: 'relative', borderRadius: expanded ? 16 : 24, overflow: 'hidden', border: '1px solid rgba(182,238,105,0.14)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', flex: 1, minHeight: expanded ? 0 : 500 }}>
         <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} style={{ height: '100%', width: '100%', minHeight: expanded ? 0 : 500 }} scrollWheelZoom>
           <TileLayer
             url={appConfig.services.maps.tileProviders.openStreetMap.url}

@@ -50,7 +50,7 @@ const AboutPage = () => {
   return (
     <PublicPageLayout>
       {/* ── Hero ── */}
-      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0a1510 40%,${TD.ink} 100%)`, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:`linear-gradient(160deg,${TD.forestDk} 0%,#0a1510 40%,${TD.ink} 100%)`, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }} />
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
@@ -76,23 +76,23 @@ const AboutPage = () => {
       </section>
 
       {/* ── Stats ── */}
-      <section style={{ background:'#0c1a0c', padding:'64px 24px', borderBottom:`1px solid rgba(168,230,61,0.08)` }}>
+      <section style={{ background:'#0c1a0c', padding:'var(--td-section-y-compact) 24px', borderBottom:`1px solid rgba(182,238,105,0.08)` }}>
         <div style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:32, textAlign:'center' }}>
           {STATS.map(s => (
             <div key={s.l}>
               <div style={{ ...FF.data, fontSize:34, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-              <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', marginTop:4 }}>{s.l}</div>
+              <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', marginTop:4 }}>{s.l}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Mission ── */}
-      <section style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:900, margin:'0 auto' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:48, alignItems:'center' }}>
             <div>
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase', display:'block', marginBottom:16 }}>Our Mission</span>
+              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase', display:'block', marginBottom:16 }}>Our Mission</span>
               <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 20px', letterSpacing:'-1px' }}>Eliminate waste dumping from Ghanaian communities</h2>
               <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.62)', lineHeight:1.8, margin:'0 0 16px' }}>
                 Ghana generates over 12 million tonnes of solid waste annually, with less than 60% collected in urban areas. Uncollected waste ends up in illegal dump sites, drainage channels, and waterways — contaminating drinking water and spreading disease.
@@ -111,7 +111,7 @@ const AboutPage = () => {
                   <i className={`fas ${p.icon}`} style={{ color:TD.lime, fontSize:18, marginTop:2, flexShrink:0 }}></i>
                   <div>
                     <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{p.title}</div>
-                    <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.52)', lineHeight:1.65 }}>{p.body}</div>
+                    <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{p.body}</div>
                   </div>
                 </div>
               ))}
@@ -121,9 +121,9 @@ const AboutPage = () => {
       </section>
 
       {/* ── Team ── */}
-      <section style={{ background:TD.ink, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase', display:'block', marginBottom:16 }}>The Team</span>
+          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase', display:'block', marginBottom:16 }}>The Team</span>
           <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:'0 0 48px', letterSpacing:'-1px' }}>Founded by Infobrix Limited</h2>
           <div style={{ display:'flex', gap:24, justifyContent:'center', flexWrap:'wrap' }}>
             {TEAM.map(t => (
@@ -132,7 +132,7 @@ const AboutPage = () => {
                   {t.initial}
                 </div>
                 <div style={{ ...FF.label, fontSize:15, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{t.name}</div>
-                <div style={{ ...FF.body, fontSize:13, color:TD.sage, lineHeight:1.5 }}>{t.role}</div>
+                <div style={{ ...FF.body, fontSize:13, color:TD.sageOnDark, lineHeight:1.5 }}>{t.role}</div>
               </div>
             ))}
           </div>
@@ -140,7 +140,7 @@ const AboutPage = () => {
       </section>
 
       {/* ── Timeline ── */}
-      <section style={{ background:TD.ink2, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:760, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:0, letterSpacing:'-1px' }}>Our journey</h2>
@@ -159,14 +159,14 @@ const AboutPage = () => {
       </section>
 
       {/* ── Series A ── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
+      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
         <div style={{ maxWidth:680, margin:'0 auto' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 18px', marginBottom:24 }}>
             <i className="fas fa-chart-line" style={{ color:TD.lime, fontSize:11 }}></i>
             <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Series A Fundraising</span>
           </div>
           <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Expanding across Ghana and into Lagos &amp; Abidjan</h2>
-          <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:500 }}>TrashDrop is raising a Series A round to scale collector networks, build logistics infrastructure, and expand to new cities. Investor enquiries welcome.</p>
+          <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:500 }}>TrashDrop is raising a Series A round to scale collector networks, build logistics infrastructure, and expand to new cities. Investor enquiries welcome.</p>
           <a href="mailto:invest@trashdrops.com" style={{ ...FF.label, fontSize:14, fontWeight:700, background:TD.lime, color:TD.ink, padding:'14px 32px', borderRadius:10, textDecoration:'none', boxShadow:`0 8px 32px ${TD.lime}45`, display:'inline-block' }}>
             Investor Enquiries →
           </a>

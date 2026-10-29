@@ -46,7 +46,7 @@ const SIGNUP_STEPS = [
 
 const EARNINGS = [
   { label:'Core Collection Fee',       desc:'Base payment per completed pickup, set by request type and distance.',                 color:TD.lime  },
-  { label:'Urgent Request Bonus',      desc:'Extra payment for accepting and completing high-priority urgent requests.',            color:TD.gold  },
+  { label:'Urgent Request Bonus',      desc:'Extra payment for accepting and completing high-priority urgent requests.',            color:TD.orange  },
   { label:'Surge Multiplier (up to 3×)', desc:'Earnings multiply up to 3× during high-demand periods — peak hours and weekends.', color:'#f97316' },
   { label:'Tips (100% yours)',          desc:'Any tip a user adds goes entirely to you — TrashDrop takes nothing from tips.',       color:'#22c55e' },
   { label:'Recyclables Revenue (60%)',  desc:'You keep 60% of the value of any recyclable materials in the waste you collect.',    color:'#3b82f6' },
@@ -124,7 +124,7 @@ const CollectorsPage = () => {
     <PublicPageLayout>
       <style>{`@media(max-width:1000px){ .td-steps-poster{grid-template-columns:1fr!important} .td-steps-poster figure{position:static!important; max-width:440px; width:100%; margin:0 auto!important} }`}</style>
       {/* ── Hero ── */}
-      <section style={{ background:TD.ink, padding:'140px 24px 80px', position:'relative', overflow:'hidden' }}>
+      <section style={{ background:TD.ink, padding:'calc(var(--td-header-h) + var(--td-section-y)) 24px var(--td-section-y)', position:'relative', overflow:'hidden' }}>
         {/* TrashDrop-branded tricycle behind a dark overlay so the text stays readable */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:'url(/images/collectors/hero-tricycle.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', opacity:0.6 }} />
         <div aria-hidden="true" style={{ position:'absolute', inset:0, background:`linear-gradient(180deg, rgba(9,21,9,0.88) 0%, rgba(9,21,9,0.8) 45%, ${TD.ink} 100%)` }} />
@@ -153,7 +153,7 @@ const CollectorsPage = () => {
             {[{v:'₵32.43', l:'Avg Per Pickup'},{v:'480+',l:'Active Collectors'}].map(s => (
               <div key={s.l} style={{ textAlign:'center' }}>
                 <div style={{ ...FF.data, fontSize:28, color:TD.lime, letterSpacing:'1px' }}>{s.v}</div>
-                <div style={{ ...FF.label, fontSize:10, color:TD.sage, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
+                <div style={{ ...FF.label, fontSize:10, color:TD.sageOnDark, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase' }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -162,13 +162,13 @@ const CollectorsPage = () => {
 
       {/* ── Join flyer ── */}
       <style>{`@media(max-width:820px){ .td-carter-flyer{grid-template-columns:1fr!important; gap:32px!important} .td-carter-flyer > img{max-width:420px; margin:0 auto} }`}</style>
-      <section style={{ background:TD.ink, padding:'88px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div className="td-carter-flyer" style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'minmax(0,420px) minmax(0,1fr)', gap:48, alignItems:'center' }}>
           <img src="/images/collectors/earn-flyer.jpg" alt="TrashDrop carter flyer: a rider on a TrashDrop tricycle. What you'll earn: steady pay, your tricycle, ID verified. Collector gets free GHC 250 worth of PPE. WhatsApp +233 20 933 8885."
             width="760" height="1048" loading="lazy" decoding="async"
             style={{ width:'100%', height:'auto', aspectRatio:'760 / 1048', borderRadius:18, boxShadow:'0 24px 60px rgba(0,0,0,0.45)', display:'block' }} />
           <div style={{ minWidth:0 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Join as a carter</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Join as a carter</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 16px', letterSpacing:'-1px', lineHeight:1.1 }}>Earn more on every pickup with your own tricycle</h2>
             <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.65)', lineHeight:1.75, margin:'0 0 24px', maxWidth:520 }}>
               Bring your aboboyaa or tricycle. We send you pickup jobs near you and pay you to mobile money.
@@ -179,7 +179,7 @@ const CollectorsPage = () => {
                 ['fa-id-card','ID verified','Every carter is checked, so households trust you at the door.']].map(([icon, t, d]) => (
                 <li key={t} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
                   <span style={{ width:40, height:40, borderRadius:12, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className={`fas ${icon}`} style={{ color:TD.lime, fontSize:16 }} aria-hidden="true"></i></span>
-                  <span><strong style={{ ...FF.label, fontSize:14, color:'#f0f5f0', display:'block', marginBottom:2 }}>{t}</strong><span style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.55)' }}>{d}</span></span>
+                  <span><strong style={{ ...FF.label, fontSize:14, color:'#f0f5f0', display:'block', marginBottom:2 }}>{t}</strong><span style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)' }}>{d}</span></span>
                 </li>
               ))}
             </ul>
@@ -194,22 +194,22 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── How to Sign Up ── */}
-      <section style={{ background:TD.ink2, padding:'96px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Getting Started</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Getting Started</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-1px' }}>Six steps to your first pickup</h2>
           </div>
           <div className="td-steps-poster" style={{ display:'grid', gridTemplateColumns:'1fr 380px', gap:32, alignItems:'start' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:20 }}>
             {SIGNUP_STEPS.map((s,i) => (
               <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'28px 24px', position:'relative', overflow:'hidden' }}>
-                <div style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:`${TD.lime}08` }}>{s.n}</div>
+                <div aria-hidden="true" style={{ position:'absolute', top:12, right:18, ...FF.data, fontSize:48, color:`${TD.lime}08` }}>{s.n}</div>
                 <div style={{ width:44, height:44, borderRadius:12, background:`${TD.lime}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
                   <i className={`fas ${s.icon}`} style={{ color:TD.lime, fontSize:17 }}></i>
                 </div>
                 <h3 style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{s.title}</h3>
-                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.7, margin:0 }}>{s.body}</p>
+                <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, margin:0 }}>{s.body}</p>
               </div>
             ))}
           </div>
@@ -224,12 +224,12 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── Earnings Breakdown ── */}
-      <section id="earnings" style={{ background:`linear-gradient(160deg,#0d1a0d 0%,${TD.ink} 100%)`, padding:'96px 24px' }}>
+      <section id="earnings" style={{ background:`linear-gradient(160deg,#0d1a0d 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:960, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:56 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Earnings Formula</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Earnings Formula</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'12px 0 12px', letterSpacing:'-1px' }}>Exactly how your pay is calculated</h2>
-            <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.5)', maxWidth:560, margin:'0 auto' }}>Full-time collectors earn between <strong style={{ color:'#fff' }}>₵2,500 and ₵8,000 per month</strong> not counting surge bonuses and authority assignments.</p>
+            <p style={{ ...FF.body, fontSize:15, color:'rgba(255,255,255,0.68)', maxWidth:560, margin:'0 auto' }}>Full-time collectors earn between <strong style={{ color:'#fff' }}>₵2,500 and ₵8,000 per month</strong> not counting surge bonuses and authority assignments.</p>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:16 }}>
             {EARNINGS.map((e,i) => (
@@ -237,7 +237,7 @@ const CollectorsPage = () => {
                 <div style={{ width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0, marginTop:6 }} />
                 <div>
                   <div style={{ ...FF.label, fontSize:14, fontWeight:700, color:'#f0f5f0', marginBottom:6 }}>{e.label}</div>
-                  <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.65 }}>{e.desc}</div>
+                  <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{e.desc}</div>
                 </div>
               </div>
             ))}
@@ -260,10 +260,10 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── Electric tricycles (partnership) ── */}
-      <section style={{ background:TD.ink, padding:'88px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:36 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>Coming for TrashDrop carters</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>Coming for TrashDrop carters</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,46px)', color:'#f0f5f0', margin:'12px 0 12px', letterSpacing:'-1px', lineHeight:1.1 }}>From manual lifting to electric bin-lifter tricycles</h2>
             <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.62)', lineHeight:1.75, maxWidth:640, margin:'0 auto' }}>
               TrashDrop is working with a partner provider to help carters move to electric tricycles with automatic hydraulic bin lifters: less heavy lifting, safer work and faster pickups.
@@ -276,7 +276,7 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── Requirements ── */}
-      <section style={{ background:TD.ink2, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink2, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
           <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,44px)', color:'#f0f5f0', letterSpacing:'-1px', margin:'0 0 40px' }}>What you need to join</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:16 }}>
@@ -289,7 +289,7 @@ const CollectorsPage = () => {
               <div key={i} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px 20px' }}>
                 <i className={`fas ${r.icon}`} style={{ color:TD.lime, fontSize:22, marginBottom:14, display:'block' }}></i>
                 <div style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#f0f5f0', marginBottom:8 }}>{r.title}</div>
-                <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.5)', lineHeight:1.65 }}>{r.body}</div>
+                <div style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.65 }}>{r.body}</div>
               </div>
             ))}
           </div>
@@ -297,10 +297,10 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ background:TD.ink, padding:'80px 24px' }}>
+      <section style={{ background:TD.ink, padding:'var(--td-section-y) 24px' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:48 }}>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sage, textTransform:'uppercase' }}>FAQ</span>
+            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.sageOnDark, textTransform:'uppercase' }}>FAQ</span>
             <h2 style={{ ...FF.display, fontSize:'clamp(26px,3.5vw,42px)', color:'#f0f5f0', margin:'12px 0 0', letterSpacing:'-0.5px' }}>Collector questions answered</h2>
           </div>
           <FAQAccordion items={FAQ_ITEMS} />
@@ -308,9 +308,9 @@ const CollectorsPage = () => {
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'80px 24px', textAlign:'center' }}>
+      <section style={{ background:`linear-gradient(135deg,${TD.forestDk} 0%,${TD.ink} 100%)`, padding:'var(--td-section-y) 24px', textAlign:'center' }}>
         <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,48px)', color:'#f0f5f0', margin:'0 0 16px', letterSpacing:'-1px' }}>Start earning today</h2>
-        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.55)', margin:'0 auto 36px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
+        <p style={{ ...FF.body, fontSize:16, color:'rgba(255,255,255,0.68)', margin:'0 auto 36px', maxWidth:480 }}>Join over 480 verified collectors across Ghana. Sign up takes less than 5 minutes.</p>
         
         {/* ── Carter app QR code (the "Join as a Collector" buttons scroll here) ── */}
         <div id="download-app" data-scroll-align="center" style={{ margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>

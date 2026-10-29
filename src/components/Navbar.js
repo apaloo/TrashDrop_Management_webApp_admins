@@ -203,10 +203,10 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               onClick={toggleTheme}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               className="p-2 rounded-full transition-colors duration-200 focus:outline-none"
-              style={{ color: 'var(--td-navbar-icon)', background: isDark ? 'rgba(168,230,61,0.12)' : 'rgba(0,0,0,0.04)' }}
+              style={{ color: 'var(--td-navbar-icon)', background: isDark ? 'rgba(182,238,105,0.12)' : 'rgba(0,0,0,0.04)' }}
             >
               {isDark
-                ? <i className="fas fa-sun" style={{ fontSize: 16, color: '#a8e63d' }}></i>
+                ? <i className="fas fa-sun" style={{ fontSize: 16, color: '#b6ee69' }}></i>
                 : <i className="fas fa-moon" style={{ fontSize: 15 }}></i>
               }
             </button>
