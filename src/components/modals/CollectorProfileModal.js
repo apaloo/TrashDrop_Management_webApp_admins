@@ -115,17 +115,17 @@ const CollectorProfileModal = ({ isOpen, onClose, collector, onSave }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-3/4 flex flex-col"
+        className="bg-white rounded-xl shadow-xl w-full max-w-3xl h-3/4 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-td-ink">
             {isEditMode ? 'Edit Collector' : 'Collector Profile'}
           </h3>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-600 transition-colors"
+            className="text-td-sage hover:text-td-sage transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
@@ -145,12 +145,12 @@ const CollectorProfileModal = ({ isOpen, onClose, collector, onSave }) => {
         </div>
         
         {/* Footer */}
-        <div className="border-t p-4 flex justify-end bg-gray-50">
+        <div className="border-t p-4 flex justify-end bg-td-cream">
           {isEditMode ? (
             <>
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 mr-3"
+                className="px-4 py-2 border border-td-border-strong text-td-ink rounded-lg hover:bg-gray-100 mr-3"
               >
                 Cancel
               </button>
@@ -171,7 +171,7 @@ const CollectorProfileModal = ({ isOpen, onClose, collector, onSave }) => {
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
+                className="px-4 py-2 border border-td-border-strong text-td-ink rounded-lg hover:bg-gray-100"
               >
                 Close
               </button>

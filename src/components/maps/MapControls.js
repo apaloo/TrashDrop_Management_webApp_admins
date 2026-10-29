@@ -17,7 +17,7 @@ const MapControls = ({
           <div className="flex flex-wrap gap-3">
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                mapMode === 'default' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-td-ink border-td-border-strong'
+                mapMode === 'default' ? 'bg-td-tonal text-td-forest border-td-forest' : 'bg-white text-td-ink border-td-border-strong'
               }`}
               onClick={() => setMapMode('default')}
             >
@@ -25,7 +25,7 @@ const MapControls = ({
             </button>
             <button
               className={`inline-flex items-center px-3 py-1.5 border rounded-full text-xs font-medium ${
-                mapMode === 'satellite' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-white text-td-ink border-td-border-strong'
+                mapMode === 'satellite' ? 'bg-td-tonal text-td-forest border-td-forest' : 'bg-white text-td-ink border-td-border-strong'
               }`}
               onClick={() => setMapMode('satellite')}
             >

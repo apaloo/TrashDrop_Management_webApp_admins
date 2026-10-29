@@ -191,13 +191,13 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
             <div className="relative">
               <button
                 onClick={toggleMessagesDropdown}
-                className="p-2 hover:text-green-500 focus:outline-none"
+                className="p-2 hover:text-green-600 focus:outline-none"
                 style={{ color: 'var(--td-navbar-icon)' }}
                 aria-label="Messages"
               >
                 <i className="fas fa-comment-alt"></i>
                 {unreadMessagesCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute top-0 right-0 bg-red-700 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {unreadMessagesCount}
                   </span>
                 )}
@@ -210,7 +210,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                     <h3 className="font-semibold" style={{ color: 'var(--td-text-primary)' }}>Messages</h3>
                     <button 
                       onClick={openMessagesModal}
-                      className="text-sm text-green-500 hover:text-green-400"
+                      className="text-sm font-medium text-green-600 hover:text-green-700"
                     >
                       View all
                     </button>
@@ -234,13 +234,13 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
             <div className="relative">
               <button
                 onClick={toggleNotificationsDropdown}
-                className="p-2 hover:text-green-500 focus:outline-none"
+                className="p-2 hover:text-green-600 focus:outline-none"
                 style={{ color: 'var(--td-navbar-icon)' }}
                 aria-label="Notifications"
               >
                 <i className="fas fa-bell"></i>
                 {unreadNotificationsCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute top-0 right-0 bg-red-700 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {unreadNotificationsCount}
                   </span>
                 )}
@@ -250,20 +250,20 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
               {showNotificationsDropdown && (
                 <div className="absolute right-0 mt-2 w-80 rounded-lg shadow-lg overflow-hidden z-20" style={{ background: 'var(--td-dropdown-bg)', border: '1px solid var(--td-dropdown-border)' }}>
                   <div className="py-2 px-4 border-b" style={{ borderColor: 'var(--td-dropdown-border)' }}>
-                    <h6 className="text-sm font-medium" style={{ color: 'var(--td-text-primary)' }}>Notifications</h6>
+                    <h3 className="font-semibold" style={{ color: 'var(--td-text-primary)' }}>Notifications</h3>
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {isLoadingNotifications ? (
                       <div className="p-4 text-center">
-                        <p className="text-gray-500">Loading notifications...</p>
+                        <p className="text-td-sage">Loading notifications...</p>
                       </div>
                     ) : notificationError ? (
                       <div className="p-4 text-center">
-                        <p className="text-red-500">{notificationError}</p>
+                        <p className="text-red-700">{notificationError}</p>
                       </div>
                     ) : recentNotifications.length === 0 ? (
                       <div className="p-4 text-center">
-                        <p className="text-gray-500">No notifications</p>
+                        <p className="text-td-sage">No notifications</p>
                       </div>
                     ) : recentNotifications.map(notification => (
                       <div 
@@ -281,9 +281,9 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                       >
                         <div className="flex items-start">
                           <div className={`mt-1 mr-3 rounded-full p-2 ${
-                            notification.type === 'alert' ? 'bg-red-100 text-red-500' : 
-                            notification.type === 'info' ? 'bg-blue-100 text-blue-500' : 
-                            'bg-green-100 text-green-500'
+                            notification.type === 'alert' ? 'bg-red-100 text-red-700' : 
+                            notification.type === 'info' ? 'bg-blue-100 text-td-forest' : 
+                            'bg-td-tonal text-td-forest'
                           }`}>
                             <i className={`fas ${
                               notification.type === 'alert' ? 'fa-exclamation-triangle' : 
@@ -296,7 +296,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                             <p className="text-xs" style={{ color: 'var(--td-text-muted)' }}>{notification.time}</p>
                           </div>
                           {!notification.read && (
-                            <span className="h-2 w-2 bg-blue-500 rounded-full mt-2"></span>
+                            <span className="h-2 w-2 bg-green-600 rounded-full mt-2"></span>
                           )}
                         </div>
                       </div>
@@ -325,9 +325,9 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                 </div>
                 <div className="hidden md:block text-left">
                   <div className="text-sm font-semibold">{user?.user_metadata?.full_name || 'User'}</div>
-                  <div className="text-xs text-gray-500">{ROLE_LABELS[role] || 'User'}</div>
+                  <div className="text-xs text-td-sage">{ROLE_LABELS[role] || 'User'}</div>
                 </div>
-                <i className="fas fa-chevron-down text-xs text-gray-500"></i>
+                <i className="fas fa-chevron-down text-xs text-td-sage"></i>
               </button>
               
               {/* Profile dropdown */}
@@ -345,7 +345,7 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
                     </Link>
                     <button 
                       onClick={handleSignOut} 
-                      className="w-full text-left px-4 py-2 text-red-500 transition-colors"
+                      className="w-full text-left px-4 py-2 text-red-700 transition-colors"
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--td-dropdown-hover)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >

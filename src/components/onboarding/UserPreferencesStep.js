@@ -54,21 +54,21 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-td-ink">User Preferences</h2>
-        <p className="mt-2 text-md text-gray-600 max-w-md mx-auto">
+        <p className="mt-2 text-md text-td-sage max-w-md mx-auto">
           Customize your TrashDrop experience with these personalized settings
         </p>
       </div>
 
       <form className="mt-6 space-y-8 max-w-lg mx-auto" onSubmit={handleSubmit}>
         {/* Notification Preferences */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-td-border shadow-sm">
           <div className="flex items-center mb-3">
             <div className="h-8 w-8 rounded-md bg-green-100 flex items-center justify-center text-green-600 mr-3">
               <i className="fas fa-bell"></i>
             </div>
             <div>
-              <h4 className="text-lg font-medium text-gray-800">Notification Preferences</h4>
-              <p className="text-sm text-gray-500">Select how you'd like to be notified</p>
+              <h4 className="text-lg font-medium text-td-ink">Notification Preferences</h4>
+              <p className="text-sm text-td-sage">Select how you'd like to be notified</p>
             </div>
           </div>
           
@@ -85,8 +85,8 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="email-notifications" className="font-medium text-gray-700">Email Notifications</label>
-                <p className="text-gray-500">Receive updates and alerts via email</p>
+                <label htmlFor="email-notifications" className="font-medium text-td-ink">Email Notifications</label>
+                <p className="text-td-sage">Receive updates and alerts via email</p>
               </div>
             </div>
             
@@ -102,8 +102,8 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="push-notifications" className="font-medium text-gray-700">Push Notifications</label>
-                <p className="text-gray-500">Receive browser push notifications</p>
+                <label htmlFor="push-notifications" className="font-medium text-td-ink">Push Notifications</label>
+                <p className="text-td-sage">Receive browser push notifications</p>
               </div>
             </div>
             
@@ -119,22 +119,22 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="sms-notifications" className="font-medium text-gray-700">SMS Notifications</label>
-                <p className="text-gray-500">Receive text message alerts (additional setup required)</p>
+                <label htmlFor="sms-notifications" className="font-medium text-td-ink">SMS Notifications</label>
+                <p className="text-td-sage">Receive text message alerts (additional setup required)</p>
               </div>
             </div>
           </div>
         </div>
         
         {/* Dashboard Preferences */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-td-border shadow-sm">
           <div className="flex items-center mb-3">
             <div className="h-8 w-8 rounded-md bg-green-100 flex items-center justify-center text-green-600 mr-3">
               <i className="fas fa-columns"></i>
             </div>
             <div>
-              <h4 className="text-lg font-medium text-gray-800">Dashboard Display</h4>
-              <p className="text-sm text-gray-500">Customize your dashboard layout</p>
+              <h4 className="text-lg font-medium text-td-ink">Dashboard Display</h4>
+              <p className="text-sm text-td-sage">Customize your dashboard layout</p>
             </div>
           </div>
           
@@ -151,8 +151,8 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="show-kpis" className="font-medium text-gray-700">Show KPI Cards</label>
-                <p className="text-gray-500">Display key performance indicators on dashboard</p>
+                <label htmlFor="show-kpis" className="font-medium text-td-ink">Show KPI Cards</label>
+                <p className="text-td-sage">Display key performance indicators on dashboard</p>
               </div>
             </div>
             
@@ -168,16 +168,16 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="show-recent-activity" className="font-medium text-gray-700">Show Recent Activity</label>
-                <p className="text-gray-500">Display recent activity feed on dashboard</p>
+                <label htmlFor="show-recent-activity" className="font-medium text-td-ink">Show Recent Activity</label>
+                <p className="text-td-sage">Display recent activity feed on dashboard</p>
               </div>
             </div>
             
             <div className="mt-6">
-              <label htmlFor="default-view" className="block text-sm font-medium text-gray-700">Default Dashboard View</label>
+              <label htmlFor="default-view" className="block text-sm font-medium text-td-ink">Default Dashboard View</label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-desktop text-gray-500"></i>
+                  <i className="fas fa-desktop text-td-sage"></i>
                 </div>
                 <select
                   id="default-view"
@@ -199,7 +199,7 @@ const UserPreferencesStep = ({ formData, updateFormData, onNext, onPrevious }) =
           <button
             type="button"
             onClick={onPrevious}
-            className="inline-flex items-center px-5 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
+            className="inline-flex items-center px-5 py-2.5 border border-td-border-strong shadow-sm text-sm font-medium rounded-lg text-td-ink bg-white hover:bg-td-cream focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

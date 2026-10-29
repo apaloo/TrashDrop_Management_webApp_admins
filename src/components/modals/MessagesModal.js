@@ -88,19 +88,28 @@ const MessagesModal = ({ isOpen, onClose }) => {
   };
 
   // If modal is not open, don't render
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-5/6 flex flex-col">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl h-5/6 flex flex-col" role="dialog" aria-modal="true" aria-labelledby="messages-modal-title">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+          <h2 id="messages-modal-title" className="text-xl font-semibold text-td-ink">Messages</h2>
           <button 
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label="Close"
+            className="text-td-sage hover:text-td-ink"
           >
-            <i className="fas fa-times text-xl"></i>
+            <i className="fas fa-times text-xl" aria-hidden="true"></i>
           </button>
         </div>
         
@@ -112,14 +121,14 @@ const MessagesModal = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 placeholder="Search contacts..."
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
               />
             </div>
             <div className="divide-y">
               {localContacts.map(contact => (
                 <div 
                   key={contact.id}
-                  className={`p-3 flex items-center hover:bg-gray-50 cursor-pointer ${activeContact?.id === contact.id ? 'bg-gray-50' : ''}`}
+                  className={`p-3 flex items-center hover:bg-gray-50 cursor-pointer ${activeContact?.id === contact.id ? 'bg-td-cream' : ''}`}
                   onClick={() => setActiveContact(contact)}
                 >
                   <div className="relative">
@@ -141,12 +150,12 @@ const MessagesModal = ({ isOpen, onClose }) => {
                   <div className="ml-3 flex-1">
                     <div className="flex justify-between items-baseline">
                       <h3 className="font-medium">{contact.name}</h3>
-                      <span className="text-xs text-gray-500">{contact.lastSeen}</span>
+                      <span className="text-xs text-td-sage">{contact.lastSeen}</span>
                     </div>
-                    <p className="text-sm text-gray-500 truncate">{contact.role}</p>
+                    <p className="text-sm text-td-sage truncate">{contact.role}</p>
                   </div>
                   {contact.unreadCount > 0 && (
-                    <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {contact.unreadCount}
                     </span>
                   )}
@@ -179,14 +188,14 @@ const MessagesModal = ({ isOpen, onClose }) => {
                   </div>
                   <div className="ml-3">
                     <h3 className="font-medium">{activeContact.name}</h3>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-td-sage">
                       {activeContact.online ? 'Online' : `Last seen ${activeContact.lastSeen}`}
                     </p>
                   </div>
                 </div>
                 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <div className="flex-1 overflow-y-auto p-4 bg-td-cream">
                   <div className="space-y-3">
                     {activeConversation.map(msg => (
                       <div 
@@ -196,12 +205,12 @@ const MessagesModal = ({ isOpen, onClose }) => {
                         <div 
                           className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${
                             msg.senderId === 'me' 
-                              ? 'bg-primary text-white rounded-br-none' 
-                              : 'bg-white text-gray-800 rounded-bl-none shadow'
+                              ? 'bg-green-600 text-white rounded-br-none' 
+                              : 'bg-white text-td-ink rounded-bl-none shadow'
                           }`}
                         >
                           <p>{msg.text}</p>
-                          <div className={`text-xs mt-1 ${msg.senderId === 'me' ? 'text-gray-200' : 'text-gray-500'}`}>
+                          <div className={`text-xs mt-1 ${msg.senderId === 'me' ? 'text-gray-200' : 'text-td-sage'}`}>
                             {formatTime(msg.timestamp)}
                             {msg.senderId === 'me' && (
                               <span className="ml-2">
@@ -227,22 +236,23 @@ const MessagesModal = ({ isOpen, onClose }) => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                     <button
                       type="submit"
-                      className="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-primary-dark focus:outline-none"
+                      aria-label="Send message"
+                      className="bg-green-600 text-white px-4 py-2 rounded-r-lg hover:bg-green-700"
                     >
-                      <i className="fas fa-paper-plane"></i>
+                      <i className="fas fa-paper-plane" aria-hidden="true"></i>
                     </button>
                   </form>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="flex-1 flex items-center justify-center bg-td-cream">
                 <div className="text-center p-6">
                   <i className="fas fa-comment-dots text-5xl text-gray-300 mb-3"></i>
-                  <p className="text-gray-500">Select a contact to start messaging</p>
+                  <p className="text-td-sage">Select a contact to start messaging</p>
                 </div>
               </div>
             )}

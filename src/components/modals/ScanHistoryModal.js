@@ -66,17 +66,17 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-3/4 flex flex-col"
+        className="bg-white rounded-xl shadow-xl w-full max-w-3xl h-3/4 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-td-ink">
             Scan History: {bagId || 'Bag ID'}
           </h3>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-600 transition-colors"
+            className="text-td-sage hover:text-td-sage transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
@@ -87,9 +87,9 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">
               <div className="inline-block rounded-full bg-gray-100 p-4 mb-4">
-                <i className="fas fa-history text-gray-500 text-3xl"></i>
+                <i className="fas fa-history text-td-sage text-3xl"></i>
               </div>
-              <p className="text-gray-500">No scan history available for this bag</p>
+              <p className="text-td-sage">No scan history available for this bag</p>
             </div>
           </div>
         )}
@@ -116,8 +116,8 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="text-lg font-medium text-gray-900">{scan.status}</h4>
-                        <p className="text-sm text-gray-500">
+                        <h4 className="text-lg font-medium text-td-ink">{scan.status}</h4>
+                        <p className="text-sm text-td-sage">
                           {formatDate(scan.timestamp)}
                         </p>
                       </div>
@@ -130,25 +130,25 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
                       </span>
                     </div>
                     
-                    <div className="mt-2 bg-gray-50 rounded-lg p-3">
+                    <div className="mt-2 bg-td-cream rounded-lg p-3">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className="font-medium text-gray-500">Collector:</span>
+                          <span className="font-medium text-td-sage">Collector:</span>
                           <span className="ml-1">{scan.collectorName || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-500">Location:</span>
+                          <span className="font-medium text-td-sage">Location:</span>
                           <span className="ml-1">{scan.location || 'N/A'}</span>
                         </div>
                         {scan.deviceId && (
                           <div>
-                            <span className="font-medium text-gray-500">Device ID:</span>
+                            <span className="font-medium text-td-sage">Device ID:</span>
                             <span className="ml-1">{scan.deviceId}</span>
                           </div>
                         )}
                         {scan.notes && (
                           <div className="md:col-span-2">
-                            <span className="font-medium text-gray-500">Notes:</span>
+                            <span className="font-medium text-td-sage">Notes:</span>
                             <span className="ml-1">{scan.notes}</span>
                           </div>
                         )}
@@ -162,20 +162,20 @@ const ScanHistoryModal = ({ isOpen, onClose, scanHistory = [], bagId }) => {
         )}
         
         {/* Footer */}
-        <div className="border-t p-4 flex justify-end bg-gray-50">
+        <div className="border-t p-4 flex justify-end bg-td-cream">
           <button
             onClick={() => {
               // This would trigger an export function in a real app
               logger.log('Exporting scan history');
             }}
-            className="px-4 py-2 text-blue-600 hover:text-blue-800 flex items-center"
+            className="px-4 py-2 text-td-forest hover:text-td-forest-dk flex items-center"
           >
             <i className="fas fa-download mr-2"></i>
             Export History
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 ml-3"
+            className="px-4 py-2 bg-gray-200 text-td-ink rounded-lg hover:bg-gray-300 ml-3"
           >
             Close
           </button>
