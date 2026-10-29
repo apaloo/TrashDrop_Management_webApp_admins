@@ -611,12 +611,12 @@ const IllegalDumpingManagement = () => {
                 )}
                 {selectedReport.status === 'pending' && canVerify && (
                   <button onClick={() => updateReportStatus(selectedReport, 'verified')} disabled={actionPending === selectedReport.id}
-                    className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                     Verify
                   </button>
                 )}
                 {canAssign && ['pending', 'verified'].includes(selectedReport.status) && !selectedReport.assignedTo && (
-                  <button onClick={() => openCollectorModal(selectedReport)} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  <button onClick={() => openCollectorModal(selectedReport)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                     Assign Cleanup
                   </button>
                 )}

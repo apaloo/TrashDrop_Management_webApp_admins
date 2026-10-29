@@ -362,7 +362,7 @@ const IllegalDumpingHistory = () => {
                 )}
               </div>
               <div className="bg-gray-50 px-6 py-3 flex justify-end rounded-b-lg">
-                <button type="button" className="rounded-md px-4 py-2 bg-blue-600 text-sm font-medium text-white hover:bg-blue-700" onClick={closeModal}>
+                <button type="button" className="rounded-md px-4 py-2 bg-green-600 text-sm font-medium text-white hover:bg-green-700" onClick={closeModal}>
                   Close
                 </button>
               </div>

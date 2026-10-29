@@ -50,7 +50,7 @@ const ConfirmationModal = ({
           icon: 'fa-info-circle',
           iconBg: 'bg-blue-100',
           iconColor: 'text-blue-600',
-          confirmBg: 'bg-blue-600 hover:bg-blue-700',
+          confirmBg: 'bg-green-600 hover:bg-green-700',
           borderColor: 'border-blue-200'
         };
     }

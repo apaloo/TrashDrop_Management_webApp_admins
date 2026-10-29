@@ -260,7 +260,7 @@ const RequestPickupManagement = () => {
   const RowActions = ({ row }) => (
     <div className="flex justify-end gap-1.5">
       {assignScope.canAssign && canonicalStatus(row.status) === 'pending' && (
-        <button type="button" onClick={() => openAssign([row])} className="px-2.5 py-1 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700">Assign</button>
+        <button type="button" onClick={() => openAssign([row])} className="px-2.5 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700">Assign</button>
       )}
       <button type="button" onClick={() => setDetail(row)} className="px-2.5 py-1 text-xs font-medium rounded border" style={border}>Details</button>
     </div>
@@ -496,7 +496,7 @@ const RequestPickupManagement = () => {
         <div className="rounded-lg border px-4 py-2 flex flex-wrap items-center gap-3 text-sm" style={card} role="region" aria-label="Bulk actions">
           <strong>{selectedRows.length} selected</strong>
           {assignScope.canAssign && (
-            <button type="button" disabled={!assignable.length} onClick={() => openAssign(assignable)} className="px-3 py-1.5 rounded bg-blue-600 text-white disabled:opacity-40">
+            <button type="button" disabled={!assignable.length} onClick={() => openAssign(assignable)} className="px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-40">
               Assign {assignable.length !== selectedRows.length ? `(${assignable.length} pending)` : ''}
             </button>
           )}

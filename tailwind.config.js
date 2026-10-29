@@ -9,6 +9,14 @@ module.exports = {
       fontSize: {
         xs: ['0.8125rem', { lineHeight: '1.125rem' }],
       },
+      // Cards are outlined, not shadowed (docs/DESIGN_SYSTEM.md): shadow-sm and
+      // shadow draw a 1px #DFE4DC edge, shadow-md (hover) adds a soft lift.
+      // shadow-lg and up stay for things that float: menus, dialogs, toasts.
+      boxShadow: {
+        sm: '0 0 0 1px #dfe4dc',
+        DEFAULT: '0 0 0 1px #dfe4dc',
+        md: '0 0 0 1px #dfe4dc, 0 4px 12px rgba(10, 15, 10, 0.06)',
+      },
       colors: {
         // The greens used for buttons, links and green text become the
         // design system's dark green, so white on them and them on white

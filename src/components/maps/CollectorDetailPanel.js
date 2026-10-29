@@ -97,7 +97,7 @@ const CollectorDetailPanel = ({ collector, onClose }) => {
         
         {/* Actions */}
         <div className="flex space-x-2">
-          <button className="px-3 py-2 bg-blue-600 text-white rounded flex items-center justify-center flex-1 text-sm hover:bg-blue-700">
+          <button className="px-3 py-2 bg-green-600 text-white rounded flex items-center justify-center flex-1 text-sm hover:bg-green-700">
             <i className="fas fa-phone mr-2"></i> Call Collector
           </button>
           <button className="px-3 py-2 bg-gray-100 text-gray-800 rounded flex items-center justify-center flex-1 text-sm hover:bg-gray-200">

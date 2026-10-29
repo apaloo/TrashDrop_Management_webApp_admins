@@ -86,7 +86,7 @@ const BatchDetailsModal = ({ batch: b, email, busy, paused = false, onDownloadAl
 
           <div>
             <h3 className="font-medium mb-2">Progress</h3>
-            <div className="relative w-full bg-gray-200 rounded-full h-2.5 overflow-hidden" aria-label="Bag progress">
+            <div className="relative w-full bg-gray-200 rounded-full h-2.5 overflow-hidden" role="img" aria-label="Bag progress">
               <div className="absolute inset-y-0 left-0 bg-blue-500" style={{ width: `${p.distributedPct}%` }} />
               <div className="absolute inset-y-0 left-0 bg-yellow-500" style={{ width: `${p.filledPct}%` }} />
               <div className="absolute inset-y-0 left-0 bg-green-600" style={{ width: `${p.collectedPct}%` }} />
@@ -164,7 +164,7 @@ const BatchDetailsModal = ({ batch: b, email, busy, paused = false, onDownloadAl
             <h3 className="font-medium mb-2">Batch QR code</h3>
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <div className="p-3 bg-white border rounded-md inline-block">
-                <QRCodeSVG value={batchQrUrl(b.id)} size={160} includeMargin />
+                <QRCodeSVG value={batchQrUrl(b.id)} size={160} includeMargin role="img" aria-label="QR code for this batch" />
               </div>
               <div className="text-gray-600 break-all">
                 <div className="font-medium mb-1">Scan URL</div>
@@ -185,7 +185,7 @@ const BatchDetailsModal = ({ batch: b, email, busy, paused = false, onDownloadAl
           <button type="button" onClick={() => onDownloadAll(b)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" title="Regenerate QR codes with the latest print size and download">
             🔄 Regenerate &amp; Download
           </button>
-          <button type="button" onClick={() => onDownloadAll(b)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Download QRs</button>
+          <button type="button" onClick={() => onDownloadAll(b)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Download QRs</button>
           <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Close</button>
         </div>
       </div>

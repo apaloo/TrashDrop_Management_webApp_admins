@@ -178,14 +178,14 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto bg-white rounded-[20px] overflow-hidden border border-td-border">
+        <div className="bg-td-forest px-8 py-6">
           <div className="flex items-center mb-4">
             <img src="/logo.svg" alt="TrashDrop Logo" className="h-12 w-12" />
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-white">Welcome to TrashDrop</h2>
-              <p className="text-green-100">Let's get your account set up</p>
+              <h1 className="text-[28px] leading-tight font-bold text-white">Welcome to TrashDrop</h1>
+              <p className="text-white/90">Let's get your account set up</p>
             </div>
           </div>
           
@@ -194,7 +194,7 @@ const Onboarding = () => {
             <ol className="flex items-center w-full">
               {[1, 2, 3].map((step) => (
                 <li key={step} className="flex w-full items-center">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${currentStep >= step ? 'bg-white text-green-700' : 'bg-green-200 bg-opacity-50 text-green-300'}`}>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${currentStep >= step ? 'bg-white text-td-forest' : 'bg-white/15 text-white'}`}>
                     {currentStep > step ? (
                       <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -205,7 +205,7 @@ const Onboarding = () => {
                   </div>
                   
                   {step < 3 && (
-                    <div className="flex-1 h-0.5 mx-2 bg-green-200 bg-opacity-50">
+                    <div className="flex-1 h-0.5 mx-2 bg-white/30">
                       <div className={`h-0.5 ${currentStep > step ? 'bg-white' : 'bg-transparent'}`} style={{ width: '100%' }}></div>
                     </div>
                   )}

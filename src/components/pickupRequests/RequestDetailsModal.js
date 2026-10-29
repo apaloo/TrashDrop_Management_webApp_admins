@@ -139,7 +139,7 @@ const RequestDetailsModal = ({
             <div className="h-48 rounded overflow-hidden border" style={border}>
               <MapContainer center={[row.lat, row.lng]} zoom={15} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
                 <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[row.lat, row.lng]} icon={pin} />
+                <Marker position={[row.lat, row.lng]} icon={pin} title="Pickup location" />
               </MapContainer>
             </div>
           )}
@@ -155,7 +155,7 @@ const RequestDetailsModal = ({
               <div className="flex flex-wrap items-center gap-2">
                 <CollectorPicker collectors={assignRanked} value={collectorId} onChange={setCollectorId} className="flex-1 min-w-[220px]" />
                 <button type="button" disabled={!chosen || busy} onClick={() => onAssign(row, chosen)}
-                  className="px-4 py-1.5 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40">
+                  className="px-4 py-1.5 rounded text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-40">
                   Assign
                 </button>
               </div>
@@ -199,9 +199,9 @@ const RequestDetailsModal = ({
         {(status !== 'disposed' && status !== 'cancelled' && status !== 'expired') && (
           <div className="sticky bottom-0 border-t px-5 py-3 flex flex-wrap justify-end gap-2" style={{ ...card, ...border }}>
             {status === 'pending' && action('Start Pickup', 'en_route', 'bg-purple-600', true, 'Assign a collector first')}
-            {status === 'accepted' && action('Start Pickup', 'en_route', 'bg-purple-600 hover:bg-purple-700', !hasCollector, hasCollector ? '' : 'Assign a collector first')}
-            {status === 'en_route' && action('Mark Arrived', 'arrived', 'bg-purple-600 hover:bg-purple-700', !hasCollector)}
-            {status === 'arrived' && action('Start Collecting', 'collecting', 'bg-purple-600 hover:bg-purple-700', !hasCollector)}
+            {status === 'accepted' && action('Start Pickup', 'en_route', 'bg-green-600 hover:bg-green-700', !hasCollector, hasCollector ? '' : 'Assign a collector first')}
+            {status === 'en_route' && action('Mark Arrived', 'arrived', 'bg-green-600 hover:bg-green-700', !hasCollector)}
+            {status === 'arrived' && action('Start Collecting', 'collecting', 'bg-green-600 hover:bg-green-700', !hasCollector)}
             {hasCollector && ['arrived', 'collecting'].includes(status) && action('Mark as Completed', 'disposed', 'bg-green-600 hover:bg-green-700', false)}
             {canCancel(row.status) && (
               <button type="button" disabled={busy} onClick={() => onCancel([row])} className="px-4 py-2 rounded text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50">
