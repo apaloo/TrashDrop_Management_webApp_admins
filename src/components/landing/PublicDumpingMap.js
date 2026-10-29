@@ -243,7 +243,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
               role="tab"
               aria-selected={active}
               onClick={() => setView(v.key)}
-              style={{ fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? '#b6ee69' : 'transparent', color: active ? '#0a0f0a' : lp.mapLegendText }}
+              style={{ fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? '#b6ee69' : 'transparent', color: active ? '#0a0f0a' : lp.mapLegendText }}
             >
               {v.label} <span style={{ opacity: 0.7, fontWeight: 600 }}>{status === 'ready' ? counts[v.key] : ''}</span>
             </button>
@@ -288,10 +288,10 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
                   <span style={{ fontSize: 13, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: card.chipBg, color: card.sub }}>{toTitle(selected.status)}</span>
                 </div>
                 <p style={{ fontFamily: FONT_LABEL, fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>{toTitle(selected.wasteType)} waste</p>
-                <p style={{ fontSize: 15, color: card.sub, margin: '0 0 14px' }}>
+                <p style={{ fontSize: 16, color: card.sub, margin: '0 0 14px' }}>
                   <i className="fas fa-map-marker-alt" style={{ marginRight: 6 }} />{describeArea(selected)}
                 </p>
-                <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 14px', fontSize: 15, margin: 0 }}>
+                <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 14px', fontSize: 16, margin: 0 }}>
                   <dt style={{ color: card.sub }}>Severity</dt><dd style={{ margin: 0 }}>{toTitle(selected.severity)}</dd>
                   <dt style={{ color: card.sub }}>Reported</dt><dd style={{ margin: 0 }} title={new Date(selected.createdAt).toLocaleString()}>{timeAgo(selected.createdAt)}</dd>
                   {selected.isCleanedUp && cleanupDurationText(selected.createdAt, selected.completedAt) && (
@@ -329,7 +329,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
               {status === 'error' && (
                 <>
                   Live reports are unavailable right now.
-                  <button onClick={reload} style={{ display: 'block', margin: '10px auto 0', fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, background: '#1b6e35', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>Try again</button>
+                  <button onClick={reload} style={{ display: 'block', margin: '10px auto 0', fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, background: '#1b6e35', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>Try again</button>
                 </>
               )}
               {status === 'ready' && emptyText}
@@ -339,16 +339,16 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
 
         {/* Legend */}
         <div data-testid="public-map-legend" className="td-map-hide-with-card" style={{ position: 'absolute', bottom: 16, left: 16, background: lp.mapLegendBg, backdropFilter: 'blur(14px)', border: `1px solid ${lp.mapLegendBorder}`, borderRadius: 12, padding: '12px 16px', zIndex: 1100 }}>
-          <p style={{ fontFamily: FONT_LABEL, fontSize: 10, fontWeight: 700, letterSpacing: '2px', color: lp.mapLegendLabel, textTransform: 'uppercase', margin: '0 0 8px' }}>Risk Level</p>
+          <p style={{ fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, letterSpacing:'0.08em', color: lp.mapLegendLabel, textTransform: 'uppercase', margin: '0 0 8px' }}>Risk Level</p>
           {['critical', 'high', 'medium', 'low'].map(s => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: RISK_COLORS[s], display: 'inline-block' }} />
-              <span style={{ fontFamily: FONT_BODY, fontSize: 12, color: lp.mapLegendText }}>{toTitle(s)}</span>
+              <span style={{ fontFamily: FONT_BODY, fontSize: 13, color: lp.mapLegendText }}>{toTitle(s)}</span>
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${lp.mapLegendBorder}` }}>
             <span style={{ width: 14, height: 14, borderRadius: '50%', background: CLEANED_COLOR, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} dangerouslySetInnerHTML={{ __html: CHECK_SVG.replace(/12/g, '9') }} />
-            <span style={{ fontFamily: FONT_BODY, fontSize: 12, color: lp.mapLegendText }}>Cleaned up</span>
+            <span style={{ fontFamily: FONT_BODY, fontSize: 13, color: lp.mapLegendText }}>Cleaned up</span>
           </div>
         </div>
 
@@ -356,7 +356,7 @@ const PublicDumpingMap = ({ lp, isDark, data, children, detailsHref = '/signup',
         {expandable && (
           <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 1100 }}>
             <button type="button" onClick={() => setExpanded(e => !e)} aria-pressed={expanded}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1b6e35', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: FONT_LABEL, fontSize: 12, fontWeight: 700, padding: '10px 18px', borderRadius: 10, boxShadow: '0 4px 20px rgba(27,110,53,0.38)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1b6e35', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: FONT_LABEL, fontSize: 13, fontWeight: 700, padding: '10px 18px', borderRadius: 10, boxShadow: '0 4px 20px rgba(27,110,53,0.38)' }}>
               <i className={`fas ${expanded ? 'fa-compress-arrows-alt' : 'fa-expand-arrows-alt'}`} aria-hidden="true" />
               {expanded ? 'Exit full screen' : 'Full Analytics Map'}
             </button>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BUSINESS } from '../utils/seo';
 import { PublicMenuDesktop, PublicMenuMobile } from './PublicMenu';
-import { TD, FF } from '../theme/brand';
+import { TD, FF, BTN } from '../theme/brand';
 
 /* ─── Brand tokens: src/theme/brand.js (re-exported for the pages) ─────────── */
 export { TD, FF };
@@ -33,15 +33,15 @@ export const PublicNavbar = () => {
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} onError={e=>{e.target.style.display='none'}} />
-          <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
+          <span style={{ ...FF.label, fontSize:18, fontWeight:700, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
         <PublicMenuDesktop className="td-nav-links" colors={menuColors} />
         <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
           {isAuthenticated
-            ? <Link to="/dashboard" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none' }}>Dashboard →</Link>
+            ? <Link to="/dashboard" className="td-pub-btn" style={{ ...BTN.primaryOnDark, ...BTN.small }}>Dashboard</Link>
             : <>
-                <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:linkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/#book-app" className="td-pub-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link>
+                <Link to="/login"  className="td-pub-btn" style={{ ...FF.label, fontSize:15, fontWeight:600, color:'#f0f5f0', textDecoration:'none', padding:'9px 14px' }}>Sign in</Link>
+                <Link to="/#book-app" className="td-pub-btn" style={{ ...BTN.primaryOnDark, ...BTN.small }}>Book a pickup</Link>
               </>}
         </div>
         <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:'#fff' }}>
@@ -56,7 +56,7 @@ export const PublicNavbar = () => {
               ? <Link to="/dashboard" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Go to Dashboard</Link>
               : <>
                   <Link to="/login"  onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:600, color:'#fff', textAlign:'center', padding:12, borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', textDecoration:'none' }}>Sign In</Link>
-                  <Link to="/#book-app" onClick={()=>setMobileOpen(false)} style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link>
+                  <Link to="/#book-app" onClick={()=>setMobileOpen(false)} style={{ ...BTN.primaryOnDark, display:'flex' }}>Book a pickup</Link>
                 </>}
           </div>
         </div>
@@ -73,7 +73,7 @@ export const PublicFooter = () => (
         <div>
           <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', marginBottom:16 }}>
             <img src="/logo.svg" alt="TrashDrop" style={{ height:32 }} onError={e=>{e.target.style.display='none'}} />
-            <span style={{ ...FF.label, fontSize:17, fontWeight:800, color:'#fff' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
+            <span style={{ ...FF.label, fontSize:17, fontWeight:700, color:'#fff' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </Link>
           <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', lineHeight:1.7, maxWidth:240 }}>
             Ghana's leading mobile waste management platform. Connecting households with verified collectors across Accra, Kumasi, Takoradi and Tamale.

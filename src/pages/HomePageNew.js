@@ -7,7 +7,7 @@ import { PUBLIC_STAT_THRESHOLDS, HOUSEHOLD_APP_URL, BOOKING_CITIES, nearestBooki
 import { CITY_CONTENT } from './cityContent';
 import { reverseGeocode } from '../utils/geocoding';
 import { useAuth } from '../context/AuthContext';
-import { TD, FF } from '../theme/brand';
+import { TD, FF, TYPE, BTN } from '../theme/brand';
 import { useSeo, BUSINESS, CITY_PAGES, WASTE_PICKUP_PATH, organizationJsonLd, localBusinessJsonLd } from '../utils/seo';
 
 /* ─── Brand tokens: src/theme/brand.js ─────────────────────────────────────── */
@@ -56,7 +56,7 @@ const LP = {
     mapStatText:   '#fff',
     mapStatLabel:  'rgba(255,255,255,0.68)',
     pathwayCardBg: '#fff',
-    pathwayText:   '#4a5568',
+    pathwayText:   TD.sage,
     partnerTileBg: 'rgba(255,255,255,0.03)',
     partnerTileB:  'rgba(255,255,255,0.07)',
     partnerH4:     '#f0f5f0',
@@ -98,12 +98,12 @@ const LP = {
     pathwaysLabel:  `${TD.forest}99`,
   },
   light: {
-    pageBg:        '#fff',
-    sectionAlt:    '#f0f9f0',
+    pageBg:        TD.cream,
+    sectionAlt:    TD.cream,
     sectionDark:   '#1b3a28',
-    sectionDark2:  '#f5f9f5',
+    sectionDark2:  TD.cream,
     sectionForest: `linear-gradient(160deg,#e8f5ed 0%,#f0faf2 40%,#fafff8 100%)`,
-    sectionPathway:'#f7f7f5',
+    sectionPathway:TD.cream,
     sectionPartner:'#1b3a28',
     sectionPricing:'#fafafa',
     footerBg:      '#1b3a28',
@@ -118,35 +118,35 @@ const LP = {
     heroText:      '#f0f5f0',
     heroSub:       'rgba(255,255,255,0.6)',
     heroStatLabel: '#a7c5b0',
-    sectionHeading:'#1b3a28',
+    sectionHeading:TD.ink,
     bodyText:      TD.sage,
-    ink2Heading:   '#1b3a28',
+    ink2Heading:   TD.ink,
     sageText:      TD.sage,
     cardBg:        '#fff',
     cardBorder:    'rgba(22,101,52,0.1)',
     stepNum:       'rgba(22,101,52,0.04)',
     darkBoxBg:     TD.forest,
     darkBoxText:   'rgba(255,255,255,0.9)',
-    mapSectionBg:  '#f0faf2',
+    mapSectionBg:  TD.cream,
     mapStatBg:     'rgba(22,101,52,0.04)',
     mapStatBorder: 'rgba(22,101,52,0.1)',
-    mapStatText:   '#1b3a28',
+    mapStatText:   TD.ink,
     mapStatLabel:  TD.sage,
     pathwayCardBg: '#fff',
-    pathwayText:   '#4a5568',
+    pathwayText:   TD.sage,
     partnerTileBg: 'rgba(255,255,255,0.12)',
     partnerTileB:  'rgba(255,255,255,0.15)',
     partnerH4:     '#f0f5f0',
     partnerP:      'rgba(255,255,255,0.85)',
-    pricingBg:     '#f0faf2',
+    pricingBg:     TD.cream,
     pricingText:   TD.sage,
     subBg:         '#fff',
-    subText:       '#374151',
-    subSmall:      '#6b7280',
+    subText:       TD.sage,
+    subSmall:      TD.sage,
     pricingBarBg:  '#e8f5ed',
     pricingBarText:TD.sage,
-    impactText:    '#3a6a50',
-    impactCount:   '#1b3a28',
+    impactText:    TD.sage,
+    impactCount:   TD.ink,
     impactSub:     TD.sage,
     fabLabel:      '#fff',
     fabLabelBg:    '#1b3a28',
@@ -156,11 +156,11 @@ const LP = {
     featureTitle:  TD.forest,
     featureIconBg: 'rgba(22,101,52,0.1)',
     featureIcon:   TD.forest,
-    featureText:   '#2d4a38',
+    featureText:   TD.sage,
     mapLegendBg:   'rgba(255,255,255,0.95)',
     mapLegendBorder:'rgba(22,101,52,0.15)',
-    mapLegendLabel:'#2d4a38',
-    mapLegendText: '#374151',
+    mapLegendLabel:TD.sage,
+    mapLegendText: TD.ink,
     pricingRowBorder:'rgba(22,101,52,0.08)',
     pricingSize:   TD.sage,
     pricingDesc:   TD.sage,
@@ -242,7 +242,8 @@ const GlobalStyles = () => (
     @media(max-width:1279px) { .td-lp-toggle-label { display:none; } }
     @media(max-width:1023px) { .td-nav-links{display:none!important} }
     @media(min-width:1024px) { .td-mobile-btn{display:none!important} }
-    @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-cards{display:none!important} }
+    @media(max-width:768px) { .td-book-qr{display:none!important} .td-app-qr{display:none!important} .td-app-button{display:inline-flex!important} }
+    @media(max-width:900px) { .td-hero-grid{grid-template-columns:1fr!important} .td-hero-photo{display:none!important} .td-hero-facts{grid-template-columns:1fr!important; gap:16px!important; margin-top:40px!important} }
     .td-step-card:hover { transform:translateY(-6px)!important; border-color:rgba(182,238,105,0.55)!important; background:rgba(182,238,105,0.06)!important; }
     @media(max-width:1100px) { .td-steps6{grid-template-columns:repeat(3,1fr)!important} .td-steps-line{display:none} }
     @media(max-width:640px) {
@@ -289,7 +290,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
   const navScrollBorder = isDark ? 'rgba(182,238,105,0.12)'      : 'rgba(22,101,52,0.15)';
   // Light links and theme switch while the bar is see-through over the dark hero
   const overDark        = isDark || !scrolled;
-  const navLinkColor    = overDark ? 'rgba(255,255,255,0.85)' : 'rgba(27,62,40,0.8)';
+  const navLinkColor    = overDark ? '#f0f5f0' : TD.ink;
   const brandColor      = overDark ? '#fff'                      : TD.forest;
   const mobileMenuBg    = isDark ? TD.ink                        : '#fff';
   const mobileLinkColor = isDark ? 'rgba(255,255,255,0.8)'      : 'rgba(27,62,40,0.85)';
@@ -305,25 +306,14 @@ const HomeNavbar = ({ isAuthenticated }) => {
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, height:68 }}>
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
           <img src="/logo.svg" alt="TrashDrop" style={{ height:36, width:36 }} />
-          <span style={{ ...FF.label, fontSize:18, fontWeight:800, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
+          <span style={{ ...FF.label, fontSize:18, fontWeight:700, color:brandColor, letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
         </Link>
         <PublicMenuDesktop className="td-nav-links" colors={menuColors} />
         <div className="td-nav-links" style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
-          {/* Theme toggle */}
-          <button
-            className="td-lp-toggle"
-            onClick={toggleLp}
-            title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
-            aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
-            style={{ display:'inline-flex', alignItems:'center', gap:6, background:overDark?'rgba(182,238,105,0.1)':'rgba(22,101,52,0.08)', border:`1px solid ${overDark?'rgba(182,238,105,0.35)':'rgba(22,101,52,0.2)'}`, color:overDark?TD.lime:TD.forest, padding:'7px 14px', borderRadius:8, cursor:'pointer', ...FF.label, fontSize:12, fontWeight:700 }}
-          >
-            <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} style={{ fontSize:13 }}></i>
-            <span className="td-lp-toggle-label">{isDark ? 'Light' : 'Dark'}</span>
-          </button>
           {isAuthenticated
-            ? <Link to="/dashboard" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Dashboard →</Link>
-            : <><Link to="/login"  className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign In</Link>
-                <Link to="/#book-app" className="td-nav-btn" style={{ ...FF.label, fontSize:13, fontWeight:700, background:TD.lime, color:TD.ink, padding:'9px 22px', borderRadius:8, textDecoration:'none', boxShadow:`0 4px 20px ${TD.lime}40` }}>Get Started</Link></>}
+            ? <Link to="/dashboard" className="td-nav-btn" style={{ ...(overDark ? BTN.primaryOnDark : BTN.primary), ...BTN.small }}>Dashboard</Link>
+            : <><Link to="/login"  className="td-nav-btn" style={{ ...FF.label, fontSize:16, fontWeight:600, color:navLinkColor, textDecoration:'none', padding:'9px 14px' }}>Sign in</Link>
+                <Link to="/#book-app" className="td-nav-btn" style={{ ...(overDark ? BTN.primaryOnDark : BTN.primary), ...BTN.small }}>Book a pickup</Link></>}
         </div>
         <button className="td-mobile-btn" onClick={() => setMobileOpen(o=>!o)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} style={{ background:'none', border:'none', cursor:'pointer', padding:8, color:isDark || !scrolled ? '#fff' : TD.forest }}>
           <i className={`fas ${mobileOpen?'fa-times':'fa-bars'}`} style={{ fontSize:18 }}></i>
@@ -339,7 +329,7 @@ const HomeNavbar = ({ isAuthenticated }) => {
             {isAuthenticated
               ? <Link to="/dashboard" style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Go to Dashboard</Link>
               : <><Link to="/login"  style={mobileSignInStyle}>Sign In</Link>
-                  <Link to="/#book-app" style={{ ...FF.label, fontWeight:700, background:TD.lime, color:TD.ink, textAlign:'center', padding:12, borderRadius:8, textDecoration:'none' }}>Get Started Free</Link></>}
+                  <Link to="/#book-app" onClick={() => setMobileOpen(false)} style={{ ...(isDark ? BTN.primaryOnDark : BTN.primary), display:'flex' }}>Book a pickup</Link></>}
           </div>
         </div>
       )}
@@ -380,10 +370,11 @@ const BookingCard = () => {
     }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
   };
 
-  const field = { width:'100%', boxSizing:'border-box', height:48, border:'1px solid #d7dbe0', borderRadius:10, padding:'0 52px 0 14px', ...FF.body, fontSize:15, color:TD.ink, background:'#fff' };
+  const field = { width:'100%', boxSizing:'border-box', height:48, border:'1px solid #d7dbe0', borderRadius:10, padding:'0 52px 0 14px', ...FF.body, fontSize:16, color:TD.ink, background:'#fff' };
   return (
-    <div data-testid="booking-card" style={{ background:'#fff', borderRadius:18, padding:20, maxWidth:480, boxShadow:'0 18px 50px rgba(0,0,0,0.35)', color:TD.ink, minHeight:420, boxSizing:'border-box' }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, ...FF.body, fontSize:15 }}>
+    // #book-app is the target of "Book a pickup" links across the site
+    <div id="book-app" data-scroll-align="center" data-testid="booking-card" style={{ background:'#fff', borderRadius:'var(--td-radius-panel)', padding:24, maxWidth:480, boxShadow:'0 18px 50px rgba(0,0,0,0.35)', color:TD.ink, boxSizing:'border-box' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, ...FF.body, fontSize:16 }}>
         <span>Pickup in <strong data-testid="booking-city">{city}</strong></span>
         {/* A native picker under a "Change city" link: nothing on the page moves when it opens */}
         <label style={{ position:'relative', color:TD.forest, fontWeight:600, fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
@@ -395,7 +386,7 @@ const BookingCard = () => {
         </label>
       </div>
 
-      <label htmlFor="booking-location" style={{ display:'block', ...FF.label, fontSize:12, fontWeight:700, color:'#4b5563', marginBottom:6 }}>Your location</label>
+      <label htmlFor="booking-location" style={{ display:'block', ...TYPE.small, fontWeight:600, color:TD.sage, marginBottom:6 }}>Your location</label>
       <div style={{ position:'relative' }}>
         <input id="booking-location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Area, street or landmark" autoComplete="street-address" style={field} />
         <button type="button" onClick={useMyLocation} disabled={locating} aria-label="Use my location" title="Use my location"
@@ -403,27 +394,28 @@ const BookingCard = () => {
           <i className={`fas ${locating ? 'fa-spinner fa-spin' : 'fa-location-arrow'}`} aria-hidden="true"></i>
         </button>
       </div>
-      <p role="status" style={{ ...FF.body, fontSize:12, color:TD.sage, minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
+      <p role="status" style={{ ...FF.body, fontSize:13, color:TD.sage, minHeight:18, lineHeight:'18px', margin:'4px 0 10px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>{locStatus}</p>
 
       <div role="radiogroup" aria-label="Service" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, background:'#f1f3f5', borderRadius:12, padding:4, marginBottom:14 }}>
         {Object.entries(SERVICES).map(([key, s]) => (
           <button key={key} type="button" role="radio" aria-checked={service === key} onClick={() => setService(key)}
             style={{ border:'none', borderRadius:9, padding:'9px 6px', cursor:'pointer', background: service === key ? '#fff' : 'transparent', boxShadow: service === key ? '0 1px 4px rgba(0,0,0,0.12)' : 'none', ...FF.body, color:TD.ink, lineHeight:1.25 }}>
             <span style={{ display:'block', fontSize:14, fontWeight:600 }}>{s.label}</span>
-            <span style={{ display:'block', fontSize:12, color: key === 'bag' ? TD.forest : TD.sage }}>({s.note})</span>
+            <span style={{ display:'block', fontSize:13, color: key === 'bag' ? TD.forest : TD.sage }}>({s.note})</span>
           </button>
         ))}
       </div>
 
       <a href={HOUSEHOLD_APP_URL} data-testid="booking-submit"
-        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, borderRadius:12, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none' }}>
+        style={{ ...BTN.primary, display:'flex', width:'100%', minHeight:52 }}>
         <i className="fas fa-truck" aria-hidden="true"></i> {SERVICES[service].cta}
       </a>
 
-      <div id="book-app" data-scroll-align="center" style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
+      {/* A code to scan is for a second screen: phones book with the button above */}
+      <div className="td-book-qr" style={{ display:'flex', alignItems:'center', gap:14, marginTop:16, paddingTop:14, borderTop:'1px solid #eceef1' }}>
         <img src="/images/book-in-app-qr.png" alt="QR code that opens the TrashDrop app" width="96" height="96" style={{ width:96, height:96, borderRadius:8, flexShrink:0 }} />
-        <p style={{ ...FF.body, fontSize:14, lineHeight:1.5, color:'#374151', margin:0 }}>
-          <strong>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
+        <p style={{ ...TYPE.small, color:TD.sage, margin:0 }}>
+          <strong style={{ color:TD.ink }}>Scan to book in the TrashDrop app.</strong> Point your phone camera at the code.
         </p>
       </div>
     </div>
@@ -433,112 +425,50 @@ const BookingCard = () => {
 /* ═══════════════════════════════════════════════════════════════════════════════
    HERO
    ═══════════════════════════════════════════════════════════════════════════════ */
-const HeroSection = ({ isAuthenticated }) => {
-  const ORBS = [
-    { s:420, t:'10%', l:'2%',  c:TD.lime,   d:0   },
-    { s:300, t:'65%', l:'68%', c:TD.forest, d:1.5 },
-    { s:240, t:'25%', l:'75%', c:TD.orange,   d:3   },
-    { s:360, t:'70%', l:'5%',  c:TD.forest, d:0.8 },
-  ];
-  return (
-    <section style={{ position:'relative', minHeight:'100vh', display:'flex', alignItems:'center', background:TD.ink, overflow:'hidden' }}>
-      {/* Background Image */}
-      <div style={{ 
-        position:'absolute', 
-        inset:0, 
-        backgroundImage:'url(/images/home/hero-bg.jpg)', 
-        backgroundSize:'cover', 
-        backgroundPosition:'center',
-        backgroundRepeat:'no-repeat',
-        opacity:0.6,
-        zIndex:0
-      }} />
-      {/* Dark overlay gradient for text readability */}
-      <div style={{ 
-        position:'absolute', 
-        inset:0, 
-        background:'linear-gradient(135deg, rgba(10,15,10,0.85) 0%, rgba(10,15,10,0.7) 50%, rgba(10,15,10,0.5) 100%)',
-        zIndex:1
-      }} />
-      {ORBS.map((o,i) => (
-        <div key={i} style={{ position:'absolute', width:o.s, height:o.s, top:o.t, left:o.l, borderRadius:'50%', background:`radial-gradient(circle,${o.c}18 0%,transparent 70%)`, filter:'blur(60px)', animation:`td-float ${6+i}s ease-in-out ${o.d}s infinite`, pointerEvents:'none', zIndex:2 }} />
+// Three facts that used to float around the hero, now one quiet row
+const HERO_FACTS = [
+  { icon:'fa-qrcode',     title:'Free with QR Bags', text:'Collection is included with every bag' },
+  { icon:'fa-bolt',       title:'Digital Bin',       text:'An instant price, pickup on demand' },
+  { icon:'fa-location-arrow', title:'Track it live', text:'Follow your collector to your door' },
+];
+
+const HeroSection = () => (
+  <section data-surface="dark" style={{ background:TD.ink, padding:'calc(var(--td-header-h) + 56px) 24px var(--td-section-y)' }}>
+    <div className="td-hero-grid" style={{ maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'minmax(0, 1fr) minmax(0, 0.9fr)', gap:64, alignItems:'center' }}>
+      <div style={{ minWidth:0 }}>
+        <h1 style={{ ...TYPE.h1, color:'#f0f5f0', margin:'0 0 16px', maxWidth:620, textWrap:'balance' }}>
+          Waste pickup in Ghana, booked in minutes
+        </h1>
+        <p style={{ ...TYPE.lead, color:TD.sageOnDark, margin:'0 0 32px', maxWidth:540 }}>
+          A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
+        </p>
+        <div id="book" style={{ scrollMarginTop:88 }}><BookingCard /></div>
+        <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
+          style={{ display:'inline-flex', alignItems:'center', gap:8, color:'#f0f5f0', ...TYPE.small, fontWeight:600, textDecoration:'none', marginTop:16 }}>
+          <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
+        </a>
+      </div>
+
+      {/* The service, as it happens: a collector at a household's gate */}
+      <figure className="td-hero-photo" style={{ margin:0, minWidth:0 }}>
+        <img src="/images/how-it-works/pickup-at-gate.jpg" width="720" height="1073" alt="A TrashDrop collector in a hi-vis vest takes a household's full bag at their gate"
+          style={{ display:'block', width:'100%', maxWidth:460, aspectRatio:'4 / 5', objectFit:'cover', borderRadius:'var(--td-radius-panel)', marginLeft:'auto' }} />
+      </figure>
+    </div>
+
+    <ul className="td-hero-facts" style={{ listStyle:'none', maxWidth:1200, margin:'56px auto 0', padding:'28px 0 0', borderTop:'1px solid rgba(255,255,255,0.12)', display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap:24 }}>
+      {HERO_FACTS.map(f => (
+        <li key={f.title} style={{ display:'flex', gap:14, alignItems:'flex-start', minWidth:0 }}>
+          <i className={`fas ${f.icon}`} aria-hidden="true" style={{ color:TD.lime, fontSize:18, marginTop:3, width:20, textAlign:'center' }}></i>
+          <span>
+            <span style={{ display:'block', ...TYPE.body, fontWeight:600, color:'#f0f5f0' }}>{f.title}</span>
+            <span style={{ display:'block', ...TYPE.small, color:TD.sageOnDark }}>{f.text}</span>
+          </span>
+        </li>
       ))}
-      <div style={{ position:'absolute', inset:0, opacity:0.04, pointerEvents:'none', backgroundImage:`linear-gradient(${TD.lime} 1px,transparent 1px),linear-gradient(90deg,${TD.lime} 1px,transparent 1px)`, backgroundSize:'52px 52px', zIndex:2 }} />
-      <div style={{ position:'absolute', top:0, right:'22%', width:1, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime}28,transparent)`, pointerEvents:'none', zIndex:2 }} />
-
-      <div style={{ position:'relative', zIndex:3, maxWidth:1280, margin:'0 auto', padding:'96px 24px 64px', width:'100%' }}>
-        <div className="td-hero-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:64, alignItems:'center' }}>
-
-          {/* Left */}
-          <div style={{ position:'relative', zIndex:3 }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'6px 16px', marginBottom:20 }}>
-              <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', animation:'td-pulse-dot 2s infinite' }} />
-              <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Your Waste Tells Your Story</span>
-            </div>
-            <h1 style={{ ...FF.display, fontSize:'clamp(38px,4.4vw,56px)', lineHeight:1.04, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 12px' }}>
-              Waste pickup in Ghana, booked in minutes
-            </h1>
-            <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:'rgba(255,255,255,0.78)', margin:'0 0 32px', maxWidth:540 }}>
-              A verified collector comes to your door. Pay with MoMo or cash — or nothing at all with TrashDrop bags.
-            </p>
-            <div id="book" style={{ scrollMarginTop:80 }}><BookingCard /></div>
-            <a href={BUSINESS.whatsappUrl} target="_blank" rel="noopener noreferrer"
-              style={{ display:'inline-flex', alignItems:'center', gap:8, color:'rgba(255,255,255,0.82)', ...FF.label, fontSize:14, fontWeight:600, textDecoration:'none', margin:'16px 0 36px' }}>
-              <i className="fab fa-whatsapp" style={{ color:'#25D366', fontSize:18 }} aria-hidden="true"></i> Or book on WhatsApp: {BUSINESS.phoneDisplay}
-            </a>
-          </div>
-
-          {/* Right — floating cards */}
-          <div className="td-hero-cards" style={{ position:'relative', height:480, zIndex:3 }}>
-            <div style={{ position:'absolute', top:20, right:0, width:258, background:`rgba(27,110,53,0.18)`, border:`1px solid rgba(182,238,105,0.2)`, backdropFilter:'blur(20px)', borderRadius:20, padding:'20px 22px', animation:'td-float 6s ease-in-out infinite', boxShadow:`0 24px 60px rgba(0,0,0,0.5)` }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-                <i className="fas fa-qrcode" style={{ color:TD.lime, fontSize:13 }}></i>
-                <span style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase' }}>QR Bag Pickup</span>
-              </div>
-              <div style={{ ...FF.data, fontSize:52, color:'#fff', lineHeight:1 }}>FREE</div>
-              <div style={{ ...FF.body, fontSize:12, color:'rgba(255,255,255,0.68)', marginTop:4 }}>Collection included with every bag</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:14 }}>
-                {['Organic','General','Recyclable'].map(t => <span key={t} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1px', color:TD.lime, background:`${TD.lime}18`, borderRadius:4, padding:'3px 6px', textTransform:'uppercase' }}>{t}</span>)}
-              </div>
-            </div>
-            <div style={{ position:'absolute', top:185, left:0, width:218, background:'rgba(10,15,10,0.82)', border:'1px solid rgba(255,255,255,0.08)', backdropFilter:'blur(20px)', borderRadius:18, padding:'18px 20px', animation:'td-float 8s ease-in-out 1.5s infinite', boxShadow:'0 20px 50px rgba(0,0,0,0.5)' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                <div style={{ width:32, height:32, borderRadius:8, background:`${TD.lime}20`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <i className="fas fa-trash-alt" style={{ color:TD.lime, fontSize:14 }}></i>
-                </div>
-                <span style={{ ...FF.label, fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:600 }}>Digital Bin</span>
-              </div>
-              <div style={{ ...FF.data, fontSize:36, color:'#fff' }}>ON DEMAND</div>
-              <div style={{ ...FF.body, fontSize:12, color:TD.lime, marginTop:2 }}>Instant price quote</div>
-            </div>
-            <div style={{ position:'absolute', bottom:40, right:16, width:196, background:`linear-gradient(135deg,${TD.orange}18,${TD.orange}08)`, border:`1px solid ${TD.orange}28`, backdropFilter:'blur(20px)', borderRadius:16, padding:'16px 18px', animation:'td-float 7s ease-in-out 3s infinite', boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
-              <div style={{ ...FF.label, fontSize:10, color:TD.orange, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', marginBottom:6 }}>Track Your Collector</div>
-              <div style={{ ...FF.data, fontSize:40, color:'#fff' }}>LIVE</div>
-              <div style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)', marginTop:2 }}>From request to doorstep</div>
-            </div>
-            <div style={{ position:'absolute', top:12, left:'36%', width:92, height:92, borderRadius:'50%', border:`1.5px solid ${TD.lime}28`, display:'flex', alignItems:'center', justifyContent:'center', animation:'td-spin-slow 18s linear infinite' }}>
-              <svg viewBox="0 0 100 100" style={{ position:'absolute', width:'100%', height:'100%' }}>
-                <path id="tc" d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="none" />
-                <text style={{ fontSize:8.5, fill:`${TD.lime}60`, fontWeight:700, letterSpacing:'3px' }}>
-                  <textPath href="#tc">Waste you can track · </textPath>
-                </text>
-              </svg>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:`${TD.lime}15`, border:`1.5px solid ${TD.lime}35`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <i className="fas fa-leaf" style={{ color:TD.lime, fontSize:15 }}></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={{ position:'absolute', bottom:28, left:'50%', transform:'translateX(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:8, animation:'td-float 2.5s ease-in-out infinite' }}>
-        <span style={{ ...FF.label, fontSize:9, color:'rgba(255,255,255,0.68)', letterSpacing:'2px', fontWeight:700, textTransform:'uppercase' }}>Scroll</span>
-        <div style={{ width:24, height:40, border:'1.5px solid rgba(255,255,255,0.14)', borderRadius:99, display:'flex', justifyContent:'center', paddingTop:6 }}>
-          <div style={{ width:4, height:8, background:TD.lime, borderRadius:99, animation:'td-float 1.4s ease-in-out infinite alternate' }} />
-        </div>
-      </div>
-    </section>
-  );
-};
+    </ul>
+  </section>
+);
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    TRUST ROW (values in src/config/homepage.js)
@@ -548,29 +478,13 @@ const TrustRow = () => (
     <ul className="td-trust" style={{ listStyle:'none', margin:'0 auto', maxWidth:1100, padding:'22px 24px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
       {TRUST_STATS.map(t => (
         <li key={t.label} style={{ textAlign:'center' }}>
-          <span style={{ display:'block', ...FF.data, fontSize:30, color:TD.lime, letterSpacing:'1px', lineHeight:1.1 }}>{t.value}</span>
-          <span style={{ display:'block', ...FF.body, fontSize:13, color:'rgba(255,255,255,0.75)' }}>{t.label}</span>
+          <span style={{ display:'block', ...TYPE.stat, color:TD.lime }}>{t.value}</span>
+          <span style={{ display:'block', ...TYPE.small, color:TD.sageOnDark }}>{t.label}</span>
         </li>
       ))}
     </ul>
   </section>
 );
-
-/* ═══════════════════════════════════════════════════════════════════════════════
-   MARQUEE STRIP
-   ═══════════════════════════════════════════════════════════════════════════════ */
-const MarqueeStrip = () => {
-  // Two identical halves, so the -50% scroll loops seamlessly
-  const half = ['QR-Tagged Bags','·','Free Collection','·','Real-Time Tracking','·','Illegal Dump Reporting','·','Accra · Kumasi · Takoradi · Tamale','·'];
-  const items = [...half, ...half];
-  return (
-    <div style={{ background:TD.lime, overflow:'hidden', padding:'11px 0', position:'relative', zIndex:10 }}>
-      <div style={{ display:'flex', animation:'td-marquee 28s linear infinite', whiteSpace:'nowrap' }}>
-        {items.map((item,i) => <span key={i} style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:TD.ink, paddingRight:26 }}>{item}</span>)}
-      </div>
-    </div>
-  );
-};
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    HOW IT WORKS
@@ -593,13 +507,13 @@ const HowItWorksSection = () => {
       <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:'55%', width:900, height:420, transform:'translate(-50%,-50%)', background:`radial-gradient(ellipse at center, ${TD.lime}22 0%, transparent 70%)`, filter:'blur(30px)', pointerEvents:'none' }} />
       <div ref={ref} style={{ position:'relative', maxWidth:1280, margin:'0 auto', padding:'96px 24px 104px' }}>
         <div style={{ textAlign:'center', marginBottom:56 }}>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}35`, borderRadius:99, padding:'6px 16px', ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:8, background:`${TD.lime}14`, border:`1px solid ${TD.lime}35`, borderRadius:99, padding:'6px 16px', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime }} /> 6 simple steps
           </span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(40px,5.5vw,68px)', lineHeight:1, letterSpacing:'-2px', color:'#f0f5f0', margin:'18px 0 14px' }}>
+          <h2 style={{ ...TYPE.h2, color:'#f0f5f0', margin:'18px 0 14px' }}>
             How it <em style={{ color:TD.lime }}>works</em>
           </h2>
-          <p style={{ ...FF.body, fontSize:17, color:'rgba(255,255,255,0.65)', maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
+          <p style={{ ...FF.body, fontSize:18, color:'rgba(255,255,255,0.65)', maxWidth:560, margin:'0 auto', lineHeight:1.7 }}>
             From an empty bag to a clean street — free collection, tracked every step of the way.
           </p>
         </div>
@@ -614,9 +528,9 @@ const HowItWorksSection = () => {
                   <i className={`fas ${s.icon}`} aria-hidden="true" style={{ fontSize:24, color:TD.ink }}></i>
                 </div>
                 <div className="td-step-body">
-                  <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:6 }}>Step {i + 1}</span>
+                  <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:6 }}>Step {i + 1}</span>
                   <h3 style={{ ...FF.label, fontSize:16, fontWeight:700, color:'#f0f5f0', margin:'0 0 8px' }}>{s.title}</h3>
-                  <p style={{ ...FF.body, fontSize:13.5, color:'rgba(255,255,255,0.68)', lineHeight:1.6, margin:0 }}>{s.text}</p>
+                  <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.6, margin:0 }}>{s.text}</p>
                 </div>
               </li>
             ))}
@@ -637,12 +551,12 @@ const ServicesSection = () => {
     <section id="services" style={{ background:lp.sectionAlt, paddingTop:'var(--td-section-y)', paddingBottom:'var(--td-section-y)' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
-          <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.sectionLabel, textTransform:'uppercase' }}>Our Services</span>
         </div>
-        <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,58px)', lineHeight:0.95, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1)' }}>
+        <h2 style={{ ...TYPE.h2, color:lp.ink2Heading, margin:'0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1)' }}>
           Two ways to <em style={{ color:TD.forest }}>drop</em> your waste.<br />Zero excuses.
         </h2>
-        <p style={{ ...FF.body, fontSize:15, fontWeight:400, color:lp.sageText, maxWidth:540, marginBottom:48, lineHeight:1.75 }}>
+        <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.sageText, maxWidth:540, marginBottom:48, lineHeight:1.75 }}>
           TrashDrop offers two ways to book waste collection, built for how you actually live: QR Bags for regular rubbish collection
           with free pickup, or the Digital Bin for an on-demand trash pickup whenever you need one.
         </p>
@@ -650,13 +564,12 @@ const ServicesSection = () => {
           {/* QR Bag */}
           <div style={{ background:TD.ink2, borderRadius:20, padding:'40px 44px', position:'relative', overflow:'hidden', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             <div style={{ position:'absolute', top:-40, right:-40, width:220, height:220, borderRadius:'50%', background:`${TD.lime}0C`, pointerEvents:'none' }} />
-            <span aria-hidden="true" style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.03)', lineHeight:1 }}>01</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:`${TD.lime}18`, border:`1px solid ${TD.lime}30`, borderRadius:99, padding:'5px 12px', marginBottom:20 }}>
               <span style={{ width:5, height:5, borderRadius:'50%', background:TD.lime, display:'inline-block' }} />
-              <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase' }}>Service One</span>
+              <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.lime, textTransform:'uppercase' }}>Service One</span>
             </div>
-            <h3 style={{ ...FF.display, fontSize:'clamp(28px,3vw,42px)', color:'#fff', lineHeight:1, margin:'0 0 4px', letterSpacing:'-0.5px' }}>The QR<br /><em style={{ color:TD.lime }}>Bag System</em></h3>
-            <p style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:`${TD.lime}90`, textTransform:'uppercase', marginBottom:20 }}>Buy · Scan · Collect</p>
+            <h3 style={{ ...TYPE.h3, fontSize:'clamp(24px,2.6vw,30px)', color:'#fff', margin:'0 0 8px' }}>The QR<br /><em style={{ color:TD.lime }}>Bag System</em></h3>
+            <p style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', marginBottom:20 }}>Buy · Scan · Collect</p>
             <div style={{ width:36, height:2, background:TD.lime, borderRadius:99, marginBottom:28 }} />
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[
@@ -666,27 +579,26 @@ const ServicesSection = () => {
               ].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background:`${TD.lime}20`, border:`1px solid ${TD.lime}35`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-                    <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:TD.lime }}>{n}</span>
+                    <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime }}>{n}</span>
                   </div>
                   <div>
-                    <p style={{ ...FF.label, fontSize:11, fontWeight:700, color:TD.lime, letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
+                    <p style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
                     <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.9)', margin:0, lineHeight:1.65 }}>{d}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:TD.lime, color:TD.ink, padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>✦ Collection is FREE</div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:TD.lime, color:TD.ink, padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em' }}>✦ Collection is FREE</div>
           </div>
           {/* Digital Bin */}
           <div style={{ background:TD.forest, borderRadius:20, padding:'40px 44px', position:'relative', overflow:'hidden', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.22s' }}>
             <div style={{ position:'absolute', bottom:-40, left:-40, width:200, height:200, borderRadius:'50%', background:'rgba(255,255,255,0.04)', pointerEvents:'none' }} />
-            <span aria-hidden="true" style={{ position:'absolute', top:16, right:24, ...FF.data, fontSize:100, color:'rgba(255,255,255,0.04)', lineHeight:1 }}>02</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:99, padding:'5px 12px', marginBottom:20 }}>
               <span style={{ width:5, height:5, borderRadius:'50%', background:'#fff', display:'inline-block' }} />
-              <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:'#fff', textTransform:'uppercase' }}>Service Two</span>
+              <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:'#fff', textTransform:'uppercase' }}>Service Two</span>
             </div>
-            <h3 style={{ ...FF.display, fontSize:'clamp(28px,3vw,42px)', color:'#fff', lineHeight:1, margin:'0 0 4px', letterSpacing:'-0.5px' }}>The Digital<br /><em style={{ color:'rgba(255,255,255,0.88)' }}>Bin Service</em></h3>
-            <p style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:'rgba(255,255,255,0.9)', textTransform:'uppercase', marginBottom:20 }}>Request · Quote · Track</p>
+            <h3 style={{ ...TYPE.h3, fontSize:'clamp(24px,2.6vw,30px)', color:'#fff', margin:'0 0 8px' }}>The Digital<br /><em style={{ color:'#ffffff' }}>Bin Service</em></h3>
+            <p style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:'rgba(255,255,255,0.9)', textTransform:'uppercase', marginBottom:20 }}>Request · Quote · Track</p>
             <div style={{ width:36, height:2, background:'rgba(255,255,255,0.4)', borderRadius:99, marginBottom:28 }} />
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
               {[['1','Request On-Demand Pickup','Open the app and submit a Request Bin Pickup (No Bag) anytime, anywhere.'],
@@ -694,16 +606,16 @@ const ServicesSection = () => {
                 ['3','Real-Time Collector Tracking','Your request is matched to a nearby collector. Track arrival live on the map.']].map(([n,t,d]) => (
                 <div key={n} style={{ display:'flex', gap:14 }}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-                    <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:'#fff' }}>{n}</span>
+                    <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#fff' }}>{n}</span>
                   </div>
                   <div>
-                    <p style={{ ...FF.label, fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.88)', letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
-                    <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.65)', margin:0, lineHeight:1.65 }}>{d}</p>
+                    <p style={{ ...FF.label, fontSize:13, fontWeight:700, color:'#ffffff', letterSpacing:'0.5px', margin:'0 0 3px' }}>{t}</p>
+                    <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.9)', margin:0, lineHeight:1.65 }}>{d}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'1px' }}>📍 Live Tracking</div>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:28, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'10px 20px', borderRadius:8, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em' }}>📍 Live Tracking</div>
           </div>
         </div>
       </div>
@@ -769,11 +681,11 @@ const MobileReportMockup = () => {
             padding:'8px 20px 4px',
             background:'#0f1210'
           }}>
-            <span style={{ ...FF.label, fontSize:11, color:'#fff', fontWeight:600 }}>9:41</span>
+            <span style={{ ...FF.label, fontSize:13, color:'#fff', fontWeight:600 }}>9:41</span>
             <div style={{ display:'flex', gap:4 }}>
-              <i className="fas fa-signal" style={{ color:'#fff', fontSize:10 }}></i>
-              <i className="fas fa-wifi" style={{ color:'#fff', fontSize:10 }}></i>
-              <i className="fas fa-battery-full" style={{ color:TD.lime, fontSize:10 }}></i>
+              <i className="fas fa-signal" style={{ color:'#fff', fontSize:13 }}></i>
+              <i className="fas fa-wifi" style={{ color:'#fff', fontSize:13 }}></i>
+              <i className="fas fa-battery-full" style={{ color:TD.lime, fontSize:13 }}></i>
             </div>
           </div>
 
@@ -801,7 +713,7 @@ const MobileReportMockup = () => {
               inset:step===1?'auto':'16px 16px 12px',
               pointerEvents:step===1?'auto':'none'
             }}>
-              <p style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'1.5px', textTransform:'uppercase', margin:'0 0 8px' }}>Step 1 of 3</p>
+              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 1 of 3</p>
               <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Take a photo of the illegal dumping site</p>
               
               {/* Camera Viewfinder */}
@@ -823,12 +735,12 @@ const MobileReportMockup = () => {
                     <div style={{ width:52, height:52, borderRadius:10, background:'rgba(182,238,105,0.12)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <i className="fas fa-image" style={{ color:TD.lime, fontSize:22 }}></i>
                     </div>
-                    <span style={{ ...FF.label, fontSize:11, color:TD.lime, fontWeight:600 }}>Photo captured!</span>
+                    <span style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:600 }}>Photo captured!</span>
                   </>
                 ) : (
                   <>
                     <i className="fas fa-camera" aria-hidden="true" style={{ color:'rgba(255,255,255,0.25)', fontSize:28 }}></i>
-                    <span style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)' }}>Tap to capture</span>
+                    <span style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)' }}>Tap to capture</span>
                   </>
                 )}
               </div>
@@ -848,7 +760,7 @@ const MobileReportMockup = () => {
               inset:step===2?'auto':'16px 16px 12px',
               pointerEvents:step===2?'auto':'none'
             }}>
-              <p style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'1.5px', textTransform:'uppercase', margin:'0 0 8px' }}>Step 2 of 3</p>
+              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 2 of 3</p>
               <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Confirm location</p>
               
               <div style={{ 
@@ -870,8 +782,8 @@ const MobileReportMockup = () => {
                 }} />
                 <div style={{ textAlign:'center', position:'relative', zIndex:1 }}>
                   <i className="fas fa-map-marker-alt" style={{ color:TD.lime, fontSize:26, marginBottom:4, display:'block' }}></i>
-                  <p style={{ ...FF.body, fontSize:11, color:'rgba(255,255,255,0.68)', margin:'4px 0' }}>Accra, Ghana</p>
-                  <p style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:600, letterSpacing:'0.5px' }}>GPS Accurate</p>
+                  <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:'4px 0' }}>Accra, Ghana</p>
+                  <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:600, letterSpacing:'0.5px' }}>GPS Accurate</p>
                 </div>
               </div>
 
@@ -890,7 +802,7 @@ const MobileReportMockup = () => {
               inset:step===3?'auto':'16px 16px 12px',
               pointerEvents:step===3?'auto':'none'
             }}>
-              <p style={{ ...FF.label, fontSize:10, color:TD.lime, fontWeight:700, letterSpacing:'1.5px', textTransform:'uppercase', margin:'0 0 8px' }}>Step 3 of 3</p>
+              <p style={{ ...FF.label, fontSize:13, color:TD.lime, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', margin:'0 0 8px' }}>Step 3 of 3</p>
               <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 12px', lineHeight:1.4 }}>Review and submit</p>
               
               <div style={{ 
@@ -905,15 +817,15 @@ const MobileReportMockup = () => {
                     <i className="fas fa-image" style={{ color:TD.lime, fontSize:16 }}></i>
                   </div>
                   <div style={{ minWidth:0 }}>
-                    <p style={{ ...FF.label, fontSize:11, color:'#fff', fontWeight:600, margin:0 }}>Photo attached</p>
-                    <p style={{ ...FF.body, fontSize:10, color:'rgba(255,255,255,0.68)', margin:'2px 0 0' }}>Accra, Ghana</p>
+                    <p style={{ ...FF.label, fontSize:13, color:'#fff', fontWeight:600, margin:0 }}>Photo attached</p>
+                    <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:'2px 0 0' }}>Accra, Ghana</p>
                   </div>
                 </div>
                 <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                   {['Mixed Waste', 'Large', 'Critical'].map((tag, i) => (
                     <span key={tag} style={{ 
                       ...FF.label, 
-                      fontSize:9, 
+                      fontSize:13, 
                       color:i===2?'#ef4444':TD.lime, 
                       background:i===2?'rgba(239,68,68,0.12)':'rgba(182,238,105,0.12)',
                       padding:'3px 8px',
@@ -973,7 +885,7 @@ const MobileReportMockup = () => {
         padding:'8px 14px',
         borderRadius:20,
         ...FF.label,
-        fontSize:11,
+        fontSize:13,
         fontWeight:700,
         boxShadow:'0 4px 20px rgba(182,238,105,0.4)',
         transform:'rotate(-5deg)'
@@ -1034,15 +946,15 @@ const LatestReportsOverlay = ({ data }) => {
         <div id="latest-reports" role="region" aria-label="Latest reports" style={{ width:320, maxWidth:'100%', minHeight:0, flex:'0 1 auto', background:panelBg, border:`1px solid ${borderCol}`, borderRadius:18, overflow:'hidden', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)', display:'flex', flexDirection:'column' }}>
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${borderCol}`, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background:TD.lime, flexShrink:0, boxShadow:`0 0 0 3px ${TD.lime}28`, animation:'td-pulse-dot 1.8s infinite' }} />
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1.5px', textTransform:'uppercase', flex:1 }}>Latest reports</span>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close latest reports" style={{ width:22, height:22, borderRadius:6, border:`1px solid ${borderCol}`, background:'transparent', color:subText, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11 }}>✕</button>
+            <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:headText, letterSpacing:'0.08em', textTransform:'uppercase', flex:1 }}>Latest reports</span>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close latest reports" style={{ width:22, height:22, borderRadius:6, border:`1px solid ${borderCol}`, background:'transparent', color:subText, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>✕</button>
           </div>
 
           <div style={{ padding:'7px 12px', borderBottom:`1px solid ${borderCol}`, display:'flex', gap:5, flexWrap:'wrap' }}>
             {FEED_FILTERS.map(([key, label]) => {
               const active = filter === key;
               return (
-                <button key={key} type="button" onClick={() => setFilter(key)} aria-pressed={active} style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', padding:'3px 10px', borderRadius:16, cursor:'pointer', background: active ? TD.forest : pillBg, color: active ? '#fff' : 'rgba(255,255,255,0.55)', border: active ? 'none' : `1px solid ${borderCol}` }}>
+                <button key={key} type="button" onClick={() => setFilter(key)} aria-pressed={active} style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', padding:'3px 10px', borderRadius:16, cursor:'pointer', background: active ? TD.forest : pillBg, color: active ? '#fff' : 'rgba(255,255,255,0.55)', border: active ? 'none' : `1px solid ${borderCol}` }}>
                   {label}
                 </button>
               );
@@ -1050,10 +962,10 @@ const LatestReportsOverlay = ({ data }) => {
           </div>
 
           <div style={{ maxHeight:340, minHeight:0, flex:'1 1 auto', overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
-            {status === 'loading' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Loading reports…</div>}
-            {status === 'error' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>Reports could not load right now. Try again in a minute.</div>}
+            {status === 'loading' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:13 }}>Loading reports…</div>}
+            {status === 'error' && <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:13 }}>Reports could not load right now. Try again in a minute.</div>}
             {status === 'ready' && items.length === 0 && (
-              <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:12 }}>{filter === 'all' ? 'No reports yet.' : 'No reports in this view yet.'}</div>
+              <div style={{ padding:'24px 0', textAlign:'center', color:subText, ...FF.body, fontSize:13 }}>{filter === 'all' ? 'No reports yet.' : 'No reports in this view yet.'}</div>
             )}
             {items.map(r => {
               const sev = severityLabel(r.severity);
@@ -1067,14 +979,14 @@ const LatestReportsOverlay = ({ data }) => {
                     : <div aria-hidden="true" style={{ width:48, height:48, borderRadius:8, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:metaTxt }}><i className="fas fa-trash-alt" style={{ fontSize:14 }}></i></div>}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                      <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{describeArea(r)}</span>
-                      {fresh && <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:TD.lime, background:`${TD.lime}20`, padding:'1px 5px', borderRadius:3 }}>NEW</span>}
-                      <span style={{ ...FF.label, fontSize:8, fontWeight:700, color:sevColor, background:sevColor + '18', padding:'2px 7px', borderRadius:5, textTransform:'uppercase', flexShrink:0 }}>{sev}</span>
+                      <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:headText, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{describeArea(r)}</span>
+                      {fresh && <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, background:`${TD.lime}20`, padding:'1px 5px', borderRadius:3 }}>NEW</span>}
+                      <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:sevColor, background:sevColor + '18', padding:'2px 7px', borderRadius:5, textTransform:'uppercase', flexShrink:0 }}>{sev}</span>
                     </div>
-                    <div style={{ ...FF.body, fontSize:10, color:metaTxt, marginTop:2 }}>
+                    <div style={{ ...FF.body, fontSize:13, color:metaTxt, marginTop:2 }}>
                       Reported {timeAgo(r.createdAt)}{r.wasteType ? ` · ${r.wasteType.replace(/_/g, ' ')} waste` : ''}
                     </div>
-                    <div style={{ ...FF.body, fontSize:10, fontWeight:600, marginTop:4, color: r.isCleanedUp ? '#4ade80' : TD.orange }}>
+                    <div style={{ ...FF.body, fontSize:13, fontWeight:600, marginTop:4, color: r.isCleanedUp ? '#4ade80' : TD.orange }}>
                       {r.isCleanedUp ? `✓ ${cleanedText}` : 'Waiting for cleanup'}
                     </div>
                   </div>
@@ -1084,8 +996,8 @@ const LatestReportsOverlay = ({ data }) => {
           </div>
 
           <div style={{ padding:'8px 14px', borderTop:`1px solid ${borderCol}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
-            <span style={{ ...FF.body, fontSize:9, color:subText }}>Real reports from TrashDrop users · updates every minute</span>
-            <a href="/illegal-dumping/" style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.lime, textDecoration:'none', whiteSpace:'nowrap' }}>Report a dump →</a>
+            <span style={{ ...FF.body, fontSize:13, color:subText }}>Real reports from TrashDrop users · updates every minute</span>
+            <a href="/illegal-dumping/" style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.lime, textDecoration:'none', whiteSpace:'nowrap' }}>Report a dump →</a>
           </div>
         </div>
       )}
@@ -1098,13 +1010,13 @@ const LatestReportsOverlay = ({ data }) => {
         style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(8,12,8,0.92)', border:`1px solid ${borderCol}`, borderRadius:12, padding:'9px 14px', cursor:'pointer', backdropFilter:'blur(16px)', boxShadow:'0 8px 32px rgba(0,0,0,0.5)', transition:'all 0.2s' }}
       >
         <span style={{ width:7, height:7, borderRadius:'50%', background:TD.lime, flexShrink:0, boxShadow:`0 0 0 2px ${TD.lime}28`, animation:'td-pulse-dot 1.8s infinite' }} />
-        <span style={{ ...FF.label, fontSize:11, fontWeight:700, color:headText, letterSpacing:'1px', textTransform:'uppercase' }}>
+        <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:headText, letterSpacing:'0.08em', textTransform:'uppercase' }}>
           {open ? 'Hide reports' : 'Latest reports'}
         </span>
         {!open && recentCount > 0 && (
-          <span style={{ ...FF.label, fontSize:9, fontWeight:700, color:TD.ink, background:TD.lime, padding:'1px 7px', borderRadius:10 }}>{recentCount}</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, color:TD.ink, background:TD.lime, padding:'1px 7px', borderRadius:10 }}>{recentCount}</span>
         )}
-        <i className={`fas fa-chevron-${open ? 'down' : 'up'}`} style={{ fontSize:9, color:subText }} aria-hidden="true" />
+        <i className={`fas fa-chevron-${open ? 'down' : 'up'}`} style={{ fontSize:13, color:subText }} aria-hidden="true" />
       </button>
     </div>
   );
@@ -1135,8 +1047,8 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
     <section id="map" style={{ background:lp.mapSectionBg, padding:'var(--td-section-y) 0' }}>
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:52 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:lpMode === 'dark' ? TD.lime : TD.forest, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(34px,4.5vw,54px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:home ? 0 : '0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lpMode === 'dark' ? TD.lime : TD.forest, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Illegal Dumping Live Map</span>
+          <h2 style={{ ...TYPE.h2, color:lp.sectionHeading, margin:home ? 0 : '0 0 14px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             {home
               ? <>Trash Map — <em style={{ color:lpMode === 'dark' ? TD.lime : TD.forest }}>illegal dumping</em> hotspot</>
               : <>Track. Report. <em style={{ color:lpMode === 'dark' ? TD.lime : TD.forest }}>Eliminate</em> Illegal Dumping.</>}
@@ -1174,7 +1086,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
               borderRadius:16, 
               padding:20
             }}>
-              <p style={{ ...FF.label, fontSize:12, color:lp.featureTitle, fontWeight:700, marginBottom:14, letterSpacing:'0.5px' }}>
+              <p style={{ ...FF.label, fontSize:13, color:lp.featureTitle, fontWeight:700, marginBottom:14, letterSpacing:'0.5px' }}>
                 <i className="fas fa-mobile-alt" style={{ marginRight:8 }}></i> Mobile Reporting
               </p>
               {[
@@ -1185,7 +1097,7 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
               ].map((f, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:i<3?10:0 }}>
                   <div style={{ width:26, height:26, borderRadius:6, background:lp.featureIconBg, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <i className={`fas ${f.icon}`} style={{ color:lp.featureIcon, fontSize:11 }}></i>
+                    <i className={`fas ${f.icon}`} style={{ color:lp.featureIcon, fontSize:13 }}></i>
                   </div>
                   <span style={{ ...FF.body, fontSize:13, color:lp.featureText }}>{f.text}</span>
                 </div>
@@ -1210,8 +1122,8 @@ const MapPreviewSection = ({ isAuthenticated, dumpingData, applyThresholds = fal
                 <i className={`fas ${s.icon}`} style={{ color:s.color, fontSize:16 }}></i>
               </div>
               <div>
-                <p style={{ ...FF.data, fontSize:28, color:lp.mapStatText, margin:0, lineHeight:1 }}>{statsReady ? s.value : '—'}</p>
-                <p style={{ ...FF.label, fontSize:10, color:lp.mapStatLabel, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase', margin:'3px 0 0' }}>{s.label}</p>
+                <p style={{ ...TYPE.stat, color:lp.mapStatText, margin:0 }}>{statsReady ? s.value : '—'}</p>
+                <p style={{ ...FF.label, fontSize:13, color:lp.mapStatLabel, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', margin:'3px 0 0' }}>{s.label}</p>
               </div>
             </div>
           ))}
@@ -1265,7 +1177,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
         <i className="fas fa-times" />
       </button>
       {/* Counter */}
-      <div style={{ position:'absolute', top:24, left:24, ...FF.label, fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:600, letterSpacing:'2px' }}>
+      <div style={{ position:'absolute', top:24, left:24, ...FF.label, fontSize:13, color:'rgba(255,255,255,0.68)', fontWeight:600, letterSpacing:'0.08em' }}>
         {index + 1} / {photos.length}
       </div>
       {/* Prev */}
@@ -1279,7 +1191,7 @@ const Lightbox = ({ photos, index, onClose, onPrev, onNext, onGoTo }) => {
         <img src={photo.src} alt={dumpPhotoAlt(photo)} style={{ maxWidth:'100%', maxHeight:'78vh', borderRadius:12, objectFit:'contain', boxShadow:'0 32px 80px rgba(0,0,0,0.7)' }} />
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <span style={{ width:6, height:6, borderRadius:'50%', background:TD.lime, display:'inline-block', flexShrink:0 }} />
-          <span style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', color:'rgba(255,255,255,0.75)', textTransform:'uppercase' }}>{photo.label}</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:'rgba(255,255,255,0.75)', textTransform:'uppercase' }}>{photo.label}</span>
         </div>
         {/* Thumbnail strip */}
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', justifyContent:'center', maxWidth:600 }}>
@@ -1343,8 +1255,8 @@ const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
       <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:`radial-gradient(circle at 1px 1px,rgba(182,238,105,0.5) 1px,transparent 0)`, backgroundSize:'32px 32px', pointerEvents:'none' }} />
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'100px 24px' }}>
         <div style={{ textAlign:'center', marginBottom:72 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:lp.impactLabel, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Environmental Impact</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.sectionHeading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.impactLabel, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Environmental Impact</span>
+          <h2 style={{ ...TYPE.h2, color:lp.sectionHeading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             Making a <em style={{ color:TD.lime }}>Real Difference</em>
           </h2>
           <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.impactText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>Every report, every cleanup, every community action adds up to meaningful environmental change across Ghana.</p>
@@ -1370,9 +1282,9 @@ const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
                   onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
                   <img src={p.src} alt={dumpPhotoAlt(p)} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 55%)', pointerEvents:'none' }} />
-                  <span style={{ position:'absolute', bottom:10, left:12, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.85)', textTransform:'uppercase' }}>{p.label}</span>
+                  <span style={{ position:'absolute', bottom:10, left:12, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:'rgba(255,255,255,0.85)', textTransform:'uppercase' }}>{p.label}</span>
                   <span className="expand-icon" style={{ position:'absolute', top:10, right:10, width:28, height:28, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
-                    <i className="fas fa-expand-alt" style={{ fontSize:11, color:'#fff' }} />
+                    <i className="fas fa-expand-alt" style={{ fontSize:13, color:'#fff' }} />
                   </span>
                 </div>
               );
@@ -1389,16 +1301,16 @@ const ImpactSection = ({ dumpingData, applyThresholds = false }) => {
                   onMouseLeave={e=>{e.currentTarget.querySelector('img').style.transform='scale(1)';    e.currentTarget.querySelector('.expand-icon').style.opacity='0';}}>
                   <img src={img.src} alt={dumpPhotoAlt(img)} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.55s cubic-bezier(.22,1,.36,1)' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 60%)', pointerEvents:'none' }} />
-                  <span style={{ position:'absolute', bottom:9, left:11, ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1.5px', color:'rgba(255,255,255,0.82)', textTransform:'uppercase' }}>{img.label}</span>
+                  <span style={{ position:'absolute', bottom:9, left:11, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:'rgba(255,255,255,0.82)', textTransform:'uppercase' }}>{img.label}</span>
                   <span className="expand-icon" style={{ position:'absolute', top:8, right:8, width:24, height:24, borderRadius:'50%', background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }}>
-                    <i className="fas fa-expand-alt" style={{ fontSize:10, color:'#fff' }} />
+                    <i className="fas fa-expand-alt" style={{ fontSize:13, color:'#fff' }} />
                   </span>
                 </div>
               );
             })}
           </div>
           {/* Caption */}
-          <p style={{ ...FF.label, fontSize:11, color: lp.impactSub, textAlign:'center', marginTop:14, letterSpacing:'1px', fontWeight:600 }}>
+          <p style={{ ...FF.label, fontSize:13, color: lp.impactSub, textAlign:'center', marginTop:14, letterSpacing:'0.08em', fontWeight:600 }}>
             Real reports submitted by TrashDrop users across Ghana · Photos used with permission
           </p>
         </div>
@@ -1436,8 +1348,8 @@ const PathwaysSection = () => {
       <div style={{ position:'absolute', top:-120, right:-120, width:500, height:500, borderRadius:'50%', background:`${TD.lime}08`, pointerEvents:'none', filter:'blur(80px)' }} />
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:64 }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:lp.pathwaysLabel, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Get Involved</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,56px)', lineHeight:1.05, letterSpacing:'-1.5px', color:lp.ink2Heading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.pathwaysLabel, textTransform:'uppercase', display:'block', marginBottom:14, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Get Involved</span>
+          <h2 style={{ ...TYPE.h2, color:lp.ink2Heading, margin:'0 0 16px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
             Choose Your <em style={{ color:TD.forest }}>Pathway</em>
           </h2>
           <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.sageText, maxWidth:520, margin:'0 auto', lineHeight:1.75 }}>
@@ -1447,11 +1359,11 @@ const PathwaysSection = () => {
         <div className="td-pathways-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
           {PATHWAYS.map((p,i) => (
             <div key={p.title} className="td-pathway-card" style={{ position:'relative', background:lp.pathwayCardBg, border:`1.5px solid ${p.popular?p.color:'rgba(0,0,0,0.07)'}`, borderRadius:22, padding:'36px 24px', display:'flex', flexDirection:'column', boxShadow:p.popular?`0 20px 60px ${p.color}18`:'0 4px 24px rgba(0,0,0,0.05)', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(40px)', transition:`all 0.9s cubic-bezier(.22,1,.36,1) ${i*0.15}s`, cursor:'default' }}>
-              {p.popular && <div style={{ position:'absolute', top:-14, left:'50%', transform:'translateX(-50%)', background:p.color, color:'#fff', ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 16px', borderRadius:99, whiteSpace:'nowrap', textTransform:'uppercase', boxShadow:`0 4px 16px ${p.color}60` }}>MOST POPULAR</div>}
+              {p.popular && <div style={{ position:'absolute', top:-14, left:'50%', transform:'translateX(-50%)', background:p.color, color:'#fff', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'2px', padding:'6px 16px', borderRadius:99, whiteSpace:'nowrap', textTransform:'uppercase', boxShadow:`0 4px 16px ${p.color}60` }}>MOST POPULAR</div>}
               <div style={{ width:56, height:56, borderRadius:16, background:p.bg, border:`1px solid ${p.border}`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20 }}>
                 <i className={`fas ${p.icon}`} style={{ fontSize:22, color:p.color }}></i>
               </div>
-              <h3 style={{ ...FF.display, fontSize:22, color:lp.ink2Heading, margin:'0 0 20px', letterSpacing:'-0.3px' }}>{p.title}</h3>
+              <h3 style={{ ...TYPE.h3, color:lp.ink2Heading, margin:'0 0 20px' }}>{p.title}</h3>
               <ul style={{ margin:'0 0 28px', padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
                 {p.features.map(f => (
                   <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
@@ -1488,8 +1400,8 @@ const PartnershipsSection = () => {
       <div ref={ref} style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div className="td-partners-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'center' }}>
           <div>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Partnerships</span>
-            <h2 style={{ ...FF.display, fontSize:'clamp(36px,4.5vw,52px)', lineHeight:1.05, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'0 0 20px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
+            <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.lime, textTransform:'uppercase', display:'block', marginBottom:16, opacity:visible?1:0, transition:'opacity 0.6s ease' }}>Partnerships</span>
+            <h2 style={{ ...TYPE.h2, color:'#f0f5f0', margin:'0 0 20px', opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(28px)', transition:'all 0.9s cubic-bezier(.22,1,.36,1) 0.1s' }}>
               Partner With <em style={{ color:TD.lime }}>TrashDrop</em>
             </h2>
             <p style={{ ...FF.body, fontSize:16, fontWeight:400, color:lp.partnerP, lineHeight:1.75, marginBottom:36 }}>
@@ -1516,7 +1428,7 @@ const PartnershipsSection = () => {
                 <div style={{ width:44, height:44, borderRadius:12, background:`${uc.color}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:14 }}>
                   <i className={`fas ${uc.icon}`} style={{ color:uc.color, fontSize:18 }}></i>
                 </div>
-                <h4 style={{ ...FF.display, fontSize:17, color:lp.partnerH4, margin:'0 0 8px', letterSpacing:'-0.3px' }}>{uc.title}</h4>
+                <h4 style={{ ...FF.display, fontSize:18, color:lp.partnerH4, margin:'0 0 8px', letterSpacing:'-0.3px' }}>{uc.title}</h4>
                 <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:lp.partnerP, lineHeight:1.65, margin:0 }}>{uc.desc}</p>
               </div>
             ))}
@@ -1539,7 +1451,7 @@ const ServiceAreasSection = () => {
     <section id="service-areas" style={{ background:lp.sectionAlt, padding:'var(--td-section-y) 0' }}>
       <div style={{ maxWidth:1280, margin:'0 auto' }}>
         <div style={{ padding:'0 24px', marginBottom:24 }}>
-          <h2 style={{ ...FF.display, fontSize:'clamp(30px,4vw,44px)', color:lp.ink2Heading, margin:'0 0 6px', letterSpacing:'-1px', lineHeight:1.05 }}>
+          <h2 style={{ ...TYPE.h2, color:lp.ink2Heading, margin:'0 0 8px' }}>
             Waste collection near you
           </h2>
           <p style={{ ...FF.body, fontSize:16, color:lp.sageText, margin:0 }}>Pick your city to see the areas we cover.</p>
@@ -1555,7 +1467,7 @@ const ServiceAreasSection = () => {
                       <span style={{ ...FF.display, fontSize:30, color:'#fff' }}><i className="fas fa-map-marker-alt" style={{ fontSize:22, marginRight:10 }}></i>{city.name}</span>
                     </div>}
                 <div style={{ padding:'14px 16px 16px' }}>
-                  <h3 style={{ ...FF.display, fontSize:20, color:lp.ink2Heading, margin:'0 0 4px' }}>Waste collection in {city.name}</h3>
+                  <h3 style={{ ...TYPE.card, color:lp.ink2Heading, margin:'0 0 4px' }}>Waste collection in {city.name}</h3>
                   <p style={{ ...FF.body, fontSize:14, color:lp.sageText, margin:0, lineHeight:1.5 }}>{cityAreas(city.slug)}</p>
                 </div>
               </Link>
@@ -1571,7 +1483,8 @@ const ServiceAreasSection = () => {
    FOOTER
    ═══════════════════════════════════════════════════════════════════════════════ */
 const HomeFooter = () => {
-  const { lp } = useLpTheme();
+  const { lp, lpMode, toggleLp } = useLpTheme();
+  const isDark = lpMode === 'dark';
   return (
   <footer style={{ background:lp.footerBg, borderTop:`1px solid ${lp.footerBorder}` }}>
     <div style={{ maxWidth:1280, margin:'0 auto', padding:'72px 24px 32px' }}>
@@ -1579,14 +1492,14 @@ const HomeFooter = () => {
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
             <img src="/logo.svg" alt="TrashDrop" style={{ height:40, width:40 }} />
-            <span style={{ ...FF.label, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
+            <span style={{ ...FF.label, fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.3px' }}>Trash<span style={{ color:TD.lime }}>Drop</span></span>
           </div>
-          <p style={{ ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', lineHeight:1.75, maxWidth:280, marginBottom:24 }}>
+          <p style={{ ...FF.body, fontSize:14, fontWeight:400, color:TD.sageOnDark, lineHeight:1.75, maxWidth:280, marginBottom:24 }}>
             Trash and waste collection in Accra, Kumasi, Takoradi and Tamale, plus illegal dumping reporting across Ghana. Call or WhatsApp {BUSINESS.phoneDisplay}.
           </p>
           <div style={{ display:'flex', gap:10 }}>
             {[['fab fa-twitter','#'],['fab fa-facebook-f',BUSINESS.facebookUrl],['fab fa-linkedin-in','#'],['fab fa-instagram','#']].map(([ic,href]) => (
-              <a key={ic} href={href} className="td-social-btn" aria-label={SOCIAL_NAMES[ic]} style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'all 0.2s ease', fontSize:13 }}>
+              <a key={ic} href={href} className="td-social-btn" aria-label={SOCIAL_NAMES[ic]} style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', color:TD.sageOnDark, textDecoration:'none', transition:'all 0.2s ease', fontSize:13 }}>
                 <i className={ic} aria-hidden="true"></i>
               </a>
             ))}
@@ -1598,18 +1511,22 @@ const HomeFooter = () => {
           { title:'Company',  links:[['About Us','/about/'],['Blog','/blog/'],['Partners','/partners/'],['WhatsApp Us',BUSINESS.whatsappUrl],['Contact Us','mailto:hello@trashdrops.com']] },
         ].map(col => (
           <div key={col.title}>
-            <h4 style={{ ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.68)', marginBottom:20 }}>{col.title}</h4>
+            <h4 style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:TD.sageOnDark, marginBottom:20 }}>{col.title}</h4>
             {col.links.map(([label,href]) => (
               href.startsWith('/') || href.startsWith('#')
-                ? <Link key={label} to={href.startsWith('/')? href : '#'} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</Link>
-                : <a key={label} href={href} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.68)', textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</a>
+                ? <Link key={label} to={href.startsWith('/')? href : '#'} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:TD.sageOnDark, textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</Link>
+                : <a key={label} href={href} className="td-footer-link" style={{ display:'block', ...FF.body, fontSize:14, fontWeight:400, color:TD.sageOnDark, textDecoration:'none', marginBottom:10, transition:'color 0.2s' }}>{label}</a>
             ))}
           </div>
         ))}
       </div>
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:28, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-        <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.68)', margin:0 }}>&copy; {new Date().getFullYear()} TrashDrop by Infobrix Limited. All rights reserved.</p>
-        <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.68)', margin:0 }}>Built for cleaner cities across Ghana and Africa.</p>
+        <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:TD.sageOnDark, margin:0 }}>&copy; {new Date().getFullYear()} TrashDrop by Infobrix Limited. All rights reserved.</p>
+        {/* The light/dark switch lives here, out of the header */}
+        <button type="button" onClick={toggleLp} className="td-lp-toggle" aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 16px', borderRadius:999, background:'transparent', color:TD.sageOnDark, border:'1px solid rgba(255,255,255,0.24)', ...TYPE.small, fontWeight:600, cursor:'pointer' }}>
+          <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i> {isDark ? 'Light mode' : 'Dark mode'}
+        </button>
       </div>
     </div>
   </footer>
@@ -1623,7 +1540,7 @@ const CollectorsLine = () => {
   const { lp } = useLpTheme();
   return (
     <section style={{ background:lp.pageBg, padding:'var(--td-section-y-compact) 24px' }}>
-      <p style={{ ...FF.body, fontSize:17, lineHeight:1.6, color:lp.ink2Heading, textAlign:'center', maxWidth:720, margin:'0 auto' }}>
+      <p style={{ ...FF.body, fontSize:18, lineHeight:1.6, color:lp.ink2Heading, textAlign:'center', maxWidth:720, margin:'0 auto' }}>
         We work with existing collectors and aboboyaa crews, giving them better tools and steady jobs.
       </p>
     </section>
@@ -1631,9 +1548,10 @@ const CollectorsLine = () => {
 };
 
 const AppDownloadBanner = () => {
-  const { isDark } = useLpTheme();
+  const { lpMode } = useLpTheme();
+  const isDark = lpMode === 'dark';
   return (
-    <section style={{ background: isDark ? '#0a140a' : '#f0faf2', padding:'var(--td-section-y) 24px' }}>
+    <section style={{ background: isDark ? '#0a140a' : TD.cream, padding:'var(--td-section-y) 24px' }}>
       <div style={{
         maxWidth: 960,
         margin: '0 auto',
@@ -1647,24 +1565,24 @@ const AppDownloadBanner = () => {
         position: 'relative',
         overflow: 'hidden',
         flexWrap: 'wrap',
-        boxShadow: `0 24px 80px ${TD.lime}50`,
+
       }}>
-        {/* Subtle background texture */}
-        <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:`linear-gradient(${TD.ink} 1px,transparent 1px),linear-gradient(90deg,${TD.ink} 1px,transparent 1px)`, backgroundSize:'36px 36px', pointerEvents:'none' }} />
-        {/* Decorative orb */}
-        <div style={{ position:'absolute', top:-60, right:220, width:260, height:260, borderRadius:'50%', background:`rgba(0,0,0,0.06)`, pointerEvents:'none' }} />
 
         {/* Left: text */}
         <div style={{ position:'relative', zIndex:1, flex:1, minWidth:260 }}>
-          <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'4px', color:`${TD.ink}80`, textTransform:'uppercase', display:'block', marginBottom:12 }}>GET STARTED TODAY — IT&rsquo;S FREE</span>
-          <h2 style={{ ...FF.display, fontSize:'clamp(28px,4vw,50px)', color:TD.ink, lineHeight:1.05, letterSpacing:'-1px', margin:'0 0 16px' }}>
+          <span style={{ ...TYPE.eyebrow, color:TD.ink, display:'block', marginBottom:12 }}>Get started today — it&rsquo;s free</span>
+          <h2 style={{ ...TYPE.h2, color:TD.ink, margin:'0 0 16px' }}>
             Book your first pickup.<br />Or report an illegal dump.
           </h2>
-          <p style={{ ...FF.body, fontSize:16, color:`${TD.ink}b3`, margin:0 }}>Scan the code to download the TrashDrop app.</p>
+          <p className="td-app-qr" style={{ ...TYPE.body, color:TD.ink, margin:0 }}>Scan the code to download the TrashDrop app.</p>
+          {/* Phones open the app instead of scanning their own screen */}
+          <a href={HOUSEHOLD_APP_URL} className="td-app-button" style={{ ...BTN.primary, background:TD.ink, display:'none', marginTop:8 }}>
+            <i className="fas fa-mobile-alt" aria-hidden="true"></i> Open the TrashDrop app
+          </a>
         </div>
 
         {/* Right: QR code */}
-        <div id="download-app" data-scroll-align="center" style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
+        <div id="download-app" className="td-app-qr" data-scroll-align="center" style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12, flexShrink:0 }}>
           <div style={{ background:'#fff', borderRadius:16, padding:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
             <img
               src="/images/book-in-app-qr.png"
@@ -1672,7 +1590,7 @@ const AppDownloadBanner = () => {
               style={{ width:148, height:148, display:'block', borderRadius:8 }}
             />
           </div>
-          <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:`${TD.ink}80`, textTransform:'uppercase' }}>SCAN TO DOWNLOAD</span>
+          <span style={{ ...TYPE.eyebrow, color:TD.ink }}>Scan to download</span>
         </div>
       </div>
     </section>
@@ -1692,7 +1610,7 @@ const StickyBookButton = () => {
     obs.observe(card);
     return () => obs.disconnect();
   }, []);
-  // Booking happens in the app: go to the card's "Scan to book" QR code
+  // Booking happens in the app: go back to the booking card
   const goToCard = (e) => {
     e.preventDefault();
     document.getElementById('book-app').scrollIntoView({ behavior:'smooth', block:'center' });
@@ -1701,7 +1619,7 @@ const StickyBookButton = () => {
     <div className="td-sticky-book" data-testid="sticky-book" aria-hidden={!show}
       style={{ position:'fixed', zIndex:2000, transition:'transform 0.25s ease, opacity 0.25s ease', transform: show ? 'none' : 'translateY(140%)', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>
       <a href="#book-app" onClick={goToCard} tabIndex={show ? 0 : -1}
-        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:52, padding:'0 26px', borderRadius:999, background:TD.lime, color:TD.ink, ...FF.label, fontSize:16, fontWeight:700, textDecoration:'none', boxShadow:'0 8px 28px rgba(0,0,0,0.28)' }}>
+        style={{ ...BTN.primary, display:'flex', minHeight:52, padding:'0 26px', boxShadow:'0 8px 28px rgba(0,0,0,0.28)' }}>
         <i className="fas fa-truck" aria-hidden="true"></i> Book a pickup
       </a>
     </div>
@@ -1741,34 +1659,34 @@ const PricingGuideSection = () => {
         <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.03, backgroundImage:`linear-gradient(rgba(182,238,105,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(182,238,105,0.6) 1px,transparent 1px)`, backgroundSize:'40px 40px' }} />
         {/* Lime left-edge accent line */}
         <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background:`linear-gradient(to bottom,transparent,${TD.lime},transparent)`, zIndex:3 }} />
-        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'2px', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2026 PRICING</div>
+        <div style={{ position:'absolute', top:16, right:16, background:TD.lime, color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', padding:'6px 14px', borderRadius:4, zIndex:4 }}>2026 PRICING</div>
         <div style={{ position:'relative', zIndex:3, padding:'60px 40px', maxWidth:'50%' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
             <div style={{ width:28, height:2, background:TD.lime }} />
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'5px', color:TD.lime, textTransform:'uppercase' }}>Smart Waste</span>
+            <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'5px', color:TD.lime, textTransform:'uppercase' }}>Smart Waste</span>
           </div>
           <h2 style={{ ...FF.data, fontSize:'clamp(52px,7vw,88px)', color:'#fff', lineHeight:0.9, letterSpacing:'2px', margin:0 }}>SMART WASTE.<br /><span style={{ color:TD.lime }}>FAIR PRICE.</span></h2>
           <p style={{ ...FF.body, fontSize:14, color:'rgba(255,255,255,0.68)', marginTop:16, lineHeight:1.6 }}>QR-tagged bags · on-demand pickup · no hidden fees<br />Prices from ₵115/batch · Free collection on all plans</p>
         </div>
       </div>
-      <div style={{ background:TD.lime, textAlign:'center', ...FF.label, fontSize:12, fontWeight:700, letterSpacing:'2px', color:TD.ink, padding:12, textTransform:'uppercase' }}>+ Collection is FREE on every bag in the batch</div>
+      <div style={{ background:TD.lime, textAlign:'center', ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.ink, padding:12, textTransform:'uppercase' }}>+ Collection is FREE on every bag in the batch</div>
       <div ref={ref} style={{ padding:'48px 40px 0' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:28 }}>
           <div style={{ width:36, height:2, background:TD.lime }} />
-          <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:lp.subTierLabel, textTransform:'uppercase' }}>Bag Pricing — Per batch of 5 bags</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.subTierLabel, textTransform:'uppercase' }}>Bag Pricing — Per batch of 5 bags</span>
         </div>
         <div className="td-pricing-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
           {PLANS.map((p,i) => (
             <div key={p.type} style={{ background:lp.subBg, border:`1px solid ${lp.sectionPricing==='#fafafa'?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.07)'}`, borderRadius:10, padding:24, opacity:visible?1:0, transform:visible?'translateY(0)':'translateY(32px)', transition:`all 0.8s cubic-bezier(.22,1,.36,1) ${i*0.1}s` }}>
               <h3 style={{ ...FF.data, fontSize:32, color:p.color, letterSpacing:'2px', margin:'0 0 4px' }}>{p.type}</h3>
-              <p style={{ ...FF.body, fontSize:12, color:lp.pricingDesc, lineHeight:1.5, margin:'0 0 8px' }}>{p.desc}</p>
-              <span style={{ ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'1.5px', background:`${p.color}20`, color:p.color, borderRadius:3, padding:'3px 8px', textTransform:'uppercase' }}>{p.badge}</span>
+              <p style={{ ...FF.body, fontSize:13, color:lp.pricingDesc, lineHeight:1.5, margin:'0 0 8px' }}>{p.desc}</p>
+              <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'1.5px', background:`${p.color}20`, color:p.color, borderRadius:3, padding:'3px 8px', textTransform:'uppercase' }}>{p.badge}</span>
               <div style={{ marginTop:16 }}>
                 {p.prices.map(pr => (
                   <div key={pr.l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderTop:`1px solid ${lp.pricingRowBorder}` }}>
                     <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                      <span style={{ ...FF.label, fontSize:10, fontWeight:700, background:`${p.color}25`, color:p.color, borderRadius:3, padding:'2px 7px' }}>{pr.l}</span>
-                      <span style={{ ...FF.label, fontSize:10, color:lp.pricingSize, fontWeight:600 }}>{pr.s}</span>
+                      <span style={{ ...FF.label, fontSize:13, fontWeight:700, background:`${p.color}25`, color:p.color, borderRadius:3, padding:'2px 7px' }}>{pr.l}</span>
+                      <span style={{ ...FF.label, fontSize:13, color:lp.pricingSize, fontWeight:600 }}>{pr.s}</span>
                     </div>
                     <span style={{ ...FF.data, fontSize:28, color:lp.mapStatText, letterSpacing:'1px' }}>{pr.p}</span>
                   </div>
@@ -1781,18 +1699,18 @@ const PricingGuideSection = () => {
       <div style={{ padding:'36px 40px 0' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
           <div style={{ width:36, height:2, background:TD.lime }} />
-          <span style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:lp.subTierLabel, textTransform:'uppercase' }}>Monthly Subscription — Save up to 15%</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.subTierLabel, textTransform:'uppercase' }}>Monthly Subscription — Save up to 15%</span>
         </div>
         <div className="td-pricing-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
           {SUBS.map(s => (
             <div key={s.tier} style={{ position:'relative', background:lp.subBg, border:`1px solid ${s.popular?`${TD.lime}35`:lp.pricingRowBorder}`, borderRadius:10, padding:24 }}>
-              {s.popular && <span style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', background:TD.lime, color:TD.ink, ...FF.label, fontSize:9, fontWeight:700, letterSpacing:'2px', padding:'4px 12px', borderRadius:3, whiteSpace:'nowrap', textTransform:'uppercase' }}>Most Popular</span>}
+              {s.popular && <span style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', background:TD.lime, color:TD.ink, ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', padding:'4px 12px', borderRadius:3, whiteSpace:'nowrap', textTransform:'uppercase' }}>Most Popular</span>}
               <div style={{ ...FF.data, fontSize:52, color:TD.lime, lineHeight:1, marginBottom:4, letterSpacing:'2px' }}>{s.pct}</div>
-              <div style={{ ...FF.label, fontSize:10, fontWeight:700, letterSpacing:'3px', color:lp.subTierLabel, textTransform:'uppercase', marginBottom:16 }}>{s.tier}</div>
+              <div style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:lp.subTierLabel, textTransform:'uppercase', marginBottom:16 }}>{s.tier}</div>
               <div style={{ marginBottom:16 }}>
                 {s.items.map(it => <p key={it} style={{ ...FF.body, fontSize:13, color:lp.subText, margin:'4px 0', lineHeight:1.5 }}>· {it}</p>)}
               </div>
-              <p style={{ ...FF.body, fontSize:12, color:lp.subSmall, borderTop:`1px solid ${lp.sectionPricing==='#fafafa'?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.07)'}`, paddingTop:12, margin:0 }}>{s.ex}</p>
+              <p style={{ ...FF.body, fontSize:13, color:lp.subSmall, borderTop:`1px solid ${lp.sectionPricing==='#fafafa'?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.07)'}`, paddingTop:12, margin:0 }}>{s.ex}</p>
             </div>
           ))}
         </div>
@@ -1829,9 +1747,8 @@ const LpPageInner = ({ auth }) => {
     <div className="td-page" style={{ minHeight:'100vh', background:lp.pageBg, overflowX:'hidden', ...FF.body, transition:'background 0.3s ease' }}>
       <GlobalStyles />
       <HomeNavbar         isAuthenticated={auth} />
-      <HeroSection        isAuthenticated={auth} />
+      <HeroSection />
       <TrustRow />
-      <MarqueeStrip />
       <ServicesSection />
       <MapPreviewSection  isAuthenticated={auth} dumpingData={dumpingData} applyThresholds home />
       <ServiceAreasSection />
@@ -1863,7 +1780,7 @@ const PartnersPageInner = ({ auth }) => {
       <HomeNavbar isAuthenticated={auth} />
       <header style={{ background:TD.ink, padding:'136px 24px 64px' }}>
         <div style={{ maxWidth:1100, margin:'0 auto' }}>
-          <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'2.5px', color:TD.lime, textTransform:'uppercase' }}>Partners</span>
+          <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.lime, textTransform:'uppercase' }}>Partners</span>
           <h1 style={{ ...FF.display, fontSize:'clamp(36px,4.6vw,58px)', lineHeight:1.05, letterSpacing:'-1.5px', color:'#f0f5f0', margin:'12px 0 14px' }}>
             TrashDrop for assemblies, operators and businesses
           </h1>
@@ -1878,7 +1795,7 @@ const PartnersPageInner = ({ auth }) => {
             alt="A resident on a trash walk holds up the TrashDrop app, with map pins over dump sites along the street"
             style={{ width:'100%', height:'auto', aspectRatio:'720 / 770', objectFit:'cover', borderRadius:20, boxShadow:'0 24px 60px rgba(10,15,10,0.35)', border:`3px solid ${TD.ink}`, display:'block' }} />
           <div>
-            <span style={{ ...FF.label, fontSize:11, fontWeight:700, letterSpacing:'3px', color:TD.forestDk, textTransform:'uppercase', display:'block', marginBottom:14 }}>Trashwalk</span>
+            <span style={{ ...FF.label, fontSize:13, fontWeight:700, letterSpacing:'0.08em', color:TD.forestDk, textTransform:'uppercase', display:'block', marginBottom:14 }}>Trashwalk</span>
             <p style={{ ...FF.display, fontStyle:'italic', fontSize:'clamp(30px,3.8vw,50px)', lineHeight:1.08, letterSpacing:'-0.8px', color:TD.ink, margin:'0 0 28px' }}>
               Trash walk is a health walk — one photo, cleaner community.
             </p>
