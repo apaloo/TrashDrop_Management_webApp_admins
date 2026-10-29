@@ -36,7 +36,10 @@ const IllegalDumpingManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedReportHistory, setSelectedReportHistory] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  // ?q= from the top-bar search fills the box
+  const urlQuery = searchParams.get('q') || '';
+  const [searchTerm, setSearchTerm] = useState(urlQuery);
+  useEffect(() => { setSearchTerm(urlQuery); }, [urlQuery]);
   const [filterStatus, setFilterStatus] = useState(STATUS_FILTERS.includes(initialStatus) ? initialStatus : 'All');
   const [filterSeverity, setFilterSeverity] = useState('All');
   const [actionPending, setActionPending] = useState(null);

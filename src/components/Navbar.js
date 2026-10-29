@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { signOut } from '../utils/auth';
 import { ROLE_LABELS } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
+import GlobalSearch from './GlobalSearch';
 import MessagesModal from './modals/MessagesModal';
 import NotificationsModal from './modals/NotificationsModal';
 import { fetchNotifications, subscribeToNotifications, getUnreadNotificationsCount, markNotificationAsRead } from '../utils/notificationService';
@@ -181,18 +182,8 @@ const Navbar = ({ toggleMobileMenu, isMobileMenuOpen }) => {
             </Link>
           </div>
           
-          {/* Search bar */}
-          <div className="relative w-1/3 max-w-md hidden md:block">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              style={{ background: 'var(--td-input-bg)', border: '1px solid var(--td-input-border)', color: 'var(--td-input-text)' }}
-            />
-            <button className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 inline-flex items-center justify-center" style={{ color: 'var(--td-navbar-icon)' }} aria-label="Search">
-              <i className="fas fa-search" aria-hidden="true"></i>
-            </button>
-          </div>
+          {/* Search: pick requests or dumping reports, filtered by the term */}
+          <GlobalSearch role={role} />
           
           {/* Right side icons */}
           <div className="flex items-center space-x-4">

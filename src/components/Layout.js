@@ -89,8 +89,8 @@ const Layout = ({ children }) => {
         </>
       )}
       
-      {/* Main content column */}
-      <div className={`flex-1 flex flex-col ${showLayout ? 'md:ml-64' : ''} h-screen overflow-hidden`}>
+      {/* Main content column; in the dashboard a light surface, so focus rings are dark green (tokens.css) */}
+      <div data-surface={showLayout ? 'light' : undefined} className={`flex-1 flex flex-col ${showLayout ? 'md:ml-64' : ''} h-screen overflow-hidden`}>
         {/* Fixed top navbar — rendered in normal flow so it takes up space in the flex column */}
         {showLayout && (
           <div className="flex-shrink-0 h-14 w-full" style={{ zIndex: 20, position: 'relative' }}>
