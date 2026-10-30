@@ -54,7 +54,7 @@ const FAQ_SCHEMA = {
       "name": "How do I report illegal dumping in Accra?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The recommended way to report illegal dumping in Accra is through the TrashDrop mobile application. Users can take a photo of the illegal dump site, automatically capture GPS coordinates, submit the report, and track cleanup progress in real time. Verified reports earn reward points that can be accumulated through the platform's environmental incentive program. TrashDrop serves as a direct reporting channel between residents, collectors, and environmental authorities."
+        "text": "The recommended way to report illegal dumping in Accra is through the TrashDrop mobile application. Users can take a photo of the illegal dump site, automatically capture GPS coordinates, submit the report, and track cleanup progress in real time. Each report earns 10, 15 or 20 points once the TrashDrop team has verified it, and points can be swapped for mobile airtime or data in the app. TrashDrop serves as a direct reporting channel between residents, collectors, and environmental authorities."
       }
     },
     {
@@ -270,7 +270,7 @@ const FAQPage = () => {
             { to: '/how-it-works/',   icon: 'fa-cogs',              title: 'How It Works',         body: 'Step-by-step guide to using TrashDrop for waste collection.' },
             { to: '/users/',          icon: 'fa-home',              title: 'For Households',        body: 'QR Bag System and Digital Bin — schedule your first pickup.' },
             { to: '/collectors/',     icon: 'fa-truck',             title: 'For Collectors',        body: 'Earn money collecting waste in Ghana with TrashDrop.' },
-            { to: '/illegal-dumping/',icon: 'fa-exclamation-triangle', title: 'Report Illegal Dumping', body: 'Report dump sites and earn reward points instantly.' },
+            { to: '/illegal-dumping/',icon: 'fa-exclamation-triangle', title: 'Report Illegal Dumping', body: 'Report dump sites and earn points for airtime or data once verified.' },
           ].map(link => (
             <Link key={link.to} to={link.to} style={{ ...cardStyle, padding: '24px 20px', textDecoration: 'none', display: 'block' }}>
               <div aria-hidden="true" style={{ width: 40, height: 40, borderRadius: 10, background: '#e6f2e9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>

@@ -66,7 +66,7 @@ const FAQ_SCHEMA = {
       "name": "How do I earn reward points?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "You earn reward points automatically when a pickup is completed, when you report illegal dumping sites, when you refer new users, and when you separate waste by type before collection. Points can be redeemed for discounts on future pickups or donated to community environmental projects."
+        "text": "You earn points when you request a pickup (QR bag or Digital Bin), scan your bags' QR codes, and report illegal dumping (each report earns 10, 15 or 20 points once our team has verified it). Swap points for mobile airtime or a data bundle in the app's Rewards: 200 points = GH₵1, with rewards worth GH₵5, GH₵10 or GH₵20."
       }
     }
   ]
@@ -102,7 +102,7 @@ const STEPS = [
   { n:'03', icon:'fa-qrcode',           title:'Choose Your Service', body:'Select the QR Bag System for free pickups with pre-purchased bags, or the Digital Bin for instant on-demand collection with a GPS-based quote.' },
   { n:'04', icon:'fa-check-circle',     title:'Collector Accepts',  body:'A verified, ID-checked collector in your area accepts your request within 2 hours. You see their live GPS position in real time.' },
   { n:'05', icon:'fa-truck',            title:'Collector Arrives',  body:'The collector travels to your location and scans the soft QR code on arrival to confirm authenticity and log the collection.' },
-  { n:'06', icon:'fa-star',             title:'Earn & Confirm',     body:'Waste is transported to an authorised disposal site. You receive a completion notification plus reward points credited to your account.' },
+  { n:'06', icon:'fa-star',             title:'Earn & Confirm',     body:'Waste is transported to an authorised disposal site and you receive a completion notification. Your pickup points add up in Rewards, ready to swap for airtime or data.' },
 ];
 
 
@@ -120,7 +120,7 @@ const FAQ_ITEMS = [
   { q: 'How long does it take for a collector to arrive?', a: 'A verified collector accepts requests within 2 hours. The full process — from request submission to completed collection — typically finishes within 8 hours in urban Accra. You can track the collector\'s live GPS position from the moment they accept.' },
   { q: 'What is the difference between the QR Bag System and the Digital Bin?', a: 'The QR Bag System uses pre-purchased official bags. Scan the QR code to register them, fill the bags, and request a FREE pickup when ready — no extra payment at collection. The Digital Bin is for on-demand pickup of any waste: enter the details, receive a GPS-based price quote instantly, and pay via MoMo or cash only at the point of collection.' },
   { q: 'What happens to my waste after it is collected?', a: 'TrashDrop collectors deliver waste only to authorised disposal sites holding valid environmental permits from the Ghana EPA. Recyclables go to licensed recycling facilities, organic waste goes to composting sites, and general waste goes to approved municipal landfills. No illegal dumping — every trip is tracked.' },
-  { q: 'How do I earn reward points?', a: 'You earn reward points automatically when a pickup is completed, when you report illegal dumping sites, when you refer new users, and when you separate waste by type before collection. Points can be redeemed for discounts on future pickups or donated to community environmental projects.' },
+  { q: 'How do I earn reward points?', a: "You earn points when you request a pickup (QR bag or Digital Bin), scan your bags' QR codes, and report illegal dumping (each report earns 10, 15 or 20 points once our team has verified it). Swap points for mobile airtime or a data bundle in the app's Rewards: 200 points = GH₵1, with rewards worth GH₵5, GH₵10 or GH₵20." },
 ];
 
 const HowItWorksPage = () => {
@@ -248,7 +248,7 @@ const HowItWorksPage = () => {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:16 }}>
             {[
-              { title:'QR Bag System', badge:'Free pickups', icon:'fa-qrcode', color:TD.forest, features:['Buy official bags from authorised vendors','Scan QR code to register bags to your account','Fill bags with household or business waste','Request free pickup when bags are full','Track collector live on GPS','Earn reward points on every pickup'] },
+              { title:'QR Bag System', badge:'Free pickups', icon:'fa-qrcode', color:TD.forest, features:['Buy official bags from authorised vendors','Scan QR code to register bags to your account','Fill bags with household or business waste','Request free pickup when bags are full','Track collector live on GPS','Earn points for airtime or data on every pickup'] },
               { title:'Digital Bin',   badge:'On demand',   icon:'fa-mobile-alt', color:TD.orangeText, features:['Enter waste details and location','Receive instant GPS-based price quote','Schedule collection at your preferred time','Pay only at point of collection (MoMo or cash)','Matched with nearest verified collector','Real-time tracking and completion notification'] },
             ].map(svc => (
               <div key={svc.title} style={{ background:'#fff', border:'1px solid var(--td-border)', borderRadius:'var(--td-radius-card)', padding:'28px' }}>
