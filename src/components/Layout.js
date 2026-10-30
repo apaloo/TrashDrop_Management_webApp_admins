@@ -20,7 +20,7 @@ const Layout = ({ children }) => {
   // Invite links (/join/…) look the same signed in or out: no sidebar
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname) || location.pathname.startsWith('/join/');
   // Every public page (see ROUTES in scripts/prerender.js); a page missing here is drawn inside the dashboard frame
-  const PUBLIC_MARKETING_PATHS = ['/', '/faq', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog', '/partners', '/waste-pickup', '/volunteers', '/media'];
+  const PUBLIC_MARKETING_PATHS = ['/', '/faq', '/how-it-works', '/collectors', '/illegal-dumping', '/users', '/accra', '/about', '/blog', '/partners', '/waste-pickup', '/volunteers', '/media', '/privacy', '/terms'];
   // Public pages are linked with a trailing slash (/about/), so compare without it
   const isPublicPage = PUBLIC_MARKETING_PATHS.includes(location.pathname.replace(/(.)\/+$/, '$1')) || location.pathname.startsWith('/blog/') || location.pathname.startsWith('/waste-collection-');
   const isHomePage = isPublicPage;
@@ -124,9 +124,9 @@ const Layout = ({ children }) => {
             <div className="flex flex-col md:flex-row justify-between items-center text-sm" style={{ color: 'var(--td-footer-text)' }}>
               <p> {new Date().getFullYear()} TrashDrop. All rights reserved.</p>
               <div className="flex space-x-4 mt-2 md:mt-0">
-                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Privacy Policy</a>
-                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Terms of Service</a>
-                <a href="#" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Contact Support</a>
+                <a href="/privacy/" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Privacy Policy</a>
+                <a href="/terms/" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Terms of Service</a>
+                <a href="mailto:hello@trashdrops.com" style={{ color: 'var(--td-footer-text)' }} className="hover:opacity-80">Contact Support</a>
               </div>
             </div>
           </footer>

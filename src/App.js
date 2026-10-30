@@ -35,6 +35,8 @@ const PerformanceMetrics = lazy(() => import('./pages/PerformanceMetrics'));
 const Team = lazy(() => import('./pages/Team'));
 const JoinTeam = lazy(() => import('./pages/JoinTeam'));
 const AboutPage              = lazy(() => import('./pages/AboutPage'));
+const PrivacyPage            = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage              = lazy(() => import('./pages/TermsPage'));
 const BlogPage               = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage           = lazy(() => import('./pages/blog/BlogPostPage'));
 
@@ -232,6 +234,8 @@ function App() {
               <Route path="/volunteers"      element={<VolunteersPage />} />
               <Route path="/media"           element={<MediaPage />} />
               <Route path="/about"           element={<AboutPage />} />
+              <Route path="/privacy"         element={<PrivacyPage />} />
+              <Route path="/terms"           element={<TermsPage />} />
               <Route path="/blog"            element={<BlogPage />} />
               <Route path="/blog/:slug"      element={<BlogPostPage />} />
               

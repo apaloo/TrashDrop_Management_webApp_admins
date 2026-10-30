@@ -116,7 +116,7 @@ export const PublicFooter = () => (
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
         <p style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', margin:0 }}>© 2026 Infobrix Limited. All rights reserved. TrashDrop® is a registered trademark.</p>
         <div style={{ display:'flex', gap:20 }}>
-          {[['Privacy Policy','#'],['Terms of Service','#'],['Cookie Policy','#']].map(([l,h]) => (
+          {[['Privacy Policy','/privacy/'],['Terms of Service','/terms/'],['Cookie Policy','/privacy/#cookies']].map(([l,h]) => (
             <a key={l} href={h} style={{ ...FF.body, fontSize:13, color:'rgba(255,255,255,0.68)', textDecoration:'none', transition:'color 0.2s' }}
               onMouseEnter={e=>e.currentTarget.style.color=TD.lime}
               onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.68)'}>

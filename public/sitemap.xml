@@ -94,6 +94,18 @@
     <priority>0.70</priority>
   </url>
   <url>
+    <loc>https://trashdrops.com/privacy/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.30</priority>
+  </url>
+  <url>
+    <loc>https://trashdrops.com/terms/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.30</priority>
+  </url>
+  <url>
     <loc>https://trashdrops.com/blog/</loc>
     <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
