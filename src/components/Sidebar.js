@@ -59,6 +59,12 @@ const Sidebar = () => {
       section: SECTIONS.ACCOUNTS
     },
     {
+      title: 'Reward Redemptions',
+      path: '/rewards',
+      icon: 'fas fa-gift',
+      section: SECTIONS.REWARDS
+    },
+    {
       title: 'Reports Data',
       path: '/media-data',
       icon: 'fas fa-newspaper',
