@@ -1237,6 +1237,12 @@ const HomeFooter = () => {
       </div>
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:28, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
         <p style={{ ...FF.body, fontSize:13, fontWeight:400, color:TD.sageOnDark, margin:0 }}>&copy; {new Date().getFullYear()} TrashDrop by Infobrix Limited. All rights reserved.</p>
+        {/* Legal pages (Google's sign-in verification looks for them on the homepage) */}
+        <nav aria-label="Legal" style={{ display:'flex', gap:20, flexWrap:'wrap' }}>
+          {[['Privacy Policy','/privacy/'],['Terms of Service','/terms/']].map(([label, href]) => (
+            <Link key={href} to={href} className="td-footer-link" style={{ ...FF.body, fontSize:13, color:TD.sageOnDark, textDecoration:'none' }}>{label}</Link>
+          ))}
+        </nav>
         {/* The light/dark switch lives here, out of the header */}
         <button type="button" onClick={toggleLp} className="td-lp-toggle" aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:40, padding:'0 16px', borderRadius:999, background:'transparent', color:TD.sageOnDark, border:'1px solid rgba(255,255,255,0.24)', ...TYPE.small, fontWeight:600, cursor:'pointer' }}>

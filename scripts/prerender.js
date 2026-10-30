@@ -35,6 +35,8 @@ const ROUTES = [
   '/collectors',
   '/illegal-dumping',
   '/about',
+  '/privacy',
+  '/terms',
   '/blog',
   '/waste-collection-accra',
   '/waste-collection-kumasi',
