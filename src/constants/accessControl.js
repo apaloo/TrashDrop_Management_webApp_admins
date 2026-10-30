@@ -39,7 +39,8 @@ export const SECTIONS = {
   MEDIA_DATA: 'media-data',
   MY_PERFORMANCE: 'my-performance',
   ACCOUNT_PERFORMANCE: 'account-performance',
-  TEAM: 'team'
+  TEAM: 'team',
+  REWARDS: 'rewards'
 };
 
 /**
@@ -131,7 +132,9 @@ export const SECTION_PERMISSIONS = {
   // A volunteer group's team: the group's own account and its members (who
   // work as volunteers through the group; team_* functions check who may do
   // what, 20261110)
-  [SECTIONS.TEAM]: [ROLES.VOLUNTEER]
+  [SECTIONS.TEAM]: [ROLES.VOLUNTEER],
+  // Airtime and data rewards households redeemed, sent by staff
+  [SECTIONS.REWARDS]: rolesWith('rewards.manage')
 };
 
 export const canAccessSection = (section, role, user) => {

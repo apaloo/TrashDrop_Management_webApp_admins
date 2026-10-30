@@ -37,6 +37,7 @@ export const CAPABILITY_ROLES = {
   'reports.export':      ['admin', 'manager', 'media', 'authority', 'volunteer'],
   'users.manage':        ['admin'],
   'settings.manage':     ['admin'], // system settings; every account still edits its own profile
+  'rewards.manage':      ['admin', 'manager'], // send airtime/data rewards (20261111_reward_redemptions.sql)
 };
 
 /** Does `role` (the effective role) include `capability`? Unknown capabilities are refused. */
