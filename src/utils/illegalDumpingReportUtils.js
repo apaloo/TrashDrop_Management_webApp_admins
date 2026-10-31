@@ -207,8 +207,13 @@ export const assignmentFailedMessage = (error) => {
   if (error?.code === 'PGRST116' || /0 rows|changed meanwhile|single JSON object|no\) rows returned/i.test(text)) {
     return 'This report changed since you opened it (someone may have assigned, claimed or cancelled it). Refresh and try again.';
   }
-  if (/Status cannot change from pending/i.test(text)) {
+  // Database rule (td_stamp_assignment, 20261102_assign_only_verified_dumping.sql)
+  if (/Status cannot change from pending|Verify this report before assigning/i.test(text)) {
     return 'Verify this report before assigning a cleanup team.';
+  }
+  const notVerified = text.match(/Only verified reports can be assigned a cleanup team \(this one is (\w+)\)/i);
+  if (notVerified) {
+    return `This report is ${statusLabel(notVerified[1]).toLowerCase()}, so it can't be assigned. Only verified reports can get a cleanup team.`;
   }
   if (error?.code === '42501' || /not allowed|permission denied/i.test(text)) {
     return 'Your account can\'t assign cleanups. Ask an admin.';
