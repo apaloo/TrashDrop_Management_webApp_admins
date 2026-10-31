@@ -116,3 +116,12 @@ describe('cleanup payment', () => {
     expect(isVolunteerTeam({})).toBe(false);
   });
 });
+
+describe('waste types the household report form can send', () => {
+  it('include plastic, so the map filter lists it', () => {
+    const { WASTE_TYPE_OPTIONS } = require('../illegalDumpingReportUtils');
+    expect(WASTE_TYPE_OPTIONS.map(o => o.value)).toEqual(
+      ['mixed', 'household', 'construction', 'electronic', 'hazardous', 'organic', 'recyclables', 'plastic']
+    );
+  });
+});
