@@ -28,6 +28,7 @@ export const WASTE_TYPE_OPTIONS = [
   { value: 'hazardous', label: 'Hazardous' },
   { value: 'organic', label: 'Organic' },
   { value: 'recyclables', label: 'Recyclables' },
+  { value: 'plastic', label: 'Plastic' },
 ];
 
 // Statuses after which the site counts as cleaned up.
