@@ -10,6 +10,7 @@ import {
 } from '../utils/illegalDumpingReportUtils';
 import StatusBadge from '../components/illegalDumping/StatusBadge';
 import ReportPhotos from '../components/illegalDumping/ReportPhotos';
+import PrevNextButtons from '../components/common/PrevNextButtons';
 import useEscapeKey from '../hooks/useEscapeKey';
 import { useAuth } from '../context/AuthContext';
 import { canManageDumping } from '../constants/accessControl';
@@ -193,6 +194,8 @@ const IllegalDumpingManagement = () => {
   const totalCount = filteredReports.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
   const paginatedReports = filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  // Where the open report sits in the filtered list, for Previous / Next
+  const selectedIndex = selectedReport ? filteredReports.findIndex(r => r.id === selectedReport.id) : -1;
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -497,9 +500,19 @@ const IllegalDumpingManagement = () => {
             role="dialog" aria-modal="true" aria-labelledby="report-details-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-4 gap-4">
+            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
               <h2 className="text-xl font-semibold break-all" id="report-details-title">Dumping Report <span className="font-mono text-base text-td-sage">{selectedReport.id}</span></h2>
-              <button onClick={closeDetails} className="text-td-sage hover:text-td-ink text-2xl leading-none" aria-label="Close">&times;</button>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                {selectedIndex !== -1 && filteredReports.length > 1 && (
+                  <PrevNextButtons
+                    noun="report"
+                    label={`${selectedIndex + 1} of ${filteredReports.length}`}
+                    onPrevious={selectedIndex > 0 ? () => handleViewDetails(filteredReports[selectedIndex - 1]) : null}
+                    onNext={selectedIndex < filteredReports.length - 1 ? () => handleViewDetails(filteredReports[selectedIndex + 1]) : null}
+                  />
+                )}
+                <button onClick={closeDetails} className="text-td-sage hover:text-td-ink text-2xl leading-none" aria-label="Close">&times;</button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
