@@ -315,15 +315,16 @@ const IllegalDumpingHistory = () => {
 
       {/* Detail View Modal */}
       {selectedItem && (
-        <div className="fixed inset-0 overflow-y-auto z-50" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
-          <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
+          <div className="flex items-center justify-center h-full p-4">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75" aria-hidden="true" onClick={closeModal}></div>
-            <div className="relative bg-white rounded-lg text-left shadow-xl w-full max-w-xl">
-              <div className="px-6 pt-5 pb-4 space-y-4">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-medium text-td-ink" id="history-modal-title">Report Details</h3>
-                  <button onClick={closeModal} className="text-td-sage hover:text-td-sage text-2xl leading-none" aria-label="Close">&times;</button>
-                </div>
+            {/* Header and footer stay put; only the details between them scroll */}
+            <div className="relative bg-white rounded-lg text-left shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col">
+              <div className="flex-shrink-0 flex justify-between items-start px-6 pt-5 pb-3 border-b border-td-border">
+                <h3 className="text-lg font-medium text-td-ink" id="history-modal-title">Report Details</h3>
+                <button onClick={closeModal} className="text-td-sage hover:text-td-sage text-2xl leading-none" aria-label="Close">&times;</button>
+              </div>
+              <div className="px-6 pt-4 pb-4 space-y-4 overflow-y-auto">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-td-sage">Report ID</span>
                   <span className="font-mono">{selectedItem.id}</span>
@@ -361,7 +362,7 @@ const IllegalDumpingHistory = () => {
                   <ReportPhotos photos={selectedItem.cleanupPhotos} enhanced={false} title={selectedItem.claimedByVolunteers ? 'Cleanup photos from the volunteer group' : 'Cleanup photos'} />
                 )}
               </div>
-              <div className="bg-td-cream px-6 py-3 flex justify-end rounded-b-lg">
+              <div className="flex-shrink-0 bg-td-cream px-6 py-3 flex justify-end rounded-b-lg">
                 <button type="button" className="rounded-md px-4 py-2 bg-green-600 text-sm font-medium text-white hover:bg-green-700" onClick={closeModal}>
                   Close
                 </button>

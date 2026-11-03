@@ -500,7 +500,8 @@ const IllegalDumpingManagement = () => {
             role="dialog" aria-modal="true" aria-labelledby="report-details-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-wrap justify-between items-start mb-4 gap-4">
+            {/* Header stays pinned while the report scrolls under it */}
+            <div className="sticky -top-6 z-10 bg-white -mx-6 -mt-6 px-6 pt-6 pb-4 mb-4 border-b border-td-border flex flex-wrap justify-between items-start gap-4">
               <h2 className="text-xl font-semibold break-all" id="report-details-title">Dumping Report <span className="font-mono text-base text-td-sage">{selectedReport.id}</span></h2>
               <div className="flex items-center gap-3 flex-shrink-0">
                 {selectedIndex !== -1 && filteredReports.length > 1 && (
