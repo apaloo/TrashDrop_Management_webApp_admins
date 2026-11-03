@@ -494,7 +494,7 @@ const IllegalDumpingManagement = () => {
 
       {/* Report Details Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4" onClick={closeDetails}>
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-2 sm:p-4" onClick={closeDetails}>
           <div
             className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
             role="dialog" aria-modal="true" aria-labelledby="report-details-title"
@@ -615,42 +615,42 @@ const IllegalDumpingManagement = () => {
               </div>
             )}
 
-            {/* Actions: only the steps the current status allows */}
-            {canAct && isOpenStatus(selectedReport.status) && (
-              <div className="border-t pt-4 flex flex-wrap justify-end items-center gap-2">
-                {selectedReport.cleanupTeam && selectedReport.status === 'verified' && (
-                  <div className="px-4 py-2 bg-green-100 text-green-800 rounded text-sm mr-auto">
-                    Assigned to <strong>{selectedReport.cleanupTeam}</strong>, waiting for the collector to accept
-                  </div>
-                )}
-                {selectedReport.status === 'pending' && canVerify && (
-                  <button onClick={() => updateReportStatus(selectedReport, 'verified')} disabled={actionPending === selectedReport.id}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Verify
-                  </button>
-                )}
-                {canAssign && ['pending', 'verified'].includes(selectedReport.status) && !selectedReport.assignedTo && (
-                  <button onClick={() => openCollectorModal(selectedReport)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Assign Cleanup
-                  </button>
-                )}
-                {selectedReport.status === 'in_progress' && canMarkCleaned && (
-                  <button onClick={() => updateReportStatus(selectedReport, 'completed')} disabled={actionPending === selectedReport.id}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Mark as Cleaned Up
-                  </button>
-                )}
-                {canManage && (
-                  <button onClick={() => updateReportStatus(selectedReport, 'cancelled')} disabled={actionPending === selectedReport.id}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                    Cancel Report
-                  </button>
-                )}
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end">
-              <button onClick={closeDetails} className="px-4 py-2 bg-gray-300 text-td-ink rounded hover:bg-gray-400">Close</button>
+            {/* Footer stays pinned while the report scrolls: the steps the current
+                status allows, then Close, on one row */}
+            <div className="sticky -bottom-6 z-10 bg-white -mx-6 -mb-6 mt-6 px-4 sm:px-6 py-4 border-t border-td-border flex flex-wrap justify-end items-center gap-2">
+              {canAct && isOpenStatus(selectedReport.status) && (
+                <>
+                  {selectedReport.cleanupTeam && selectedReport.status === 'verified' && (
+                    <div className="basis-full sm:basis-auto px-4 py-2 bg-green-100 text-green-800 rounded text-sm sm:mr-auto">
+                      Assigned to <strong>{selectedReport.cleanupTeam}</strong>, waiting for the collector to accept
+                    </div>
+                  )}
+                  {selectedReport.status === 'pending' && canVerify && (
+                    <button onClick={() => updateReportStatus(selectedReport, 'verified')} disabled={actionPending === selectedReport.id}
+                      className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700">
+                      Verify
+                    </button>
+                  )}
+                  {canAssign && ['pending', 'verified'].includes(selectedReport.status) && !selectedReport.assignedTo && (
+                    <button onClick={() => openCollectorModal(selectedReport)} className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700">
+                      Assign Cleanup
+                    </button>
+                  )}
+                  {selectedReport.status === 'in_progress' && canMarkCleaned && (
+                    <button onClick={() => updateReportStatus(selectedReport, 'completed')} disabled={actionPending === selectedReport.id}
+                      className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700">
+                      Mark as Cleaned Up
+                    </button>
+                  )}
+                  {canManage && (
+                    <button onClick={() => updateReportStatus(selectedReport, 'cancelled')} disabled={actionPending === selectedReport.id}
+                      className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-500 text-white rounded hover:bg-gray-600">
+                      Cancel Report
+                    </button>
+                  )}
+                </>
+              )}
+              <button onClick={closeDetails} className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 text-td-ink rounded hover:bg-gray-400">Close</button>
             </div>
           </div>
         </div>
