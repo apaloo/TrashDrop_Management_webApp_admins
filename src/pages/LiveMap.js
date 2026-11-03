@@ -535,7 +535,7 @@ const LiveMap = () => {
         <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setSelectedRequest(null)}>
           <div className="rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border" style={card}
             role="dialog" aria-modal="true" aria-labelledby="request-details-title" onClick={e => e.stopPropagation()}>
-            <div className="border-b p-4 flex justify-between items-center" style={{ borderColor: 'var(--td-card-border)' }}>
+            <div className="sticky top-0 z-10 border-b p-4 flex justify-between items-center" style={{ ...card, borderColor: 'var(--td-card-border)' }}>
               <h3 className="text-lg font-semibold" id="request-details-title">Pickup Request Details</h3>
               <button type="button" onClick={() => setSelectedRequest(null)} aria-label="Close" style={muted}><i className="fas fa-times"></i></button>
             </div>

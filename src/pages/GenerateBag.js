@@ -393,7 +393,7 @@ const GenerateBag = () => {
       {viewQRModal.visible && viewQRModal.batch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setViewQRModal({ visible: false, batch: null })}>
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Batch QR code" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-td-border">
+            <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-6 border-b border-td-border">
               <h3 className="text-2xl font-semibold text-td-ink">Batch QR Code</h3>
               <button onClick={() => setViewQRModal({ visible: false, batch: null })} className="text-td-sage hover:text-td-sage" title="Close" aria-label="Close">
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />

@@ -783,7 +783,7 @@ const IllegalDumpingMap = () => {
         <div className="bg-white rounded-xl shadow-sm border border-td-border overflow-y-auto" style={{ height: '600px' }}>
           {selectedDumping ? (
             <div>
-              <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 rounded-t-xl flex items-start justify-between gap-2">
+              <div className="sticky top-0 z-10 bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 rounded-t-xl flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Report Details</h3>
                   <p className="text-green-200 text-xs mt-0.5 font-mono truncate">{selectedDumping.id}</p>

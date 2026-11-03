@@ -94,7 +94,8 @@ const AssignCleanupModal = ({ report, onClose, onAssign, loadTeams = loadActiveP
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" onClick={onClose}>
       <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}
         role="dialog" aria-modal="true" aria-labelledby="assign-cleanup-title">
-        <div className="flex justify-between items-center mb-4">
+        {/* Header stays pinned while the list scrolls under it */}
+        <div className="sticky -top-6 z-10 bg-white -mx-6 -mt-6 px-6 pt-6 pb-4 mb-4 border-b border-td-border flex justify-between items-center">
           <h3 id="assign-cleanup-title" className="text-lg font-semibold text-td-ink">
             {!team ? 'Choose a cleanup team' : isVolunteerTeam(team) ? 'Assign to a volunteer group' : 'Set the cleanup payment'}
           </h3>
