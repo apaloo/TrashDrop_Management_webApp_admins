@@ -216,10 +216,16 @@ export const assignmentFailedMessage = (error) => {
   return 'Couldn\'t assign the cleanup. Try again.';
 };
 
-/** "18.0 hrs" under 48 hours, otherwise "3.2 days"; "—" when there is no value */
+/** Whole numbers: "18 hrs" under 48 hours, otherwise "80 days" (79.7 rounds
+    up); "1 hr" / "1 day" in the singular; "—" when there is no value */
 export const formatDuration = (hours) => {
   if (hours === null || hours === undefined || !Number.isFinite(hours)) return '—';
-  return hours >= 48 ? `${(hours / 24).toFixed(1)} days` : `${hours.toFixed(1)} hrs`;
+  if (hours >= 48) {
+    const days = Math.round(hours / 24);
+    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  }
+  const whole = Math.round(hours);
+  return `${whole} ${whole === 1 ? 'hr' : 'hrs'}`;
 };
 
 /** dd/mm/yyyy (or with time), "—" for missing or invalid dates */
