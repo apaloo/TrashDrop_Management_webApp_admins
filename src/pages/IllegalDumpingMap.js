@@ -24,6 +24,7 @@ import {
   assignmentBlockReason, assignmentFailedMessage,
 } from '../utils/illegalDumpingReportUtils';
 import EnhancedImage from '../components/common/EnhancedImage';
+import PhotoViewer from '../components/common/PhotoViewer';
 import { secureUrls } from '../utils/secureUrl';
 import { supabase } from '../utils/supabase';
 
@@ -147,6 +148,10 @@ const IllegalDumpingMap = () => {
   const [selectedReportForAssignment, setSelectedReportForAssignment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailsReport, setDetailsReport] = useState(null);
+  // Photos open full screen: { photos, index }, or null
+  const [photoViewer, setPhotoViewer] = useState(null);
+  // Stable, so the slideshow timer isn't restarted by the map's re-renders
+  const setPhotoViewerIndex = useCallback((index) => setPhotoViewer((v) => v && { ...v, index }), []);
 
   const notify = (message, ms = 3000) => {
     setToastMessage(message);
@@ -791,20 +796,31 @@ const IllegalDumpingMap = () => {
                 {/* Photo */}
                 {selectedDumping.images.length > 0 ? (
                   <div className="mb-3">
-                    <a href={selectedDumping.images[0]} target="_blank" rel="noopener noreferrer" className="block">
+                    <button
+                      type="button"
+                      onClick={() => setPhotoViewer({ photos: selectedDumping.images, index: 0 })}
+                      aria-label={`Open photo 1 of ${selectedDumping.images.length}`}
+                      className="block w-full"
+                    >
                       <EnhancedImage
                         src={selectedDumping.images[0]}
                         alt="Reported dumping site"
                         className="w-full h-40 object-cover rounded-lg border border-td-border"
                         style={{ width: '100%', height: '160px', objectFit: 'cover' }}
                       />
-                    </a>
+                    </button>
                     {selectedDumping.images.length > 1 && (
                       <div className="flex gap-1.5 mt-1.5">
                         {selectedDumping.images.slice(1, 5).map((img, idx) => (
-                          <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="block w-12 h-12">
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setPhotoViewer({ photos: selectedDumping.images, index: idx + 1 })}
+                            aria-label={`Open photo ${idx + 2} of ${selectedDumping.images.length}`}
+                            className="block w-12 h-12"
+                          >
                             <EnhancedImage src={img} alt={`Photo ${idx + 2}`} className="w-12 h-12 object-cover rounded border border-td-border" style={{ width: '48px', height: '48px', objectFit: 'cover' }} />
-                          </a>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -1021,14 +1037,20 @@ const IllegalDumpingMap = () => {
                   <p className="text-xs text-td-sage mb-2">Photos</p>
                   <div className="flex flex-wrap gap-2">
                     {detailsReport.images.map((img, idx) => (
-                      <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="block w-20 h-20">
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setPhotoViewer({ photos: detailsReport.images, index: idx })}
+                        aria-label={`Open photo ${idx + 1} of ${detailsReport.images.length}`}
+                        className="block w-20 h-20"
+                      >
                         <EnhancedImage
                           src={img}
                           alt={`Evidence ${idx + 1}`}
                           className="w-20 h-20 object-cover rounded-md border border-td-border"
                           style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                         />
-                      </a>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -1064,6 +1086,15 @@ const IllegalDumpingMap = () => {
         <AssignCleanupModal report={selectedReportForAssignment} onAssign={assignCleanupTeamHandler}
           loadTeams={viaArea ? fetchAreaTeams : undefined} allowFee={canSetFee}
           onClose={() => { setShowCollectorModal(false); setSelectedReportForAssignment(null); }} />
+      )}
+
+      {photoViewer && (
+        <PhotoViewer
+          photos={photoViewer.photos}
+          index={photoViewer.index}
+          onIndexChange={setPhotoViewerIndex}
+          onClose={() => setPhotoViewer(null)}
+        />
       )}
     </div>
   );
