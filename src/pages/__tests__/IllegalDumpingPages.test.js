@@ -111,6 +111,26 @@ describe('Reports page', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('steps through the filtered reports with Previous and Next', async () => {
+    renderAt(<IllegalDumpingManagement />);
+    await reportsLoaded();
+    const total = screen.getAllByRole('button', { name: 'Details' }).length;
+    fireEvent.click(screen.getAllByRole('button', { name: 'Details' })[0]);
+
+    const dialog = screen.getByRole('dialog');
+    const heading = () => screen.getByRole('heading', { name: /Dumping Report/ }).textContent;
+    const first = heading();
+    expect(within(dialog).getByRole('button', { name: 'Previous report' })).toBeDisabled();
+    expect(within(dialog).getByText(/^1 of \d+$/)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next report' }));
+    expect(heading()).not.toBe(first);
+    expect(screen.getByText(/^2 of \d+$/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous report' }));
+    expect(heading()).toBe(first);
+    expect(total).toBeGreaterThan(1);
+  });
+
   it('shows the assignee and only offers Mark Cleaned for in-progress reports', async () => {
     renderAt(<IllegalDumpingManagement />, '/illegal-dumping/reports?status=in_progress');
     await reportsLoaded();

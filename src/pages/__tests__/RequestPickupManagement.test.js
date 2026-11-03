@@ -6,7 +6,7 @@ import * as svc from '../../services/pickupAdminService';
 import { normalizeViewRow, applyFilters, sortRows, PAGE_SIZE } from '../../utils/pickupRequestUtils';
 
 jest.mock('../../services/pickupAdminService', () => ({
-  fetchRequestPage: jest.fn(), fetchSummaryRows: jest.fn(), fetchAllMatching: jest.fn(), fetchBatchPrice: jest.fn(), fetchZoneBinPrice: jest.fn(() => Promise.resolve(null)), fetchBinPromotion: jest.fn(() => Promise.resolve(null)),
+  fetchRequestPage: jest.fn(), fetchSummaryRows: jest.fn(), fetchAllMatching: jest.fn(), fetchBatchPrice: jest.fn(), fetchZoneBinPrice: jest.fn(() => Promise.resolve(null)), fetchBinPromotion: jest.fn(() => Promise.resolve(null)), fetchRequestPhotos: jest.fn(() => Promise.resolve([])),
   assignCollector: jest.fn(), changeStatus: jest.fn(), cancelRequest: jest.fn(),
 }));
 jest.mock('../../utils/supabase', () => ({ supabase: {} }));
@@ -41,6 +41,51 @@ beforeEach(() => {
     return { rows: filtered.slice((f.page - 1) * PAGE_SIZE, f.page * PAGE_SIZE), total: filtered.length, mode: 'server' };
   });
   svc.fetchSummaryRows.mockResolvedValue(rows);
+  svc.fetchRequestPhotos.mockResolvedValue([]);
+  svc.fetchZoneBinPrice.mockResolvedValue(null);
+  svc.fetchBinPromotion.mockResolvedValue(null);
+});
+
+describe('details window', () => {
+  const openFirstDetails = async () => {
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(4));
+    fireEvent.click(within(screen.getAllByTestId('request-row')[0]).getByRole('button', { name: 'Details' }));
+    return screen.findByRole('dialog', { name: /Request/ });
+  };
+
+  it('steps through the requests on the page with Previous and Next', async () => {
+    renderPage();
+    const dialog = await openFirstDetails();
+    expect(within(dialog).getByText('1 of 4')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Previous request' })).toBeDisabled();
+    const firstId = within(dialog).getByRole('heading').textContent;
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next request' }));
+    const next = await screen.findByRole('dialog', { name: /Request/ });
+    expect(within(next).getByText('2 of 4')).toBeInTheDocument();
+    expect(within(next).getByRole('heading').textContent).not.toBe(firstId);
+
+    fireEvent.click(within(next).getByRole('button', { name: 'Previous request' }));
+    expect(within(await screen.findByRole('dialog', { name: /Request/ })).getByText('1 of 4')).toBeInTheDocument();
+  });
+
+  it('says pickup requests are booked without photos', async () => {
+    renderPage();
+    const dialog = await openFirstDetails();
+    expect(await within(dialog).findByText(/booked without photos/)).toBeInTheDocument();
+  });
+
+  it("shows a digital bin's photos and opens them in the full-screen viewer", async () => {
+    const bin = normalizeViewRow({ ...base, source: 'digital_bins', id: 'bin-1', status: 'pending', bin_size_liters: 120 });
+    svc.fetchRequestPage.mockResolvedValue({ rows: [bin], total: 1, mode: 'server' });
+    svc.fetchRequestPhotos.mockResolvedValue(['https://x/bin.jpg']);
+    renderPage();
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(1));
+    fireEvent.click(within(screen.getByTestId('request-row')).getByRole('button', { name: 'Details' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open photo 1 of 1' }));
+    expect(screen.getByRole('dialog', { name: 'Photo 1 of 1' }).querySelector('img')).toHaveAttribute('src', 'https://x/bin.jpg');
+    expect(svc.fetchRequestPhotos).toHaveBeenCalledWith(expect.objectContaining({ id: 'bin-1', source: 'digital_bins' }));
+  });
 });
 
 it('counts arrived + collecting as In progress and keeps cards on overall totals', async () => {

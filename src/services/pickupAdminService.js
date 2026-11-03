@@ -168,6 +168,25 @@ export const fetchZoneBinPrice = async (lat, lng, binSizeLiters) => {
  * @returns {Promise<{ requestNumber: number|null, clientFee: number|null, collectorPayout: number|null, subsidy: number|null }|null>}
  *   null when the bin is not promotional or can't be read
  */
+/**
+ * Photos the customer added to a request. Only digital bins carry photos
+ * (digital_bins.photo_urls, from the app and WhatsApp); pickup requests are
+ * booked without them, so other sources resolve to []. The admin view has no
+ * photo column, so they are read from the bin's own row when its details open.
+ * @returns {Promise<string[]>}
+ */
+export const fetchRequestPhotos = async (row) => {
+  if (row?.source !== 'digital_bins') return [];
+  const { data, error } = await supabase.from('digital_bins').select('photo_urls').eq('id', row.id).maybeSingle();
+  if (error || !data) return [];
+  let list = data.photo_urls;
+  // Some rows hold the array as JSON text
+  if (typeof list === 'string') {
+    try { list = JSON.parse(list); } catch { list = [list]; }
+  }
+  return Array.isArray(list) ? list.filter(u => typeof u === 'string' && u.trim() !== '') : [];
+};
+
 export const fetchBinPromotion = async (binId, binSizeLiters) => {
   // '*' so a database without the promotion columns still answers
   const { data: bin, error } = await supabase.from('digital_bins').select('*').eq('id', binId).maybeSingle();

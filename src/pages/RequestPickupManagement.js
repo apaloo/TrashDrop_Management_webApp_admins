@@ -149,6 +149,13 @@ const RequestPickupManagement = () => {
 
   /* ── derived ────────────────────────────────────────────────────────── */
   const rows = pageData?.rows || [];
+  // Previous / Next in the details window step through the rows on this page
+  const detailAt = detail ? rows.findIndex(r => keyOf(r) === keyOf(detail)) : -1;
+  const detailNav = detailAt === -1 || rows.length < 2 ? {} : {
+    positionLabel: `${detailAt + 1} of ${rows.length}`,
+    onPrevious: detailAt > 0 ? () => setDetail(rows[detailAt - 1]) : null,
+    onNext: detailAt < rows.length - 1 ? () => setDetail(rows[detailAt + 1]) : null,
+  };
   const stats = useMemo(() => computeStats(summaryRows || []), [summaryRows]);
   const jobCounts = useMemo(() => collectorJobCounts(summaryRows || []), [summaryRows]);
   const collectorsWithJobs = useMemo(
@@ -610,6 +617,7 @@ const RequestPickupManagement = () => {
 
       {detail && (
         <RequestDetailsModal
+          key={keyOf(detail)}
           row={detail}
           address={addressOf(detail)}
           collectors={collectorsWithJobs}
@@ -624,6 +632,7 @@ const RequestPickupManagement = () => {
           onOpenRequest={(other) => { setDetail(null); setFilters({ q: other.id }); }}
           onCopy={copyId}
           onClose={() => setDetail(null)}
+          {...detailNav}
         />
       )}
 

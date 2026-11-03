@@ -9,8 +9,10 @@ import { canonicalStatus, canCancel } from '../../constants/pickupStatus';
 import {
   shortId, bagsLabel, fullDate, relativeAge, formatGhs, feeBreakdown, collectorsByDistance, isOverdue,
 } from '../../utils/pickupRequestUtils';
-import { fetchBatchPrice, fetchZoneBinPrice, fetchBinPromotion } from '../../services/pickupAdminService';
+import { fetchBatchPrice, fetchZoneBinPrice, fetchBinPromotion, fetchRequestPhotos } from '../../services/pickupAdminService';
 import EntityHistory from '../logs/EntityHistory';
+import ReportPhotos from '../illegalDumping/ReportPhotos';
+import PrevNextButtons from '../common/PrevNextButtons';
 
 const pin = L.divIcon({
   className: 'custom-marker-icon',
@@ -29,12 +31,15 @@ const Field = ({ label, children, wide }) => (
 const RequestDetailsModal = ({
   row, address, collectors, assignCollectors, duplicates = [], outsideServiceArea, busy,
   onAssign, onStatus, onCancel, onCancelAsDuplicate, onOpenRequest, onClose, onCopy,
+  onPrevious, onNext, positionLabel,
 }) => {
   const [collectorId, setCollectorId] = useState('');
   const [batchPrice, setBatchPrice] = useState(null);
   const [zone, setZone] = useState(null);
   const [promo, setPromo] = useState(null);
   const [binPricingLoaded, setBinPricingLoaded] = useState(false);
+  // null while loading
+  const [photos, setPhotos] = useState(null);
   const status = canonicalStatus(row.status);
   const hasCollector = !!row.collectorRef;
   const ranked = collectorsByDistance(row, collectors);
@@ -69,6 +74,15 @@ const RequestDetailsModal = ({
     return () => { live = false; };
   }, [row.id, row.source, row.batchId, row.lat, row.lng, row.binSizeLiters, row.promotionalFee]);
 
+  useEffect(() => {
+    let live = true;
+    setPhotos(null);
+    // A failed lookup shows the empty note rather than breaking the window
+    Promise.resolve().then(() => fetchRequestPhotos(row)).catch(() => []).then(list => { if (live) setPhotos(list || []); });
+    return () => { live = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row.id, row.source]);
+
   const action = (label, to, cls, disabled, title) => (
     <button key={to} type="button" disabled={busy || disabled} title={title} onClick={() => onStatus(row, to)}
       className={`px-4 py-2 rounded text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed ${cls}`}>
@@ -80,11 +94,16 @@ const RequestDetailsModal = ({
     <div className="fixed inset-0 z-[2000] bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" onClick={onClose}>
       <div className="rounded-xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto border" style={card}
         role="dialog" aria-modal="true" aria-labelledby="request-details-title" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 border-b px-5 py-3 flex items-center gap-3" style={{ ...card, ...border }}>
+        <div className="sticky top-0 z-10 border-b px-5 py-3 flex flex-wrap items-center gap-3" style={{ ...card, ...border }}>
           <h3 id="request-details-title" className="font-semibold">Request <span className="font-mono">#{shortId(row.id)}</span></h3>
           <StatusBadge status={row.status} />
           {isOverdue(row) && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">Overdue</span>}
-          <button type="button" onClick={onClose} className="ml-auto text-xl leading-none" style={muted} aria-label="Close">&times;</button>
+          <div className="ml-auto flex items-center gap-3">
+            {(onPrevious || onNext) && (
+              <PrevNextButtons noun="request" label={positionLabel} onPrevious={onPrevious} onNext={onNext} />
+            )}
+            <button type="button" onClick={onClose} className="text-xl leading-none" style={muted} aria-label="Close">&times;</button>
+          </div>
         </div>
 
         <div className="p-5 space-y-5 text-sm">
@@ -134,6 +153,17 @@ const RequestDetailsModal = ({
               )}
             </Field>
           </div>
+
+          {photos === null
+            ? <p className="text-xs" style={muted}>Loading photos…</p>
+            : (
+              <ReportPhotos
+                key={row.id}
+                photos={photos}
+                enhanced={false}
+                emptyText={row.source === 'digital_bins' ? 'No photos were added to this bin.' : 'Pickup requests are booked without photos; only digital bins have them.'}
+              />
+            )}
 
           {row.lat !== null && (
             <div className="h-48 rounded overflow-hidden border" style={border}>
