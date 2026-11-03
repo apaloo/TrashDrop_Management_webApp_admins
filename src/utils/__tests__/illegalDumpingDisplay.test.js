@@ -18,8 +18,14 @@ describe('status labels and colours', () => {
 
 describe('durations and dates', () => {
   it('shows hours under 48h and days above', () => {
-    expect(formatDuration(18)).toBe('18.0 hrs');
-    expect(formatDuration(80 * 24)).toBe('80.0 days');
+    expect(formatDuration(18)).toBe('18 hrs');
+    expect(formatDuration(80 * 24)).toBe('80 days');
+    // Rounded to the nearest whole number
+    expect(formatDuration(79.7 * 24)).toBe('80 days');
+    expect(formatDuration(79.4 * 24)).toBe('79 days');
+    expect(formatDuration(5.6)).toBe('6 hrs');
+    expect(formatDuration(1.2)).toBe('1 hr');
+    expect(formatDuration(0.2)).toBe('0 hrs');
     expect(formatDuration(null)).toBe('—');
   });
 
@@ -74,7 +80,7 @@ describe('audit acceptance numbers', () => {
     expect(stats.verified).toBe(2);
     expect(stats.confirmed).toBe(22);
     expect(stats.cancelled).toBe(9);
-    expect(formatDuration(stats.avgCleanupHours)).toBe('79.5 days');
+    expect(formatDuration(stats.avgCleanupHours)).toBe('80 days');
   });
 
   it('search trims spaces and matches labels', () => {

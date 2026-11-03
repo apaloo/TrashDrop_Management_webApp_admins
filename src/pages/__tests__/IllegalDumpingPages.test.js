@@ -54,7 +54,7 @@ describe('History page', () => {
   it('shows the average in days and the real pending count', async () => {
     renderAt(<IllegalDumpingHistory />);
     await loaded();
-    expect(screen.getByTestId('avg-resolution')).toHaveTextContent('79.5 days');
+    expect(screen.getByTestId('avg-resolution')).toHaveTextContent('80 days');
     expect(screen.getByTestId('pending-count')).toHaveTextContent('51');
     expect(screen.getByRole('link', { name: /Review on Reports page/ })).toHaveAttribute('href', '/illegal-dumping/reports?status=pending');
   });
@@ -82,7 +82,7 @@ describe('Reports page', () => {
     expect(screen.getByTestId('kpi-total-reports')).toHaveTextContent('82');
     expect(screen.getByTestId('kpi-verified-or-beyond')).toHaveTextContent('22');
     expect(screen.getByText('2 awaiting a collector')).toBeInTheDocument();
-    expect(screen.getByTestId('kpi-avg-cleanup-time')).toHaveTextContent('79.5 days');
+    expect(screen.getByTestId('kpi-avg-cleanup-time')).toHaveTextContent('80 days');
   });
 
   it('loads every report, not just 100', async () => {
