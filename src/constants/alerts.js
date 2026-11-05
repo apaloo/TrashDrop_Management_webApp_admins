@@ -81,7 +81,7 @@ export const ALERT_RULES = [
   { key: 'in_progress_no_collector', label: 'Assigned / in progress with no collector', priority: 'Critical', type: 'unassigned_job', params: [] },
   { key: 'stalled_job', label: 'Assigned not started, or collecting too long', priority: 'High', type: 'stalled_job',
     params: [{ key: 'assigned_minutes', label: 'Not started after (min)', min: 10 }, { key: 'collecting_minutes', label: 'Collecting longer than (min)', min: 30 }] },
-  { key: 'invalid_location', label: 'Invalid coordinates (missing, 0,0, outside Ghana, swapped)', priority: 'Medium', type: 'invalid_location', params: [] },
+  { key: 'invalid_location', label: 'Invalid coordinates (missing, 0,0, outside Ghana and Liberia, swapped)', priority: 'Medium', type: 'invalid_location', params: [] },
   { key: 'outside_service_area', label: 'Outside every service zone with a collector', priority: 'Medium', type: 'outside_service_area', params: [] },
   { key: 'duplicate_request', label: 'Possible duplicate request', priority: 'Low', type: 'duplicate_request',
     params: [{ key: 'radius_m', label: 'Within (metres)', min: 5 }, { key: 'window_hours', label: 'Within (hours)', min: 1 }] },

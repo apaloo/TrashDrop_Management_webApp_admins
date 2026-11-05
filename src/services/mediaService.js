@@ -3,6 +3,7 @@
  * Nothing that identifies who reported a site is included.
  */
 import { supabase } from '../utils/supabase';
+import { getSupportedCountry } from '../utils/mapCoordinates';
 
 export const MEDIA_ROW_LIMIT = 5000;
 
@@ -68,7 +69,9 @@ export const summarise = (rows) => {
   const cleaned = rows.filter(r => CLEANED.includes(r.status));
   const byRegion = {};
   rows.forEach(r => {
-    const k = r.region || 'Outside Ghana / unknown';
+    // region comes from Ghana's district boundaries; a Liberia report has none
+    const country = getSupportedCountry(r.latitude, r.longitude);
+    const k = r.region || (country && country.code !== 'GH' ? country.name : 'Outside Ghana / unknown');
     byRegion[k] = byRegion[k] || { region: k, total: 0, cleaned: 0, open: 0 };
     byRegion[k].total += 1;
     if (CLEANED.includes(r.status)) byRegion[k].cleaned += 1;

@@ -29,7 +29,7 @@ describe('public dumping reports', () => {
     expect(mapPublicReport(row({ photo_urls: ['http://x/a.jpg', 'blob:x'] })).photos).toEqual(['https://x/a.jpg']);
   });
 
-  it('drops cancelled, out-of-Ghana and unlocated reports', () => {
+  it('drops cancelled, non-Ghana (incl. Liberia) and unlocated reports', () => {
     expect(isPublicMapReport(mapPublicReport(row()))).toBe(true);
     expect(isPublicMapReport(mapPublicReport(row({ status: 'cancelled' })))).toBe(false);
     expect(isPublicMapReport(mapPublicReport(row({ latitude: 6.3156, longitude: -10.8074 })))).toBe(false);

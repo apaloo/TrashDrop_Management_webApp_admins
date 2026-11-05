@@ -6,7 +6,7 @@
  * anon role may SELECT. It exposes no reporter, assignee or note fields.
  */
 import { supabase } from '../utils/supabase';
-import { normalizeEnum, isOutsideGhana } from '../utils/illegalDumpingReportUtils';
+import { normalizeEnum, getReportCountry } from '../utils/illegalDumpingReportUtils';
 import { secureUrls } from '../utils/secureUrl';
 
 export const PUBLIC_REPORTS_VIEW = 'public_illegal_dumping_reports';
@@ -33,8 +33,10 @@ export const mapPublicReport = (row) => {
 };
 
 // The view already filters these out; this keeps the map safe if it ever doesn't.
+// The public page covers Ghana only, so reports from other supported countries
+// (Liberia) stay off it.
 export const isPublicMapReport = (r) =>
-  Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng) && r.status !== 'cancelled' && !isOutsideGhana(r);
+  Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng) && r.status !== 'cancelled' && getReportCountry(r) === 'Ghana';
 
 export const fetchPublicDumpingReports = async ({ limit = 1000 } = {}) => {
   const { data, error } = await supabase

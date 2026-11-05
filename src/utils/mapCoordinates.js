@@ -2,12 +2,23 @@
  * Coordinate parsing and validation for map markers and saved locations.
  *
  * PostGIS stores points as POINT(lng lat) / (x y). Values are only drawn or
- * saved when they fall inside Ghana; 0,0 ("null island") and anything outside
- * the box are rejected.
+ * saved when they fall inside a country TrashDrop serves (SUPPORTED_COUNTRIES);
+ * 0,0 ("null island") and anything outside every country are rejected.
  */
 
-// Roughly Ghana's bounding box
-export const GHANA_BOUNDS = { minLat: 4.5, maxLat: 11.2, minLng: -3.3, maxLng: 1.2 };
+/**
+ * Countries TrashDrop takes reports and requests from, with a rough bounding
+ * box each. The single list used by the map, the save checks and the alerts.
+ * The database has the same boxes in td_supported_country()
+ * (supabase/migrations/20261112_supported_countries.sql): change both together.
+ */
+export const SUPPORTED_COUNTRIES = [
+  { code: 'GH', name: 'Ghana', bounds: { minLat: 4.5, maxLat: 11.2, minLng: -3.3, maxLng: 1.2 } },
+  { code: 'LR', name: 'Liberia', bounds: { minLat: 4.3, maxLat: 8.6, minLng: -11.5, maxLng: -7.35 } },
+];
+
+/** "Ghana and Liberia", for messages */
+export const SUPPORTED_COUNTRY_NAMES = SUPPORTED_COUNTRIES.map(c => c.name).join(' and ');
 
 // Accra, used when there is nothing to fit the map to
 export const DEFAULT_MAP_VIEW = { lat: 5.6037, lng: -0.1870, zoom: 12 };
@@ -22,24 +33,37 @@ export const toCoordinate = (value) => {
   return Number.isFinite(n) ? n : null;
 };
 
-export const isInGhana = (lat, lng) =>
-  lat >= GHANA_BOUNDS.minLat && lat <= GHANA_BOUNDS.maxLat &&
-  lng >= GHANA_BOUNDS.minLng && lng <= GHANA_BOUNDS.maxLng;
+const inBounds = (lat, lng, b) =>
+  lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng;
+
+/** The supported country ({ code, name, bounds }) the point is in, or null */
+export const getSupportedCountry = (rawLat, rawLng) => {
+  const lat = toCoordinate(rawLat);
+  const lng = toCoordinate(rawLng);
+  if (lat === null || lng === null) return null;
+  return SUPPORTED_COUNTRIES.find(c => inBounds(lat, lng, c.bounds)) || null;
+};
+
+export const isInSupportedCountry = (lat, lng) => getSupportedCountry(lat, lng) !== null;
 
 /**
  * Checks a lat/lng pair.
- * @returns {{ valid: boolean, lat: number|null, lng: number|null, reason: string|null, swapped: boolean }}
- * A pair that is only inside Ghana with lat and lng exchanged is returned
- * corrected, with swapped: true, so it can be drawn and reported.
+ * @returns {{ valid: boolean, lat: number|null, lng: number|null, reason: string|null, swapped: boolean, country: string|null }}
+ * country is the supported country's name ('Ghana', 'Liberia') when valid.
+ * A pair that is only inside a supported country with lat and lng exchanged
+ * is returned corrected, with swapped: true, so it can be drawn and reported.
  */
 export const validateCoordinates = (rawLat, rawLng) => {
   const lat = toCoordinate(rawLat);
   const lng = toCoordinate(rawLng);
-  if (lat === null || lng === null) return { valid: false, lat, lng, reason: 'Missing coordinates', swapped: false };
-  if (Math.abs(lat) < NEAR_ZERO && Math.abs(lng) < NEAR_ZERO) return { valid: false, lat, lng, reason: 'Coordinates are 0,0', swapped: false };
-  if (isInGhana(lat, lng)) return { valid: true, lat, lng, reason: null, swapped: false };
-  if (isInGhana(lng, lat)) return { valid: true, lat: lng, lng: lat, reason: 'Latitude and longitude were swapped', swapped: true };
-  return { valid: false, lat, lng, reason: 'Outside Ghana', swapped: false };
+  const bad = (reason) => ({ valid: false, lat, lng, reason, swapped: false, country: null });
+  if (lat === null || lng === null) return bad('Missing coordinates');
+  if (Math.abs(lat) < NEAR_ZERO && Math.abs(lng) < NEAR_ZERO) return bad('Coordinates are 0,0');
+  const here = getSupportedCountry(lat, lng);
+  if (here) return { valid: true, lat, lng, reason: null, swapped: false, country: here.name };
+  const flipped = getSupportedCountry(lng, lat);
+  if (flipped) return { valid: true, lat: lng, lng: lat, reason: 'Latitude and longitude were swapped', swapped: true, country: flipped.name };
+  return bad(`Outside ${SUPPORTED_COUNTRY_NAMES}`);
 };
 
 const hexToDouble = (hex, littleEndian) => {
@@ -89,8 +113,8 @@ export const parsePoint = (value) => {
 };
 
 /**
- * Throws if the data being saved carries a location that is 0,0 or outside
- * Ghana. Looks at latitude/longitude, lat/lng, and point-like location or
+ * Throws if the data being saved carries a location that is 0,0, swapped, or
+ * outside every supported country. Looks at latitude/longitude, lat/lng, and point-like location or
  * coordinates fields; fields that aren't present are not checked.
  */
 export const assertSavableCoordinates = (data = {}) => {
@@ -105,7 +129,7 @@ export const assertSavableCoordinates = (data = {}) => {
   candidates.forEach(([lat, lng]) => {
     const check = validateCoordinates(lat, lng);
     if (!check.valid || check.swapped) {
-      throw new Error(`Location not saved: ${check.swapped ? 'latitude and longitude look swapped' : check.reason.toLowerCase()}. Pick a point in Ghana.`);
+      throw new Error(`Location not saved: ${check.swapped ? 'latitude and longitude look swapped' : check.reason.toLowerCase()}. Pick a point in ${SUPPORTED_COUNTRY_NAMES}.`);
     }
   });
 };

@@ -6,9 +6,7 @@
  * so every comparison here is case-insensitive.
  */
 import { secureUrls } from './secureUrl';
-
-// Ghana's bounding box, used to flag reports plotted outside the country.
-export const GHANA_BOUNDS = { minLat: 4.5, maxLat: 11.2, minLng: -3.3, maxLng: 1.3 };
+import { validateCoordinates } from './mapCoordinates';
 
 export const SEVERITY_OPTIONS = [
   { value: 'low', label: 'Low', color: '#22C55E' },
@@ -50,10 +48,26 @@ export const toTitle = (value) => {
 export const hasCoordinates = (report) =>
   Number.isFinite(report?.location?.lat) && Number.isFinite(report?.location?.lng);
 
-export const isOutsideGhana = (report) => {
-  if (!hasCoordinates(report)) return false;
-  const { lat, lng } = report.location;
-  return lat < GHANA_BOUNDS.minLat || lat > GHANA_BOUNDS.maxLat || lng < GHANA_BOUNDS.minLng || lng > GHANA_BOUNDS.maxLng;
+/**
+ * What's wrong with a plotted report's coordinates, or null when they're fine
+ * (inside a supported country, see SUPPORTED_COUNTRIES). Reports without
+ * coordinates return null: they're counted separately as "no location".
+ * Problems: 'Coordinates are 0,0', 'Latitude and longitude were swapped',
+ * 'Outside Ghana and Liberia'.
+ */
+export const getLocationProblem = (report) => {
+  if (!hasCoordinates(report)) return null;
+  const check = validateCoordinates(report.location.lat, report.location.lng);
+  return check.valid && !check.swapped ? null : check.reason;
+};
+
+export const hasLocationProblem = (report) => getLocationProblem(report) !== null;
+
+/** 'Ghana', 'Liberia', ... for a report with good coordinates; otherwise null */
+export const getReportCountry = (report) => {
+  if (!hasCoordinates(report)) return null;
+  const check = validateCoordinates(report.location.lat, report.location.lng);
+  return check.valid && !check.swapped ? check.country : null;
 };
 
 /**

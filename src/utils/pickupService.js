@@ -832,7 +832,7 @@ export const updatePickupStatus = async (requestId, updateData = {}) => {
   
   logger.log(`Updating pickup request ${requestId} with data:`, updateData);
 
-  // Never save a location at 0,0 or outside Ghana
+  // Never save a location at 0,0, swapped, or outside Ghana and Liberia
   assertSavableCoordinates(updateData);
   
   try {

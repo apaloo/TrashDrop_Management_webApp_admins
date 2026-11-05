@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { card, input, muted, border } from '../pickupRequests/theme';
 import { searchAddress, reverseGeocodeWithCache } from '../../utils/geocoding';
-import { DEFAULT_MAP_VIEW, isInGhana } from '../../utils/mapCoordinates';
+import { DEFAULT_MAP_VIEW, isInSupportedCountry, SUPPORTED_COUNTRY_NAMES } from '../../utils/mapCoordinates';
 
 const pin = L.divIcon({
   className: 'custom-marker-icon',
@@ -24,7 +24,7 @@ const FlyTo = ({ point }) => {
 };
 
 /**
- * Address search (Ghana) or click on the map. value: { lat, lng, address } | null
+ * Address search (Ghana, Liberia) or click on the map. value: { lat, lng, address } | null
  */
 const LocationPicker = ({ value, onChange, height = 'h-48' }) => {
   const [q, setQ] = useState('');
@@ -34,7 +34,7 @@ const LocationPicker = ({ value, onChange, height = 'h-48' }) => {
   const point = value?.lat != null ? value : null;
 
   const pick = async (lat, lng, address = null) => {
-    if (!isInGhana(lat, lng)) { setError('Pick a point in Ghana'); return; }
+    if (!isInSupportedCountry(lat, lng)) { setError(`Pick a point in ${SUPPORTED_COUNTRY_NAMES}`); return; }
     setError(null);
     onChange({ lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6, address });
     if (!address) {
@@ -62,7 +62,7 @@ const LocationPicker = ({ value, onChange, height = 'h-48' }) => {
     <div className="space-y-2">
       <div className="flex gap-2">
         <input type="search" value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') search(e); }}
-          placeholder="Search an address or area in Ghana" aria-label="Search address" className="flex-1 border rounded px-3 py-2 text-sm" style={input} />
+          placeholder="Search an address or area" aria-label="Search address" className="flex-1 border rounded px-3 py-2 text-sm" style={input} />
         <button type="button" onClick={search} disabled={searching || q.trim().length < 3} className="px-3 py-2 rounded border text-sm disabled:opacity-40" style={border}>
           {searching ? 'Searching…' : 'Search'}
         </button>

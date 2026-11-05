@@ -18,14 +18,15 @@ import { useAuth } from '../context/AuthContext';
 import { fetchIllegalDumpingReports, assignCleanupTeam } from '../utils/databaseUtils';
 import AssignCleanupModal from '../components/illegalDumping/AssignCleanupModal';
 import {
-  SEVERITY_OPTIONS, WASTE_TYPE_OPTIONS, UNKNOWN_SEVERITY_COLOR, GHANA_BOUNDS,
-  normalizeEnum, toTitle, getSeverityColor, hasCoordinates, isOutsideGhana,
+  SEVERITY_OPTIONS, WASTE_TYPE_OPTIONS, UNKNOWN_SEVERITY_COLOR,
+  normalizeEnum, toTitle, getSeverityColor, hasCoordinates, getLocationProblem, hasLocationProblem, getReportCountry,
   matchesFilters, computeReportStats, statusLabel, statusBadgeClass, severityBadgeClass, formatDuration,
   assignmentBlockReason, assignmentFailedMessage,
 } from '../utils/illegalDumpingReportUtils';
 import EnhancedImage from '../components/common/EnhancedImage';
 import PhotoViewer from '../components/common/PhotoViewer';
 import { secureUrls } from '../utils/secureUrl';
+import { SUPPORTED_COUNTRY_NAMES } from '../utils/mapCoordinates';
 import { supabase } from '../utils/supabase';
 
 // Enough for every report; the fetch defaults to 10 per page.
@@ -54,9 +55,9 @@ function MapBoundsUpdater({ reports }) {
 
   useEffect(() => {
     if (!map) return;
-    // Frame the reports in Ghana; outliers elsewhere are listed separately.
-    const inGhana = reports.filter(r => !isOutsideGhana(r));
-    const coords = (inGhana.length ? inGhana : reports).map(r => [r.location.lat, r.location.lng]);
+    // Frame the reports in supported countries (Ghana, Liberia); bad points are listed separately.
+    const good = reports.filter(r => !hasLocationProblem(r));
+    const coords = (good.length ? good : reports).map(r => [r.location.lat, r.location.lng]);
 
     if (coords.length === 0) {
       map.setView(appConfig.services.maps.defaultCenter, appConfig.services.maps.defaultZoom);
@@ -204,10 +205,10 @@ const IllegalDumpingMap = () => {
       logger.log('📍 Illegal Dumping Map - Fetched reports:', transformedData.length);
       logger.log('📍 Sample report:', JSON.stringify(transformedData[0] || null));
       logger.log('📍 Reports with valid coordinates:', transformedData.filter(hasCoordinates).length);
-      const outside = transformedData.filter(isOutsideGhana);
-      if (outside.length) {
-        console.warn(`📍 ${outside.length} report(s) plotted outside Ghana:`,
-          outside.map(r => ({ id: r.id, lat: r.location.lat, lng: r.location.lng, address: r.location.address })));
+      const badLocation = transformedData.filter(hasLocationProblem);
+      if (badLocation.length) {
+        console.warn(`📍 ${badLocation.length} report(s) with a bad location:`,
+          badLocation.map(r => ({ id: r.id, lat: r.location.lat, lng: r.location.lng, problem: getLocationProblem(r), address: r.location.address })));
       }
 
       setDumpingReportData(transformedData);
@@ -242,7 +243,7 @@ const IllegalDumpingMap = () => {
   // ...and the map plots the ones that have coordinates.
   const filteredReports = useMemo(() => matchingReports.filter(hasCoordinates), [matchingReports]);
   const stats = useMemo(() => computeReportStats(matchingReports), [matchingReports]);
-  const outsideGhanaReports = useMemo(() => filteredReports.filter(isOutsideGhana), [filteredReports]);
+  const badLocationReports = useMemo(() => filteredReports.filter(hasLocationProblem), [filteredReports]);
   const missingCoordinates = matchingReports.length - filteredReports.length;
 
   const selectedDumping = useMemo(
@@ -269,8 +270,8 @@ const IllegalDumpingMap = () => {
   const centerMap = () => {
     if (!mapRef.current) return;
     const map = mapRef.current;
-    const inGhana = filteredReports.filter(r => !isOutsideGhana(r));
-    const coords = (inGhana.length ? inGhana : filteredReports).map(r => [r.location.lat, r.location.lng]);
+    const good = filteredReports.filter(r => !hasLocationProblem(r));
+    const coords = (good.length ? good : filteredReports).map(r => [r.location.lat, r.location.lng]);
 
     if (coords.length === 0) {
       map.setView(appConfig.services.maps.defaultCenter, appConfig.services.maps.defaultZoom);
@@ -681,6 +682,9 @@ const IllegalDumpingMap = () => {
                             <span className="font-semibold" style={{ color: getSeverityColor(report.severity) }}>{toTitle(report.severity)}</span>
                           </p>
                           <p className="text-td-sage text-xs leading-snug">{report.location.address}</p>
+                          {getReportCountry(report) && getReportCountry(report) !== 'Ghana' && (
+                            <p className="text-td-sage text-xs"><span className="font-medium">Country:</span> {getReportCountry(report)}</p>
+                          )}
                         </div>
                         <button
                           className="w-full bg-green-600 text-white text-xs px-2 py-1.5 rounded-md hover:bg-green-700 font-medium"
@@ -711,24 +715,24 @@ const IllegalDumpingMap = () => {
             </div>
           )}
 
-          {/* Reports plotted outside Ghana */}
-          {hasLoaded && outsideGhanaReports.length > 0 && (
+          {/* Reports whose coordinates are 0,0, swapped, or outside every supported country */}
+          {hasLoaded && badLocationReports.length > 0 && (
             <div className="absolute top-3 right-3 z-[450] max-w-xs">
               <button
                 onClick={() => setShowOutsideList(v => !v)}
                 className="bg-amber-50 border border-amber-300 text-amber-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 ml-auto"
-                title={`Outside Ghana's bounds (lat ${GHANA_BOUNDS.minLat}–${GHANA_BOUNDS.maxLat}, lng ${GHANA_BOUNDS.minLng}–${GHANA_BOUNDS.maxLng})`}
+                title={`0,0, swapped, or outside ${SUPPORTED_COUNTRY_NAMES}`}
               >
                 <i className="fas fa-exclamation-triangle"></i>
-                {outsideGhanaReports.length} outside Ghana
+                {badLocationReports.length} with a bad location
               </button>
               {showOutsideList && (
                 <div className="mt-2 bg-white rounded-xl shadow-lg border border-amber-200 p-2 text-xs space-y-1 max-h-64 overflow-y-auto">
                   <p className="text-td-sage px-1 pb-1">Check these coordinates (test data or wrong location?)</p>
-                  {outsideGhanaReports.map(r => (
+                  {badLocationReports.map(r => (
                     <button key={r.id} onClick={() => focusReport(r)} className="block w-full text-left px-1.5 py-1 rounded hover:bg-amber-50">
                       <span className="font-mono text-td-ink block truncate">{r.id}</span>
-                      <span className="text-td-sage">{r.location.lat.toFixed(5)}, {r.location.lng.toFixed(5)}</span>
+                      <span className="text-td-sage">{r.location.lat.toFixed(5)}, {r.location.lng.toFixed(5)} · {getLocationProblem(r)}</span>
                     </button>
                   ))}
                 </div>
@@ -831,10 +835,10 @@ const IllegalDumpingMap = () => {
                   </div>
                 )}
 
-                {isOutsideGhana(selectedDumping) && (
+                {hasLocationProblem(selectedDumping) && (
                   <div className="mb-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg px-3 py-2">
                     <i className="fas fa-exclamation-triangle mr-1"></i>
-                    This report's coordinates are outside Ghana. Check whether it's test data or a wrong location.
+                    This report's location looks wrong ({getLocationProblem(selectedDumping).toLowerCase()}). Check whether it's test data or a wrong location.
                   </div>
                 )}
 
@@ -878,6 +882,7 @@ const IllegalDumpingMap = () => {
                       {hasCoordinates(selectedDumping) && (
                         <p className="text-xs text-td-sage mt-0.5">
                           {selectedDumping.location.lat.toFixed(5)}, {selectedDumping.location.lng.toFixed(5)}
+                          {getReportCountry(selectedDumping) && <> · <span className="font-medium">{getReportCountry(selectedDumping)}</span></>}
                         </p>
                       )}
                     </div>

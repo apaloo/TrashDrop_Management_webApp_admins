@@ -1,5 +1,5 @@
 import {
-  matchesFilters, computeReportStats, getSeverityColor, isOutsideGhana, normalizeEnum, UNKNOWN_SEVERITY_COLOR,
+  matchesFilters, computeReportStats, getSeverityColor, getLocationProblem, hasLocationProblem, getReportCountry, normalizeEnum, UNKNOWN_SEVERITY_COLOR,
   assignmentBlockReason, assignmentFailedMessage, standardCleanupPayment, isVolunteerTeam,
 } from '../illegalDumpingReportUtils';
 
@@ -59,10 +59,27 @@ describe('markers and bounds', () => {
     expect(getSeverityColor(undefined)).toBe(UNKNOWN_SEVERITY_COLOR);
   });
 
-  it('flags reports outside Ghana', () => {
-    expect(isOutsideGhana(report({ location: { lat: 6.3156, lng: -10.8074 } }))).toBe(true); // Monrovia
-    expect(isOutsideGhana(report())).toBe(false);
-    expect(isOutsideGhana(report({ location: { lat: null, lng: null } }))).toBe(false);
+  it('treats Ghana and Liberia reports as good locations, with their country', () => {
+    expect(hasLocationProblem(report())).toBe(false);
+    expect(getReportCountry(report())).toBe('Ghana');
+    // the real reports from Sinkor, Monrovia and Robertsfield Highway, Margibi
+    const monrovia = report({ location: { lat: 6.2938245, lng: -10.7794291 } });
+    const margibi = report({ location: { lat: 6.2438817, lng: -10.449455 } });
+    expect(hasLocationProblem(monrovia)).toBe(false);
+    expect(hasLocationProblem(margibi)).toBe(false);
+    expect(getReportCountry(monrovia)).toBe('Liberia');
+    expect(getReportCountry(margibi)).toBe('Liberia');
+  });
+
+  it('flags 0,0, swapped and out-of-country reports, but not unlocated ones', () => {
+    expect(getLocationProblem(report({ location: { lat: 0, lng: 0 } }))).toBe('Coordinates are 0,0');
+    expect(getLocationProblem(report({ location: { lat: -0.19, lng: 5.6 } }))).toBe('Latitude and longitude were swapped');
+    expect(getLocationProblem(report({ location: { lat: -10.78, lng: 6.29 } }))).toBe('Latitude and longitude were swapped'); // Monrovia, swapped
+    expect(getLocationProblem(report({ location: { lat: 51.5, lng: -0.12 } }))).toBe('Outside Ghana and Liberia'); // London
+    expect(getLocationProblem(report({ location: { lat: 6.52, lng: 3.38 } }))).toBe('Outside Ghana and Liberia'); // Lagos
+    expect(getReportCountry(report({ location: { lat: -0.19, lng: 5.6 } }))).toBeNull();
+    expect(hasLocationProblem(report({ location: { lat: null, lng: null } }))).toBe(false);
+    expect(getReportCountry(report({ location: { lat: null, lng: null } }))).toBeNull();
   });
 
   it('normalises enum spellings', () => {
