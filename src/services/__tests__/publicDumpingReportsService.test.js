@@ -29,10 +29,13 @@ describe('public dumping reports', () => {
     expect(mapPublicReport(row({ photo_urls: ['http://x/a.jpg', 'blob:x'] })).photos).toEqual(['https://x/a.jpg']);
   });
 
-  it('drops cancelled, non-Ghana (incl. Liberia) and unlocated reports', () => {
+  it('shows Ghana and Liberia reports; drops cancelled, other-country and unlocated ones', () => {
     expect(isPublicMapReport(mapPublicReport(row()))).toBe(true);
     expect(isPublicMapReport(mapPublicReport(row({ status: 'cancelled' })))).toBe(false);
-    expect(isPublicMapReport(mapPublicReport(row({ latitude: 6.3156, longitude: -10.8074 })))).toBe(false);
+    expect(isPublicMapReport(mapPublicReport(row({ latitude: 6.2938245, longitude: -10.7794291 })))).toBe(true); // Sinkor, Monrovia
+    expect(isPublicMapReport(mapPublicReport(row({ latitude: 6.2438817, longitude: -10.449455 })))).toBe(true); // Margibi
+    expect(isPublicMapReport(mapPublicReport(row({ latitude: 7.54, longitude: -5.55 })))).toBe(false); // Cote d'Ivoire
+    expect(isPublicMapReport(mapPublicReport(row({ latitude: 0, longitude: 0 })))).toBe(false);
     expect(isPublicMapReport(mapPublicReport(row({ latitude: null })))).toBe(false);
   });
 
@@ -113,6 +116,8 @@ describe('area names', () => {
     expect(describeArea({ areaName: 'Osu, Accra', location: { lat: 5.55, lng: -0.18 } })).toBe('Osu, Accra');
     expect(describeArea({ areaName: null, location: { lat: 6.7230, lng: -1.4439 } })).toBe('Near Ejisu');
     expect(nearestTown({ lat: 6.69, lng: -1.62 })).toBe('Kumasi');
+    expect(nearestTown({ lat: 6.2938, lng: -10.7794 })).toBe('Monrovia');
+    expect(describeArea({ areaName: null, location: { lat: 6.2439, lng: -10.4495 } })).toBe('Near Harbel');
     expect(describeArea({ areaName: null, location: { lat: 8.5, lng: -2.9 } })).toBe('Location pinned on map');
   });
 });
