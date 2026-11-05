@@ -8,14 +8,15 @@ const rows = [
   { id: 'b', reported_at: '2026-10-02T10:00:00Z', status: 'completed', region: 'Ashanti', cleaned_at: '2026-10-06T10:00:00Z', cleanup_by: 'TrashDrop collector' },
   { id: 'c', reported_at: '2026-10-05T10:00:00Z', status: 'verified', region: 'Ashanti', area_name: '=HYPERLINK("http://evil")' },
   { id: 'd', reported_at: '2026-10-05T10:00:00Z', status: 'cancelled', region: null },
+  { id: 'e', reported_at: '2026-10-06T10:00:00Z', status: 'pending', region: null, latitude: 6.2938, longitude: -10.7794 },
 ];
 
 describe('media data', () => {
   it('counts open, cleaned, volunteer cleanups and the median days to clean', () => {
     const s = summarise(rows);
-    expect(s).toMatchObject({ total: 4, open: 1, cleaned: 2, byVolunteers: 1, medianDays: 3 });
+    expect(s).toMatchObject({ total: 5, open: 2, cleaned: 2, byVolunteers: 1, medianDays: 3 });
     expect(s.regions.map(r => [r.region, r.total, r.open, r.cleaned])).toEqual([
-      ['Ashanti', 2, 1, 1], ['Greater Accra', 1, 0, 1], ['Outside Ghana / unknown', 1, 0, 0],
+      ['Ashanti', 2, 1, 1], ['Greater Accra', 1, 0, 1], ['Outside Ghana / unknown', 1, 0, 0], ['Liberia', 1, 1, 0],
     ]);
     expect(daysToClean(rows[2])).toBeNull();
   });
@@ -23,7 +24,7 @@ describe('media data', () => {
   it('writes a CSV that spreadsheets read safely', () => {
     const lines = toCsv(rows).split('\r\n');
     expect(lines[0]).toBe('Report ID,Reported at,Status,Severity,Waste type,Size,Region,District,Area,Latitude,Longitude,Cleaned at,Disposed at,Cleanup by,Report photos,Cleanup photos');
-    expect(lines).toHaveLength(5);
+    expect(lines).toHaveLength(6);
     expect(lines[1]).toContain('"Madina, ""Zongo"""');
     expect(lines[1]).toContain('https://x/1.jpg,https://x/2.jpg');
     // a formula in the data is kept as text, not run

@@ -2,6 +2,7 @@
  * Reverse Geocoding Utility
  * Converts latitude/longitude coordinates to human-readable addresses
  */
+import { SUPPORTED_COUNTRIES } from './mapCoordinates';
 
 /**
  * Reverse geocode coordinates to address using OpenStreetMap Nominatim (free)
@@ -95,8 +96,10 @@ export const reverseGeocodeWithCache = async (lat, lng) => {
   return address;
 };
 
+const SEARCH_COUNTRY_CODES = SUPPORTED_COUNTRIES.map(c => c.code.toLowerCase()).join(',');
+
 /**
- * Address search in Ghana (OpenStreetMap Nominatim, same provider as reverseGeocode)
+ * Address search in the supported countries (OpenStreetMap Nominatim, same provider as reverseGeocode)
  * @param {string} query
  * @returns {Promise<Array<{ label: string, lat: number, lng: number }>>}
  */
@@ -104,7 +107,7 @@ export const searchAddress = async (query) => {
   const q = String(query || '').trim();
   if (q.length < 3) return [];
   const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=gh&format=json&limit=6&addressdetails=0`,
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=${SEARCH_COUNTRY_CODES}&format=json&limit=6&addressdetails=0`,
     { headers: { 'Accept-Language': 'en' } }
   );
   if (!response.ok) throw new Error(`Address search failed (${response.status})`);
@@ -125,29 +128,6 @@ export const formatCoordinates = (lat, lng) => {
     return 'N/A';
   }
   return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-};
-
-/**
- * Validate if coordinates are within Ghana's approximate bounds
- * @param {number} lat - Latitude
- * @param {number} lng - Longitude
- * @returns {boolean}
- */
-export const isValidGhanaCoordinates = (lat, lng) => {
-  // Ghana approximate bounds
-  const GHANA_BOUNDS = {
-    minLat: 4.5,
-    maxLat: 11.5,
-    minLng: -3.5,
-    maxLng: 1.5
-  };
-
-  return (
-    lat >= GHANA_BOUNDS.minLat &&
-    lat <= GHANA_BOUNDS.maxLat &&
-    lng >= GHANA_BOUNDS.minLng &&
-    lng <= GHANA_BOUNDS.maxLng
-  );
 };
 
 /**
