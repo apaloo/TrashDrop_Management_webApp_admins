@@ -33,10 +33,9 @@ export const mapPublicReport = (row) => {
 };
 
 // The view already filters these out; this keeps the map safe if it ever doesn't.
-// The public page covers Ghana only, so reports from other supported countries
-// (Liberia) stay off it.
+// Reports from every supported country (Ghana, Liberia) are shown.
 export const isPublicMapReport = (r) =>
-  Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng) && r.status !== 'cancelled' && getReportCountry(r) === 'Ghana';
+  Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng) && r.status !== 'cancelled' && getReportCountry(r) !== null;
 
 export const fetchPublicDumpingReports = async ({ limit = 1000 } = {}) => {
   const { data, error } = await supabase
@@ -160,10 +159,17 @@ export const GHANA_TOWNS = [
   ['Bawku', 11.0600, -0.2400], ['Wa', 10.0601, -2.5099],
 ].map(([name, lat, lng]) => ({ name, lat, lng }));
 
+export const LIBERIA_TOWNS = [
+  ['Monrovia', 6.3008, -10.7972], ['Paynesville', 6.2806, -10.7166], ['Harbel', 6.2833, -10.3500],
+  ['Kakata', 6.5300, -10.3500], ['Buchanan', 5.8760, -10.0496], ['Gbarnga', 6.9950, -9.4720],
+].map(([name, lat, lng]) => ({ name, lat, lng }));
+
+const TOWNS = [...GHANA_TOWNS, ...LIBERIA_TOWNS];
+
 export const nearestTown = (location, maxKm = 30) => {
   if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lng)) return null;
   let best = null;
-  for (const t of GHANA_TOWNS) {
+  for (const t of TOWNS) {
     const d = distanceKm(location, t);
     if (!best || d < best.km) best = { name: t.name, km: d };
   }
