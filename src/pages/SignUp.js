@@ -180,20 +180,13 @@ const SignUp = () => {
           district: accountDetails.district || null,
           accessDetails: validateAccountDetails(companyType, accountDetails).details,
           role: derivedRole,
-          onboardingCompleted: false // Will be set to true after onboarding
+          // This form already collects everything setup needs, so there is no
+          // second form to fill in. Approval only controls the access level.
+          onboardingCompleted: true
         }
       });
       
       if (error) throw error;
-      
-      // Store user info for onboarding in localStorage
-      localStorage.setItem('trashdrop_onboarding_user', JSON.stringify({
-        email,
-        firstName,
-        lastName,
-        companyName,
-        companyType
-      }));
       
       // Show success message about email verification
       setError(null);
