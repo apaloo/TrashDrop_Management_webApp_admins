@@ -46,8 +46,8 @@ export const signUp = async ({ email, password, name, role = 'user', metadata = 
           full_name: name,
           role,
           ...metadata,
-          // New accounts finish setting up in onboarding, except people joining
-          // a volunteer group by invite (the group already has those details)
+          // The sign-up form says when setup is done; anything else still
+          // goes through onboarding
           onboardingCompleted: metadata.onboardingCompleted === true
         }
       }

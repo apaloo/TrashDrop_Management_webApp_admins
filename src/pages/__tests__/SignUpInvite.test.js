@@ -60,6 +60,20 @@ it('without an invite: still asks for the full account setup', async () => {
   expect(getInviteInfo).not.toHaveBeenCalled();
 });
 
+it('without an invite: a completed sign-up needs no second setup form', async () => {
+  renderAt('/signup');
+  fillBasics();
+  fireEvent.change(screen.getByLabelText('Organisation or group name'), { target: { value: 'Clean Nice' } });
+  fireEvent.change(screen.getByLabelText('Account type'), { target: { value: 'other' } });
+  fireEvent.click(screen.getByRole('button', { name: /Create account/ }));
+
+  await waitFor(() => expect(signUp).toHaveBeenCalled());
+  expect(signUp.mock.calls[0][0].metadata).toMatchObject({
+    companyName: 'Clean Nice', companyType: 'other', onboardingCompleted: true,
+  });
+  expect(localStorage.getItem('trashdrop_onboarding_user')).toBeNull();
+});
+
 it('falls back to the full form when the invite link can’t be used', async () => {
   getInviteInfo.mockResolvedValue({ valid: false, reason: 'expired' });
   renderAt(`/signup?invite=${token}`);
