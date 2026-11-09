@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { updatePassword } from '../utils/auth';
+import { Link, useNavigate } from 'react-router-dom';
+import { updatePassword, signOut } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import AuthShell, { AUTH } from '../components/auth/AuthShell';
+
+const INVALID_LINK = 'This reset link is invalid or has expired. Please request a new one and open it in the browser you requested it from.';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -11,21 +13,19 @@ const ResetPassword = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { clearForceResetMode } = useAuth();
+  const { clearForceResetMode, isAuthenticated, forceResetMode } = useAuth();
+  const linkIsValid = isAuthenticated && forceResetMode;
 
-  // Parse hash from URL to get the access token
+  // A working link has signed the person in for this reset. Without that
+  // session (expired link, or opened in another browser) no password can be set.
   useEffect(() => {
-    // The hash fragment will be available in location.hash
-    // If there's no hash, that means the user didn't arrive here from a reset email link
-    if (!location.hash && !window.location.hash) {
-      setError('Invalid password reset link. Please request a new one.');
-    }
+    if (!linkIsValid && !success) setError(INVALID_LINK);
+  }, [linkIsValid, success]);
 
-    return () => {
-      clearForceResetMode();
-    };
-  }, [location]);
+  // Leaving without a new password ends the sign-in the link created
+  const handleBackToLogin = () => {
+    if (isAuthenticated) signOut();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,12 +45,14 @@ const ResetPassword = () => {
     setError(null);
     
     try {
-      // The hash contains the access token needed for the password update
       const { error } = await updatePassword(password);
       if (error) throw error;
       setSuccess(true);
-      clearForceResetMode();
-      
+
+      // Sign out so the next step is a login with the new password
+      const { error: signOutError } = await signOut();
+      if (signOutError) clearForceResetMode();
+
       // Redirect to login after some delay
       setTimeout(() => {
         navigate('/login');
@@ -107,7 +109,7 @@ const ResetPassword = () => {
 
           <button
             type="submit"
-            disabled={loading || error === 'Invalid password reset link. Please request a new one.'}
+            disabled={loading || !linkIsValid}
             className={`${AUTH.primary} w-full`}
           >
             <i className={`fas ${loading ? 'fa-circle-notch fa-spin' : 'fa-lock'}`} aria-hidden="true"></i>
@@ -116,7 +118,7 @@ const ResetPassword = () => {
 
           <p className="text-center text-sm text-td-sage">
             Remember your password?{' '}
-            <Link to="/login" className={AUTH.link}>Back to login</Link>
+            <Link to="/login" onClick={handleBackToLogin} className={AUTH.link}>Back to login</Link>
           </p>
         </form>
       )}
