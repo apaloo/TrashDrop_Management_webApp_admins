@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { CAPABILITY_ROLES, can, canAny, rolesWith, landingPathFor } from '../permissions';
-import { ROLES } from '../../constants/accessControl';
+import { CAPABILITY_ROLES, can, canAny, rolesWith, landingPathFor, isAccountSetUp } from '../permissions';
+import { ROLES, SECTIONS, canAccessSection } from '../../constants/accessControl';
 
 describe('capability table', () => {
   it('only names roles that exist', () => {
@@ -45,6 +45,36 @@ describe('capability table', () => {
     expect(landingPathFor('media')).toBe('/illegal-dumping/map');
     expect(landingPathFor('volunteer')).toBe('/illegal-dumping/map');
     expect(landingPathFor('user')).toBe('/settings');
+  });
+
+  it('every role can open its own starting page', () => {
+    const SECTION_OF_PAGE = {
+      '/dashboard': SECTIONS.DASHBOARD,
+      '/illegal-dumping/reports': SECTIONS.ILLEGAL_DUMPING,
+      '/illegal-dumping/map': SECTIONS.ILLEGAL_DUMPING,
+      '/settings': SECTIONS.SETTINGS,
+    };
+    Object.values(ROLES).forEach((role) => {
+      const section = SECTION_OF_PAGE[landingPathFor(role)];
+      expect({ role, opens: canAccessSection(section, role) || role === ROLES.ADMIN }).toEqual({ role, opens: true });
+    });
+  });
+});
+
+describe('the optional setup form', () => {
+  it('is available to a plain User who has given no organisation', () => {
+    expect(isAccountSetUp('user', { role: 'user', companyType: null })).toBe(false);
+    expect(isAccountSetUp('user', null)).toBe(false);
+  });
+
+  it('is not shown to anyone who already gave an organisation or has a role', () => {
+    expect(isAccountSetUp('user', { companyType: 'waste_management' })).toBe(true);
+    ['volunteer', 'media', 'manager', 'authority', 'admin'].forEach(role => expect(isAccountSetUp(role, {})).toBe(true));
+  });
+
+  it('never forces anyone into it after login', () => {
+    const app = fs.readFileSync(path.join(__dirname, '../../App.js'), 'utf8');
+    expect(app).not.toMatch(/Navigate to="\/onboarding"/);
   });
 });
 

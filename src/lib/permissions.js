@@ -63,3 +63,12 @@ const LANDING_BY_ROLE = {
 };
 
 export const landingPathFor = (role) => LANDING_BY_ROLE[role] || '/settings';
+
+/**
+ * Has this account already told us what kind of organisation it is, or been
+ * given a role above User? The setup form is only an optional way for a plain
+ * User to ask for more access, so it is never shown to these accounts.
+ * `access` is my_access() as AuthContext holds it.
+ */
+export const isAccountSetUp = (role, access) =>
+  role !== 'user' || Boolean(access?.companyType ?? access?.company_type);
