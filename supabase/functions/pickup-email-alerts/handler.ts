@@ -112,9 +112,10 @@ export async function handle(req: Request, env: Env, fetchFn: FetchFn = fetch): 
   const check = await rpc('td_pickup_email_secret_ok', { p_secret: secret });
   if (!check.ok || (await check.json()) !== true) return json(401, { error: 'Unauthorized' });
 
-  // Checked before claiming, so a missing key uses up no attempts.
+  // Checked before claiming, so a missing or placeholder key uses up no
+  // attempts: alerts wait and go out once a real key is saved.
   const apiKey = env.RESEND_API_KEY;
-  if (!apiKey) return json(200, { sent: 0, note: 'RESEND_API_KEY is not set' });
+  if (!apiKey || !apiKey.startsWith('re_')) return json(200, { sent: 0, note: 'RESEND_API_KEY is not set' });
 
   const claimed = await rpc('td_pickup_email_claim', { p_limit: 10 });
   if (!claimed.ok) return json(500, { error: 'Could not read new requests' });

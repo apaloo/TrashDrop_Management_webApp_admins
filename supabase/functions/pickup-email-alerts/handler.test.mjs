@@ -19,7 +19,7 @@ const bag = { ...bin, source: 'pickup_requests', request_id: 'bag-1', bag_count:
 const env = {
   SUPABASE_URL: 'https://db.test',
   SUPABASE_SERVICE_ROLE_KEY: 'service',
-  RESEND_API_KEY: 'resend',
+  RESEND_API_KEY: 're_test',
 };
 const post = (secret = 'right') =>
   new Request('https://fn.test', { method: 'POST', headers: secret ? { 'x-cron-secret': secret } : {} });
@@ -62,11 +62,13 @@ test('rejects a missing or wrong secret without reading or sending', async () =>
   }
 });
 
-test('without an email key it claims nothing, so no attempts are used', async () => {
-  const { fn, calls } = fakeFetch();
-  const res = await handle(post(), { ...env, RESEND_API_KEY: undefined }, fn);
-  assert.equal(res.status, 200);
-  assert.equal(calls.claims, 0);
+test('without a real email key it claims nothing, so no attempts are used', async () => {
+  for (const key of [undefined, 'your_key_here']) {
+    const { fn, calls } = fakeFetch();
+    const res = await handle(post(), { ...env, RESEND_API_KEY: key }, fn);
+    assert.equal(res.status, 200);
+    assert.equal(calls.claims, 0);
+  }
 });
 
 test('sends once per request and records it as sent', async () => {
