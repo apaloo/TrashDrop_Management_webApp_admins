@@ -11,7 +11,7 @@ import { safeDatabaseService } from './utils/safeDatabaseService';
 import { supabase } from './utils/supabase';
 import logger from './utils/logger';
 import { SECTIONS, canAccessSection } from './constants/accessControl';
-import { can, landingPathFor } from './lib/permissions';
+import { can, landingPathFor, isAccountSetUp } from './lib/permissions';
 import PendingInviteRedirect from './components/PendingInviteRedirect';
 import HomePage from './pages/HomePageNew';
 
@@ -62,14 +62,14 @@ const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 // Protected route component
 // `section` is who may open the area; `capability` narrows a single page inside it.
 const ProtectedRoute = ({ children, section, capability }) => {
-  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading, forceResetMode } = useAuth();
+  const { isAuthenticated, loading, authInitialized, role, user, access, accessLoading, forceResetMode } = useAuth();
   const currentPath = window.location.pathname;
-  
-  logger.log('ProtectedRoute check:', { 
+  const isSetupForm = currentPath === '/onboarding';
+
+  logger.log('ProtectedRoute check:', {
     path: currentPath,
     isAuthenticated,
     loading,
-    onboardingCompleted,
     authInitialized,
     role,
     section
@@ -97,23 +97,18 @@ const ProtectedRoute = ({ children, section, capability }) => {
     return <Navigate to="/reset-password" replace />;
   }
 
-  // Check onboarding status
-  const localOnboardingCompleted = localStorage.getItem('trashdrop_onboarding_completed') === 'true';
-  const effectiveOnboardingStatus = onboardingCompleted || localOnboardingCompleted;
-  
-  // Redirect to onboarding if needed, but only if we're not already there
-  if (!effectiveOnboardingStatus && currentPath !== '/onboarding') {
-    logger.log('ProtectedRoute: Onboarding not completed, redirecting to onboarding');
-    return <Navigate to="/onboarding" replace />;
-  }
-  
   // Wait for the access level from the database before checking a section
-  if (section && accessLoading) {
+  if ((section || isSetupForm) && accessLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
+  }
+
+  // The setup form is optional and must never re-ask an account that is already set up
+  if (isSetupForm && isAccountSetUp(role, access)) {
+    return <Navigate to={landingPathFor(role)} replace />;
   }
 
   // A role without access goes to its own starting page, not to a page it cannot open either

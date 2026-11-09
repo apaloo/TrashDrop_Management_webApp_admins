@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateUserMetadata } from '../utils/auth';
+import { isAccountSetUp } from '../lib/permissions';
 
 const Settings = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, role, access, accessLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -152,7 +154,14 @@ const Settings = () => {
           Manage your account settings and preferences
         </p>
       </div>
-      
+
+      {!accessLoading && !isAccountSetUp(role, access) && (
+        <div className="mb-6 bg-white rounded-xl shadow p-4 text-sm text-td-sage" data-testid="request-access">
+          Part of a waste company, assembly, volunteer group or media house?{' '}
+          <Link to="/onboarding" className="font-semibold text-green-700 hover:underline">Request partner access</Link>
+        </div>
+      )}
+
       {/* Settings tabs and content */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         {/* Tabs */}
