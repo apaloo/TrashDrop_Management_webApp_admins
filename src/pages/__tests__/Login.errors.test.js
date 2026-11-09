@@ -31,3 +31,15 @@ describe('Login feedback', () => {
     expect(alert.className).toMatch(/amber/);
   });
 });
+
+describe('Login show password', () => {
+  it('toggles the password between hidden and visible', () => {
+    render(<MemoryRouter><Login /></MemoryRouter>);
+    const field = screen.getByLabelText(/^password/i);
+    expect(field).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(field).toHaveAttribute('type', 'text');
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(field).toHaveAttribute('type', 'password');
+  });
+});

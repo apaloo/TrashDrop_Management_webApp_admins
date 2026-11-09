@@ -29,6 +29,7 @@ const loginProblem = (err) => {
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -169,14 +170,23 @@ const Login = () => {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={AUTH.input(validationErrors.password)}
+                className={`${AUTH.input(validationErrors.password)} !pr-12`}
                 placeholder="Enter your password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-gray-600 hover:text-td-forest rounded-r-lg"
+              >
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true"></i>
+              </button>
             </div>
             {validationErrors.password && (
               <p className={AUTH.fieldError}>{validationErrors.password}</p>
