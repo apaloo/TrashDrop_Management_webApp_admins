@@ -42,7 +42,7 @@ describe('capability table', () => {
     expect(landingPathFor('admin')).toBe('/dashboard');
     expect(landingPathFor('manager')).toBe('/dashboard');
     expect(landingPathFor('authority')).toBe('/illegal-dumping/reports');
-    expect(landingPathFor('media')).toBe('/media-data');
+    expect(landingPathFor('media')).toBe('/illegal-dumping/map');
     expect(landingPathFor('volunteer')).toBe('/illegal-dumping/map');
     expect(landingPathFor('user')).toBe('/settings');
   });
