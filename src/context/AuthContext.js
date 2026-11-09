@@ -5,6 +5,11 @@ import { getDevModeUser, isDevMode } from '../utils/devAuth';
 import { getEffectiveRole, areaScopeFor, ROLES } from '../constants/accessControl';
 import { fetchMyAccess } from '../services/accountRoleService';
 import logger from '../utils/logger';
+import { isRecoveryLink, rememberRecovery, forgetRecovery, hasRememberedRecovery } from '../utils/passwordRecovery';
+
+// Read as the app loads, before Supabase exchanges the code and removes it from the address
+const openedFromRecoveryLink = typeof window !== 'undefined' && isRecoveryLink();
+if (openedFromRecoveryLink) rememberRecovery();
 
 const AuthContext = createContext();
 
@@ -25,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const initialRole = initialUserData ? getEffectiveRole(initialUserData.user_metadata?.role, initialUserData) : getEffectiveRole();
   const getInitialForceResetMode = () => {
     if (typeof window === 'undefined') return false;
-    return window.location.hash?.includes('type=recovery');
+    return openedFromRecoveryLink || hasRememberedRecovery();
   };
   
   // Get current authenticated user state - only use localStorage in dev mode
@@ -66,7 +71,8 @@ export const AuthProvider = ({ children }) => {
       setOnboardingCompleted(false);
       setIsAuthenticated(false);
       setForceResetMode(false);
-      
+      forgetRecovery();
+
       // Clear all auth data from localStorage (always clear to ensure clean state)
       localStorage.removeItem('trashdrop_authenticated');
       localStorage.removeItem('trashdrop_session_active');
@@ -111,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleHashChange = () => {
       if (window.location.hash?.includes('type=recovery')) {
+        rememberRecovery();
         setForceResetMode(true);
       }
     };
@@ -226,6 +233,7 @@ export const AuthProvider = ({ children }) => {
 
         if (event === 'PASSWORD_RECOVERY') {
           logger.log('AuthContext: Password recovery flow detected');
+          rememberRecovery();
           setForceResetMode(true);
         }
 
@@ -376,7 +384,10 @@ export const AuthProvider = ({ children }) => {
     authInitialized,
     refreshAuthState,
     forceResetMode,
-    clearForceResetMode: () => setForceResetMode(false)
+    clearForceResetMode: () => {
+      forgetRecovery();
+      setForceResetMode(false);
+    }
   };
 
 

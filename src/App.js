@@ -62,7 +62,7 @@ const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 // Protected route component
 // `section` is who may open the area; `capability` narrows a single page inside it.
 const ProtectedRoute = ({ children, section, capability }) => {
-  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading } = useAuth();
+  const { isAuthenticated, loading, onboardingCompleted, authInitialized, role, user, accessLoading, forceResetMode } = useAuth();
   const currentPath = window.location.pathname;
   
   logger.log('ProtectedRoute check:', { 
@@ -91,7 +91,12 @@ const ProtectedRoute = ({ children, section, capability }) => {
     logger.log('ProtectedRoute: Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
-  
+
+  // A reset link signs the person in, but the new password has to come first
+  if (forceResetMode) {
+    return <Navigate to="/reset-password" replace />;
+  }
+
   // Check onboarding status
   const localOnboardingCompleted = localStorage.getItem('trashdrop_onboarding_completed') === 'true';
   const effectiveOnboardingStatus = onboardingCompleted || localOnboardingCompleted;
