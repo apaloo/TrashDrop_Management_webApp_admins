@@ -48,8 +48,20 @@ test('describes a digital bin and a bag pickup', () => {
 
 test('customer-typed text cannot inject HTML or a second header line', () => {
   const email = buildEmail({ ...bin, address: '<img src=x>\r\nBcc: a@b.example' });
-  assert.ok(!email.html.includes('<img'));
+  assert.ok(!email.html.includes('<img src=x>'));
+  assert.ok(email.html.includes('&lt;img src=x&gt;'));
   assert.ok(!/[\r\n]/.test(email.subject));
+});
+
+test('uses the portal theme and marks urgent requests', () => {
+  const html = buildEmail(bin).html;
+  for (const token of ['#0a0f0a', '#1b6e35', '#f6f8f4', 'DM Sans', 'icon-192x192.png']) {
+    assert.ok(html.includes(token), token);
+  }
+  assert.ok(html.includes('Digital bin'));
+  assert.ok(!html.includes('>Urgent<'));
+  assert.ok(buildEmail({ ...bin, is_urgent: true }).html.includes('>Urgent<'));
+  assert.match(buildEmail(bin).text, /Waste type: General/);
 });
 
 test('rejects a missing or wrong secret without reading or sending', async () => {
