@@ -5,6 +5,27 @@ import { useAuth } from '../context/AuthContext';
 import logger from '../utils/logger';
 import AuthShell, { AUTH, AuthDivider } from '../components/auth/AuthShell';
 
+// What went wrong, in words a person can act on. No emoji or "Login failed:"
+// prefix: the alert's icon and colour already say it failed.
+const loginProblem = (err) => {
+  const message = err?.message || '';
+  if (message.includes('Email not confirmed')) {
+    return {
+      kind: 'warning',
+      title: 'Verify your email to sign in',
+      detail: 'Open the link we sent to your inbox. Check spam if you can’t find it.'
+    };
+  }
+  if (message.includes('credentials') || message.includes('Invalid login')) {
+    return {
+      kind: 'error',
+      title: 'Email or password is incorrect',
+      detail: 'Check both and try again, or reset your password. New account? Verify your email first.'
+    };
+  }
+  return { kind: 'error', title: 'Couldn’t sign you in', detail: message || 'Please try again.' };
+};
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -97,15 +118,7 @@ const Login = () => {
       
     } catch (err) {
       console.error('Login error details:', err);
-      if (err.message && err.message.includes('Email not confirmed')) {
-        setError('⚠️ Email Verification Required: Please check your email inbox and click the verification link we sent you. If you cannot find it, check your spam folder or contact support.');
-      } else if (err.message && err.message.includes('credentials')) {
-        setError('❌ Login Failed: Invalid email or password. If you just signed up, please verify your email first by clicking the link sent to your inbox.');
-      } else if (err.message && err.message.includes('Invalid login')) {
-        setError('❌ Login Failed: Invalid credentials. If you recently created an account, please verify your email address first by clicking the verification link sent to your inbox.');
-      } else {
-        setError(err.message || 'Failed to sign in. Please try again.');
-      }
+      setError(loginProblem(err));
     } finally {
       setLoading(false);
     }
@@ -114,9 +127,12 @@ const Login = () => {
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to manage your waste collection operations">
       {error && (
-        <div role="alert" className={`${AUTH.alertError} flex`}>
-          <i className="fas fa-exclamation-circle mt-0.5" aria-hidden="true"></i>
-          <p className="ml-3">{error}</p>
+        <div role="alert" className={`${error.kind === 'warning' ? AUTH.alertWarning : AUTH.alertError} flex`}>
+          <i className={`fas ${error.kind === 'warning' ? 'fa-envelope' : 'fa-exclamation-circle'} mt-0.5`} aria-hidden="true"></i>
+          <div className="ml-3">
+            <p className="font-semibold">{error.title}</p>
+            {error.detail && <p className="mt-1">{error.detail}</p>}
+          </div>
         </div>
       )}
 
