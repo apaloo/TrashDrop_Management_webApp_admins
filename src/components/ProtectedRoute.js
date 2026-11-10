@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children, section, capability }) => {
 
   // The setup form is optional and must never re-ask an account that is already set up
   if (isSetupForm && isAccountSetUp(role, access)) {
-    return <Navigate to={landingPathFor(role)} replace />;
+    return <Navigate key={location.key} to={landingPathFor(role)} replace />;
   }
 
   // A role without access goes to its own starting page, not to a page it cannot open either
