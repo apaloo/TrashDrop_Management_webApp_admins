@@ -4,7 +4,8 @@ import { updateUserMetadata } from '../utils/auth';
 import CompanyInfoStep from '../components/onboarding/CompanyInfoStep';
 import UserPreferencesStep from '../components/onboarding/UserPreferencesStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
-import { deriveRoleForUser } from '../constants/accessControl';
+import { deriveRoleForUser, getEffectiveRole } from '../constants/accessControl';
+import { landingPathFor } from '../lib/permissions';
 import { requestAccountRole } from '../services/accountRoleService';
 import { useAuth } from '../context/AuthContext';
 
@@ -110,6 +111,7 @@ const Onboarding = () => {
       if (updateError) throw updateError;
 
       // Record the access this company type asks for (needs approval above User)
+      let freshAccess = null;
       try {
         await requestAccountRole({
           companyType: formData.companyType,
@@ -118,7 +120,7 @@ const Onboarding = () => {
           district: formData.accountDetails?.district,
           details: formData.accountDetails?.details,
         });
-        await refreshAccess?.();
+        freshAccess = await refreshAccess?.();
       } catch (accessError) {
         console.warn('Onboarding: access request not saved (the account roles update may not be in the database yet)', accessError);
       }
@@ -132,8 +134,9 @@ const Onboarding = () => {
       // Remove the temporary onboarding user data
       localStorage.removeItem('trashdrop_onboarding_user');
       
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // The account's own starting page (a request above User waits for approval,
+      // so this is usually Settings; /dashboard is only for Admin and Manager)
+      navigate(landingPathFor(getEffectiveRole(freshAccess?.role || 'user', user)));
     } catch (err) {
       setError('Failed to complete onboarding. Please try again.');
       console.error('Onboarding error:', err);

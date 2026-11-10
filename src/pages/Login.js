@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { signIn } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import logger from '../utils/logger';
@@ -34,7 +34,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  const navigate = useNavigate();
   const { refreshAuthState } = useAuth();
   
   useEffect(() => {
@@ -105,16 +104,12 @@ const Login = () => {
         // Explicitly refresh the auth context state
         await refreshAuthState();
         
-        logger.log('Auth state refreshed, redirecting to dashboard...');
-        // Use a slightly longer timeout to ensure state updates are processed
-        // and context values have propagated to components
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 300);
+        // The login page's PublicRoute sends the account to its own starting
+        // page once its access level is known. Navigating here as well sent
+        // every account to /dashboard a second time, which most roles can't open.
+        logger.log('Auth state refreshed; PublicRoute redirects to the starting page');
       } else {
-        // If no session token but auth succeeded, still try to redirect
-        logger.log('No session token found, but auth succeeded. Redirecting anyway.');
-        navigate('/dashboard');
+        logger.log('No session token found after sign-in');
       }
       
     } catch (err) {

@@ -13,6 +13,9 @@ import logger from './utils/logger';
 import { SECTIONS } from './constants/accessControl';
 import PendingInviteRedirect from './components/PendingInviteRedirect';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import PageErrorBoundary from './components/PageErrorBoundary';
+import { landingPathFor } from './lib/permissions';
 import HomePage from './pages/HomePageNew';
 
 // Public marketing pages
@@ -59,40 +62,6 @@ const CollectorsManagement = lazy(() => import('./pages/CollectorsManagement'));
 const AlertsManagement = lazy(() => import('./pages/AlertsManagement'));
 const LogsManagement = lazy(() => import('./pages/LogsManagement'));
 
-// Public route - redirects to dashboard if already authenticated
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading, authInitialized, forceResetMode } = useAuth();
-  const currentPath = window.location.pathname;
-  
-  logger.log('PublicRoute check:', { 
-    path: currentPath,
-    isAuthenticated,
-    loading,
-    authInitialized
-  });
-  
-  // Don't redirect until auth is fully initialized
-  if (loading || !authInitialized) {
-    logger.log('PublicRoute: Auth not initialized or loading, showing spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-      </div>
-    );
-  }
-  
-  if (isAuthenticated && !forceResetMode) {
-    logger.log('PublicRoute: Already authenticated, redirecting to dashboard');
-    // Make sure we only redirect once after authenticated state is confirmed
-    if (currentPath !== '/dashboard') {
-      return <Navigate to="/dashboard" replace />;
-    }
-  }
-  
-  logger.log('PublicRoute: User not authenticated, rendering public content');
-  return children;
-};
-
 // Auth and admin routes must stay out of search results.
 // Keep in sync with the X-Robots-Tag headers in netlify.toml.
 const NOINDEX_PATHS = [
@@ -111,6 +80,18 @@ const RobotsMeta = () => {
     meta.setAttribute('content', noindex ? 'noindex' : 'index, follow');
   }, [pathname]);
   return null;
+};
+
+// A page that fails to draw or download shows a message (or reloads once for a
+// new version) instead of blanking the app; moving to another page clears it.
+const RoutedErrorBoundary = ({ children }) => {
+  const location = useLocation();
+  const { isAuthenticated, role } = useAuth();
+  return (
+    <PageErrorBoundary resetKey={location.key} homePath={isAuthenticated ? landingPathFor(role) : '/'}>
+      {children}
+    </PageErrorBoundary>
+  );
 };
 
 function App() {
@@ -133,12 +114,14 @@ function App() {
   }, []);
   
   return (
+    <PageErrorBoundary>
     <AuthProvider>
       <ThemeProvider>
         <Router>
           <RobotsMeta />
           <PendingInviteRedirect />
           <Layout>
+            <RoutedErrorBoundary>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="flex flex-col items-center space-y-4">
@@ -352,10 +335,12 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
+            </RoutedErrorBoundary>
           </Layout>
         </Router>
       </ThemeProvider>
     </AuthProvider>
+    </PageErrorBoundary>
   );
 }
 
