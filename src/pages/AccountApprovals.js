@@ -172,7 +172,7 @@ const AccountApprovals = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-td-sage mt-3">Admins are the whitelisted TrashDrop emails and aren't listed as requests. Every decision is recorded in Logs and the person gets a notification.</p>
+      <p className="text-xs text-td-sage mt-3">Admins are the whitelisted TrashDrop emails and aren't listed as requests. Every decision is recorded in Logs, and the person gets a notification and an email.</p>
 
       {dialog && (
         <ConfirmDialog

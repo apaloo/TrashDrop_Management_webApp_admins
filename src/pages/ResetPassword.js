@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { updatePassword, signOut } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import AuthShell, { AUTH } from '../components/auth/AuthShell';
+import { passwordProblem } from '../utils/passwordRules';
 
 const INVALID_LINK = 'This reset link is invalid or has expired. Please request a new one and open it in the browser you requested it from.';
 
@@ -13,7 +14,7 @@ const ResetPassword = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const { clearForceResetMode, isAuthenticated, forceResetMode } = useAuth();
+  const { clearForceResetMode, isAuthenticated, forceResetMode, user } = useAuth();
   const linkIsValid = isAuthenticated && forceResetMode;
 
   // A working link has signed the person in for this reset. Without that
@@ -36,8 +37,9 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    const weak = passwordProblem(password, { email: user?.email, ...(user?.user_metadata || {}) });
+    if (weak) {
+      setError(weak);
       return;
     }
 

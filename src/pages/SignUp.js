@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { signUp } from '../utils/auth';
 import { deriveRoleForUser, COMPANY_TYPES, ROLES } from '../constants/accessControl';
 import { validateAccountDetails } from '../constants/accountTypeFields';
@@ -8,6 +8,7 @@ import AuthShell, { AUTH, AuthDivider } from '../components/auth/AuthShell';
 import { getInviteInfo } from '../services/teamService';
 import { isInviteToken, rememberInvite, forgetInvite, INVITE_PROBLEMS } from '../utils/teamInvite';
 import { Fragment } from 'react';
+import { passwordProblem, passwordScore } from '../utils/passwordRules';
 
 // Only a real duplicate says "account exists"; other problems say what happened
 export const signUpProblem = (err) => {
@@ -52,8 +53,10 @@ const SignUp = () => {
   const [success, setSuccess] = useState(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [passwordStrength, setPasswordStrength] = useState(0); // 0-4 scale
-  const navigate = useNavigate();
+  // 0-4 scale; a password the rule refuses never shows better than Weak
+  const passwordStrength = passwordProblem(password, { email, firstName, lastName })
+    ? Math.min(passwordScore(password), 1)
+    : passwordScore(password);
   
   // Password strength criteria
   const strengthLabels = ['Very Weak', 'Weak', 'Medium', 'Strong', 'Very Strong'];
@@ -69,28 +72,11 @@ const SignUp = () => {
     return () => { live = false; };
   }, [inviteToken]);
 
+  // Once the account is made, the form is replaced by the next step. Bring it
+  // into view: on a phone the person is at the bottom, by the button.
   useEffect(() => {
-    // Check password strength whenever password changes
-    checkPasswordStrength(password);
-  }, [password]);
-
-  const checkPasswordStrength = (pass) => {
-    let score = 0;
-    
-    // Length check
-    if (pass.length >= 8) score += 1;
-    
-    // Contains uppercase
-    if (/[A-Z]/.test(pass)) score += 1;
-    
-    // Contains number
-    if (/[0-9]/.test(pass)) score += 1;
-    
-    // Contains special character
-    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
-    
-    setPasswordStrength(score);
-  };
+    if (success) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [success]);
 
   const validateForm = () => {
     const errors = {};
@@ -104,13 +90,8 @@ const SignUp = () => {
       errors.email = 'Email is invalid';
     }
     
-    if (!password) {
-      errors.password = 'Password is required';
-    } else if (password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
-    } else if (passwordStrength < 2) {
-      errors.password = 'Password is too weak';
-    }
+    const weak = passwordProblem(password, { email, firstName, lastName });
+    if (weak) errors.password = weak;
     
     if (!confirmPassword) {
       errors.confirmPassword = 'Please confirm your password';
@@ -158,8 +139,7 @@ const SignUp = () => {
           },
         });
         if (error) throw error;
-        setSuccess(`✅ Account created! Check your email inbox and click the verification link, then sign in to join ${invite?.group_name || 'the group'}. Check your spam folder if you don't see it.`);
-        setTimeout(() => navigate('/login'), 5000);
+        setSuccess({ email, next: `Then sign in to join ${invite?.group_name || 'the group'}.` });
         return;
       }
 
@@ -188,14 +168,14 @@ const SignUp = () => {
       
       if (error) throw error;
       
-      // Show success message about email verification
       setError(null);
-      setSuccess('✅ Account created successfully! Please check your email inbox and click the verification link before logging in. Check your spam folder if you don\'t see it.');
-      
-      // Wait 5 seconds then redirect to login
-      setTimeout(() => {
-        navigate('/login');
-      }, 5000);
+      const needsApproval = COMPANY_TYPES.find(t => t.value === companyType)?.role !== ROLES.USER;
+      setSuccess({
+        email,
+        next: needsApproval
+          ? 'Then sign in. The TrashDrop team will review your account type, and we\'ll email you when it\'s approved.'
+          : 'Then sign in.',
+      });
     } catch (err) {
       setSuccess(null);
       const problem = signUpProblem(err);
@@ -270,16 +250,24 @@ const SignUp = () => {
             </div>
           )}
           
-          {success && (
-            <div role="status" className={`${AUTH.alertSuccess} flex`}>
-              <i className="fas fa-check-circle mt-0.5" aria-hidden="true"></i>
-              <div className="ml-3">
-                <p className="font-medium">{success}</p>
-                <p className="mt-1">Redirecting to login page in 5 seconds...</p>
+          {success ? (
+            <div role="status" data-testid="signup-check-email" className="space-y-5">
+              <div className={`${AUTH.alertSuccess} flex`}>
+                <i className="fas fa-envelope-open-text mt-0.5" aria-hidden="true"></i>
+                <div className="ml-3">
+                  <p className="font-medium">Account created. Check your email to finish.</p>
+                  <p className="mt-1">
+                    We sent a verification link to <strong className="break-all">{success.email}</strong>. {success.next}
+                  </p>
+                  <p className="mt-1">Not there after a few minutes? Check your spam or junk folder.</p>
+                </div>
               </div>
+              <Link to="/login" className={`${AUTH.primary} w-full`}>
+                <i className="fas fa-sign-in-alt" aria-hidden="true"></i>
+                Go to sign in
+              </Link>
             </div>
-          )}
-          
+          ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -518,6 +506,7 @@ const SignUp = () => {
               )}
             </div>
           </form>
+          )}
       </AuthShell>
     </>
   );
