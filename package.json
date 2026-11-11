@@ -43,6 +43,7 @@
     "postbuild": "node scripts/prerender.js",
     "build:netlify": "npm install --legacy-peer-deps && npm run build",
     "test": "react-scripts test",
+    "test:ci": "node scripts/ci/run-tests.js",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",

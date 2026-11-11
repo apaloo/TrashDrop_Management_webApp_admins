@@ -1,0 +1,76 @@
+name: CI
+
+# Every pull request: lint the changed files, run the unit tests (including
+# the protected fee tests), test the Edge Functions, build.
+# Netlify builds and deploys the site itself; this workflow only checks.
+# Process: engineering/policies/change-and-release.md in TrashDrop-Mobile-User-Domestic.
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # lint-changed compares against the base branch
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: 1
+        run: npm ci --legacy-peer-deps
+
+      # New and edited files must be lint-clean; the backlog is reported only.
+      - name: Lint changed files
+        if: github.event_name == 'pull_request'
+        run: scripts/ci/lint-changed.sh "${{ github.event.pull_request.base.sha }}"
+
+      - name: Lint backlog (report only)
+        continue-on-error: true
+        run: |
+          npx eslint src --ext .js,.jsx --quiet -f json -o eslint-report.json || true
+          node -e 'const r=require("./eslint-report.json");let e=0;for(const f of r)e+=f.errorCount;console.log(`ESLint errors in src: ${e}`);require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,`### Lint backlog\n${e} errors in src (goal: 0)\n`)'
+
+      # Every Jest suite except scripts/ci/known-failing-tests.txt (may only
+      # shrink; never the protected fee tests in pickupRequestUtils.test.js).
+      - name: Unit tests
+        run: npm run test:ci
+
+      # react-scripts directly, so the post-build pre-render (headless Chrome)
+      # doesn't run in CI; Netlify still runs the full `npm run build`.
+      - name: Build
+        env:
+          CI: false
+          REACT_APP_SUPABASE_URL: https://ci-placeholder.supabase.co
+          REACT_APP_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
+        run: npx react-scripts build
+
+  edge-functions:
+    name: Edge Function tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # loads the TypeScript handlers directly
+      - name: Handler tests
+        run: |
+          shopt -s nullglob
+          files=(supabase/functions/*/*.test.mjs)
+          node --experimental-strip-types --test "${files[@]}"

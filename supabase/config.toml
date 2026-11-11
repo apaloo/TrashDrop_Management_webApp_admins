@@ -1,0 +1,14 @@
+# Settings the Supabase CLI applies when deploying Edge Functions
+# (.github/workflows/deploy-functions.yml). They match what is deployed.
+
+[functions.pickup-email-alerts]
+# Called by pg_cron, which sends no user token; the function checks the
+# x-cron-secret header (td_pickup_email_secret_ok) and fails closed
+verify_jwt = false
+
+[functions.access-decision-emails]
+# Called by pg_cron; checks x-cron-secret (td_access_email_secret_ok)
+verify_jwt = false
+
+[functions.facebook-feed]
+verify_jwt = true
