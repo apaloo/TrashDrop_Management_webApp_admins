@@ -28,9 +28,10 @@ const Layout = ({ children }) => {
   // Get user's first name from metadata for header greeting
   const firstName = user?.user_metadata?.firstName || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
   
-  // Check localStorage as a fallback for authentication state
-  const localAuthState = localStorage.getItem('trashdrop_authenticated') === 'true';
-  const effectiveAuthState = isAuthenticated || localAuthState;
+  // The dashboard frame follows the real sign-in state only. A leftover
+  // trashdrop_authenticated flag in localStorage used to show it to signed-out
+  // visitors; dev mode already turns that flag into isAuthenticated.
+  const effectiveAuthState = isAuthenticated;
   
   // Handle page transitions - show loader when navigating between pages
   useEffect(() => {

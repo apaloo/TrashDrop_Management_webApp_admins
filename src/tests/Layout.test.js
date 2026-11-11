@@ -55,6 +55,13 @@ describe('Layout', () => {
     expect(screen.queryByTestId('navbar')).not.toBeInTheDocument();
   });
 
+  test('a leftover sign-in flag in the browser does not show the frame', () => {
+    localStorage.setItem('trashdrop_authenticated', 'true');
+    renderAt('/dashboard', signedOut);
+    expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('navbar')).not.toBeInTheDocument();
+  });
+
   test('while auth is loading the page waits behind a spinner', () => {
     renderAt('/dashboard', { ...signedOut, loading: true });
     expect(screen.queryByTestId('content')).not.toBeInTheDocument();
