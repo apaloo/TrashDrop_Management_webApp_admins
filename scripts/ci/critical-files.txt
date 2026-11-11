@@ -1,0 +1,15 @@
+# Files behind the critical workflows, staff access and the protected fee
+# checks (CLAUDE.md). CI shows their test coverage on every pull request
+# (scripts/ci/coverage-summary.mjs). Add a file when it starts carrying
+# money, access or a critical workflow.
+src/utils/pickupRequestUtils.js
+src/context/AuthContext.js
+src/components/ProtectedRoute.js
+src/services/accountRoleService.js
+src/services/digitalBinService.js
+src/services/pickupRequestService.js
+src/services/pickupAdminService.js
+src/services/dumpingAreaService.js
+src/utils/databaseUtils.js
+src/services/bagAdminService.js
+src/services/rewardRedemptionService.js
