@@ -9,6 +9,7 @@ src/services/accountRoleService.js
 src/services/digitalBinService.js
 src/services/pickupRequestService.js
 src/services/pickupAdminService.js
-src/services/illegalDumpingService.js
+src/services/dumpingAreaService.js
+src/utils/databaseUtils.js
 src/services/bagAdminService.js
 src/services/rewardRedemptionService.js
