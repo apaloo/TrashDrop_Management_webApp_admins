@@ -5,7 +5,3 @@
 # Rules: this list may only shrink. Adding a line needs the Technical Lead's
 # review (CODEOWNERS). Never list pickupRequestUtils.test.js (protected fee
 # checks, see CLAUDE.md). When you fix a suite, delete its line in the same PR.
-src/tests/AuthContext.test.js
-src/tests/Layout.test.js
-src/__tests__/LiveMap.test.js
-src/App.test.js

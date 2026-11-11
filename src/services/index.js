@@ -5,15 +5,27 @@ import logger from '../utils/logger';
  */
 
 // Core Infrastructure Services
-export { default as realtimeManager } from './realtimeManager';
-export { default as performanceMonitor } from './performanceMonitor';
-export { default as systemInit } from './systemInit';
+import realtimeManager from './realtimeManager';
+import performanceMonitor from './performanceMonitor';
+import systemInit from './systemInit';
 
 // Business Logic Services
-export { default as pickupRequestService } from './pickupRequestService';
-export { default as digitalBinService } from './digitalBinService';
-export { default as qrCodeService } from './qrCodeService';
-export { default as collectorSessionService } from './collectorSessionService';
+import pickupRequestService from './pickupRequestService';
+import digitalBinService from './digitalBinService';
+import qrCodeService from './qrCodeService';
+import collectorSessionService from './collectorSessionService';
+
+// Imported above (not re-exported with `export … from`) so the helpers
+// below can use them: a re-export creates no local name
+export {
+  realtimeManager,
+  performanceMonitor,
+  systemInit,
+  pickupRequestService,
+  digitalBinService,
+  qrCodeService,
+  collectorSessionService
+};
 
 // Phase 3 Services
 export { default as illegalDumpingService } from './illegalDumpingService';
