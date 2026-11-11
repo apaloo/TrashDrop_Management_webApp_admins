@@ -1,4 +1,5 @@
 import React from 'react';
+import { captureError } from '../utils/monitoring';
 
 /**
  * Keeps a failed page from blanking the whole app.
@@ -40,9 +41,12 @@ class PageErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     console.error('PageErrorBoundary caught an error', error, info?.componentStack);
-    if (isChunkLoadError(error) && reloadOnceForNewVersion(this.props.reload)) {
-      this.setState({ reloading: true });
+    if (isChunkLoadError(error)) {
+      // Expected after a deploy: reload onto the new files, don't report
+      if (reloadOnceForNewVersion(this.props.reload)) this.setState({ reloading: true });
+      return;
     }
+    captureError(error, { componentStack: info?.componentStack, tags: { boundary: 'page' } });
   }
 
   componentDidUpdate(prevProps) {
