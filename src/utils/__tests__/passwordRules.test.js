@@ -16,9 +16,7 @@ describe('passwordProblem', () => {
     ['bluegreenho', /12 or more characters/],
     ['bluegreen7', /mix in at least two/],
   ])('refuses %p', (password, expected) => {
-    const problem = passwordProblem(password, me);
-    if (expected instanceof RegExp) expect(problem).toMatch(expected);
-    else expect(problem).toBe(expected);
+    expect(passwordProblem(password, me)).toMatch(expected);
   });
 
   it.each(['Blue-house7', 'Kente9cloth', 'bluegreenhouse', 'slow river under the bridge', 'Strong-pass1'])('accepts %p', (password) => {

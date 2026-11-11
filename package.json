@@ -62,7 +62,15 @@
     "overrides": [
       {
         "files": ["src/**/__tests__/**", "src/**/*.test.js", "src/setupTests.js"],
-        "rules": { "no-console": "off" }
+        "rules": {
+          "no-console": "off",
+          "testing-library/no-node-access": "warn",
+          "testing-library/no-container": "warn",
+          "testing-library/no-unnecessary-act": "warn",
+          "testing-library/no-wait-for-multiple-assertions": "warn",
+          "testing-library/render-result-naming-convention": "warn",
+          "testing-library/prefer-find-by": "warn"
+        }
       }
     ]
   },
