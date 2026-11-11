@@ -6,7 +6,9 @@
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
-  NODE_VERSION = "16.20.2"  # Using an even more stable Node version compatible with React testing libraries
+  # Node 20 matches CI. Node 16 is end of life (TD29); the build and the
+  # prerender step (puppeteer-core 21, @sparticuz/chromium 121) were checked on 20.
+  NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "true"  # This is used by npm install/prepare script for Husky skip
   # The Supabase project URL is public (it ships in the JS bundle), so a
