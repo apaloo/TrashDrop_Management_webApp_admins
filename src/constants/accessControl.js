@@ -129,10 +129,10 @@ export const SECTION_PERMISSIONS = {
   // Every account side by side, and any account's page (performance_overview()
   // and my_performance(account) are staff only in the database)
   [SECTIONS.ACCOUNT_PERFORMANCE]: rolesWith('users.manage'),
-  // A volunteer group's team: the group's own account and its members (who
-  // work as volunteers through the group; team_* functions check who may do
-  // what, 20261110)
-  [SECTIONS.TEAM]: [ROLES.VOLUNTEER],
+  // A volunteer group's or assembly's team: its own account and its members
+  // (who work with the group's role and area; team_* functions check who may
+  // do what, 20261110 and 20261116)
+  [SECTIONS.TEAM]: [ROLES.VOLUNTEER, ROLES.AUTHORITY],
   // Airtime and data rewards households redeemed, sent by staff
   [SECTIONS.REWARDS]: rolesWith('rewards.manage')
 };

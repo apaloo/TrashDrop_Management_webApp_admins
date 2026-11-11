@@ -1,7 +1,9 @@
 /**
- * Volunteer group teams: invite links, members and each member's steps.
+ * Teams of volunteer groups and assemblies (MMDAs): invite links, members and
+ * each member's steps.
  * Everything goes through the team_* database functions
- * (supabase/migrations/20261110_team_members.sql); the tables are closed.
+ * (supabase/migrations/20261110_team_members.sql, 20261116_mmda_teams.sql);
+ * the tables are closed.
  * Those functions raise messages meant for people ("This invite link has
  * expired. Ask the group for a new one."), so those are shown as they are.
  */
@@ -21,7 +23,7 @@ const call = async (fn, args, fallback) => {
   return data;
 };
 
-/** What a link is for (works before signing in): { valid, reason, group_name, region, team_role } */
+/** What a link is for (works before signing in): { valid, reason, group_name, group_type, region, district, team_role } */
 export const getInviteInfo = (token) => call('team_invite_info', { p_token: token }, 'Couldn’t check this invite link. Try again.');
 export const acceptInvite = (token) => call('team_accept_invite', { p_token: token }, 'Couldn’t join the group. Try again.');
 

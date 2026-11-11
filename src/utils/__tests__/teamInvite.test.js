@@ -1,4 +1,4 @@
-import { inviteUrl, whatsappUrl, isInviteToken, rememberInvite, pendingInvite, forgetInvite } from '../teamInvite';
+import { inviteUrl, whatsappUrl, isInviteToken, rememberInvite, pendingInvite, forgetInvite, teamKind } from '../teamInvite';
 
 const token = 'a'.repeat(32) + '0123456789abcdef0123456789abcdef';
 
@@ -20,4 +20,11 @@ it('only remembers real invite tokens, until forgotten', () => {
   expect(pendingInvite()).toBe(token);
   forgetInvite();
   expect(pendingInvite()).toBeNull();
+});
+
+it('describes a team by who owns it: an assembly (MMDA) or a volunteer group', () => {
+  expect(teamKind('authority').withArticle).toBe('an assembly (MMDA)');
+  expect(teamKind('volunteer').withArticle).toBe('a volunteer group');
+  // Links checked before group_type existed still read as a volunteer group
+  expect(teamKind(undefined).withArticle).toBe('a volunteer group');
 });

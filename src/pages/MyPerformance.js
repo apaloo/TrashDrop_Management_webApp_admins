@@ -122,7 +122,7 @@ const MemberTable = ({ days }) => {
         </tbody>
       </table>
       {rows.length <= 1 && (
-        <p className="px-5 py-3 text-sm text-td-sage" data-testid="no-members-yet">No members yet. <Link to="/team" className="text-green-700 hover:underline">Invite your group</Link> so each person signs in with their own account.</p>
+        <p className="px-5 py-3 text-sm text-td-sage" data-testid="no-members-yet">No members yet. <Link to="/team" className="text-green-700 hover:underline">Invite your team</Link> so each person signs in with their own account.</p>
       )}
     </section>
   );
@@ -235,7 +235,7 @@ const MyPerformance = () => {
           <p className="text-xs text-td-sage mt-4">
             Ranks compare approved {kind?.many || 'accounts'} in {area} over the same {days} days; other accounts’ numbers stay private.
           </p>
-          {data.role === 'volunteer' && !accountId && <MemberTable days={days} />}
+          {['volunteer', 'authority'].includes(data.role) && !accountId && <MemberTable days={days} />}
         </>
       )}
     </div>
