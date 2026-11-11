@@ -45,3 +45,4 @@ env.development
 *.sql
 !database_schema.sql
 !supabase/**/*.sql
+.known-failing-results.json
