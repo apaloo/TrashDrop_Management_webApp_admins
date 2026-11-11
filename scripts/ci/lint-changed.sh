@@ -7,4 +7,5 @@ base="${1:?usage: lint-changed.sh <base-sha>}"
 mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base"...HEAD -- 'src/*.js' 'src/*.jsx')
 if [ "${#files[@]}" -eq 0 ]; then echo "No JavaScript files changed."; exit 0; fi
 printf 'Linting %s changed file(s):\n' "${#files[@]}"; printf '  %s\n' "${files[@]}"
-npx eslint --no-warn-ignored --max-warnings=-1 "${files[@]}"
+# ESLint 8 (react-scripts): --no-warn-ignored is ESLint 9 only
+npx eslint --max-warnings=-1 "${files[@]}"
