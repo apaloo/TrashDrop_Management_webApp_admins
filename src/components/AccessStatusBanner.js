@@ -12,7 +12,7 @@ const AccessStatusBanner = () => {
   if (access.status === 'pending') {
     return (
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status" data-testid="access-pending">
-        <strong>{wanted} access is waiting for approval.</strong> You can use {current} features until the TrashDrop team approves it; you'll get a notification.
+        <strong>{wanted} access is waiting for approval.</strong> You can use {current} features until the TrashDrop team approves it. We'll email you when it's decided.
       </div>
     );
   }
