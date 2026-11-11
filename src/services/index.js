@@ -28,7 +28,6 @@ export {
 };
 
 // Phase 3 Services
-export { default as illegalDumpingService } from './illegalDumpingService';
 export { default as dashboardAnalyticsService } from './dashboardAnalyticsService';
 export { default as alertsNotificationService } from './alertsNotificationService';
 export { default as auditLoggingService } from './auditLoggingService';
