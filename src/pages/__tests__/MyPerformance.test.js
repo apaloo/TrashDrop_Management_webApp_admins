@@ -125,9 +125,25 @@ it('shows a volunteer group each member’s part in its numbers', async () => {
   expect(screen.queryByTestId('no-members-yet')).not.toBeInTheDocument();
 });
 
-it('has no members table for MMDAs or when an admin views a group', async () => {
-  fetchMyPerformance.mockResolvedValue(page([completed], { role: 'authority' }));
+it('shows an MMDA each staff member’s part in its numbers too', async () => {
+  memberStats.mockResolvedValue([
+    { member_id: 'g1', is_group: true, name: 'Group account', verified: 2, assigned: 1, claimed: 0, completed: 0, marked_cleaned: 0 },
+    { member_id: 'm2', is_group: false, name: 'Esi Owusu', verified: 4, assigned: 2, claimed: 0, completed: 0, marked_cleaned: 0 },
+  ]);
+  fetchMyPerformance.mockResolvedValue(page([completed], { role: 'authority', name: 'Ga North' }));
   renderPage();
-  await screen.findByTestId('metric-vol_cleanups_completed');
-  expect(memberStats).not.toHaveBeenCalled();
+  const rows = await screen.findAllByTestId('member-stats-row');
+  expect(rows).toHaveLength(2);
+  expect(rows[1]).toHaveTextContent('Esi Owusu');
+});
+
+it('has no members table when an admin views a group or an MMDA', async () => {
+  for (const role of ['volunteer', 'authority']) {
+    memberStats.mockClear();
+    fetchMyPerformance.mockResolvedValue(page([completed], { role }));
+    const { unmount } = renderPage('/performance/accounts/g1');
+    await screen.findByTestId('metric-vol_cleanups_completed');
+    expect(memberStats).not.toHaveBeenCalled();
+    unmount();
+  }
 });

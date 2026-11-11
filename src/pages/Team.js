@@ -112,7 +112,7 @@ const InvitePanel = ({ isOwner, groupName, onChanged, setNotice, setError }) => 
 };
 
 /**
- * A volunteer group's team: the group's own account and its group admins
+ * A volunteer group's or assembly's (MMDA's) team: its own account and its group admins
  * invite and manage members; every member sees who is in the group.
  */
 const Team = () => {
@@ -166,7 +166,7 @@ const Team = () => {
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="mr-auto">
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Team</h1>
-          <p className="text-td-sage">{team?.group_name || 'Your volunteer group'}{myRole ? ` · you are the ${TEAM_ROLE_LABELS[myRole].toLowerCase()}` : ''}</p>
+          <p className="text-td-sage">{team?.group_name || 'Your team'}{myRole ? ` · you are the ${TEAM_ROLE_LABELS[myRole].toLowerCase()}` : ''}</p>
         </div>
         {(myRole === 'member' || myRole === 'admin') && (
           <button type="button" onClick={leave} className="px-3 py-1.5 text-sm border border-td-border-strong rounded-md bg-white hover:bg-td-cream">Leave group</button>

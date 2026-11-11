@@ -7,7 +7,7 @@
 export const inviteUrl = (token, origin = window.location.origin) => `${origin}/join/${token}`;
 
 export const whatsappUrl = (groupName, url) =>
-  `https://wa.me/?text=${encodeURIComponent(`Join ${groupName || 'our volunteer group'} on TrashDrop: ${url}`)}`;
+  `https://wa.me/?text=${encodeURIComponent(`Join ${groupName || 'our team'} on TrashDrop: ${url}`)}`;
 
 const KEY = 'td_pending_invite';
 const TOKEN = /^[0-9a-f]{64}$/;
@@ -38,7 +38,25 @@ export const INVITE_PROBLEMS = {
   expired: 'This invite link has expired. Ask the group for a new one.',
   revoked: 'This invite link was cancelled. Ask the group for a new one.',
   used_up: 'This invite link has been used up. Ask the group for a new one.',
-  group_inactive: 'This group isn’t an approved volunteer group at the moment.',
+  group_inactive: 'This group isn’t approved on TrashDrop at the moment.',
 };
+
+/**
+ * How to describe a team by the kind of account that owns it
+ * (team_invite_info's group_type): a volunteer group or an assembly (MMDA).
+ */
+export const teamKind = (groupType) => (groupType === 'authority'
+  ? {
+    noun: 'assembly (MMDA)',
+    withArticle: 'an assembly (MMDA)',
+    fallbackName: 'an assembly',
+    duties: 'Members work on the assembly’s illegal dumping reports in its district (verify, assign and follow up cleanups) and see its performance.',
+  }
+  : {
+    noun: 'volunteer group',
+    withArticle: 'a volunteer group',
+    fallbackName: 'a volunteer group',
+    duties: 'Members verify and clean up illegal dumping reports with the group, and see the group’s performance.',
+  });
 
 export const TEAM_ROLE_LABELS = { owner: 'Group account', admin: 'Group admin', member: 'Member' };

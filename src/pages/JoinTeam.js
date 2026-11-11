@@ -5,7 +5,7 @@ import AuthShell, { AUTH } from '../components/auth/AuthShell';
 import { getInviteInfo, acceptInvite } from '../services/teamService';
 import { updateUserMetadata } from '../utils/auth';
 import {
-  isInviteToken, rememberInvite, forgetInvite, INVITE_PROBLEMS, TEAM_ROLE_LABELS,
+  isInviteToken, rememberInvite, forgetInvite, INVITE_PROBLEMS, TEAM_ROLE_LABELS, teamKind,
 } from '../utils/teamInvite';
 
 const Card = ({ children }) => (
@@ -13,7 +13,7 @@ const Card = ({ children }) => (
 );
 
 /**
- * Opening a volunteer group's invite link (/join/:token). Signed out: who the
+ * Opening a volunteer group's or assembly's invite link (/join/:token). Signed out: who the
  * group is, and sign up / sign in (the link is remembered for after).
  * Signed in: join with one click; someone who signed up through this link
  * joins straight away.
@@ -63,7 +63,9 @@ const JoinTeam = () => {
     }
   }, [token, dropInvite, refreshAccess, navigate, signedUpWithLink]);
 
-  const groupName = info?.group_name || 'a volunteer group';
+  const kind = teamKind(info?.group_type);
+  const groupName = info?.group_name || kind.fallbackName;
+  const area = [info?.district, info?.region].filter(Boolean).join(', ');
   const asRole = (TEAM_ROLE_LABELS[info?.team_role] || 'Member').toLowerCase();
   const alreadyIn = access?.team && access.team.groupName === info?.group_name && access.team.teamRole !== 'owner';
   const ready = info?.valid && isAuthenticated && authInitialized && !loading;
@@ -93,8 +95,8 @@ const JoinTeam = () => {
     <Card>
       <h1 className={AUTH.title}>Join {groupName}</h1>
       <p className="text-td-sage mt-2" data-testid="invite-line">
-        You’ve been invited as a {asRole}{info?.region ? ` of a volunteer group in ${info.region}` : ''}.
-        Members verify and clean up illegal dumping reports with the group, and see the group’s performance.
+        You’ve been invited as a {asRole} of {kind.withArticle}{area ? ` in ${area}` : ''}.
+        {' '}{kind.duties}
       </p>
 
       {error && <p role="alert" className={`${AUTH.alertError} mt-4`}>{error}</p>}

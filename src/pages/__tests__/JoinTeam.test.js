@@ -55,6 +55,19 @@ it('signed in: joins with one click, refreshes access and opens the team', async
   expect(pendingInvite()).toBeNull();
 });
 
+it('an MMDA\'s link says it is an assembly and names its district', async () => {
+  getInviteInfo.mockResolvedValue({
+    valid: true, group_name: 'Ga North Municipal Assembly', group_type: 'authority',
+    region: 'Greater Accra', district: 'Ga North Municipal', team_role: 'member',
+  });
+  renderAt({ isAuthenticated: false });
+  expect(await screen.findByRole('heading', { name: 'Join Ga North Municipal Assembly' })).toBeInTheDocument();
+  const line = screen.getByTestId('invite-line');
+  expect(line).toHaveTextContent('invited as a member of an assembly (MMDA) in Ga North Municipal, Greater Accra');
+  expect(line).toHaveTextContent('in its district');
+  expect(line).not.toHaveTextContent('volunteer');
+});
+
 it('shows why joining failed', async () => {
   acceptInvite.mockRejectedValue(new Error('You are already in another group. Leave it first.'));
   renderAt({ isAuthenticated: true });

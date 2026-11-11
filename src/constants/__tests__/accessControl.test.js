@@ -36,9 +36,9 @@ describe('sections', () => {
     ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.DASHBOARD, r)).toBe(false));
     expect(canAccessSection(SECTIONS.DASHBOARD, 'user', admin)).toBe(true);
   });
-  it('Team is for volunteer groups and their members (who work as volunteers)', () => {
-    expect(can(SECTIONS.TEAM, 'volunteer')).toBe(true);
-    ['user', 'media', 'manager', 'authority'].forEach(r => expect(can(SECTIONS.TEAM, r)).toBe(false));
+  it('Team is for volunteer groups and MMDAs, and their members (who work with the group\'s role)', () => {
+    ['volunteer', 'authority'].forEach(r => expect(can(SECTIONS.TEAM, r)).toBe(true));
+    ['user', 'media', 'manager'].forEach(r => expect(can(SECTIONS.TEAM, r)).toBe(false));
   });
   it('My Performance is for Volunteer groups and MMDAs; Account Performance is admin only', () => {
     ['volunteer', 'authority'].forEach(r => expect(can(SECTIONS.MY_PERFORMANCE, r)).toBe(true));

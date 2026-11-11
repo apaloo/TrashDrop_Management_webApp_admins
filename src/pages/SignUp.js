@@ -34,7 +34,7 @@ const SignUp = () => {
   // /signup?type=volunteer_group (links on /volunteers/, /media/) picks the account type
   const [searchParams] = useSearchParams();
   const typeFromLink = searchParams.get('type');
-  // /signup?invite=TOKEN (from a volunteer group's invite link): the group
+  // /signup?invite=TOKEN (from a volunteer group's or assembly's invite link): the group
   // already has the organisation and area details, so ask only for the person's own
   const inviteToken = isInviteToken(searchParams.get('invite')) ? searchParams.get('invite') : null;
   const [invite, setInvite] = useState(null);
@@ -231,7 +231,7 @@ const SignUp = () => {
 
       <AuthShell
         wide
-        title={joining ? `Join ${invite?.group_name || 'your volunteer group'}` : 'Create your account'}
+        title={joining ? `Join ${invite?.group_name || 'your team'}` : 'Create your account'}
         subtitleTestId="signup-subtitle"
         subtitle={joining
           ? 'Just your name, email and a password. You’ll work under the group’s account, so there’s nothing else to fill in.'
