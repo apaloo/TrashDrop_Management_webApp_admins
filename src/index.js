@@ -7,6 +7,10 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { initializeRealDataOnly } from './utils/forceRealDataConfig';
 import logger from './utils/logger';
+import { initMonitoring } from './utils/monitoring';
+
+// Error monitoring first, so start-up errors are caught (no-op without REACT_APP_SENTRY_DSN)
+initMonitoring();
 
 // Run DB validation silently in the background — does NOT block rendering
 initializeRealDataOnly()

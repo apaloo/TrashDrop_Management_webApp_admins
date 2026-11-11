@@ -6,6 +6,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@sentry/react": "8.55.0",
     "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/postcss": "^4.1.10",
     "@testing-library/dom": "^9.3.3",
@@ -57,12 +58,26 @@
       "react-app/jest"
     ],
     "rules": {
-      "no-console": ["warn", { "allow": ["warn", "error"] }]
+      "no-console": [
+        "warn",
+        {
+          "allow": [
+            "warn",
+            "error"
+          ]
+        }
+      ]
     },
     "overrides": [
       {
-        "files": ["src/**/__tests__/**", "src/**/*.test.js", "src/setupTests.js"],
-        "rules": { "no-console": "off" }
+        "files": [
+          "src/**/__tests__/**",
+          "src/**/*.test.js",
+          "src/setupTests.js"
+        ],
+        "rules": {
+          "no-console": "off"
+        }
       }
     ]
   },
