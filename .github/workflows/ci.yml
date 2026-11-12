@@ -38,6 +38,14 @@ jobs:
       - name: Lint
         run: npx eslint src --ext .js,.jsx --quiet
 
+      # Every supabase.rpc() call must name a database function that exists,
+      # with parameter names it takes (production snapshot plus this
+      # repository's migrations). Unit tests mock the database, so they can't.
+      - name: Database call check
+        run: |
+          node scripts/ci/check-rpc-calls.mjs --self-test
+          node scripts/ci/check-rpc-calls.mjs
+
       # Every Jest suite except scripts/ci/known-failing-tests.txt (may only
       # shrink; never the protected fee tests in pickupRequestUtils.test.js).
       - name: Unit tests
