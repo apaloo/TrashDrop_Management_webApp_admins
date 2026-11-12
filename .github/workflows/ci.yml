@@ -46,6 +46,14 @@ jobs:
           node scripts/ci/check-runtime-deps.cjs --self-test
           node scripts/ci/check-runtime-deps.cjs src
 
+      # Only TrashDrop domains we own (trashdrops.com) in shipped code:
+      # trashdrop.app is someone else's (TD58, household repository)
+      # trashdrop.com allowed until the owner confirms it is TrashDrop's (TD58)
+      - name: Owned domains check
+        run: |
+          node scripts/ci/check-domains.cjs --self-test
+          node scripts/ci/check-domains.cjs --allow trashdrop.com src supabase/functions index.html
+
       # Every supabase.rpc() call must name a database function that exists,
       # with parameter names it takes (production snapshot plus this
       # repository's migrations). Unit tests mock the database, so they can't.
