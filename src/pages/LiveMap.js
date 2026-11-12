@@ -133,7 +133,7 @@ const LiveMap = () => {
     setRefreshing(true);
     try {
       const [requestRows, collectorRows] = await Promise.all([
-        fetchPickupRequests({ limit: REQUEST_LIMIT, strict: true }),
+        fetchPickupRequests({ limit: REQUEST_LIMIT }),
         fetchCollectorsForMap(),
       ]);
       setRequests(requestRows.map(withRequestPosition));

@@ -32,7 +32,7 @@ const isMissingView = (error) => {
 let fallbackCache = { at: 0, rows: [] };
 const loadAllFallback = async (collectors, { force = false } = {}) => {
   if (!force && Date.now() - fallbackCache.at < 15000) return fallbackCache.rows;
-  const raw = await fetchPickupRequests({ limit: 1000, strict: true });
+  const raw = await fetchPickupRequests({ limit: 1000 });
   fallbackCache = { at: Date.now(), rows: raw.map(r => normalizeLoaderRow(r, collectors)) };
   return fallbackCache.rows;
 };
