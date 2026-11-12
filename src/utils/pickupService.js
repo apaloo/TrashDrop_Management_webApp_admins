@@ -461,30 +461,12 @@ export const fetchPickupRequests = async ({
                 .filter(Boolean)
             )];
             if (binLocIds.length > 0) {
-              // First try: use RPC with ST_X/ST_Y for reliable coordinate extraction
-              let binLocs = null;
-              try {
-                const idsLiteral = binLocIds.map(id => `'${id}'`).join(',');
-                const { data: rpcResult, error: rpcErr } = await supabase.rpc('exec_sql', {
-                  query: `SELECT id, location_name, address, ST_Y(coordinates) as latitude, ST_X(coordinates) as longitude FROM bin_locations WHERE id IN (${idsLiteral})`
-                });
-                if (!rpcErr && rpcResult) {
-                  binLocs = rpcResult;
-                  logger.log('✅ Got bin_locations via RPC:', binLocs.length);
-                }
-              } catch (rpcErr) {
-                logger.log('ℹ️ RPC exec_sql not available, falling back to standard query');
-              }
-
-              // Fallback: standard query (coordinates may be PostGIS blob)
-              if (!binLocs) {
-                const { data: stdResult } = await supabase
-                  .from('bin_locations')
-                  .select('id, location_name, address, coordinates')
-                  .in('id', binLocIds);
-                binLocs = stdResult;
-                logger.log('ℹ️ Got bin_locations via standard query:', binLocs?.length, 'coords type:', binLocs?.[0]?.coordinates ? typeof binLocs[0].coordinates : 'N/A');
-              }
+              // Coordinates come back as PostGIS values and are parsed below.
+              // (There is deliberately no SQL-running RPC: never add one.)
+              const { data: binLocs } = await supabase
+                .from('bin_locations')
+                .select('id, location_name, address, coordinates')
+                .in('id', binLocIds);
               if (binLocs) {
                 binLocs.forEach(loc => { locationMap[loc.id] = loc; });
               }
