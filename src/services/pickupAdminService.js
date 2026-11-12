@@ -220,8 +220,15 @@ const update = async (row, payload) => {
   return data[0];
 };
 
+// scheduled_pickups has no collector_id column (checked on production
+// 2026-11-12; the table is empty), so a collector can't be put on one
+const refuseScheduled = (row) => {
+  if (row?.source === 'scheduled_pickups') throw new Error("Scheduled pickups can't be given a collector yet");
+};
+
 /** Assign a collector: status → accepted, collector_id = the collector's auth user id */
 export const assignCollector = async (row, collector) => {
+  refuseScheduled(row);
   if (canonicalStatus(row.status) !== 'pending') throw new Error(`Only pending requests can be assigned (this one is ${statusLabel(row.status)})`);
   if (!collector?.userId) throw new Error('This collector has no linked user account');
   const payload = { status: 'accepted', collector_id: collector.userId, updated_at: new Date().toISOString() };
@@ -241,6 +248,7 @@ export const assignCollector = async (row, collector) => {
  * route with no collector_id). Pending requests use assignCollector instead.
  */
 export const setCollectorOnActiveRequest = async (row, collector) => {
+  refuseScheduled(row);
   if (!collector?.userId) throw new Error('This collector has no linked user account');
   if (canonicalStatus(row.status) === 'pending') return assignCollector(row, collector);
   if (!IN_PROGRESS_STATUSES.includes(canonicalStatus(row.status))) throw new Error(`A ${statusLabel(row.status)} request can't be given a collector`);
