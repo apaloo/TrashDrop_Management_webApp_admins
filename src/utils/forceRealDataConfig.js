@@ -72,7 +72,7 @@ export async function initializeRealDataOnly() {
         options = { tableName: options };
       }
       
-      const { tableName, queryFn, mockDataFn, isRpc = false } = options;
+      const { tableName, queryFn, isRpc = false } = options;
       
       // Explicitly disable all mock data options in strict mode
       if (typeof options === 'object' && options !== null) {
@@ -114,7 +114,7 @@ export async function initializeRealDataOnly() {
   if (REQUIRE_DATABASE) {
     const originalSafeRPC = safeDatabaseService.safeRPC;
     safeDatabaseService.safeRPC = async function(options) {
-      const { functionName, params = {}, mockDataFn } = options;
+      const { functionName, params = {} } = options;
       
       // Force disable mock data in strict mode
       options.enableMock = false;

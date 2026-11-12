@@ -359,16 +359,6 @@ class SafeDatabaseService {
   }
 
   /**
-   * Generate mock data for missing tables - DISABLED IN STRICT MODE
-   */
-  generateMockData(tableName, count = 10) {
-    // In strict mode, never generate mock data - always throw an error
-    const errorMsg = `CRITICAL ERROR: Mock data generation for '${tableName}' is disabled in strict mode.`;
-    console.error(`❌ ${errorMsg}`);
-    throw new Error(errorMsg);
-  }
-
-  /**
    * Get dashboard statistics - STRICT MODE
    */
   async getSafeDashboardStats() {

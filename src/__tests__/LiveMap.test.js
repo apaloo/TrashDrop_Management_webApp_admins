@@ -55,7 +55,8 @@ describe('LiveMap', () => {
     render(<LiveMap />);
 
     expect(await screen.findByRole('heading', { name: 'Live Map' })).toBeInTheDocument();
-    expect(fetchPickupRequests).toHaveBeenCalledWith(expect.objectContaining({ strict: true }));
+    // Real data only is built into fetchPickupRequests (utils/__tests__/noMadeUpData.test.js)
+    expect(fetchPickupRequests).toHaveBeenCalledWith({ limit: 500 });
     // Only requests with a usable position count as "on map"
     expect(screen.getByTestId('summary-requests-on-map')).toHaveTextContent('2');
     expect(screen.getByTestId('summary-pending')).toHaveTextContent('1');
