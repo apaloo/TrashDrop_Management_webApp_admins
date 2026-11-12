@@ -24,8 +24,15 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "upgrade-insecure-requests"
+    Content-Security-Policy = "upgrade-insecure-requests; frame-ancestors 'none'"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # Never inside another site's frame (clickjacking), no MIME sniffing, no
+    # full URLs leaked to other sites, and only the browser features the site
+    # uses (location, copy to clipboard). 2026-11-12.
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(self), clipboard-write=(self), camera=(), microphone=(), payment=(), usb=()"
 
 # Explicit content-type headers for static SEO files
 # These ensure sitemap.xml and robots.txt are never caught by the SPA rewrite
