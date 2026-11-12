@@ -6,8 +6,8 @@ src/utils/pickupRequestUtils.js
 src/context/AuthContext.js
 src/components/ProtectedRoute.js
 src/services/accountRoleService.js
-src/services/digitalBinService.js
-src/services/pickupRequestService.js
+# src/services/digitalBinService.js: not used by any page since the dead service
+# layer was removed; protected (CLAUDE.md), so it goes only with the owner's approval
 src/services/pickupAdminService.js
 src/services/dumpingAreaService.js
 src/utils/databaseUtils.js
