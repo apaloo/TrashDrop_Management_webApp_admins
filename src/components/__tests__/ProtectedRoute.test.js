@@ -44,11 +44,15 @@ it('redirects a denied account again when it is sent to the same page a second t
     </MemoryRouter>
   );
 
-  // Denied on Dashboard, sent to Reports, whose code is still downloading
-  expect(screen.getByTestId('path')).toHaveTextContent('/illegal-dumping/reports');
+  // Denied on Dashboard, sent to Reports, whose code is still downloading:
+  // the account never sees the Dashboard and waits on a spinner. (React
+  // Router 7 changes the address once the page's code has arrived.)
+  expect(screen.queryByRole('heading', { name: 'Dashboard' })).not.toBeInTheDocument();
+  expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
 
   // The login page's timer sends the account to /dashboard again
   act(() => navigateTo('/dashboard'));
+  expect(screen.queryByRole('heading', { name: 'Dashboard' })).not.toBeInTheDocument();
   await act(async () => { finishDownload(); await download; });
 
   expect(screen.getByTestId('path')).toHaveTextContent('/illegal-dumping/reports');

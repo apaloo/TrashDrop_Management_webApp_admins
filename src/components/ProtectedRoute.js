@@ -5,6 +5,13 @@ import logger from '../utils/logger';
 import { canAccessSection } from '../constants/accessControl';
 import { can, landingPathFor, isAccountSetUp } from '../lib/permissions';
 
+// Full-page spinner while auth, access or the next page's code is loading
+const Waiting = () => (
+  <div className="min-h-screen flex items-center justify-center bg-green-50" role="status" aria-label="Loading">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  </div>
+);
+
 // Protected route component
 // `section` is who may open the area; `capability` narrows a single page inside it.
 const ProtectedRoute = ({ children, section, capability }) => {
@@ -26,11 +33,7 @@ const ProtectedRoute = ({ children, section, capability }) => {
   // This prevents premature redirects that could cause loops
   if (loading || !authInitialized) {
     logger.log('ProtectedRoute: Auth not initialized or loading, showing spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-      </div>
-    );
+    return <Waiting />;
   }
   
   // Only attempt refresh if auth is initialized but user is not authenticated
@@ -46,16 +49,12 @@ const ProtectedRoute = ({ children, section, capability }) => {
 
   // Wait for the access level from the database before checking a section
   if ((section || isSetupForm) && accessLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-      </div>
-    );
+    return <Waiting />;
   }
 
   // The setup form is optional and must never re-ask an account that is already set up
   if (isSetupForm && isAccountSetUp(role, access)) {
-    return <Navigate key={location.key} to={landingPathFor(role)} replace />;
+    return <><Waiting /><Navigate key={location.key} to={landingPathFor(role)} replace /></>;
   }
 
   // A role without access goes to its own starting page, not to a page it cannot open either
@@ -63,8 +62,10 @@ const ProtectedRoute = ({ children, section, capability }) => {
     console.warn('ProtectedRoute: Access denied', { section, capability, role, email: user?.email });
     // Keyed by the navigation: <Navigate> only redirects when it mounts or its
     // target changes, so arriving at the same forbidden page again (the login
-    // page sends everyone to /dashboard twice) would otherwise leave it blank
-    return <Navigate key={location.key} to={landingPathFor(role)} replace />;
+    // page sends everyone to /dashboard twice) would otherwise leave it blank.
+    // React Router 7 navigates in a transition: while the next page's code
+    // downloads this stays on screen, so it shows a spinner, not a blank page.
+    return <><Waiting /><Navigate key={location.key} to={landingPathFor(role)} replace /></>;
   }
   
   logger.log('ProtectedRoute: All checks passed, rendering children');
