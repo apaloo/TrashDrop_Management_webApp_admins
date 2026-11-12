@@ -56,14 +56,15 @@ jobs:
         if: always()
         run: node scripts/ci/coverage-summary.mjs
 
-      # react-scripts directly, so the post-build pre-render (headless Chrome)
-      # doesn't run in CI; Netlify still runs the full `npm run build`.
+      # vite directly, so the post-build pre-render (headless Chrome) doesn't
+      # run in CI; Netlify still runs the full `npm run build`.
       - name: Build
         env:
-          CI: false
           REACT_APP_SUPABASE_URL: https://ci-placeholder.supabase.co
           REACT_APP_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
-        run: npx react-scripts build
+        run: |
+          node scripts/env-guard.cjs --self-test
+          npx vite build
 
   edge-functions:
     name: Edge Function tests

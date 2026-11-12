@@ -1,7 +1,7 @@
 # TrashDrop Admin Portal — Codebase Study Report
 
 ## 1) High-level architecture
-- **Frontend framework**: Create React App (`react-scripts`), React 18 in `package.json`.
+- **Frontend framework**: Vite (moved from Create React App in November 2026, TD12), React 18 in `package.json`.
 - **Routing**: React Router v6 in `src/App.js`.
 - **Styling**: Tailwind CSS (plus some React Bootstrap usage).
 - **Backend**: Supabase (`@supabase/supabase-js`) for:
