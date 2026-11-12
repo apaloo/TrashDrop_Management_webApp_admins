@@ -32,11 +32,13 @@ The TrashDrop Management WebApp Admin Portal allows administrators to manage var
 
 ## Development Setup
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Built with [Vite](https://vite.dev) (`vite.config.mjs`); it moved from Create React App in November 2026 (TD12). The code keeps Create React App's conventions: `process.env.REACT_APP_*` variables, JSX in `.js` files, output in `build/`.
+
+Every `REACT_APP_*` variable ships to every visitor's browser. Never put a secret in one: the build refuses to run if one holds a Supabase service role or secret key, a private key, or has SECRET, SERVICE_ROLE, PRIVATE_KEY, PASSWORD or BEARER in its name (`scripts/env-guard.cjs`).
 
 ### Prerequisites
 
-- Node.js 16+
+- Node.js 20
 - Supabase project with proper schema setup
 
 ### Environment Variables
@@ -55,17 +57,17 @@ In the project directory, you can run:
 
 #### `npm start`
 
-Runs the app in development mode.
+Runs the app in development mode at http://localhost:3000 (Vite).
 
 #### `npm test`
 
-Launches the test runner in interactive watch mode.
+Launches Jest in watch mode (`jest.config.js`, the same set-up Create React App used). `npm run test:ci` runs every suite once, as CI does.
 
 #### `npm run build`
 
-Builds the app for production to the `build` folder.
+Builds the app for production to the `build` folder, then pre-renders the public pages (`scripts/prerender.js`; `PRERENDER_SKIP=1` skips it). `npm run preview` serves the build.
 
-#### `npm run cypress:open`
+#### `npm run cy:open`
 
 Opens the Cypress test runner for end-to-end testing.
 
@@ -75,7 +77,6 @@ Opens the Cypress test runner for end-to-end testing.
 - `/src/components`: Reusable UI components
 - `/src/context`: React context providers
 - `/src/utils`: Utility functions including auth and Supabase client
-- `/src/mock`: Mock data for development
 - `/cypress`: End-to-end tests
 
 ## Current Status
