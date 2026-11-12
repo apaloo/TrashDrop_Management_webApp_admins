@@ -30,7 +30,7 @@ export const CAPABILITY_ROLES = {
   'dumping.reporters':   ['admin', 'manager', 'authority'],
   'dumping.verify':      ['admin', 'manager', 'authority', 'media', 'volunteer'],
   'dumping.assign':      ['admin', 'manager', 'authority', 'volunteer'], // Volunteer: volunteer groups only
-  'dumping.fee':         ['admin', 'manager', 'authority'],
+  'dumping.fee':         ['admin', 'authority'], // only an admin or the MMDA sets a cleanup fee (20261118_mmda_paid_cleanups.sql)
   'dumping.markCleaned': ['admin', 'manager', 'authority', 'volunteer'],
   'dumping.manage':      ['admin', 'manager'], // everything else, e.g. cancel
   'reports.view':        ['admin', 'manager', 'media', 'authority', 'volunteer'],
