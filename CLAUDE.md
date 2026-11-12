@@ -12,3 +12,11 @@ Do not change those checks, or anything that writes digital bin prices or
 promotions, without the owner's written approval in the pull request. Keep them
 in step with the specification, and never weaken the fee tests in
 `src/utils/__tests__/pickupRequestUtils.test.js` to make a change pass.
+
+## Database changes go in the household repository
+Decided by the owner on 2026-11-12 (ADR-001): new database migrations go in
+`trashdrop/supabase/migrations/` of apaloo/TrashDrop-Mobile-User-Domestic, not
+here (`supabase/migrations/README.md`). A pull request here that needs a
+schema change links the household pull request that makes it. The one
+exception is `td_capability_roles`, which stays here with
+`src/lib/permissions.js`.
