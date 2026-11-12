@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback, use
 import { supabase } from '../utils/supabase';
 import { hasCompletedOnboarding } from '../utils/auth';
 import { getDevModeUser, isDevMode } from '../utils/devAuth';
-import { getEffectiveRole, areaScopeFor, ROLES } from '../constants/accessControl';
+import { getEffectiveRole, roleFromDatabase, areaScopeFor, ROLES } from '../constants/accessControl';
 import { fetchMyAccess } from '../services/accountRoleService';
 import logger from '../utils/logger';
 import { isRecoveryLink, rememberRecovery, forgetRecovery, hasRememberedRecovery } from '../utils/passwordRecovery';
@@ -365,9 +365,14 @@ export const AuthProvider = ({ children }) => {
   }, [userId, isAuthenticated, refreshAccess]);
 
   const accessLoading = !devMode && isAuthenticated && !!userId && access === null;
-  const effectiveRole = devMode || access?.legacy
-    ? role
-    : getEffectiveRole(access?.role || ROLES.USER, user);
+  // The database decides (my_access(), staff_admins for Admin). Account
+  // metadata is owner-editable, so the legacy path never grants Admin; local
+  // dev mode (never in production builds) uses the dev user's chosen role.
+  const effectiveRole = devMode
+    ? roleFromDatabase(user?.user_metadata?.role)
+    : access?.legacy
+      ? role
+      : roleFromDatabase(access?.role);
 
   const area = useMemo(() => areaScopeFor(effectiveRole, access), [effectiveRole, access]);
 

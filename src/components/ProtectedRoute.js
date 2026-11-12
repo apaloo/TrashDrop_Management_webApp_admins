@@ -59,7 +59,7 @@ const ProtectedRoute = ({ children, section, capability }) => {
   }
 
   // A role without access goes to its own starting page, not to a page it cannot open either
-  if ((section && !canAccessSection(section, role, user)) || (capability && !can(capability, role))) {
+  if ((section && !canAccessSection(section, role)) || (capability && !can(capability, role))) {
     console.warn('ProtectedRoute: Access denied', { section, capability, role, email: user?.email });
     // Keyed by the navigation: <Navigate> only redirects when it mounts or its
     // target changes, so arriving at the same forbidden page again (the login

@@ -81,9 +81,32 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('role')).toHaveTextContent('manager');
   });
 
-  test('an admin role in the database is not enough without a whitelisted email', async () => {
+  // Admins are the database's staff_admins table (TD10, 2026-11-12): any
+  // account the database calls Admin is one, whatever its email
+  test('an admin role from the database makes the account an Admin', async () => {
     mockSession = signedIn();
     fetchMyAccess.mockResolvedValue({ role: 'admin', status: 'approved' });
+
+    renderAuth();
+
+    await waitForAccess();
+    expect(screen.getByTestId('role')).toHaveTextContent('admin');
+  });
+
+  test('an admin role in the account\'s own details never makes it an Admin', async () => {
+    mockSession = signedIn({ user_metadata: { role: 'admin', onboardingCompleted: true } });
+    // Before the account roles migration the site falls back to those details
+    fetchMyAccess.mockRejectedValue(Object.assign(new Error('missing'), { missingSchema: true }));
+
+    renderAuth();
+
+    await waitForAccess();
+    expect(screen.getByTestId('role')).toHaveTextContent('user');
+  });
+
+  test('an unknown role from the database is a User', async () => {
+    mockSession = signedIn();
+    fetchMyAccess.mockResolvedValue({ role: 'superuser', status: 'approved' });
 
     renderAuth();
 

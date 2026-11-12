@@ -95,7 +95,7 @@ const Sidebar = () => {
   ];
 
   // Check if the menu item should be displayed based on user role
-  const canView = (section) => canAccessSection(section, role, user);
+  const canView = (section) => canAccessSection(section, role);
   // A menu item shows when the role may open its section, and each sub-page
   // when the role has that page's capability (src/lib/permissions.js)
   const visibleItems = menuItems
