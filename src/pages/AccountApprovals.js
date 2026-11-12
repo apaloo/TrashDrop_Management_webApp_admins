@@ -4,6 +4,7 @@ import { COMPANY_TYPES, ROLE_LABELS, ROLES } from '../constants/accessControl';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/pickupRequests/ConfirmDialog';
 import { detailLabel } from '../constants/accountTypeFields';
+import AdminsPanel from '../components/accounts/AdminsPanel';
 import { GHANA_REGIONS, districtsOf } from '../constants/ghanaRegions';
 
 const TABS = [
@@ -172,7 +173,9 @@ const AccountApprovals = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-td-sage mt-3">Admins are the whitelisted TrashDrop emails and aren't listed as requests. Every decision is recorded in Logs, and the person gets a notification and an email.</p>
+      <p className="text-xs text-td-sage mt-3">Admins aren't listed as requests; they are managed below. Every decision is recorded in Logs, and the person gets a notification and an email.</p>
+
+      <AdminsPanel currentUserId={user?.id} />
 
       {dialog && (
         <ConfirmDialog
