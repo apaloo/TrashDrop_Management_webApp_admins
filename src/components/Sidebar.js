@@ -65,6 +65,12 @@ const Sidebar = () => {
       section: SECTIONS.REWARDS
     },
     {
+      title: 'MoMo Payments',
+      path: '/payments',
+      icon: 'fas fa-money-check-alt',
+      section: SECTIONS.PAYMENTS
+    },
+    {
       title: 'Reports Data',
       path: '/media-data',
       icon: 'fas fa-newspaper',

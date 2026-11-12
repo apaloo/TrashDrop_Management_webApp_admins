@@ -31,6 +31,7 @@ const VolunteersPage = lazy(() => import('./pages/VolunteersPage'));
 const MediaPage = lazy(() => import('./pages/MediaPage'));
 const AccountApprovals = lazy(() => import('./pages/AccountApprovals'));
 const RewardRedemptions = lazy(() => import('./pages/RewardRedemptions'));
+const PaymentConfirmations = lazy(() => import('./pages/PaymentConfirmations'));
 const MediaReports = lazy(() => import('./pages/MediaReports'));
 const MyPerformance = lazy(() => import('./pages/MyPerformance'));
 const AccountPerformance = lazy(() => import('./pages/AccountPerformance'));
@@ -320,6 +321,13 @@ function App() {
                 <ProtectedRoute section={SECTIONS.REWARDS}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
                     <RewardRedemptions />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/payments" element={
+                <ProtectedRoute section={SECTIONS.PAYMENTS}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+                    <PaymentConfirmations />
                   </Suspense>
                 </ProtectedRoute>
               } />
