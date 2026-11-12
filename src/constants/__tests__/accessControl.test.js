@@ -1,10 +1,8 @@
 import {
-  ROLES, SECTIONS, COMPANY_TYPES, getEffectiveRole, canAccessSection, deriveRoleForUser, getRoleForCompanyType,
+  ROLES, SECTIONS, COMPANY_TYPES, getEffectiveRole, roleFromDatabase, canAccessSection, deriveRoleForUser, getRoleForCompanyType,
   areaScopeFor, canManageDumping, assignScopeFor, sameRegion,
 } from '../accessControl';
 
-const admin = { email: 'otisadomako50@gmail.com' };
-const someone = { email: 'kofi@example.com' };
 
 describe('roles', () => {
   it('maps every company type to the role it asks for (same as the database)', () => {
@@ -13,20 +11,27 @@ describe('roles', () => {
       volunteer_group: 'volunteer', nonprofit: 'volunteer', media: 'media', other: 'user',
     });
     expect(getRoleForCompanyType('unknown')).toBe('user');
-    expect(deriveRoleForUser({ email: admin.email, companyType: 'other' })).toBe('admin');
+    // Nobody can sign up as Admin, whatever their email
+    expect(deriveRoleForUser({ email: 'anyone@example.com', companyType: 'other' })).toBe('user');
   });
 
-  it('only whitelisted emails are admin; unknown or admin roles from elsewhere become user', () => {
-    expect(getEffectiveRole('user', admin)).toBe(ROLES.ADMIN);
-    expect(getEffectiveRole('admin', someone)).toBe(ROLES.USER);
-    expect(getEffectiveRole('superuser', someone)).toBe(ROLES.USER);
-    expect(getEffectiveRole(undefined, someone)).toBe(ROLES.USER);
-    expect(getEffectiveRole('volunteer', someone)).toBe(ROLES.VOLUNTEER);
+  it('a role from the account\'s own details is never Admin; unknown roles become user', () => {
+    expect(getEffectiveRole('admin')).toBe(ROLES.USER);
+    expect(getEffectiveRole('superuser')).toBe(ROLES.USER);
+    expect(getEffectiveRole(undefined)).toBe(ROLES.USER);
+    expect(getEffectiveRole('volunteer')).toBe(ROLES.VOLUNTEER);
+  });
+
+  it('the database decides Admin (staff_admins); unknown roles from it become user', () => {
+    expect(roleFromDatabase('admin')).toBe(ROLES.ADMIN);
+    expect(roleFromDatabase('authority')).toBe(ROLES.AUTHORITY);
+    expect(roleFromDatabase('superuser')).toBe(ROLES.USER);
+    expect(roleFromDatabase(undefined)).toBe(ROLES.USER);
   });
 });
 
 describe('sections', () => {
-  const can = (section, role) => canAccessSection(section, role, someone);
+  const can = (section, role) => canAccessSection(section, role);
   it('everyone gets Settings and Regulatory; only Admin and Manager get the Dashboard', () => {
     ['user', 'volunteer', 'media', 'manager', 'authority'].forEach(r => {
       expect(can(SECTIONS.SETTINGS, r)).toBe(true);
@@ -34,7 +39,7 @@ describe('sections', () => {
     });
     expect(can(SECTIONS.DASHBOARD, 'manager')).toBe(true);
     ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.DASHBOARD, r)).toBe(false));
-    expect(canAccessSection(SECTIONS.DASHBOARD, 'user', admin)).toBe(true);
+    expect(can(SECTIONS.DASHBOARD, 'admin')).toBe(true);
   });
   it('Team is for volunteer groups and MMDAs, and their members (who work with the group\'s role)', () => {
     ['volunteer', 'authority'].forEach(r => expect(can(SECTIONS.TEAM, r)).toBe(true));
@@ -44,23 +49,23 @@ describe('sections', () => {
     ['volunteer', 'authority'].forEach(r => expect(can(SECTIONS.MY_PERFORMANCE, r)).toBe(true));
     ['user', 'media', 'manager'].forEach(r => expect(can(SECTIONS.MY_PERFORMANCE, r)).toBe(false));
     ['user', 'volunteer', 'media', 'manager', 'authority'].forEach(r => expect(can(SECTIONS.ACCOUNT_PERFORMANCE, r)).toBe(false));
-    expect(canAccessSection(SECTIONS.ACCOUNT_PERFORMANCE, 'user', admin)).toBe(true);
+    expect(can(SECTIONS.ACCOUNT_PERFORMANCE, 'admin')).toBe(true);
   });
   it('Illegal Dumping is open to every role (each sees its own area; 20261104)', () => {
     ['manager', 'authority', 'media', 'volunteer', 'user'].forEach(r => expect(can(SECTIONS.ILLEGAL_DUMPING, r)).toBe(true));
-    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'user', admin)).toBe(true);
+    expect(can(SECTIONS.ILLEGAL_DUMPING, 'admin')).toBe(true);
   });
   it('Bin Management and Account Approvals are admin only', () => {
     [SECTIONS.BIN_MANAGEMENT, SECTIONS.ACCOUNTS].forEach(s => {
       expect(can(s, 'manager')).toBe(false);
       expect(can(s, 'authority')).toBe(false);
-      expect(canAccessSection(s, 'user', admin)).toBe(true);
+      expect(can(s, 'admin')).toBe(true);
     });
   });
   it('Request Pickup is Admin and Manager (requests.view)', () => {
     expect(can(SECTIONS.REQUEST_PICKUP, 'manager')).toBe(true);
     ['user', 'volunteer', 'media', 'authority'].forEach(r => expect(can(SECTIONS.REQUEST_PICKUP, r)).toBe(false));
-    expect(canAccessSection(SECTIONS.REQUEST_PICKUP, 'user', admin)).toBe(true);
+    expect(can(SECTIONS.REQUEST_PICKUP, 'admin')).toBe(true);
   });
 });
 
@@ -85,7 +90,7 @@ describe('areas (same rules as td_my_area)', () => {
   });
 
   it('only Manager and Admin have the full dumping controls (cancel); others act through their own capabilities', () => {
-    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'authority', someone)).toBe(true);
+    expect(canAccessSection(SECTIONS.ILLEGAL_DUMPING, 'authority')).toBe(true);
     expect(canManageDumping('authority')).toBe(false);
     expect(canManageDumping('volunteer')).toBe(false);
     expect(canManageDumping('manager')).toBe(true);

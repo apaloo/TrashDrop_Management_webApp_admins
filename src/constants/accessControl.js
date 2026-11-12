@@ -59,51 +59,35 @@ export const COMPANY_TYPES = [
 
 export const COMPANY_TYPE_ROLE_MAP = Object.fromEntries(COMPANY_TYPES.map(t => [t.value, t.role]));
 
-const normalizeEmail = (email) => email?.trim().toLowerCase() || '';
-// Same list as td_admin_emails() in the database; change both together.
-export const FULL_ACCESS_ADMIN_EMAILS = [
-  'otisadomako50@gmail.com',
-  'xahlijah@gmail.com'
-];
-
-const isWhitelistedAdminEmail = (email) => {
-  const normalizedEmail = normalizeEmail(email);
-  return FULL_ACCESS_ADMIN_EMAILS.some(whitelistedEmail =>
-    normalizeEmail(whitelistedEmail) === normalizedEmail
-  );
-};
-
-export const hasFullAdminAccess = (role, user) => (
-  role === ROLES.ADMIN && isWhitelistedAdminEmail(user?.email)
-);
+// Admins are the accounts in the database's staff_admins table, managed on
+// Account approvals (TD10). The site never decides who is an admin itself.
+export const hasFullAdminAccess = (role) => role === ROLES.ADMIN;
 
 export const getRoleForCompanyType = (companyType) => {
   return COMPANY_TYPE_ROLE_MAP[companyType] || ROLES.USER;
 };
 
 /** The role a company type asks for (what sign-up records as requested, not granted) */
-export const deriveRoleForUser = ({ email, companyType }) => {
-  if (isWhitelistedAdminEmail(email)) {
-    return ROLES.ADMIN;
-  }
-  return getRoleForCompanyType(companyType);
-};
+export const deriveRoleForUser = ({ companyType }) => getRoleForCompanyType(companyType);
 
 const KNOWN_ROLES = Object.values(ROLES);
 
 /**
- * The role in force. `role` must come from the database (my_access()); Admin
- * is only ever the whitelisted emails.
+ * A role from somewhere the account owner can edit (account metadata): never
+ * Admin, and anything unknown is User.
  */
-export const getEffectiveRole = (role, user) => {
-  if (isWhitelistedAdminEmail(user?.email)) {
-    return ROLES.ADMIN;
-  }
+export const getEffectiveRole = (role) => {
   if (role === ROLES.ADMIN || !KNOWN_ROLES.includes(role)) {
     return ROLES.USER;
   }
   return role;
 };
+
+/**
+ * The role the database grants (my_access()): trusted, Admin included (the
+ * staff_admins table). Anything unknown is User.
+ */
+export const roleFromDatabase = (role) => (KNOWN_ROLES.includes(role) ? role : ROLES.USER);
 
 // Sections are worked out from the capability table (src/lib/permissions.js)
 // so a menu item, a route and a data call can never disagree. Settings and
@@ -137,11 +121,11 @@ export const SECTION_PERMISSIONS = {
   [SECTIONS.REWARDS]: rolesWith('rewards.manage')
 };
 
-export const canAccessSection = (section, role, user) => {
+/** `role` is the role in force (useAuth().role), already worked out once */
+export const canAccessSection = (section, role) => {
   if (!section) return true;
-  const effectiveRole = getEffectiveRole(role, user);
   const allowedRoles = SECTION_PERMISSIONS[section] || [];
-  return allowedRoles.includes(effectiveRole);
+  return allowedRoles.includes(role);
 };
 
 /** Who can verify, assign, complete or cancel illegal dumping reports */

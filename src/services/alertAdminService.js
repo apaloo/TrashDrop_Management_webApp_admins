@@ -8,7 +8,6 @@
 import { supabase } from '../utils/supabase';
 import { logFailure } from './auditLogService';
 import { normalizeAlert } from '../utils/alertUtils';
-import { FULL_ACCESS_ADMIN_EMAILS } from '../constants/accessControl';
 import { OPEN_ALERT_STATUSES } from '../constants/alerts';
 
 const fail = (error, fallback) => new Error(error?.message || fallback);
@@ -133,13 +132,13 @@ export const logAlertAction = (alert, action, { ok = true, note = null, data = {
 
 /* ── people ─────────────────────────────────────────────────────────────── */
 
-/** Admin accounts for "Assign to". Falls back to the admin email list (no ids) before the migration. */
+/** Admin accounts for "Assign to" (the staff_admins table); none when they can't be read. */
 export const fetchStaff = async () => {
   const { data, error } = await supabase.rpc('td_staff_users');
   if (!error && Array.isArray(data) && data.length) {
     return { staff: data.map(u => ({ id: u.id, email: u.email, name: u.name || u.email })), fromDatabase: true };
   }
-  return { staff: FULL_ACCESS_ADMIN_EMAILS.map(email => ({ id: null, email, name: email })), fromDatabase: false };
+  return { staff: [], fromDatabase: false };
 };
 
 /** In-app notification (notifications table) */
