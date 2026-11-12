@@ -115,6 +115,11 @@
     X-Robots-Tag = "noindex"
 
 [[headers]]
+  for = "/payments"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
   for = "/media-data"
   [headers.values]
     X-Robots-Tag = "noindex"
@@ -196,6 +201,10 @@
   status = 200
 [[redirects]]
   from = "/rewards"
+  to = "/app-shell.html"
+  status = 200
+[[redirects]]
+  from = "/payments"
   to = "/app-shell.html"
   status = 200
 [[redirects]]

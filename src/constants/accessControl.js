@@ -40,7 +40,8 @@ export const SECTIONS = {
   MY_PERFORMANCE: 'my-performance',
   ACCOUNT_PERFORMANCE: 'account-performance',
   TEAM: 'team',
-  REWARDS: 'rewards'
+  REWARDS: 'rewards',
+  PAYMENTS: 'payments'
 };
 
 /**
@@ -118,7 +119,9 @@ export const SECTION_PERMISSIONS = {
   // do what, 20261110 and 20261116)
   [SECTIONS.TEAM]: [ROLES.VOLUNTEER, ROLES.AUTHORITY],
   // Airtime and data rewards households redeemed, sent by staff
-  [SECTIONS.REWARDS]: rolesWith('rewards.manage')
+  [SECTIONS.REWARDS]: rolesWith('rewards.manage'),
+  // MoMo payments the gateway hasn't confirmed (TD53)
+  [SECTIONS.PAYMENTS]: rolesWith('payments.confirm')
 };
 
 /** `role` is the role in force (useAuth().role), already worked out once */
