@@ -6,7 +6,6 @@ import { pickupRequestService } from './pickupRequestService';
 import { digitalBinService } from './digitalBinService';
 import { qrCodeService } from './qrCodeService';
 import { collectorSessionService } from './collectorSessionService';
-import { illegalDumpingService } from './illegalDumpingService';
 import { dashboardAnalyticsService } from './dashboardAnalyticsService';
 import { alertsNotificationService } from './alertsNotificationService';
 import { auditLoggingService } from './auditLoggingService';
@@ -240,12 +239,6 @@ class SystemInitService {
       {
         name: 'collectorSessionService',
         instance: collectorSessionService,
-        critical: true,
-        dependencies: ['realtimeManager', 'performanceMonitor']
-      },
-      {
-        name: 'illegalDumpingService',
-        instance: illegalDumpingService,
         critical: true,
         dependencies: ['realtimeManager', 'performanceMonitor']
       },
