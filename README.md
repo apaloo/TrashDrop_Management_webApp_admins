@@ -38,7 +38,7 @@ Every `REACT_APP_*` variable ships to every visitor's browser. Never put a secre
 
 ### Prerequisites
 
-- Node.js 20
+- Node.js 22 (`.nvmrc`)
 - Supabase project with proper schema setup
 
 ### Environment Variables
