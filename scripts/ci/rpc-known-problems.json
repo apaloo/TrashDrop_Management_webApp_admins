@@ -1,17 +1,4 @@
 {
   "_comment": "Database calls that already fail and are tracked, so CI flags only new ones (scripts/ci/check-rpc-calls.mjs). Each needs its register item in the household repository's engineering/registers/tech-debt.md. Delete an entry when it is fixed; CI fails while a fixed entry is still listed.",
-  "problems": [
-    {
-      "file": "src/services/digitalBinService.js",
-      "function": "create_digital_bin",
-      "ref": "TD37",
-      "why": "createDigitalBin passes parameters the function doesn't have. The service is used by no page; it is protected digital-bin code (CLAUDE.md), so it is removed only with the owner's written approval."
-    },
-    {
-      "file": "src/services/performanceMonitor.js",
-      "function": "get_system_health",
-      "ref": "TD47",
-      "why": "Only imported by digitalBinService (unused); goes with it."
-    }
-  ]
+  "problems": []
 }
