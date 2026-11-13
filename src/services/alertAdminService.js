@@ -29,12 +29,6 @@ export const fetchAlerts = async () => {
   return { alerts, needsMigration: out.length > 0 && !alerts[0].hasStatusColumn };
 };
 
-export const fetchAlert = async (id) => {
-  const { data, error } = await supabase.from('alerts').select('*').eq('id', id).maybeSingle();
-  if (error) throw fail(error, 'Could not load the alert');
-  return data ? normalizeAlert(data) : null;
-};
-
 // Successful alert changes reach the Logs page through the alert timeline
 // trigger; failures are logged here because they never reach the database.
 const alertFailure = (alertId, error, context) =>

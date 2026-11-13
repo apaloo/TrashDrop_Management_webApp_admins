@@ -57,7 +57,6 @@ const supabaseConfig = {
 // Singleton pattern using global window storage to persist across hot reloads
 // This prevents multiple client instances during development hot module reloading
 const SUPABASE_CLIENT_KEY = '__trashdrop_supabase_client__';
-const SUPABASE_ADMIN_KEY = '__trashdrop_supabase_admin__';
 
 // Get or create Supabase client - persists across hot reloads
 const getSupabaseClient = () => {
@@ -80,28 +79,9 @@ const getSupabaseClient = () => {
   return client;
 };
 
-// SECURITY: Admin client with service key REMOVED
-// Service keys should never be used in frontend code as they bypass RLS
-// For admin operations, use:
-// 1. Supabase Edge Functions with service key on server side
-// 2. A separate backend API with proper authentication
-// 3. Supabase RLS policies that grant admin access to specific roles
-const getSupabaseAdminClient = () => {
-  logger.warn('⚠️ Admin client is disabled for security. Use Edge Functions for admin operations.');
-  return null;
-};
-
 // Export singleton instances
 // Call getters once - they handle window caching internally
 export const supabase = getSupabaseClient();
-
-// IMPORTANT: Don't create admin client unless absolutely needed
-// Most applications don't need admin privileges
-// If you need admin client, import and call getSupabaseAdminClient() directly
-export const supabaseAdmin = null; // Don't auto-initialize admin client
-
-// Export getter function for admin client (call only when needed)
-export { getSupabaseAdminClient };
 
 // Connection health check - configurable error handling based on environment
 export const checkConnection = async () => {
@@ -136,60 +116,6 @@ export const checkConnection = async () => {
     }
   }
 };
-
-// Strict error handler - no silent failures or fallbacks
-export const handleDatabaseError = (error, operation = 'database operation') => {
-  console.error(`❌ ERROR during ${operation}:`, error);
-  
-  // Map common Supabase errors to user-friendly messages
-  const errorMap = {
-    '23505': 'This record already exists. Please check for duplicates.',
-    '23503': 'This record is referenced by other data and cannot be deleted.',
-    '23502': 'Required field is missing.',
-    'PGRST301': 'Insufficient permissions to perform this operation.',
-    'PGRST204': 'Table or record not found. Required database table is missing.',
-    'PGRST116': 'No data found matching your criteria.',
-    '42P01': 'Required database table does not exist.',
-    '42703': 'Required database column does not exist.',
-    '42883': 'Required database function does not exist.',
-  };
-  
-  const userMessage = errorMap[error.code] || error.message || 'An unexpected database error occurred';
-  
-  // In strict mode, we throw all database errors to prevent silent failures
-  const enhancedError = new Error(userMessage);
-  enhancedError.code = error.code;
-  enhancedError.details = error.details;
-  enhancedError.hint = error.hint;
-  enhancedError.originalError = error;
-  
-  // Throw error to prevent continuing with invalid/missing data
-  throw enhancedError;
-};
-
-// Performance monitoring wrapper
-export const withPerformanceMonitoring = (fn, operationName) => {
-  return async (...args) => {
-    const startTime = Date.now();
-    try {
-      const result = await fn(...args);
-      const duration = Date.now() - startTime;
-      
-      if (duration > 5000) { // Log slow queries (> 5 seconds)
-        logger.warn(`Slow database operation detected: ${operationName} took ${duration}ms`);
-      }
-      
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      console.error(`Database operation failed: ${operationName} (${duration}ms)`, error);
-      throw handleDatabaseError(error, operationName);
-    }
-  };
-};
-
-// Additional exports for real data mode
-export const STRICT_MODE_ENABLED = FORCE_REAL_DATA_ONLY;
 
 // Database validation on module import with graceful fallback.
 // Signed-in users only: anonymous visitors (public pages) must not probe internal tables.

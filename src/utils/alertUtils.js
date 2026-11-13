@@ -201,8 +201,6 @@ const csvCell = (v) => {
 };
 export const toAlertsCsv = (rows) => [EXPORT_COLUMNS, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
 
-export const TYPE_OPTIONS = ALERT_TYPES;
-
 /** "just now", "5m ago", "2h ago", "3d ago" */
 export const ageLabel = (value, now = Date.now()) => {
   const t = new Date(value).getTime();

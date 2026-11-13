@@ -252,5 +252,3 @@ export const cancelRequest = async (row, { reason, note, userId }) => {
   });
 };
 
-/** Raw status values in a group (exported for tests) */
-export const groupValues = rawValuesForGroup;
