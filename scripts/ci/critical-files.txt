@@ -11,3 +11,6 @@ src/services/dumpingAreaService.js
 src/utils/databaseUtils.js
 src/services/bagAdminService.js
 src/services/rewardRedemptionService.js
+src/utils/pickupService.js
+src/lib/permissions.js
+src/services/publicDumpingReportsService.js
