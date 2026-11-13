@@ -35,7 +35,7 @@ export const signIn = async ({ email, password }) => {
 
 export const signUp = async ({ email, password, name, role = 'user', metadata = {} }) => {
   try {
-    logger.log('Starting signup process for:', email);
+    logger.log('Starting signup process');
     
     // Create the user in Supabase auth
     const { data, error } = await supabase.auth.signUp({
