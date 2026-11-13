@@ -14,3 +14,4 @@ src/services/rewardRedemptionService.js
 src/utils/pickupService.js
 src/lib/permissions.js
 src/services/publicDumpingReportsService.js
+src/services/alertAdminService.js
