@@ -10,6 +10,9 @@
     "src/services/dumpingAreaService.js": 100,
     "src/utils/databaseUtils.js": 79.5,
     "src/services/bagAdminService.js": 80.3,
-    "src/services/rewardRedemptionService.js": 100
+    "src/services/rewardRedemptionService.js": 100,
+    "src/utils/pickupService.js": 96.4,
+    "src/lib/permissions.js": 100,
+    "src/services/publicDumpingReportsService.js": 95.4
   }
 }
