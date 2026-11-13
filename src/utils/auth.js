@@ -155,30 +155,6 @@ export const updatePassword = async (newPassword) => {
   }
 };
 
-export const getCurrentUser = async () => {
-  // Check for dev mode user first
-  const devUser = getDevModeUser();
-  if (devUser) {
-    return { user: devUser, error: null };
-  }
-  
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    
-    // Check if the user has completed onboarding
-    if (data.user && data.user.user_metadata) {
-      const isOnboardingComplete = data.user.user_metadata.onboardingCompleted || false;
-      localStorage.setItem('trashdrop_onboarding_completed', isOnboardingComplete.toString());
-    }
-    
-    return { user: data.user, error: null };
-  } catch (error) {
-    console.error('Error getting current user:', error.message);
-    return { user: null, error };
-  }
-};
-
 /**
  * Get current user session that works in both dev and production modes
  * @returns {Promise<{session: object|null, user: object|null, error: Error|null}>}
@@ -206,26 +182,6 @@ export const getCurrentSession = async () => {
   } catch (error) {
     console.error('Error getting session:', error.message);
     return { session: null, user: null, error };
-  }
-};
-
-/**
- * Get current user ID that works in both dev and production modes
- * @returns {Promise<string|null>}
- */
-export const getCurrentUserId = async () => {
-  const { user } = await getCurrentSession();
-  return user?.id || null;
-};
-
-export const getUserRole = async () => {
-  try {
-    const { user, error } = await getCurrentUser();
-    if (error) throw error;
-    return { role: user?.user_metadata?.role || 'user', error: null };
-  } catch (error) {
-    console.error('Error getting user role:', error.message);
-    return { role: 'user', error };
   }
 };
 
@@ -308,17 +264,3 @@ export const hasCompletedOnboarding = async () => {
   return false;
 };
 
-// Session management
-export const setupSessionListener = (callback) => {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      if (typeof callback === 'function') {
-        callback(event, session);
-      }
-    }
-  );
-  
-  return () => {
-    subscription.unsubscribe();
-  };
-};

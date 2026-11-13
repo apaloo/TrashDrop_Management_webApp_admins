@@ -151,33 +151,6 @@ export const fetchConversation = async (contactId) => {
 };
 
 /**
- * Mark a message as read
- * @param {string} messageId ID of the message to mark as read
- * @returns {Promise} Result of the operation
- */
-export const markMessageAsRead = async (messageId) => {
-  try {
-    const tableExists = await safeDatabaseService.checkTableExists('messages');
-    
-    if (!tableExists) {
-      console.warn('Messages table does not exist, simulating read status');
-      return true;
-    }
-    
-    const { data, error } = await supabase
-      .from('messages')
-      .update({ read: true })
-      .eq('id', messageId);
-    
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error marking message as read:', error);
-    return false;
-  }
-};
-
-/**
  * Mark all messages from a specific sender as read
  * @param {string} senderId ID of the sender whose messages should be marked as read
  * @returns {Promise} Result of the operation

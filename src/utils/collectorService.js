@@ -123,54 +123,6 @@ export const fetchCollectors = async ({ status = null, region = null, limit = 10
 };
 
 /**
- * Fetches a single collector by ID with their profile information
- * @param {string} collectorId - The ID of the collector to fetch
- * @returns {Promise<Object>} Collector object with profile data
- */
-export const fetchCollectorById = async (collectorId) => {
-  if (!collectorId) {
-    throw new Error('Collector ID is required');
-  }
-
-  const { data } = await safeDatabaseService.safeQuery({
-    tableName: 'collector_profiles',
-    throwOnMissing: true, // MOCK DATA DEPRECATED - Strict mode only
-    enableMock: false, // DEPRECATED: Mock data system removed
-    queryFn: async () =>
-      supabase
-        .from('collector_profiles')
-        .select(`
-          id,
-          user_id,
-          first_name,
-          last_name,
-          email,
-          phone,
-          status,
-          vehicle_type,
-          vehicle_plate,
-          vehicle_capacity,
-          company_name,
-          created_at,
-          updated_at,
-          rating,
-          total_collections,
-          completed_today,
-          active_requests,
-          current_latitude,
-          current_longitude,
-          assigned_region,
-          profile_image_url,
-          notes
-        `)
-        .eq('id', collectorId)
-        .single()
-  });
-
-  return transformCollectorData(data);
-};
-
-/**
  * Updates a collector's status
  * @param {string} collectorId - The ID of the collector to update
  * @param {string} status - The new status ('active', 'inactive', 'on_break', etc.)

@@ -60,10 +60,6 @@ export const COMPANY_TYPES = [
 
 export const COMPANY_TYPE_ROLE_MAP = Object.fromEntries(COMPANY_TYPES.map(t => [t.value, t.role]));
 
-// Admins are the accounts in the database's staff_admins table, managed on
-// Account approvals (TD10). The site never decides who is an admin itself.
-export const hasFullAdminAccess = (role) => role === ROLES.ADMIN;
-
 export const getRoleForCompanyType = (companyType) => {
   return COMPANY_TYPE_ROLE_MAP[companyType] || ROLES.USER;
 };
@@ -149,8 +145,6 @@ export const areaScopeFor = (role, access) => {
   if (role === ROLES.VOLUNTEER && region) return { level: 'region', region };
   return { level: 'none' };
 };
-
-export const getAllowedRolesForSection = (section) => SECTION_PERMISSIONS[section] || [];
 
 /** "Greater Accra Region " → "greater accra" (same as td_norm_region in the database) */
 export const normalizeRegion = (value) => {

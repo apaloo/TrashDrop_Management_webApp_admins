@@ -53,28 +53,6 @@ export const fetchNotifications = async ({ userId, limit = 50 } = {}) => {
   });
 };
 
-export const fetchBagInventories = async (params = {}) => {
-  return dbQuery({
-    tableName: 'bag_inventories',
-    queryFn: async () => supabase
-      .from('bag_inventories')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(params.limit || 100),
-  });
-};
-
-export const fetchPickups = async (params = {}) => {
-  return dbQuery({
-    tableName: 'pickups',
-    queryFn: async () => supabase
-      .from('pickups')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(params.limit || 100),
-  });
-};
-
 export const fetchIllegalDumpingReports = async (params = {}) => {
   return dbQuery({
     tableName: 'illegal_dumping_mobile',
