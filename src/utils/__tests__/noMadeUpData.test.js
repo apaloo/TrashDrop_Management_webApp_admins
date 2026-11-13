@@ -49,28 +49,25 @@ describe('message contacts', () => {
 });
 
 describe('pickup requests', () => {
-  it('fails instead of inventing requests when the table is missing', async () => {
-    safeDatabaseService.checkTableExists.mockResolvedValue(false);
-    await expect(fetchPickupRequests()).rejects.toThrow('pickup_requests table is not available');
-    expect(safeDatabaseService.safeQuery).not.toHaveBeenCalled();
+  it('fails instead of inventing requests when the view is missing', async () => {
+    supabase.from.mockImplementation(() => chain({ data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.admin_pickup_requests'" } }));
+    await expect(fetchPickupRequests()).rejects.toThrow('admin_pickup_requests');
   });
 
   it('fails instead of inventing requests when the read fails', async () => {
-    safeDatabaseService.checkTableExists.mockImplementation((t) => Promise.resolve(t === 'pickup_requests'));
-    safeDatabaseService.safeQuery.mockRejectedValue(new Error('Database error with pickup_requests: timeout'));
+    supabase.from.mockImplementation(() => chain({ data: null, error: { message: 'canceling statement due to statement timeout' } }));
     await expect(fetchPickupRequests()).rejects.toThrow('timeout');
   });
 
   it('leaves a request without coordinates off the map instead of placing it in Accra', async () => {
-    safeDatabaseService.checkTableExists.mockImplementation((t) => Promise.resolve(t === 'pickup_requests'));
-    safeDatabaseService.safeQuery.mockResolvedValue({
-      data: [{ id: 'p-1', user_id: null, status: 'pending', created_at: '2026-11-12T10:00:00Z' }], error: null,
-    });
+    supabase.from.mockImplementation(() => chain({
+      data: [{ id: 'p-1', source: 'pickup_requests', user_id: null, status: 'pending', created_at: '2026-11-12T10:00:00Z', lat: null, lng: null }], error: null,
+    }));
     const rows = await fetchPickupRequests();
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ id: 'p-1' });
     expect(rows[0].location?.lat ?? rows[0].lat ?? null).toBeNull();
-    expect(JSON.stringify(rows[0])).not.toMatch(/5\.6037|-0\.187/);
+    expect(JSON.stringify(rows[0])).not.toMatch(/5\.6037|-0\.187|example\.com|Unknown/);
   });
 });
 
