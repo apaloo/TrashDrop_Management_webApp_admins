@@ -87,31 +87,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Function to manually set authenticated status for development purposes
-  const setDevAuth = () => {
-    if (isDevMode()) {
-      const devModeUser = getDevModeUser();
-      if (devModeUser) {
-        logger.log('AuthContext: Setting dev auth state from stored user');
-        setUser(devModeUser);
-        setRole(getEffectiveRole(devModeUser.user_metadata?.role, devModeUser));
-        setOnboardingCompleted(devModeUser.user_metadata?.onboardingCompleted || false);
-        localStorage.setItem('trashdrop_authenticated', 'true');
-        localStorage.setItem('trashdrop_session_active', 'true');
-        localStorage.setItem('trashdrop_user_data', JSON.stringify(devModeUser));
-        
-        if (devModeUser.user_metadata?.onboardingCompleted) {
-          localStorage.setItem('trashdrop_onboarding_completed', 'true');
-        }
-        
-        setAuthInitialized(true);
-        setLoading(false);
-        return true;
-      }
-    }
-    return false;
-  };
-  
   useEffect(() => {
     let isMounted = true;
 
