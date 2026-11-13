@@ -6,7 +6,7 @@
     "src/context/AuthContext.js": 43.6,
     "src/components/ProtectedRoute.js": 96,
     "src/services/accountRoleService.js": 100,
-    "src/services/pickupAdminService.js": 54.9,
+    "src/services/pickupAdminService.js": 98.3,
     "src/services/dumpingAreaService.js": 100,
     "src/utils/databaseUtils.js": 79.5,
     "src/services/bagAdminService.js": 80.3,
