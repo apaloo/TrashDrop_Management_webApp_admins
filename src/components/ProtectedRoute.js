@@ -15,7 +15,7 @@ const Waiting = () => (
 // Protected route component
 // `section` is who may open the area; `capability` narrows a single page inside it.
 const ProtectedRoute = ({ children, section, capability }) => {
-  const { isAuthenticated, loading, authInitialized, role, user, access, accessLoading, forceResetMode } = useAuth();
+  const { isAuthenticated, loading, authInitialized, role, access, accessLoading, forceResetMode } = useAuth();
   const location = useLocation();
   const currentPath = window.location.pathname;
   const isSetupForm = currentPath === '/onboarding';
@@ -59,7 +59,7 @@ const ProtectedRoute = ({ children, section, capability }) => {
 
   // A role without access goes to its own starting page, not to a page it cannot open either
   if ((section && !canAccessSection(section, role)) || (capability && !can(capability, role))) {
-    console.warn('ProtectedRoute: Access denied', { section, capability, role, email: user?.email });
+    console.warn('ProtectedRoute: Access denied', { section, capability, role });
     // Keyed by the navigation: <Navigate> only redirects when it mounts or its
     // target changes, so arriving at the same forbidden page again (the login
     // page sends everyone to /dashboard twice) would otherwise leave it blank.
