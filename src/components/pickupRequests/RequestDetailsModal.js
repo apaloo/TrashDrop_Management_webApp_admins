@@ -218,6 +218,13 @@ const RequestDetailsModal = ({
           </div>
 
           {row.notes && <Field label="Notes">{row.notes}</Field>}
+          {row.customerRating !== null && row.customerRating !== undefined && (
+            <Field label="Household's rating">
+              <span aria-label={`${row.customerRating} out of 5 stars`}>{'★'.repeat(Math.round(row.customerRating))}{'☆'.repeat(Math.max(0, 5 - Math.round(row.customerRating)))}</span>
+              {' '}{row.customerRating}/5{row.ratedAt ? ` · ${fullDate(row.ratedAt)}` : ''}
+              {row.ratingComment && <span className="block font-normal" data-testid="rating-comment">“{row.ratingComment}”</span>}
+            </Field>
+          )}
           {status === 'cancelled' && (
             <Field label="Cancelled">{fullDate(row.cancelledAt)}{row.cancellationReason ? ` · ${row.cancellationReason}` : ''}</Field>
           )}

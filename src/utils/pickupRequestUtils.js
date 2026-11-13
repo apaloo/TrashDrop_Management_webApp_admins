@@ -50,6 +50,8 @@ export const normalizeViewRow = (r) => {
     scheduledDate: r.scheduled_date || null,
     batchId: r.batch_id || null,
     customerRating: num(r.customer_rating),
+    ratedAt: r.rated_at || null,
+    ratingComment: r.rating_comment || null, // staff only; collectors never see comments
     promotionalFee: num(r.promotional_fee),
     payouts: {
       core: num(r.collector_core_payout), urgent: num(r.collector_urgent_payout),
