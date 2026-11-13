@@ -53,17 +53,6 @@ export const fetchNotifications = async ({ userId, limit = 50 } = {}) => {
   });
 };
 
-export const fetchIllegalDumpingReports = async (params = {}) => {
-  return dbQuery({
-    tableName: 'illegal_dumping_mobile',
-    queryFn: async () => supabase
-      .from('illegal_dumping_mobile')
-      .select('*')
-      .order('reported_at', { ascending: false })
-      .limit(params.limit || 100),
-  });
-};
-
 export const getUserContacts = async (userId) => {
   // Real contacts only: on failure the caller shows none and logs the error,
   // never made-up people whose ids lead nowhere.
