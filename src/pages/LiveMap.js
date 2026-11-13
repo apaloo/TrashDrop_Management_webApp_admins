@@ -18,7 +18,7 @@ import {
 } from '../utils/liveMapUtils';
 
 const REFRESH_MS = 30000;
-const REQUEST_LIMIT = 500; // newest rows per request table
+const REQUEST_LIMIT = 500; // newest requests, pickups and digital bins together
 const FIT_OPTIONS = { padding: [40, 40], maxZoom: 15 };
 
 // Theme-aware surfaces (the app's dark mode is driven by these CSS variables)
