@@ -5,7 +5,7 @@
     "src/utils/pickupRequestUtils.js": 98.1,
     "src/context/AuthContext.js": 43.6,
     "src/components/ProtectedRoute.js": 96,
-    "src/services/accountRoleService.js": 35.7,
+    "src/services/accountRoleService.js": 100,
     "src/services/pickupAdminService.js": 54.9,
     "src/services/dumpingAreaService.js": 100,
     "src/utils/databaseUtils.js": 79.5,
