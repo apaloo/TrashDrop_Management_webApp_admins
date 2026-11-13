@@ -86,6 +86,19 @@ describe('details window', () => {
     expect(screen.getByRole('dialog', { name: 'Photo 1 of 1' }).querySelector('img')).toHaveAttribute('src', 'https://x/bin.jpg');
     expect(svc.fetchRequestPhotos).toHaveBeenCalledWith(expect.objectContaining({ id: 'bin-1', source: 'digital_bins' }));
   });
+
+  // Households' ratings (issue #186 in the household repository): staff see the stars and comment
+  it("shows the household's rating and comment of a finished bin", async () => {
+    const bin = normalizeViewRow({ ...base, source: 'digital_bins', id: 'bin-2', status: 'disposed', bin_size_liters: 120,
+      customer_rating: 1, rated_at: '2026-11-13T10:00:00Z', rating_comment: 'Late and rude' });
+    svc.fetchRequestPage.mockResolvedValue({ rows: [bin], total: 1, mode: 'server' });
+    renderPage();
+    await waitFor(() => expect(screen.getAllByTestId('request-row')).toHaveLength(1));
+    fireEvent.click(within(screen.getByTestId('request-row')).getByRole('button', { name: 'Details' }));
+    expect(await screen.findByText("Household's rating")).toBeInTheDocument();
+    expect(screen.getByLabelText('1 out of 5 stars')).toHaveTextContent('★☆☆☆☆');
+    expect(screen.getByTestId('rating-comment')).toHaveTextContent('Late and rude');
+  });
 });
 
 it('counts arrived + collecting as In progress and keeps cards on overall totals', async () => {

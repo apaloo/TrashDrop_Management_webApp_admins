@@ -33,6 +33,7 @@ export const ALERT_TYPES = [
   { key: 'outside_service_area', label: 'Outside service area', entity: 'pickup_request', icon: 'fas fa-draw-polygon' },
   { key: 'duplicate_request',    label: 'Possible duplicate',   entity: 'pickup_request', icon: 'far fa-clone' },
   { key: 'fee_mismatch',         label: 'Fee mismatch',         entity: 'pickup_request', icon: 'fas fa-coins' },
+  { key: 'low_rating',           label: 'Low rating',           entity: 'pickup_request', icon: 'fas fa-star-half-alt' },
   { key: 'collector_offline',    label: 'Collector not reporting', entity: 'collector',   icon: 'fas fa-signal' },
   { key: 'collector_capacity',   label: 'Collector at capacity', entity: 'collector',     icon: 'fas fa-truck-loading' },
   { key: 'invalid_contact',      label: 'Collector contact details', entity: 'collector', icon: 'fas fa-address-card' },
@@ -92,6 +93,9 @@ export const ALERT_RULES = [
   { key: 'fee_mismatch', label: 'Fee doesn\'t match the pricing', priority: 'Low', type: 'fee_mismatch',
     params: [{ key: 'days', label: 'Check requests from last (days)', min: 1 }] },
   { key: 'invalid_contact', label: 'Collector with invalid email or phone', priority: 'Low', type: 'invalid_contact', params: [] },
+  // Households' ratings (issue #186 in the household repository; owner 2026-11-13)
+  { key: 'low_rating', label: 'Household rated the collector low', priority: 'High (1 star), Medium (2 stars)', type: 'low_rating',
+    params: [{ key: 'max_stars', label: 'Alert at or below (stars)', min: 1, max: 4 }] },
 ];
 export const GENERAL_RULE_KEY = '_general';
 
