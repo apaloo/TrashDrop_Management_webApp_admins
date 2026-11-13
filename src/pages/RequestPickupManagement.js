@@ -49,7 +49,7 @@ const RequestPickupManagement = () => {
 
   const [collectors, setCollectors] = useState([]);
   const [summaryRows, setSummaryRows] = useState(null);
-  const [pageData, setPageData] = useState(null); // { rows, total, mode }
+  const [pageData, setPageData] = useState(null); // { rows, total }
   const [tableLoading, setTableLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [searchText, setSearchText] = useState(filters.q);
@@ -384,7 +384,7 @@ const RequestPickupManagement = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[28px] leading-tight font-bold text-td-ink">Pickup Requests</h1>
-          <p className="text-sm" style={muted}>Requests, digital bins and scheduled pickups{pageData?.mode === 'browser' ? ' · loaded in the browser (run migration 20261015 for server paging)' : ''}</p>
+          <p className="text-sm" style={muted}>Requests and digital bins</p>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={refreshAll} className="px-3 py-2 rounded border text-sm" style={{ ...border, ...card }}>

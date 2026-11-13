@@ -1,8 +1,7 @@
 import { supabase } from './supabase';
 
 /**
- * Pickup requests for the Live Map (and the Pickup Requests page's old
- * browser-side fallback), read from the admin_pickup_requests view: pickup
+ * Pickup requests for the Live Map, read from the admin_pickup_requests view: pickup
  * requests and digital bins in one query, with the customer, address,
  * position and collector already joined in the database. The view is
  * security_invoker, so each table's access rules still apply.
