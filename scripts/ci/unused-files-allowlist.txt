@@ -1,0 +1,3 @@
+# Source files the unused-files check can't see being used (scripts/ci/check-unused-files.cjs).
+# One path per line, then " # " and why it stays. Remove an entry when its file goes.
+src/lib/usePermission.js # the role-permission hook, kept with src/lib/permissions.js (td_capability_roles stays in this repository)
