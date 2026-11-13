@@ -1,7 +1,6 @@
 // The Live Map's request loader: one read of the admin_pickup_requests view,
 // plus sign-in emails for customers the view can't name.
 import { fetchPickupRequests, toMapRequest } from '../pickupService';
-import { normalizeLoaderRow } from '../pickupRequestUtils';
 
 // Every call is recorded as [method, ...args]; mockAnswer decides results.
 let mockCalls = [];
@@ -84,14 +83,5 @@ describe('toMapRequest', () => {
   test('unassigned and unplaced requests stay empty, not invented', () => {
     const r = toMapRequest({ id: 7, status: null, lat: null, lng: null });
     expect(r).toMatchObject({ id: '7', status: 'pending', collectorId: null, assignedTo: null, location: { address: null, lat: null, lng: null } });
-  });
-
-  test('still feeds the Pickup Requests page fallback (normalizeLoaderRow)', () => {
-    const row = normalizeLoaderRow(toMapRequest(bin), [{ id: 'cp1', userId: 'cu1', name: 'Kofi Mensah' }]);
-    expect(row).toMatchObject({
-      id: 'b1', source: 'digital_bins', address: 'Spintex Road', lat: 5.64, lng: -0.11, bags: 2, fee: 31,
-      customer: { id: 'u1', name: 'Ama Owusu', email: 'ama@example.org', phone: '+233200000001' },
-      collectorProfileId: 'cp1', collectorName: 'Kofi Mensah',
-    });
   });
 });

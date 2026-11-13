@@ -58,53 +58,6 @@ export const normalizeViewRow = (r) => {
   };
 };
 
-/** Row from fetchPickupRequests({ strict: true }) (used until the view exists) */
-export const normalizeLoaderRow = (req, collectors = []) => {
-  const ref = req.collectorId || req.assignedTo?.id || null;
-  const collector = ref ? collectors.find(c => String(c.userId) === String(ref) || String(c.id) === String(ref)) : null;
-  const pos = validateCoordinates(req.location?.lat, req.location?.lng);
-  const address = req.location?.address && req.location.address !== 'Unknown Location' ? req.location.address : null;
-  return {
-    id: String(req.id),
-    source: req.source || 'pickup_requests',
-    status: req.status || 'pending',
-    createdAt: req.requestTime || null,
-    updatedAt: null,
-    customer: {
-      id: req.requestedBy?.id && req.requestedBy.id !== 'customer-unknown' ? req.requestedBy.id : null,
-      name: req.requestedBy?.name && req.requestedBy.name !== 'Unknown Customer' ? req.requestedBy.name : null,
-      email: req.requestedBy?.email && req.requestedBy.email !== 'unknown@example.com' ? req.requestedBy.email : null,
-      phone: req.requestedBy?.phone && req.requestedBy.phone !== 'N/A' ? req.requestedBy.phone : null,
-    },
-    address,
-    lat: pos.valid ? pos.lat : null,
-    lng: pos.valid ? pos.lng : null,
-    locationIssue: pos.valid ? null : pos.reason,
-    wasteType: req.wasteType || 'general',
-    bags: num(req.bags),
-    binSizeLiters: num(req.binSizeLiters),
-    fee: num(req.fee),
-    isUrgent: !!req.isUrgent,
-    priority: normalizePriority(req.isUrgent ? 'high' : null, req.isUrgent),
-    collectorRef: ref,
-    collectorUserId: collector?.userId || null,
-    collectorProfileId: collector?.id || null,
-    collectorName: collector?.name || req.collectorName || null,
-    acceptedAt: req.acceptedAt || null,
-    completedAt: req.collectedAt || null,
-    cancelledAt: null,
-    cancellationReason: null,
-    notes: req.notes || null,
-    scheduledDate: req.scheduledDate || null,
-    batchId: null,
-    customerRating: num(req.collectorRating),
-    promotionalFee: null,
-    payouts: { core: null, urgent: null, distance: null, total: num(req.collectorPayout), platform: null },
-  };
-};
-
-/* ── display ────────────────────────────────────────────────────────────── */
-
 export const shortId = (id) => String(id || '').slice(0, 8);
 
 export const bagsLabel = (n) => {

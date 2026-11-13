@@ -3,39 +3,22 @@
  *
  * Reads go through the admin_pickup_requests view (supabase/migrations/
  * 20261015_pickup_requests_admin.sql): server-side paging, sorting, filters
- * and exact counts over pickup_requests, digital_bins and scheduled_pickups.
- * Until that migration is run, everything falls back to the existing loader
- * and is filtered in the browser.
+ * and exact counts over pickup_requests and digital_bins. A failed read
+ * throws; there is no browser-side fallback any more (removed 2026-11-13,
+ * when the view had long been in production).
  *
  * Writes go to the row's own table and throw on any error; nothing is ever
  * reported as saved when it wasn't.
  */
 import { supabase } from '../utils/supabase';
 import { logFailure } from './auditLogService';
-import { fetchPickupRequests } from '../utils/pickupService';
 import {
-  PAGE_SIZE, normalizeViewRow, normalizeLoaderRow, applyFilters, sortRows, statusFilterValues, requestDateBounds,
+  PAGE_SIZE, normalizeViewRow, sortRows, statusFilterValues, requestDateBounds,
 } from '../utils/pickupRequestUtils';
 import { canTransition, canonicalStatus, dbStatusFor, statusLabel, rawValuesForGroup, IN_PROGRESS_STATUSES } from '../constants/pickupStatus';
 
 const VIEW = 'admin_pickup_requests';
 const TABLES = { pickup_requests: 'pickup_requests', digital_bins: 'digital_bins', scheduled_pickups: 'scheduled_pickups' };
-
-let viewAvailable = null; // null = unknown, then true/false for this session
-
-const isMissingView = (error) => {
-  const text = `${error?.code || ''} ${error?.message || ''}`;
-  return /42P01|PGRST205|PGRST200|does not exist|Could not find the table/i.test(text) && text.includes(VIEW);
-};
-
-/* ── fallback: load everything once, filter in the browser ─────────────── */
-let fallbackCache = { at: 0, rows: [] };
-const loadAllFallback = async (collectors, { force = false } = {}) => {
-  if (!force && Date.now() - fallbackCache.at < 15000) return fallbackCache.rows;
-  const raw = await fetchPickupRequests({ limit: 1000 });
-  fallbackCache = { at: Date.now(), rows: raw.map(r => normalizeLoaderRow(r, collectors)) };
-  return fallbackCache.rows;
-};
 
 const SORT_COLUMNS = { created_at: 'created_at', status: 'status_rank', fee: 'fee', priority: 'priority_rank' };
 const cleanSearch = (q) => String(q || '').trim().replace(/[,()*%\\]/g, ' ').trim();
@@ -59,77 +42,49 @@ const applyServerFilters = (query, f) => {
  * One page of requests.
  * @returns {Promise<{ rows: object[], total: number, mode: 'server'|'browser' }>}
  */
-export const fetchRequestPage = async (filters, collectors = [], { force = false } = {}) => {
+export const fetchRequestPage = async (filters) => {
   const page = Math.max(1, Number(filters.page) || 1);
-  if (viewAvailable !== false) {
-    let query = supabase.from(VIEW).select('*', { count: 'exact' });
-    query = applyServerFilters(query, filters);
-    const col = SORT_COLUMNS[filters.sort] || 'created_at';
-    query = query.order(col, { ascending: filters.dir === 'asc', nullsFirst: false }).order('created_at', { ascending: false });
-    const { data, error, count } = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
-    if (!error) {
-      viewAvailable = true;
-      return { rows: (data || []).map(normalizeViewRow), total: count ?? 0, mode: 'server' };
-    }
-    if (!isMissingView(error)) throw error;
-    viewAvailable = false;
-  }
-  const all = await loadAllFallback(collectors, { force });
-  const filtered = sortRows(applyFilters(all, filters), filters.sort, filters.dir);
-  return { rows: filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), total: filtered.length, mode: 'browser' };
+  let query = supabase.from(VIEW).select('*', { count: 'exact' });
+  query = applyServerFilters(query, filters);
+  const col = SORT_COLUMNS[filters.sort] || 'created_at';
+  query = query.order(col, { ascending: filters.dir === 'asc', nullsFirst: false }).order('created_at', { ascending: false });
+  const { data, error, count } = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (error) throw error;
+  return { rows: (data || []).map(normalizeViewRow), total: count ?? 0 };
 };
 
 /** Every row matching the filters (CSV export) */
-export const fetchAllMatching = async (filters, collectors = []) => {
-  if (viewAvailable) {
-    const out = [];
-    for (let from = 0; ; from += 1000) {
-      let query = applyServerFilters(supabase.from(VIEW).select('*'), filters);
-      const { data, error } = await query.order('created_at', { ascending: false }).range(from, from + 999);
-      if (error) throw error;
-      out.push(...(data || []).map(normalizeViewRow));
-      if (!data || data.length < 1000) break;
-    }
-    return sortRows(out, filters.sort, filters.dir);
+export const fetchAllMatching = async (filters) => {
+  const out = [];
+  for (let from = 0; ; from += 1000) {
+    const query = applyServerFilters(supabase.from(VIEW).select('*'), filters);
+    const { data, error } = await query.order('created_at', { ascending: false }).range(from, from + 999);
+    if (error) throw error;
+    out.push(...(data || []).map(normalizeViewRow));
+    if (!data || data.length < 1000) break;
   }
-  return sortRows(applyFilters(await loadAllFallback(collectors), filters), filters.sort, filters.dir);
+  return sortRows(out, filters.sort, filters.dir);
 };
 
 /**
  * Light rows for the overall stats cards, collector job counts and
- * duplicate checks (all requests, unfiltered).
+ * duplicate checks (all requests, unfiltered). fee, payout and rating feed
+ * collectorJobCounts().
  */
-const SUMMARY_COLUMNS = [
-  // fee, payout and rating feed collectorJobCounts(); customer_rating needs the latest view
-  'id, source, status, created_at, user_id, customer_name, address, lat, lng, bag_count, fee, priority, is_urgent, collector_ref, collector_profile_id, collector_user_id, completed_at, collector_total_payout, customer_rating',
-  'id, source, status, created_at, user_id, customer_name, address, lat, lng, bag_count, fee, priority, is_urgent, collector_ref, collector_profile_id, collector_user_id, completed_at, collector_total_payout',
-];
+const SUMMARY_COLUMNS = 'id, source, status, created_at, user_id, customer_name, address, lat, lng, bag_count, fee, priority, is_urgent, collector_ref, collector_profile_id, collector_user_id, completed_at, collector_total_payout, customer_rating';
 
-export const fetchSummaryRows = async (collectors = []) => {
-  if (viewAvailable === null) {
-    // Not probed yet (the Collectors page has no table query): check the view exists
-    const { error } = await supabase.from(VIEW).select('id').limit(1);
-    if (error && !isMissingView(error)) throw error;
-    viewAvailable = !error;
+export const fetchSummaryRows = async () => {
+  const out = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from(VIEW)
+      .select(SUMMARY_COLUMNS)
+      .order('created_at', { ascending: false })
+      .range(from, from + 999);
+    if (error) throw error;
+    out.push(...(data || []).map(normalizeViewRow));
+    if (!data || data.length < 1000) break;
   }
-  if (viewAvailable) {
-    for (const columns of SUMMARY_COLUMNS) {
-      const out = [];
-      let failed = null;
-      for (let from = 0; ; from += 1000) {
-        const { data, error } = await supabase.from(VIEW)
-          .select(columns)
-          .order('created_at', { ascending: false })
-          .range(from, from + 999);
-        if (error) { failed = error; break; }
-        out.push(...(data || []).map(normalizeViewRow));
-        if (!data || data.length < 1000) break;
-      }
-      if (!failed) return out;
-      if (columns === SUMMARY_COLUMNS[SUMMARY_COLUMNS.length - 1]) throw failed;
-    }
-  }
-  return loadAllFallback(collectors);
+  return out;
 };
 
 /** Pending requests with no collector, for assigning */
@@ -216,7 +171,6 @@ const update = async (row, payload) => {
       context: { table, attempted: payload } });
     throw new Error(failure.message || 'Update failed');
   }
-  fallbackCache.at = 0;
   return data[0];
 };
 
