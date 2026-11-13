@@ -3,7 +3,7 @@
   "total": 50.9,
   "files": {
     "src/utils/pickupRequestUtils.js": 98.1,
-    "src/context/AuthContext.js": 43.6,
+    "src/context/AuthContext.js": 56.3,
     "src/components/ProtectedRoute.js": 96,
     "src/services/accountRoleService.js": 100,
     "src/services/pickupAdminService.js": 98.3,
