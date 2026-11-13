@@ -17,7 +17,8 @@ const SECTIONS = [
     <p><strong>Illegal dumping reports.</strong> The photos you take, the location, the waste type, the severity, any description, and the date and time.</p>
     <p><strong>QR bags.</strong> The bag codes you scan and when.</p>
     <p><strong>Rewards.</strong> Your points, what you earned them for, the rewards you redeem, and the phone number and mobile network you give us for airtime or data.</p>
-    <p><strong>Collectors.</strong> If you work as a TrashDrop collector: your identity and vehicle details, the documents and photos you upload during sign-up, your location while you are on duty, the jobs you accept and complete, and your earnings.</p>
+    <p><strong>Ratings.</strong> If you rate your collector after a pickup: the stars you give (1 to 5), any comment, and when you gave it.</p>
+    <p><strong>Collectors.</strong> If you work as a TrashDrop collector: your identity and vehicle details, the documents and photos you upload during sign-up, your location while you are on duty, the jobs you accept and complete, your earnings, and the ratings households give you.</p>
     <p><strong>Settings and device.</strong> Your app settings (such as dark mode and larger text), and basic technical information your browser sends, such as device type and error reports.</p>
   </>) },
   { id:'how-we-use-it', title:'How we use it', body:(<>
@@ -25,6 +26,7 @@ const SECTIONS = [
       <li>To run the service: match pickups with collectors, show collectors where to go, track pickups, price Digital Bin requests and record payments.</li>
       <li>To pass illegal dumping reports to the cleanup teams and authorities who deal with them, and to verify reports before they earn points.</li>
       <li>To keep your points and send the rewards you redeem.</li>
+      <li>To check the quality of the service: ratings help us recognise good collectors and follow up on poor service.</li>
       <li>To keep your account secure, prevent fraud and misuse (for example made-up reports), and fix problems.</li>
       <li>To contact you about your pickups, reports, rewards and account.</li>
       <li>To produce statistics about waste and illegal dumping. Statistics we publish never identify you.</li>
@@ -35,6 +37,7 @@ const SECTIONS = [
   { id:'who-sees-it', title:'Who sees your information', body:(<>
     <ul>
       <li><strong>Collectors</strong> see what they need to do a pickup: your pickup location and the details of the request.</li>
+      <li><strong>Ratings</strong> and their comments are seen by TrashDrop staff. A collector sees only their own average rating, never individual ratings, comments or who gave them.</li>
       <li><strong>Illegal dumping reports</strong> (photos, location, waste type) are seen by our team, the volunteer groups and cleanup teams working on that site, and the district assembly (MMDA) for that area. TrashDrop staff and district assembly officials may also see who sent a report so they can follow up. Media partners see report data without the reporter's details.</li>
       <li><strong>Service providers</strong> who host and run TrashDrop for us: Supabase (database, sign-in and file storage), Netlify (website hosting), Google (Sign in with Google, if you use it) and map providers (map tiles). They process data only on our instructions.</li>
       <li><strong>Mobile networks</strong> receive the phone number we top up when we send airtime or data you redeemed.</li>
@@ -47,6 +50,7 @@ const SECTIONS = [
   </>) },
   { id:'cookies', title:'Cookies and storage on your device', body:(<>
     <p>Our websites and apps store a few things in your browser so they work: your sign-in session, your settings, and copies of pages and data so the app opens quickly and works offline. These are needed for the service and are not used for advertising. We do not use advertising or cross-site tracking cookies.</p>
+    <p>When you sign out of the household app, it removes your saved Digital Bins and QR codes from the device, so the next person who uses the phone doesn't see them.</p>
     <p>You can clear them in your browser settings at any time. You will then be signed out.</p>
   </>) },
   { id:'how-long', title:'How long we keep it', body:(<>
@@ -80,7 +84,7 @@ const PrivacyPage = () => (
     eyebrow="Legal"
     metaTitle="Privacy Policy | TrashDrop"
     description="How TrashDrop (Infobrix Limited) collects, uses, shares and protects personal data in the TrashDrop website, household app and collector app, and your rights under Ghana's Data Protection Act."
-    updated="30 October 2026"
+    updated="13 November 2026"
     intro="This policy explains what personal data TrashDrop collects when you use our website and apps, what we do with it, who sees it, and the choices and rights you have."
     sections={SECTIONS}
   />
