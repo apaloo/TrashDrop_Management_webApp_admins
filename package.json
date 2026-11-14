@@ -49,6 +49,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:test": "start-server-and-test start http://localhost:3000 cy:run",
+    "test:browser": "playwright test",
     "prepare": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true') { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\""
   },
   "eslintConfig": {
@@ -99,6 +100,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@sparticuz/chromium": "121.0.0",
     "@testing-library/cypress": "^9.0.0",
     "@testing-library/react-hooks": "^7.0.2",

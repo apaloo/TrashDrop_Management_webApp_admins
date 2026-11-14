@@ -115,3 +115,48 @@ jobs:
           shopt -s nullglob
           files=(supabase/functions/*/*.test.mjs)
           node --experimental-strip-types --test "${files[@]}"
+
+  # The built site in a real browser (Chromium, laptop screen) against a fake
+  # Supabase (browser-tests/fakeSupabase.mjs): the public home page, signing
+  # in, and what an ordinary account and an admin may see (least privilege).
+  # vite build only, as above (the pre-render isn't needed). Placeholder
+  # Supabase settings: nothing reaches a real project. Report kept 14 days.
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: 1
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build with placeholder Supabase settings
+        env:
+          REACT_APP_SUPABASE_URL: https://ci-placeholder.supabase.co
+          REACT_APP_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
+        run: npx vite build
+
+      - name: Browser tests
+        env:
+          CI: true
+        run: npm run test:browser
+
+      - name: Keep the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
