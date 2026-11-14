@@ -28,7 +28,7 @@ The TrashDrop Management WebApp Admin Portal allows administrators to manage var
 - Supabase for backend and authentication
 - React Router v6 for navigation
 - Chart.js for data visualization
-- Cypress for end-to-end testing
+- Playwright for browser tests (`browser-tests/`, against a fake Supabase)
 
 ## Development Setup
 
@@ -67,9 +67,9 @@ Launches Jest in watch mode (`jest.config.js`, the same set-up Create React App 
 
 Builds the app for production to the `build` folder, then pre-renders the public pages (`scripts/prerender.js`; `PRERENDER_SKIP=1` skips it). `npm run preview` serves the build.
 
-#### `npm run cy:open`
+#### `npm run test:browser`
 
-Opens the Cypress test runner for end-to-end testing.
+Runs the browser tests (Playwright, `browser-tests/`) against a build made with the placeholder Supabase settings (`REACT_APP_SUPABASE_URL=https://ci-placeholder.supabase.co REACT_APP_SUPABASE_ANON_KEY=sb_publishable_ci_placeholder npx vite build`). They use a fake Supabase, never the real one; CI runs them on every pull request.
 
 ## Project Structure
 
@@ -77,7 +77,7 @@ Opens the Cypress test runner for end-to-end testing.
 - `/src/components`: Reusable UI components
 - `/src/context`: React context providers
 - `/src/utils`: Utility functions including auth and Supabase client
-- `/cypress`: End-to-end tests
+- `/browser-tests`: Browser tests (Playwright)
 
 ## Current Status
 
