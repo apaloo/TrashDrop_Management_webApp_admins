@@ -119,13 +119,6 @@ const logger = {
       console.timeEnd(label);
     }
   },
-
-  /**
-   * Check if logging is enabled at a specific level
-   */
-  isEnabled: (level = 'DEBUG') => {
-    return currentLevel <= LOG_LEVELS[level];
-  },
 };
 
 export default logger;

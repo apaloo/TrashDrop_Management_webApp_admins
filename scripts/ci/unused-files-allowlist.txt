@@ -2,4 +2,3 @@
 # One path per line, then " # " and why it stays. Remove an entry when its file goes.
 src/lib/usePermission.js # the role-permission hook, kept with src/lib/permissions.js (td_capability_roles stays in this repository)
 src/lib/usePermission.js:* # the role-permission hooks, kept with src/lib/permissions.js (td_capability_roles stays in this repository)
-src/utils/logger.js:logger.isEnabled # nothing calls it; removed by admin #163, waiting for the owner (it deletes code)
