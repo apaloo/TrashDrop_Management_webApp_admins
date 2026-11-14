@@ -174,11 +174,13 @@ async function main() {
   fs.writeFileSync(path.join(BUILD_DIR, SHELL_NAME), shellHtml.replace(robotsMeta, '<meta name="robots" content="noindex"/>'));
   fs.writeFileSync(path.join(BUILD_DIR, BLOG_SHELL_NAME), shellHtml);
 
-  // Required lazily so `npm run build` still works without them when skipped.
+  // Loaded lazily so `npm run build` still works without them when skipped.
   // @sparticuz/chromium ships the browser inside the npm package, so the build
-  // doesn't depend on a Chrome download at install time.
-  const puppeteer = require('puppeteer-core');
-  const chromium = require('@sparticuz/chromium');
+  // doesn't depend on a Chrome download at install time. Both are ES modules
+  // (puppeteer-core 22+), so import() rather than require(): require() of an
+  // ES module fails on Node 22 before 22.12 (ERR_REQUIRE_ESM).
+  const { default: puppeteer } = await import('puppeteer-core');
+  const { default: chromium } = await import('@sparticuz/chromium');
   const server = await startServer(shellHtml);
   const origin = `http://127.0.0.1:${server.address().port}`;
   const browser = await puppeteer.launch({

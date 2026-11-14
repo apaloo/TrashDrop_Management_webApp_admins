@@ -6,9 +6,10 @@
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
-  # Node 22 matches CI (Node 20 reached end of life in April 2026). The build and the
-  # prerender step (puppeteer-core 21, @sparticuz/chromium 121) were checked on 20.
-  NODE_VERSION = "22"
+  # Node 22 matches CI (Node 20 reached end of life in April 2026). At least 22.17:
+  # the prerender step's @sparticuz/chromium 153 requires it (and puppeteer-core 25
+  # needs 22.12+); checked with the full build on 22.17 and 22.23.
+  NODE_VERSION = "22.17"
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "true"  # This is used by npm install/prepare script for Husky skip
   # The Supabase project URL is public (it ships in the JS bundle), so a
