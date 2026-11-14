@@ -46,9 +46,6 @@
     "test:ci": "node scripts/ci/run-tests.js",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",
-    "cy:open": "cypress open",
-    "cy:run": "cypress run",
-    "cy:test": "start-server-and-test start http://localhost:3000 cy:run",
     "test:browser": "playwright test",
     "prepare": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true') { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\""
   },
@@ -102,13 +99,11 @@
   "devDependencies": {
     "@playwright/test": "1.63.0",
     "@sparticuz/chromium": "121.0.0",
-    "@testing-library/cypress": "^9.0.0",
     "@testing-library/react-hooks": "^7.0.2",
     "@vitejs/plugin-react": "^4.7.0",
     "babel-jest": "^27.5.1",
     "babel-preset-react-app": "^10.1.0",
     "camelcase": "^6.3.0",
-    "cypress": "^12.17.4",
     "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
     "husky": "^9.1.7",
@@ -117,7 +112,6 @@
     "puppeteer-core": "21.11.0",
     "react-app-polyfill": "^3.0.0",
     "react-test-renderer": "^18.3.1",
-    "start-server-and-test": "^2.1.5",
     "vite": "^6.4.6"
   }
 }

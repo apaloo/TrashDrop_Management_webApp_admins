@@ -167,13 +167,12 @@ For development environments:
 2. Set appropriate development values
 3. Use `REACT_APP_USE_DEV_AUTH=true` if needed
 
-## Cypress Testing Considerations
+## Browser Tests
 
-When running Cypress tests:
-
-1. Create a `.env.test` file for test-specific configurations
-2. In Cypress configuration, ensure that environment variables are appropriately mocked
-3. Update HTML fixtures if they reference hardcoded values that have been migrated to configuration
+The browser tests (`browser-tests/`, Playwright) build with the placeholder
+Supabase settings and answer every Supabase call with a fake
+(`browser-tests/fakeSupabase.mjs`), so they need no `.env.test` and never reach
+a real project. Cypress was removed on 2026-11-14.
 
 ## Additional Resources
 
